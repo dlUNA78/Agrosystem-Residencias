@@ -1,0 +1,32 @@
+{
+  "name": "agrosystem-residencias",
+  "version": "1.0.0",
+  "description": "La idea principal del proyecto es pasar del papel, a un sistema automatizado, actualmente el INIFAP hace sus registros en papel, llevando a mano, la lista de plagas, cultivos, terrenos, productos validados por el inifap, entre otras cosas.",
+  "main": "index.js",
+ "scripts": {
+    "dev:css": "npx @tailwindcss/cli -i ./public/css/input.css -o ./public/css/style.css --watch",
+    "dev:server": "nodemon app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dlUNA78/Agrosystem-Residencias.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dlUNA78/Agrosystem-Residencias/issues"
+  },
+  "homepage": "https://github.com/dlUNA78/Agrosystem-Residencias#readme",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.100.0",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "express-hbs": "^2.5.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.2.2",
+    "nodemon": "^3.1.14",
+    "tailwindcss": "^4.2.2"
+  }
+}

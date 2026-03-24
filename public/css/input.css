@@ -1,0 +1,8 @@
+/* public/css/input.css */
+@import "tailwindcss";
+
+/* ¡Aquí mismo configuras tus colores personalizados en v4! */
+@theme {
+  --color-agro-primary: #1B5E20;
+  --color-agro-secondary: #C6FF00;
+}

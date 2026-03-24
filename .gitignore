@@ -1,0 +1,23 @@
+# Dependencias
+node_modules/
+
+# Archivos de variables de entorno (¡Crítico para la seguridad!)
+.env
+.env.local
+
+# Archivos de logs (ignora cualquier archivo que termine en .log)
+*.log
+npm-debug.log*
+
+# Archivos del sistema operativo
+.DS_Store
+Thumbs.db
+
+# Configuraciones de editores de código (IDEs)
+.vscode/
+.idea/
+
+# Carpetas de compilación o producción
+dist/
+build/
+out/
