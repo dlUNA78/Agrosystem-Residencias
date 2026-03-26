@@ -1,8 +1,19 @@
 /* public/css/input.css */
 @import "tailwindcss";
 
-/* ¡Aquí mismo configuras tus colores personalizados en v4! */
 @theme {
-  --color-agro-primary: #1B5E20;
-  --color-agro-secondary: #C6FF00;
+  /* Paleta de Colores Agrosystem */
+  --color-agro-primary: #0F2E2E;    /* Verde esmeralda profundo institucional */
+  --color-agro-secondary: #43655c;  /* Verde medio para estados y acentos */
+  --color-agro-surface: #F9F9F9;    /* Fondo claro para tarjetas y secciones */
+  --color-agro-border: #ACB3B4;     /* Color de bordes y separadores sutiles */
+  
+  /* Tipografía */
+  --font-manrope: "Manrope", sans-serif;
+  
+  /* Radios de Borde (Atomicidad de 8px) */
+  --radius-agro: 8px;
+  
+  /* Sombras Personalizadas */
+  --shadow-agro-card: 0 20px 40px rgba(45, 52, 53, 0.06);
 }
