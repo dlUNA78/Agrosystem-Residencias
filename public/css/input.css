@@ -1,19 +1,83 @@
-/* public/css/input.css */
 @import "tailwindcss";
+@source "../../src/views/**/*.hbs";
 
 @theme {
-  /* Paleta de Colores Agrosystem */
-  --color-agro-primary: #0F2E2E;    /* Verde esmeralda profundo institucional */
-  --color-agro-secondary: #43655c;  /* Verde medio para estados y acentos */
-  --color-agro-surface: #F9F9F9;    /* Fondo claro para tarjetas y secciones */
-  --color-agro-border: #ACB3B4;     /* Color de bordes y separadores sutiles */
-  
-  /* Tipografía */
-  --font-manrope: "Manrope", sans-serif;
-  
-  /* Radios de Borde (Atomicidad de 8px) */
-  --radius-agro: 8px;
-  
-  /* Sombras Personalizadas */
-  --shadow-agro-card: 0 20px 40px rgba(45, 52, 53, 0.06);
+  /* ── Colores primarios ── */
+  --color-primary:                   #43655c;
+  --color-on-primary:                #ddfff4;
+  --color-primary-container:         #c5eadf;
+  --color-on-primary-container:      #36584f;
+  --color-primary-fixed:             #c5eadf;
+  --color-primary-fixed-dim:         #b7dcd1;
+  --color-on-primary-fixed:          #24453d;
+  --color-on-primary-fixed-variant:  #406259;
+  --color-primary-dim:               #375950;
+  --color-inverse-primary:           #d9fff2;
+  --color-surface-tint:              #43655c;
+
+  /* ── Colores secundarios ── */
+  --color-secondary:                  #50635f;
+  --color-on-secondary:               #e8fdf8;
+  --color-secondary-container:        #d2e7e2;
+  --color-on-secondary-container:     #435552;
+  --color-secondary-fixed:            #d2e7e2;
+  --color-secondary-fixed-dim:        #c4d9d4;
+  --color-on-secondary-fixed:         #30433f;
+  --color-on-secondary-fixed-variant: #4c5f5b;
+  --color-secondary-dim:              #445753;
+
+  /* ── Colores terciarios ── */
+  --color-tertiary:                   #4a6552;
+  --color-on-tertiary:                #e7ffea;
+  --color-tertiary-container:         #d9f9df;
+  --color-on-tertiary-container:      #45604d;
+  --color-tertiary-fixed:             #d9f9df;
+  --color-tertiary-fixed-dim:         #cbead1;
+  --color-on-tertiary-fixed:          #334e3b;
+  --color-on-tertiary-fixed-variant:  #4f6b57;
+  --color-tertiary-dim:               #3e5946;
+
+  /* ── Error ── */
+  --color-error:             #9f403d;
+  --color-on-error:          #fff7f6;
+  --color-error-container:   #fe8983;
+  --color-on-error-container: #752121;
+  --color-error-dim:         #4e0309;
+
+  /* ── Superficies ── */
+  --color-background:                  #f9f9f9;
+  --color-on-background:               #2d3435;
+  --color-surface:                     #f9f9f9;
+  --color-surface-dim:                 #d3dbdd;
+  --color-surface-bright:              #f9f9f9;
+  --color-surface-variant:             #dde4e5;
+  --color-surface-container-lowest:    #ffffff;
+  --color-surface-container-low:       #f2f4f4;
+  --color-surface-container:           #ebeeef;
+  --color-surface-container-high:      #e4e9ea;
+  --color-surface-container-highest:   #dde4e5;
+  --color-inverse-surface:             #0c0f0f;
+
+  /* Aliases cortos usados en las vistas */
+  --color-surface-low:   #f2f4f4;
+  --color-surface-high:  #e4e9ea;
+
+  /* ── Texto ── */
+  --color-on-surface:          #2d3435;
+  --color-on-surface-variant:  #596061;
+  --color-inverse-on-surface:  #9c9d9d;
+
+  /* ── Contornos ── */
+  --color-outline:         #757c7d;
+  --color-outline-variant: #acb3b4;
+
+  /* ── Tipografía ── */
+  --font-display:  'Manrope', sans-serif;   /* headline */
+  --font-body:     'Inter', sans-serif;
+
+  /* ── Radios ── */
+  --radius-sm:   0.25rem;   /* DEFAULT */
+  --radius-md:   0.5rem;    /* lg */
+  --radius-lg:   0.75rem;   /* xl */
+  --radius-full: 9999px;
 }
