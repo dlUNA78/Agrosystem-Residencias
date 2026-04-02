@@ -1,11 +1,9 @@
-'use strict';
+import express from 'express';
+import { homeIndex } from '../controllers/homePublicController.js';
 
-const express = require('express');
-const router  = express.Router();
-
-const { homeIndex } = require('../controllers/homePublicController');
+const router = express.Router();
 
 // GET /  →  Página de inicio pública
 router.get('/', homeIndex);
 
-module.exports = router;
+export default router;

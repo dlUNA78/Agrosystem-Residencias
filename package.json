@@ -1,8 +1,9 @@
 {
   "name": "agrosystem-residencias",
   "version": "1.0.0",
+  "type": "module",
   "description": "La idea principal del proyecto es pasar del papel, a un sistema automatizado, actualmente el INIFAP hace sus registros en papel, llevando a mano, la lista de plagas, cultivos, terrenos, productos validados por el inifap, entre otras cosas.",
-  "main": "index.js",
+  "main": "app.js",
  "scripts": {
     "dev:css": "npx @tailwindcss/cli -i ./public/css/input.css -o ./public/css/style.css --watch",
     "dev:server": "nodemon app.js"

@@ -1,24 +1,20 @@
-'use strict';
-
 /**
  * Controlador para la página de inicio pública (home-public.hbs).
  * Aquí se preparan todos los datos que la vista necesita renderizar.
  */
 
-const homeIndex = (req, res) => {
-    // Datos para la sección Hero
-    const heroImage = '/img/hero-agrosystem.jpg';
-    const certYear  = new Date().getFullYear();
+export const homeIndex = (req, res) => {
+    const heroImage  = '/img/hero-agrosystem.jpg';
+    const certYear   = new Date().getFullYear();
+    const currentYear = certYear;
 
-    // Estadísticas de la plataforma
     const stats = [
-        { icon: '🐛', value: '1.2k', label: 'Plagas registradas'     },
-        { icon: '🌱', value: '450',  label: 'Cultivos documentados'   },
-        { icon: '🧴', value: '800',  label: 'Productos catalogados'   },
-        { icon: '👥', value: '3.5k', label: 'Usuarios activos'        },
+        { icon: '🐛', value: '1.2k', label: 'Plagas registradas'   },
+        { icon: '🌱', value: '450',  label: 'Cultivos documentados' },
+        { icon: '🧴', value: '800',  label: 'Productos catalogados' },
+        { icon: '👥', value: '3.5k', label: 'Usuarios activos'      },
     ];
 
-    // Tendencias de búsqueda
     const trends = [
         'Riego por goteo',
         'Control de roya',
@@ -26,7 +22,6 @@ const homeIndex = (req, res) => {
         'Mosca blanca',
     ];
 
-    // Últimas conversaciones del foro (en producción vendrían de la BD)
     const recentThreads = [
         {
             slug:    'como-combatir-la-mosca-blanca',
@@ -54,18 +49,15 @@ const homeIndex = (req, res) => {
         },
     ];
 
-    // Renderizar la vista pasando todos los datos
     res.render('public/home-public', {
-        layout:        'main',
-        pageTitle:     'Inicio',
-        activePage:    'home',
+        layout:      'main',
+        pageTitle:   'Inicio',
+        activePage:  'home',
         heroImage,
         certYear,
-        currentYear:   new Date().getFullYear(),
+        currentYear,
         stats,
         trends,
         recentThreads,
     });
 };
-
-module.exports = { homeIndex };
