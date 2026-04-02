@@ -21,3 +21,6 @@ Thumbs.db
 dist/
 build/
 out/
+
+# Archivos de estilos de tailwind
+public/css/style.css
