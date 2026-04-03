@@ -3,7 +3,7 @@
  * Aquí se preparan todos los datos que la vista necesita renderizar.
  */
 
-export const homeIndex = (req, res) => {
+export const renderHomeIndex = (req, res) => {
     const heroImage  = '/img/hero-agrosystem.jpg';
     const certYear   = new Date().getFullYear();
     const currentYear = certYear;
@@ -49,7 +49,7 @@ export const homeIndex = (req, res) => {
         },
     ];
 
-    res.render('public/home-public', {
+    res.render('homePublic', {
         layout:      'main',
         pageTitle:   'Inicio',
         activePage:  'home',
@@ -60,4 +60,40 @@ export const homeIndex = (req, res) => {
         trends,
         recentThreads,
     });
+ 
 };
+
+export const renderPlaguesPublic = (req, res) => {
+        res.render('plaguesPublic', {
+            layout:      'main',
+            pageTitle:   'Plagas',
+            activePage:  'plagues',
+        });
+    };
+
+export const renderCropsPublic = (req, res)=>{
+    res.render('cropsPublic', {
+        layout:      'main',
+        pageTitle:   'Cultivos',
+        activePage:  'crops',
+    });
+}
+
+export const renderProductsPublic = (req, res)=>{
+    res.render('productsPublic', {
+        layout:      'main',
+        pageTitle:   'Productos',
+        activePage:  'products',
+    });
+}
+
+
+export const renderForumPublic = (req, res)=>{
+    res.render('forumPublic', {
+        layout:      'main',
+        pageTitle:   'Foro',
+        activePage:  'forum',
+    });
+}
+
+

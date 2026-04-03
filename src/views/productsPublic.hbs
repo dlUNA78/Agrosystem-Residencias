@@ -1,0 +1,359 @@
+<main class="pt-32 pb-24">
+    <!-- Header Section -->
+    <header class="max-w-[1440px] mx-auto px-10 mb-16">
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-8">
+            <div class="max-w-2xl">
+                <span
+                    class="inline-block px-3 py-1 mb-4 rounded-full bg-primary-container text-on-primary-container font-label text-xs font-bold tracking-wider uppercase">Catálogo
+                    Científico</span>
+                <h1 class="text-5xl md:text-6xl font-headline font-extrabold tracking-tighter text-on-surface mb-4">
+                    Catálogo de Productos</h1>
+                <p class="text-on-surface-variant text-lg font-medium leading-relaxed">
+                    Explora nuestra biblioteca curada de soluciones agroquímicas validadas. Ciencia aplicada para la
+                    protección de cultivos de alto rendimiento.
+                </p>
+            </div>
+            <div
+                class="bg-surface-container rounded-xl p-6 ghost-border flex flex-col items-center justify-center min-w-[200px]">
+                <span class="text-4xl font-headline font-extrabold text-primary tracking-tighter">800</span>
+                <span
+                    class="text-xs font-label uppercase tracking-widest text-on-surface-variant font-bold mt-1">productos
+                    catalogados</span>
+            </div>
+        </div>
+        <!-- Search & Filters -->
+        <div class="mt-12 p-2 bg-surface-container-low rounded-2xl ghost-border">
+            <div class="flex flex-col lg:flex-row gap-2">
+                <div class="flex-1 relative flex items-center">
+                    <span class="material-symbols-outlined absolute left-4 text-on-surface-variant">search</span>
+                    <input
+                        class="w-full bg-surface-container-lowest border-none rounded-xl py-4 pl-12 pr-4 text-on-surface placeholder:text-on-surface-variant/60 focus:ring-2 focus:ring-primary/20 transition-all font-body"
+                        placeholder="Buscar por producto o principio activo..." type="text" />
+                </div>
+                <div class="flex flex-wrap md:flex-nowrap gap-2">
+                    <select
+                        class="bg-surface-container-lowest border-none rounded-xl py-4 px-6 text-sm font-semibold text-on-surface-variant focus:ring-2 focus:ring-primary/20 appearance-none min-w-[140px]">
+                        <option>Categoría</option>
+                        <option>Herbicidas</option>
+                        <option>Insecticidas</option>
+                        <option>Fungicidas</option>
+                        <option>Fertilizantes</option>
+                    </select>
+                    <select
+                        class="bg-surface-container-lowest border-none rounded-xl py-4 px-6 text-sm font-semibold text-on-surface-variant focus:ring-2 focus:ring-primary/20 appearance-none min-w-[140px]">
+                        <option>Fabricante</option>
+                        <option>AgroScience Labs</option>
+                        <option>BioCrop Solutions</option>
+                        <option>TerraChem</option>
+                    </select>
+                    <select
+                        class="bg-surface-container-lowest border-none rounded-xl py-4 px-6 text-sm font-semibold text-on-surface-variant focus:ring-2 focus:ring-primary/20 appearance-none min-w-[140px]">
+                        <option>Validación</option>
+                        <option>Validado INIFAP</option>
+                        <option>En revisión</option>
+                        <option>General</option>
+                    </select>
+                    <button
+                        class="bg-primary text-on-primary px-8 py-4 rounded-xl font-bold text-sm hover:bg-primary-dim transition-colors flex items-center gap-2">
+                        <span class="material-symbols-outlined text-sm">filter_list</span>
+                        Filtrar Resultados
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+    <!-- Catalog Grid -->
+    <section class="max-w-[1440px] mx-auto px-10">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            <!-- Card 1: Glyphomax Pro -->
+            <article
+                class="group bg-surface-container-lowest rounded-xl overflow-hidden editorial-shadow ghost-border flex flex-col hover:translate-y-[-4px] transition-all duration-300">
+                <div class="relative h-56 overflow-hidden">
+                    <img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        data-alt="Botella de herbicida sistémico en laboratorio agrícola"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuBpYvHdfyRdsXBovCCwkEFfy0uToHjDFKtazlAJYltEsM93mMCaoKeyMyPdCy9DMaOklI2-RgBprSvR8TAtOTbq8sysvmtza4RceIEThHyVjb-2Dt6qALOFVvAfUckXSta61eU7gWnXb15LZqFKgIIattsfmn1EZ4uskCr-RIu-jbKONm5SatA__VBIeuWs7ovJ4HLGSDtH3kZBc_rDrpwW6NLCYansjmNY-HKwpaMbItXduTYb0x7Tjr5o52GI1fXe83CXKPUuvrif" />
+                    <div class="absolute top-4 left-4 flex gap-2">
+                        <span
+                            class="px-2 py-1 rounded bg-primary-container text-on-primary-container text-[10px] font-bold uppercase tracking-wider">Destacado</span>
+                    </div>
+                    <div
+                        class="absolute bottom-2 right-2 bg-black/40 backdrop-blur-sm px-2 py-1 rounded text-[10px] text-white/90 font-label">
+                        Ph: AgroScience Labs
+                    </div>
+                </div>
+                <div class="p-6 flex-1 flex flex-col">
+                    <span
+                        class="text-[10px] font-label font-bold uppercase tracking-widest text-primary mb-2">Herbicida
+                        Sistémico</span>
+                    <h3 class="text-xl font-headline font-bold text-on-surface mb-1 leading-tight">Glyphomax Pro 480
+                    </h3>
+                    <p class="text-sm italic text-on-surface-variant mb-4">Glifosato 48% · ID: AG-4022</p>
+                    <p class="text-sm text-on-surface-variant line-clamp-2 leading-relaxed mb-6">
+                        Herbicida de amplio espectro validado para el control de maleza en cultivos de maíz y soya.
+                    </p>
+                    <div class="mt-auto pt-4 border-t border-surface-container flex justify-between items-center">
+                        <button class="text-primary font-bold text-sm flex items-center gap-1 group/btn">
+                            Ver producto
+                            <span
+                                class="material-symbols-outlined text-sm group-hover/btn:translate-x-1 transition-transform">arrow_forward</span>
+                        </button>
+                        <span class="text-[10px] text-on-surface-variant font-label">AgroScience Labs</span>
+                    </div>
+                </div>
+            </article>
+            <!-- Card 2: Cyper-Guard Ultra -->
+            <article
+                class="group bg-surface-container-lowest rounded-xl overflow-hidden editorial-shadow ghost-border flex flex-col hover:translate-y-[-4px] transition-all duration-300">
+                <div class="relative h-56 overflow-hidden">
+                    <img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        data-alt="Aplicación de insecticida foliar en agriculura moderna"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuCCBVn1Zglj4tUI93JXjq1ke8wH_QCArUZSZOszxg4YpVZdW-FPz1Z8EIZ4cCRTkZoj8XwHk41xHMgiywjevrlIfG4beORYJ2WKOKxBjYYb_mmUbLFPHH25hbv4_W6yDaRJE9X5Pl-ZKwhuAsUQ2dgo32mGnRWuiiVu8btAUl41zmD3OC07_XuIRTa11-PpW3j5UQs9TqPrJ-wCe9H7Rctr6gVuoOyPbsTiLxhJF2bnf9dC5YfymKt-WpRpTU6vzJxL2swz9PMoeASx" />
+                    <div class="absolute top-4 left-4">
+                        <span
+                            class="px-2 py-1 rounded bg-surface-container-highest text-on-surface-variant text-[10px] font-bold uppercase tracking-wider">Insecticida</span>
+                    </div>
+                    <div
+                        class="absolute bottom-2 right-2 bg-black/40 backdrop-blur-sm px-2 py-1 rounded text-[10px] text-white/90 font-label">
+                        Ph: Science Photo Library
+                    </div>
+                </div>
+                <div class="p-6 flex-1 flex flex-col">
+                    <span
+                        class="text-[10px] font-label font-bold uppercase tracking-widest text-primary mb-2">Protector
+                        Foliar</span>
+                    <h3 class="text-xl font-headline font-bold text-on-surface mb-1 leading-tight">Cyper-Guard Ultra
+                    </h3>
+                    <p class="text-sm italic text-on-surface-variant mb-4">Cipermetrina 25% · ID: IN-9921</p>
+                    <p class="text-sm text-on-surface-variant line-clamp-2 leading-relaxed mb-6">
+                        Control efectivo de insectos masticadores y chupadores en hortalizas y frutales.
+                    </p>
+                    <div class="mt-auto pt-4 border-t border-surface-container flex justify-between items-center">
+                        <button class="text-primary font-bold text-sm flex items-center gap-1 group/btn">
+                            Ver producto
+                            <span
+                                class="material-symbols-outlined text-sm group-hover/btn:translate-x-1 transition-transform">arrow_forward</span>
+                        </button>
+                        <span class="text-[10px] text-on-surface-variant font-label">BioCrop Solutions</span>
+                    </div>
+                </div>
+            </article>
+            <!-- Card 3: Tebuzol Plus -->
+            <article
+                class="group bg-surface-container-lowest rounded-xl overflow-hidden editorial-shadow ghost-border flex flex-col hover:translate-y-[-4px] transition-all duration-300">
+                <div class="relative h-56 overflow-hidden">
+                    <img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        data-alt="Ingeniero agrícola inspeccionando fungicida en campo verde"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuAYr0Ji2garOqLnZ6jCTdSb9pt81V7BabTyik232h_ssCFwoIcwBjgfNlpz1rmmSYAUMhEPUhgc03jF4oq7ks6qY-UpoiuYR1O4z4mBKOYJHRt8JFnhUOdBiOtvRzcpNk4yDhtnskZshRSQdal4qGKkIV61oKi53elEyFLbBeCIr63cbWxxDuKYxEI_8ccms_LnbOBhfsPpPd0-CDcMNvaV5uVvQpt6Y0_O_bSApO-RpfioM__-n9aH0t-lmq2enx5sB_9ueRIT4oIu" />
+                    <div class="absolute top-4 left-4">
+                        <span
+                            class="px-2 py-1 rounded bg-primary-container text-on-primary-container text-[10px] font-bold uppercase tracking-wider">Validado
+                            INIFAP</span>
+                    </div>
+                    <div
+                        class="absolute bottom-2 right-2 bg-black/40 backdrop-blur-sm px-2 py-1 rounded text-[10px] text-white/90 font-label">
+                        Ph: Field Work Media
+                    </div>
+                </div>
+                <div class="p-6 flex-1 flex flex-col">
+                    <span
+                        class="text-[10px] font-label font-bold uppercase tracking-widest text-primary mb-2">Fungicida
+                        Amplio Espectro</span>
+                    <h3 class="text-xl font-headline font-bold text-on-surface mb-1 leading-tight">Tebuzol Plus 250
+                    </h3>
+                    <p class="text-sm italic text-on-surface-variant mb-4">Tebuconazol · ID: FU-1105</p>
+                    <p class="text-sm text-on-surface-variant line-clamp-2 leading-relaxed mb-6">
+                        Controla roya, mildiu y otras enfermedades fúngicas foliares con alta eficacia residual.
+                    </p>
+                    <div class="mt-auto pt-4 border-t border-surface-container flex justify-between items-center">
+                        <button class="text-primary font-bold text-sm flex items-center gap-1 group/btn">
+                            Ver producto
+                            <span
+                                class="material-symbols-outlined text-sm group-hover/btn:translate-x-1 transition-transform">arrow_forward</span>
+                        </button>
+                        <span class="text-[10px] text-on-surface-variant font-label">TerraChem</span>
+                    </div>
+                </div>
+            </article>
+            <!-- Card 4: Surfact-Max Gold -->
+            <article
+                class="group bg-surface-container-lowest rounded-xl overflow-hidden editorial-shadow ghost-border flex flex-col hover:translate-y-[-4px] transition-all duration-300">
+                <div class="relative h-56 overflow-hidden">
+                    <img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        data-alt="Boquillas de aspersión modernas sobre cultivos"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuBrQQYvriw8JLSpL-a3MHQL8xA6GcfvvtpsNlWEmKAgdlMzFaqyZkxMbCyxwgWzJ2L24oqw8EGTGKkQgLAZ7JfF3UC5MzSTDlc3cGMzWcpNBhz3NtGqV39m-ZHaTiJyLK3RUUpkGNsra9S7VFWlcBP5JHoqU-3R8nBU1dSe_NP2k3lJaYborKutcIQHbPqPeIgcO1v2aY6eyrYQ_3QFaFMltuLAOSY0PjscTRrKWmg093ATRKmlRkcMcaRTKPDDMOjnGN6k9CHgNu62" />
+                    <div class="absolute top-4 left-4">
+                        <span
+                            class="px-2 py-1 rounded bg-surface-container-highest text-on-surface-variant text-[10px] font-bold uppercase tracking-wider">Coadyuvante</span>
+                    </div>
+                    <div
+                        class="absolute bottom-2 right-2 bg-black/40 backdrop-blur-sm px-2 py-1 rounded text-[10px] text-white/90 font-label">
+                        Ph: TechAgro Vision
+                    </div>
+                </div>
+                <div class="p-6 flex-1 flex flex-col">
+                    <span
+                        class="text-[10px] font-label font-bold uppercase tracking-widest text-primary mb-2">Adherente
+                        Dispersante</span>
+                    <h3 class="text-xl font-headline font-bold text-on-surface mb-1 leading-tight">Surfact-Max Gold
+                    </h3>
+                    <p class="text-sm italic text-on-surface-variant mb-4">Alcohol Etoxilado · ID: AD-7780</p>
+                    <p class="text-sm text-on-surface-variant line-clamp-2 leading-relaxed mb-6">
+                        Mejora la cobertura y adhesión de agroquímicos, reduciendo pérdidas por goteo y deriva.
+                    </p>
+                    <div class="mt-auto pt-4 border-t border-surface-container flex justify-between items-center">
+                        <button class="text-primary font-bold text-sm flex items-center gap-1 group/btn">
+                            Ver producto
+                            <span
+                                class="material-symbols-outlined text-sm group-hover/btn:translate-x-1 transition-transform">arrow_forward</span>
+                        </button>
+                        <span class="text-[10px] text-on-surface-variant font-label">AgroScience Labs</span>
+                    </div>
+                </div>
+            </article>
+            <!-- Card 5: Strepto-Bio Control -->
+            <article
+                class="group bg-surface-container-lowest rounded-xl overflow-hidden editorial-shadow ghost-border flex flex-col hover:translate-y-[-4px] transition-all duration-300">
+                <div class="relative h-56 overflow-hidden">
+                    <img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        data-alt="Inspección de frutos en instalación agrícola de alta tecnología"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuDIrkOyiWW01AhxioPu8KGeNnTt3jBnegKAJ79UqnsoSpZIxaJEa2uGusC8ok8bR9YqfJRJwgxwdiv1IJPZ_aE-3RIZ6x5GVpr-c0h4FNeRCZQbPj_wWdfERW22GV8EWAGT5qdAclnWjEu_hKHi8icZwqyLos6TnAxo94U68dBIG_6LuzjFBsTcfsBTfWch2nd1UYHA_UcT9s80avDBe3zTCRdBmGgRlhavPA0m7kTrjad9Vwq2KBXK8fjhRoZFQchs-auZUcMh27bR" />
+                    <div class="absolute top-4 left-4 flex gap-2">
+                        <span
+                            class="px-2 py-1 rounded bg-primary-container text-on-primary-container text-[10px] font-bold uppercase tracking-wider">Validado
+                            INIFAP</span>
+                    </div>
+                    <div
+                        class="absolute bottom-2 right-2 bg-black/40 backdrop-blur-sm px-2 py-1 rounded text-[10px] text-white/90 font-label">
+                        Ph: BioTech Journal
+                    </div>
+                </div>
+                <div class="p-6 flex-1 flex flex-col">
+                    <span
+                        class="text-[10px] font-label font-bold uppercase tracking-widest text-primary mb-2">Control de
+                        Fitopatógenos</span>
+                    <h3 class="text-xl font-headline font-bold text-on-surface mb-1 leading-tight">Strepto-Bio Control
+                    </h3>
+                    <p class="text-sm italic text-on-surface-variant mb-4">Estreptomicina · ID: BA-3301</p>
+                    <p class="text-sm text-on-surface-variant line-clamp-2 leading-relaxed mb-6">
+                        Bactericida de origen biológico para el control de enfermedades vasculares y foliares.
+                    </p>
+                    <div class="mt-auto pt-4 border-t border-surface-container flex justify-between items-center">
+                        <button class="text-primary font-bold text-sm flex items-center gap-1 group/btn">
+                            Ver producto
+                            <span
+                                class="material-symbols-outlined text-sm group-hover/btn:translate-x-1 transition-transform">arrow_forward</span>
+                        </button>
+                        <span class="text-[10px] text-on-surface-variant font-label">BioCrop Solutions</span>
+                    </div>
+                </div>
+            </article>
+            <!-- Card 6: NutriMax Foliar -->
+            <article
+                class="group bg-surface-container-lowest rounded-xl overflow-hidden editorial-shadow ghost-border flex flex-col hover:translate-y-[-4px] transition-all duration-300">
+                <div class="relative h-56 overflow-hidden">
+                    <img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        data-alt="Fertilizante foliar aplicado en cultivo de maíz"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuAC7fjMtnPsmtrBBcGa74YxhhOaMx5kse8RnQ9u6TIyo8AWaLbR0me-ZObEOpDmlEyz78gQlSxXblGL0w-TPDhhIBqIKakuc5TLYvcllFVy2vsNi-yl3cQzOCXk2aIlg24X6mqspsXSHyERcr8vZ4galGyF79ucZcbZn7uuQdIDgRgqCQrSlYs0fgBSz3oVow41dB61FuDLR5bI4qJudihQppc30jrSfuz-YLc8H_NRBVa4i4ZgTxthwrDSlOBVncjEA5gxQyNCdEph" />
+                    <div class="absolute top-4 left-4">
+                        <span
+                            class="px-2 py-1 rounded bg-surface-container-highest text-on-surface-variant text-[10px] font-bold uppercase tracking-wider">Fertilizante</span>
+                    </div>
+                    <div
+                        class="absolute bottom-2 right-2 bg-black/40 backdrop-blur-sm px-2 py-1 rounded text-[10px] text-white/90 font-label">
+                        Ph: Agroquímica MX
+                    </div>
+                </div>
+                <div class="p-6 flex-1 flex flex-col">
+                    <span
+                        class="text-[10px] font-label font-bold uppercase tracking-widest text-primary mb-2">Nutrición
+                        Foliar</span>
+                    <h3 class="text-xl font-headline font-bold text-on-surface mb-1 leading-tight">NutriMax Foliar 20
+                    </h3>
+                    <p class="text-sm italic text-on-surface-variant mb-4">NPK 20-20-20 · ID: NF-0088</p>
+                    <p class="text-sm text-on-surface-variant line-clamp-2 leading-relaxed mb-6">
+                        Fertilizante foliar balanceado de absorción rápida para cultivos en etapas críticas de crecimiento.
+                    </p>
+                    <div class="mt-auto pt-4 border-t border-surface-container flex justify-between items-center">
+                        <button class="text-primary font-bold text-sm flex items-center gap-1 group/btn">
+                            Ver producto
+                            <span
+                                class="material-symbols-outlined text-sm group-hover/btn:translate-x-1 transition-transform">arrow_forward</span>
+                        </button>
+                        <span class="text-[10px] text-on-surface-variant font-label">TerraChem</span>
+                    </div>
+                </div>
+            </article>
+            <!-- Card 7: AcaroStop -->
+            <article
+                class="group bg-surface-container-lowest rounded-xl overflow-hidden editorial-shadow ghost-border flex flex-col hover:translate-y-[-4px] transition-all duration-300">
+                <div class="relative h-56 overflow-hidden">
+                    <img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        data-alt="Control de ácaros en cultivos hortícolas"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuDFVIYnNpvlElOwOJohrbvHADP0pUo2qHoUGut_7g-uE7IqxVEKXnm3e90pBKuERXwyJbuGyDk3D7GyBtxStSUmPAMjf0hbmIV1m0TluXy1g_mF4Yb4B0UxR0TLDuSp7m9rYu0guCGxr31U1O5G2V0SI2sb9PkV_ySezpFXsOsDykeyn5e17B_230SkddLFOZ40rvRPm4rY03eIWwzUrAQ2GV22PtEYexkZYOUGPI_0L3riAV44U55BUK-DgT-ZCuvgvqvuTIy63-Lf" />
+                    <div class="absolute top-4 left-4">
+                        <span
+                            class="px-2 py-1 rounded bg-surface-container-highest text-on-surface-variant text-[10px] font-bold uppercase tracking-wider">Acaricida</span>
+                    </div>
+                    <div
+                        class="absolute bottom-2 right-2 bg-black/40 backdrop-blur-sm px-2 py-1 rounded text-[10px] text-white/90 font-label">
+                        Ph: BioAgro Research
+                    </div>
+                </div>
+                <div class="p-6 flex-1 flex flex-col">
+                    <span
+                        class="text-[10px] font-label font-bold uppercase tracking-widest text-primary mb-2">Control de
+                        Ácaros</span>
+                    <h3 class="text-xl font-headline font-bold text-on-surface mb-1 leading-tight">AcaroStop WP 50
+                    </h3>
+                    <p class="text-sm italic text-on-surface-variant mb-4">Abamectina 1.8% · ID: AC-5512</p>
+                    <p class="text-sm text-on-surface-variant line-clamp-2 leading-relaxed mb-6">
+                        Acaricida con acción de contacto e ingestión para el control de araña roja y ácaro blanco.
+                    </p>
+                    <div class="mt-auto pt-4 border-t border-surface-container flex justify-between items-center">
+                        <button class="text-primary font-bold text-sm flex items-center gap-1 group/btn">
+                            Ver producto
+                            <span
+                                class="material-symbols-outlined text-sm group-hover/btn:translate-x-1 transition-transform">arrow_forward</span>
+                        </button>
+                        <span class="text-[10px] text-on-surface-variant font-label">AgroScience Labs</span>
+                    </div>
+                </div>
+            </article>
+            <!-- CTA Card -->
+            <article
+                class="group bg-surface-container-lowest rounded-xl overflow-hidden editorial-shadow ghost-border flex flex-col hover:translate-y-[-4px] transition-all duration-300 border-2 border-dashed border-primary/20 items-center justify-center p-8">
+                <div class="text-center">
+                    <span class="material-symbols-outlined text-4xl text-primary/40 mb-4">biotech</span>
+                    <h3 class="text-lg font-headline font-bold text-on-surface mb-2">¿No encuentras lo que buscas?</h3>
+                    <p class="text-xs text-on-surface-variant leading-relaxed mb-6">Estamos en constante validación de
+                        nuevas moléculas y formulaciones biotecnológicas.</p>
+                    <button
+                        class="px-6 py-2 bg-surface-container-high rounded-full text-xs font-bold text-primary uppercase tracking-wider hover:bg-primary-container transition-colors">Contactar
+                        asesor</button>
+                </div>
+            </article>
+        </div>
+        <!-- Pagination -->
+        <div class="mt-20 flex justify-center">
+            <nav class="flex items-center gap-1 bg-surface-container p-1 rounded-xl">
+                <button
+                    class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-surface-container-highest text-on-surface-variant">
+                    <span class="material-symbols-outlined">chevron_left</span>
+                </button>
+                <button
+                    class="w-10 h-10 flex items-center justify-center rounded-lg bg-primary text-on-primary font-bold text-sm">1</button>
+                <button
+                    class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-surface-container-highest text-on-surface-variant font-bold text-sm">2</button>
+                <button
+                    class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-surface-container-highest text-on-surface-variant font-bold text-sm">3</button>
+                <span class="px-2 text-on-surface-variant">...</span>
+                <button
+                    class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-surface-container-highest text-on-surface-variant font-bold text-sm">12</button>
+                <button
+                    class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-surface-container-highest text-on-surface-variant">
+                    <span class="material-symbols-outlined">chevron_right</span>
+                </button>
+            </nav>
+        </div>
+    </section>
+</main>

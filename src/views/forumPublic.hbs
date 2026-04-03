@@ -1,0 +1,453 @@
+<main class="pt-32 pb-24">
+    <!-- Header Section -->
+    <header class="max-w-[1440px] mx-auto px-10 mb-16">
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-8">
+            <div class="max-w-2xl">
+                <span
+                    class="inline-block px-3 py-1 mb-4 rounded-full bg-primary-container text-on-primary-container font-label text-xs font-bold tracking-wider uppercase">Comunidad
+                    Científica</span>
+                <h1 class="text-5xl md:text-6xl font-headline font-extrabold tracking-tighter text-on-surface mb-4">
+                    Foro de Innovación Agrícola</h1>
+                <p class="text-on-surface-variant text-lg font-medium leading-relaxed">
+                    Intercambio de conocimientos técnicos y soluciones sostenibles para el campo mexicano.
+                </p>
+            </div>
+            <div
+                class="bg-surface-container rounded-xl p-6 ghost-border flex flex-col items-center justify-center min-w-[200px]">
+                <span class="text-4xl font-headline font-extrabold text-primary tracking-tighter">3.5k</span>
+                <span
+                    class="text-xs font-label uppercase tracking-widest text-on-surface-variant font-bold mt-1">usuarios
+                    activos</span>
+            </div>
+        </div>
+        <!-- Search & Action Bar -->
+        <div class="mt-12 p-2 bg-surface-container-low rounded-2xl ghost-border">
+            <div class="flex flex-col lg:flex-row gap-2">
+                <div class="flex-1 relative flex items-center">
+                    <span class="material-symbols-outlined absolute left-4 text-on-surface-variant">search</span>
+                    <input
+                        class="w-full bg-surface-container-lowest border-none rounded-xl py-4 pl-12 pr-4 text-on-surface placeholder:text-on-surface-variant/60 focus:ring-2 focus:ring-primary/20 transition-all font-body"
+                        placeholder="Buscar hilos, temas o autores..." type="text" />
+                </div>
+                <div class="flex flex-wrap md:flex-nowrap gap-2">
+                    <select
+                        class="bg-surface-container-lowest border-none rounded-xl py-4 px-6 text-sm font-semibold text-on-surface-variant focus:ring-2 focus:ring-primary/20 appearance-none min-w-[140px]">
+                        <option>Categoría</option>
+                        <option>Plagas</option>
+                        <option>Cultivos</option>
+                        <option>Productos</option>
+                        <option>General</option>
+                    </select>
+                    <select
+                        class="bg-surface-container-lowest border-none rounded-xl py-4 px-6 text-sm font-semibold text-on-surface-variant focus:ring-2 focus:ring-primary/20 appearance-none min-w-[140px]">
+                        <option>Más recientes</option>
+                        <option>Más comentados</option>
+                        <option>Más votados</option>
+                    </select>
+                    <button
+                        class="bg-primary text-on-primary px-8 py-4 rounded-xl font-bold text-sm hover:bg-primary-dim transition-colors flex items-center gap-2">
+                        <span class="material-symbols-outlined text-sm">add</span>
+                        Nuevo hilo
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="max-w-[1440px] mx-auto px-10">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
+
+            <!-- Filter Sidebar -->
+            <aside class="lg:col-span-3">
+                <div class="sticky top-28 flex flex-col gap-6">
+                    <!-- Category Nav -->
+                    <div class="bg-surface-container-lowest rounded-xl ghost-border editorial-shadow p-4">
+                        <h3 class="text-[10px] font-label font-bold uppercase tracking-widest text-on-surface-variant mb-4 px-2">
+                            Categorías</h3>
+                        <nav class="flex flex-col gap-1">
+                            <a class="flex items-center gap-3 px-3 py-3 bg-primary-container text-on-primary-container rounded-xl font-semibold text-sm transition-all"
+                                href="#">
+                                <span class="material-symbols-outlined text-[20px]">grid_view</span>
+                                Todas
+                                <span
+                                    class="ml-auto text-[10px] font-label font-bold bg-primary/10 text-primary px-2 py-0.5 rounded-full">328</span>
+                            </a>
+                            <a class="flex items-center gap-3 px-3 py-3 text-on-surface-variant hover:bg-surface-container rounded-xl font-medium text-sm transition-all group"
+                                href="#">
+                                <span
+                                    class="material-symbols-outlined text-[20px] group-hover:text-primary transition-colors">bug_report</span>
+                                Plagas
+                                <span
+                                    class="ml-auto text-[10px] font-label font-bold text-on-surface-variant px-2 py-0.5 rounded-full bg-surface-container">94</span>
+                            </a>
+                            <a class="flex items-center gap-3 px-3 py-3 text-on-surface-variant hover:bg-surface-container rounded-xl font-medium text-sm transition-all group"
+                                href="#">
+                                <span
+                                    class="material-symbols-outlined text-[20px] group-hover:text-primary transition-colors">psychiatry</span>
+                                Cultivos
+                                <span
+                                    class="ml-auto text-[10px] font-label font-bold text-on-surface-variant px-2 py-0.5 rounded-full bg-surface-container">112</span>
+                            </a>
+                            <a class="flex items-center gap-3 px-3 py-3 text-on-surface-variant hover:bg-surface-container rounded-xl font-medium text-sm transition-all group"
+                                href="#">
+                                <span
+                                    class="material-symbols-outlined text-[20px] group-hover:text-primary transition-colors">inventory_2</span>
+                                Productos
+                                <span
+                                    class="ml-auto text-[10px] font-label font-bold text-on-surface-variant px-2 py-0.5 rounded-full bg-surface-container">73</span>
+                            </a>
+                            <a class="flex items-center gap-3 px-3 py-3 text-on-surface-variant hover:bg-surface-container rounded-xl font-medium text-sm transition-all group"
+                                href="#">
+                                <span
+                                    class="material-symbols-outlined text-[20px] group-hover:text-primary transition-colors">forum</span>
+                                General
+                                <span
+                                    class="ml-auto text-[10px] font-label font-bold text-on-surface-variant px-2 py-0.5 rounded-full bg-surface-container">49</span>
+                            </a>
+                        </nav>
+                    </div>
+
+                    <!-- Trends -->
+                    <div class="bg-surface-container-lowest rounded-xl ghost-border editorial-shadow p-4">
+                        <h3 class="text-[10px] font-label font-bold uppercase tracking-widest text-on-surface-variant mb-4 px-2">
+                            Tendencias</h3>
+                        <ul class="flex flex-col gap-2">
+                            <li
+                                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-surface-container transition-all cursor-pointer group">
+                                <span
+                                    class="text-xs font-label font-bold text-outline-variant group-hover:text-primary transition-colors">#1</span>
+                                <span class="text-sm font-medium text-on-surface group-hover:text-primary transition-colors">Riego por
+                                    goteo</span>
+                            </li>
+                            <li
+                                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-surface-container transition-all cursor-pointer group">
+                                <span
+                                    class="text-xs font-label font-bold text-outline-variant group-hover:text-primary transition-colors">#2</span>
+                                <span class="text-sm font-medium text-on-surface group-hover:text-primary transition-colors">Control de
+                                    roya</span>
+                            </li>
+                            <li
+                                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-surface-container transition-all cursor-pointer group">
+                                <span
+                                    class="text-xs font-label font-bold text-outline-variant group-hover:text-primary transition-colors">#3</span>
+                                <span class="text-sm font-medium text-on-surface group-hover:text-primary transition-colors">Mosca
+                                    blanca</span>
+                            </li>
+                            <li
+                                class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-surface-container transition-all cursor-pointer group">
+                                <span
+                                    class="text-xs font-label font-bold text-outline-variant group-hover:text-primary transition-colors">#4</span>
+                                <span class="text-sm font-medium text-on-surface group-hover:text-primary transition-colors">Fertilizantes
+                                    orgánicos</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Help CTA -->
+                    <div class="bg-surface-container rounded-xl p-5 relative overflow-hidden ghost-border">
+                        <div class="relative z-10">
+                            <span
+                                class="material-symbols-outlined text-primary text-3xl mb-3 block">support_agent</span>
+                            <h4 class="font-headline font-bold text-on-surface mb-1">¿Necesitas ayuda técnica?</h4>
+                            <p class="text-xs text-on-surface-variant mb-4 leading-relaxed">Nuestros expertos revisan
+                                el foro diariamente para resolver dudas críticas.</p>
+                            <button
+                                class="w-full py-2.5 bg-primary text-on-primary text-xs font-bold rounded-xl hover:bg-primary-dim transition-colors">Ver
+                                FAQ</button>
+                        </div>
+                        <div class="absolute -right-3 -bottom-3 opacity-5">
+                            <span class="material-symbols-outlined text-[90px] text-primary">science</span>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Forum Thread List -->
+            <section class="lg:col-span-9 flex flex-col gap-4">
+
+                <!-- Thread 1 — Pinned / Featured -->
+                <article
+                    class="group bg-surface-container-lowest rounded-xl editorial-shadow ghost-border hover:translate-y-[-2px] transition-all duration-300 cursor-pointer overflow-hidden border-l-4 border-primary">
+                    <div class="p-6">
+                        <div class="flex items-start gap-4">
+                            <img class="w-11 h-11 rounded-full object-cover ring-2 ring-primary/20 flex-shrink-0"
+                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBvQKWW97d27PxYFUOyp5G0uBSb5kfTtMy6v_DU818jUCKS6HmLHRlmrKWosAWCEON35HcIEb6GIhj-xhvYTwQD85i5nHDkn1drsPMhYHaV9KN2AP8Qdn5Zea-mUM4fSQ1KC1YrH_VJmZWn_Krsyrcipg6tqgH_DnUBbayD1MHiC_dQv28nCrBswFlEq-8kpwVIfvhGcl34yu4uj7MB0WzQuEjzA3d0XKQ9G6nti0GmAbptoOoKYdGkQILR83yzIf3icA57domZoRs-"
+                                alt="Dr. Julián Castro" />
+                            <div class="flex-1 min-w-0">
+                                <div class="flex flex-wrap items-center gap-2 mb-2">
+                                    <span
+                                        class="text-[10px] font-label font-bold uppercase tracking-widest text-on-primary bg-primary px-2.5 py-1 rounded-full">Plagas</span>
+                                    <span
+                                        class="text-[10px] font-label font-bold uppercase tracking-widest text-primary bg-primary-container px-2.5 py-1 rounded-full flex items-center gap-1">
+                                        <span class="material-symbols-outlined text-xs">push_pin</span>
+                                        Fijado
+                                    </span>
+                                    <span class="text-xs font-medium text-on-surface-variant">Dr. Julián Castro</span>
+                                    <span class="text-xs text-outline-variant">· hace 2 horas</span>
+                                </div>
+                                <h2
+                                    class="text-lg font-headline font-bold text-on-surface group-hover:text-primary transition-colors mb-2 leading-snug">
+                                    Control biológico de Tuta absoluta en invernaderos de tomate</h2>
+                                <p class="text-sm text-on-surface-variant line-clamp-2 leading-relaxed mb-4">
+                                    Implementando un protocolo con Nesidiocoris tenuis. Los resultados iniciales muestran
+                                    una reducción del 40% en el daño foliar con densidades de 2 individuos por planta.
+                                </p>
+                                <div class="flex items-center gap-5 pt-4 border-t border-surface-container">
+                                    <div
+                                        class="flex items-center gap-1.5 text-on-surface-variant hover:text-primary transition-colors">
+                                        <span class="material-symbols-outlined text-[18px]">chat_bubble</span>
+                                        <span class="text-xs font-semibold">24</span>
+                                    </div>
+                                    <div
+                                        class="flex items-center gap-1.5 text-on-surface-variant hover:text-primary transition-colors">
+                                        <span class="material-symbols-outlined text-[18px]">thumb_up</span>
+                                        <span class="text-xs font-semibold">56</span>
+                                    </div>
+                                    <div
+                                        class="flex items-center gap-1.5 text-on-surface-variant hover:text-primary transition-colors">
+                                        <span class="material-symbols-outlined text-[18px]">visibility</span>
+                                        <span class="text-xs font-semibold">1.2k vistas</span>
+                                    </div>
+                                    <button
+                                        class="ml-auto flex items-center gap-1.5 text-on-surface-variant hover:text-primary transition-colors text-xs font-semibold">
+                                        <span class="material-symbols-outlined text-[18px]">bookmark</span>
+                                        Guardar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Thread 2 -->
+                <article
+                    class="group bg-surface-container-lowest rounded-xl editorial-shadow ghost-border hover:translate-y-[-2px] transition-all duration-300 cursor-pointer">
+                    <div class="p-6">
+                        <div class="flex items-start gap-4">
+                            <img class="w-11 h-11 rounded-full object-cover flex-shrink-0"
+                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCfHy8qy-2wbN_d1rJ5x5CydSC-Gvp8cl104mbnELDDYRZAgGGdgcOo8jUrevNpzVOYbcDYffocRzsQueMOZWa8KFEBqy0Vx2rbBDpKI97VXAdapsLDw6QRtYY6YGUEYYNcTMCQdi8ZQlt-3K506zUYIDCMU5BWuHw-21GQfJfeV7WG3ZWF7eSTQOPAYtVvlyYaUArTeypfrMoy8WbGOehs4gUGjJ32rDPl4VJpp_0YPXkjuD0urzynO8MTHuqC8esL5XbMISuGS_NV"
+                                alt="Ing. Marta Ruiz" />
+                            <div class="flex-1 min-w-0">
+                                <div class="flex flex-wrap items-center gap-2 mb-2">
+                                    <span
+                                        class="text-[10px] font-label font-bold uppercase tracking-widest text-on-primary-container bg-primary-container px-2.5 py-1 rounded-full">Cultivos</span>
+                                    <span class="text-xs font-medium text-on-surface-variant">Ing. Marta Ruiz</span>
+                                    <span class="text-xs text-outline-variant">· hace 5 horas</span>
+                                </div>
+                                <h2
+                                    class="text-lg font-headline font-bold text-on-surface group-hover:text-primary transition-colors mb-2 leading-snug">
+                                    Optimización de fertirriego en suelos arcillosos del sur</h2>
+                                <p class="text-sm text-on-surface-variant line-clamp-2 leading-relaxed mb-4">
+                                    ¿Alguien tiene experiencia ajustando sensores de humedad capacitivos en terrenos con
+                                    alta saturación? Mis lecturas parecen desviadas del 15% respecto al tensiométrico.
+                                </p>
+                                <div class="flex items-center gap-5 pt-4 border-t border-surface-container">
+                                    <div
+                                        class="flex items-center gap-1.5 text-on-surface-variant hover:text-primary transition-colors">
+                                        <span class="material-symbols-outlined text-[18px]">chat_bubble</span>
+                                        <span class="text-xs font-semibold">12</span>
+                                    </div>
+                                    <div
+                                        class="flex items-center gap-1.5 text-on-surface-variant hover:text-primary transition-colors">
+                                        <span class="material-symbols-outlined text-[18px]">thumb_up</span>
+                                        <span class="text-xs font-semibold">18</span>
+                                    </div>
+                                    <div
+                                        class="flex items-center gap-1.5 text-on-surface-variant hover:text-primary transition-colors">
+                                        <span class="material-symbols-outlined text-[18px]">visibility</span>
+                                        <span class="text-xs font-semibold">340 vistas</span>
+                                    </div>
+                                    <button
+                                        class="ml-auto flex items-center gap-1.5 text-on-surface-variant hover:text-primary transition-colors text-xs font-semibold">
+                                        <span class="material-symbols-outlined text-[18px]">bookmark</span>
+                                        Guardar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Thread 3 — with image gallery -->
+                <article
+                    class="group bg-surface-container-lowest rounded-xl editorial-shadow ghost-border hover:translate-y-[-2px] transition-all duration-300 cursor-pointer">
+                    <div class="p-6">
+                        <div class="flex items-start gap-4">
+                            <img class="w-11 h-11 rounded-full object-cover flex-shrink-0"
+                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBymNdAJ6WzWIhZ-gxw3yuTtJqMDGzuz0hLkGBg_x0UWDktbn2AAdZK8nwD05C1SE6hgmaw8sLld9HBrjDGSyhnqrYc748cnl0saSvd-d-I5BoUy42J5Et9cD0UVOhirywSJ1xcQlVXQgERuBMa2AZ7uKQ6ubLe-EvfDmAcfclQb_Bf_MTXA3UwA-rRqNK3YylSAaSTtNWkNNdxHrh4xaLpiWN8OF-3wlx3TxfykcQlY47zmbwNgJ0pucLSUfE-ubdW-EN6ph-2xvJn"
+                                alt="Carlos V." />
+                            <div class="flex-1 min-w-0">
+                                <div class="flex flex-wrap items-center gap-2 mb-2">
+                                    <span
+                                        class="text-[10px] font-label font-bold uppercase tracking-widest text-on-surface-variant bg-surface-container-highest px-2.5 py-1 rounded-full">General</span>
+                                    <span class="text-xs font-medium text-on-surface-variant">Carlos V.</span>
+                                    <span class="text-xs text-outline-variant">· hace 1 día</span>
+                                </div>
+                                <h2
+                                    class="text-lg font-headline font-bold text-on-surface group-hover:text-primary transition-colors mb-3 leading-snug">
+                                    Galería: Síntomas de estrés hídrico en maíz</h2>
+                                <div class="grid grid-cols-3 gap-2 mb-4 rounded-xl overflow-hidden">
+                                    <img class="w-full h-24 object-cover"
+                                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuCGFGwg1AMR2w5zPvRAqEmiWSAuu4wXXNExw_dtbsD14zCUCI4asXEmcl-ECsKBiVQYf-_Ctf_8HqQ1TEVkL1FIVmp5TMa_FSqtTeBn_x65YUjVvAS6OMEojDIXo2McNwv4kkqcCChpfeZsf-iCr1G3ck0R7iEheLhZNt8z6Qa-2zPQaFa-nkZA8RmFjm-mBNlXTRx4ozTEHQchJgtcZ0rs-r6j4DVsYpZ8zlxLOWK0sq_Dr3P3_L_veDzH_Uw-pBTDKHzaIQtZw40N"
+                                        alt="Hojas de maíz con estrés" />
+                                    <img class="w-full h-24 object-cover"
+                                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuBWHFD8dUuGVNwqcpLzmYIQV2mm4fQ9eB6bbYQtqATPaMX6aGir2xxVQkJPPKqyG_n-cGjeLxfObP1tERnBV1lxmpoz_UBOZt-0A71U9A3L9NYU8lTmLqGcFZEqAtqMKm1JqZsmcdepA790WKf1UvscFwuRzQeYJHyt1rFCXVR5oADWT36gnuGdFKyKYyJotc4jne__AMUvtbomR9s1qhEoJhkOWUWow0DA0k4yYujTmJAdq7CxJVXHVmQ0Fqn7kGIIH3TKLnfG8_el"
+                                        alt="Suelo agrícola seco" />
+                                    <div
+                                        class="w-full h-24 bg-surface-container-high flex items-center justify-center text-xs font-bold text-on-surface-variant">
+                                        +5 fotos</div>
+                                </div>
+                                <div class="flex items-center gap-5 pt-4 border-t border-surface-container">
+                                    <div
+                                        class="flex items-center gap-1.5 text-on-surface-variant hover:text-primary transition-colors">
+                                        <span class="material-symbols-outlined text-[18px]">chat_bubble</span>
+                                        <span class="text-xs font-semibold">45</span>
+                                    </div>
+                                    <div
+                                        class="flex items-center gap-1.5 text-on-surface-variant hover:text-primary transition-colors">
+                                        <span class="material-symbols-outlined text-[18px]">thumb_up</span>
+                                        <span class="text-xs font-semibold">102</span>
+                                    </div>
+                                    <div
+                                        class="flex items-center gap-1.5 text-on-surface-variant hover:text-primary transition-colors">
+                                        <span class="material-symbols-outlined text-[18px]">visibility</span>
+                                        <span class="text-xs font-semibold">2.4k vistas</span>
+                                    </div>
+                                    <button
+                                        class="ml-auto flex items-center gap-1.5 text-on-surface-variant hover:text-primary transition-colors text-xs font-semibold">
+                                        <span class="material-symbols-outlined text-[18px]">bookmark</span>
+                                        Guardar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Thread 4 -->
+                <article
+                    class="group bg-surface-container-lowest rounded-xl editorial-shadow ghost-border hover:translate-y-[-2px] transition-all duration-300 cursor-pointer">
+                    <div class="p-6">
+                        <div class="flex items-start gap-4">
+                            <div
+                                class="w-11 h-11 rounded-full bg-secondary-container flex items-center justify-center flex-shrink-0">
+                                <span class="text-sm font-headline font-bold text-on-secondary-container">AR</span>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex flex-wrap items-center gap-2 mb-2">
+                                    <span
+                                        class="text-[10px] font-label font-bold uppercase tracking-widest text-on-primary bg-primary px-2.5 py-1 rounded-full">Productos</span>
+                                    <span class="text-xs font-medium text-on-surface-variant">Ana R.</span>
+                                    <span class="text-xs text-outline-variant">· hace 8 horas</span>
+                                </div>
+                                <h2
+                                    class="text-lg font-headline font-bold text-on-surface group-hover:text-primary transition-colors mb-2 leading-snug">
+                                    Mejores fertilizantes para maíz en temporal 2024</h2>
+                                <p class="text-sm text-on-surface-variant line-clamp-2 leading-relaxed mb-4">
+                                    Comparativa de rendimientos usando NutriMax Foliar 20 vs Basfoliar 36 Extra en ciclo
+                                    primavera-verano. Comparto datos de campo de 3 temporadas consecutivas.
+                                </p>
+                                <div class="flex items-center gap-5 pt-4 border-t border-surface-container">
+                                    <div
+                                        class="flex items-center gap-1.5 text-on-surface-variant hover:text-primary transition-colors">
+                                        <span class="material-symbols-outlined text-[18px]">chat_bubble</span>
+                                        <span class="text-xs font-semibold">12</span>
+                                    </div>
+                                    <div
+                                        class="flex items-center gap-1.5 text-on-surface-variant hover:text-primary transition-colors">
+                                        <span class="material-symbols-outlined text-[18px]">thumb_up</span>
+                                        <span class="text-xs font-semibold">31</span>
+                                    </div>
+                                    <div
+                                        class="flex items-center gap-1.5 text-on-surface-variant hover:text-primary transition-colors">
+                                        <span class="material-symbols-outlined text-[18px]">visibility</span>
+                                        <span class="text-xs font-semibold">890 vistas</span>
+                                    </div>
+                                    <button
+                                        class="ml-auto flex items-center gap-1.5 text-on-surface-variant hover:text-primary transition-colors text-xs font-semibold">
+                                        <span class="material-symbols-outlined text-[18px]">bookmark</span>
+                                        Guardar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Thread 5 -->
+                <article
+                    class="group bg-surface-container-lowest rounded-xl editorial-shadow ghost-border hover:translate-y-[-2px] transition-all duration-300 cursor-pointer">
+                    <div class="p-6">
+                        <div class="flex items-start gap-4">
+                            <div
+                                class="w-11 h-11 rounded-full bg-tertiary-container flex items-center justify-center flex-shrink-0">
+                                <span class="text-sm font-headline font-bold text-on-tertiary-container">MT</span>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex flex-wrap items-center gap-2 mb-2">
+                                    <span
+                                        class="text-[10px] font-label font-bold uppercase tracking-widest text-on-primary-container bg-primary-container px-2.5 py-1 rounded-full">Plagas</span>
+                                    <span class="text-xs font-medium text-on-surface-variant">Miguel T.</span>
+                                    <span class="text-xs text-outline-variant">· hace 1 día</span>
+                                </div>
+                                <h2
+                                    class="text-lg font-headline font-bold text-on-surface group-hover:text-primary transition-colors mb-2 leading-snug">
+                                    Experiencias con control biológico contra el pulgón</h2>
+                                <p class="text-sm text-on-surface-variant line-clamp-2 leading-relaxed mb-4">
+                                    Liberaciones de Aphidius colemani en chile jalapeño bajo invernadero. Primera
+                                    generación establecida con parasitismo del 62% en 21 días.
+                                </p>
+                                <div class="flex items-center gap-5 pt-4 border-t border-surface-container">
+                                    <div
+                                        class="flex items-center gap-1.5 text-on-surface-variant hover:text-primary transition-colors">
+                                        <span class="material-symbols-outlined text-[18px]">chat_bubble</span>
+                                        <span class="text-xs font-semibold">5</span>
+                                    </div>
+                                    <div
+                                        class="flex items-center gap-1.5 text-on-surface-variant hover:text-primary transition-colors">
+                                        <span class="material-symbols-outlined text-[18px]">thumb_up</span>
+                                        <span class="text-xs font-semibold">44</span>
+                                    </div>
+                                    <div
+                                        class="flex items-center gap-1.5 text-on-surface-variant hover:text-primary transition-colors">
+                                        <span class="material-symbols-outlined text-[18px]">visibility</span>
+                                        <span class="text-xs font-semibold">610 vistas</span>
+                                    </div>
+                                    <button
+                                        class="ml-auto flex items-center gap-1.5 text-on-surface-variant hover:text-primary transition-colors text-xs font-semibold">
+                                        <span class="material-symbols-outlined text-[18px]">bookmark</span>
+                                        Guardar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Pagination -->
+                <div class="mt-8 flex justify-center">
+                    <nav class="flex items-center gap-1 bg-surface-container p-1 rounded-xl">
+                        <button
+                            class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-surface-container-highest text-on-surface-variant">
+                            <span class="material-symbols-outlined">chevron_left</span>
+                        </button>
+                        <button
+                            class="w-10 h-10 flex items-center justify-center rounded-lg bg-primary text-on-primary font-bold text-sm">1</button>
+                        <button
+                            class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-surface-container-highest text-on-surface-variant font-bold text-sm">2</button>
+                        <button
+                            class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-surface-container-highest text-on-surface-variant font-bold text-sm">3</button>
+                        <span class="px-2 text-on-surface-variant">...</span>
+                        <button
+                            class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-surface-container-highest text-on-surface-variant font-bold text-sm">18</button>
+                        <button
+                            class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-surface-container-highest text-on-surface-variant">
+                            <span class="material-symbols-outlined">chevron_right</span>
+                        </button>
+                    </nav>
+                </div>
+            </section>
+        </div>
+    </div>
+</main>

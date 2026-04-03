@@ -1,0 +1,307 @@
+<main class="pt-32 pb-24">
+    <!-- Header Section -->
+    <header class="max-w-[1440px] mx-auto px-10 mb-16">
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-8">
+            <div class="max-w-2xl">
+                <span
+                    class="inline-block px-3 py-1 mb-4 rounded-full bg-primary-container text-on-primary-container font-label text-xs font-bold tracking-wider uppercase">Catálogo
+                    Institucional</span>
+                <h1 class="text-5xl md:text-6xl font-headline font-extrabold tracking-tighter text-on-surface mb-4">
+                    Catálogo de Cultivos</h1>
+                <p class="text-on-surface-variant text-lg font-medium leading-relaxed">
+                    Explora nuestra base de datos científica con registros optimizados para la agricultura de precisión
+                    mexicana. Respaldado por INIFAP.
+                </p>
+            </div>
+            <div
+                class="bg-surface-container rounded-xl p-6 ghost-border flex flex-col items-center justify-center min-w-[200px]">
+                <span class="text-4xl font-headline font-extrabold text-primary tracking-tighter">450</span>
+                <span
+                    class="text-xs font-label uppercase tracking-widest text-on-surface-variant font-bold mt-1">cultivos
+                    documentados</span>
+            </div>
+        </div>
+        <!-- Search & Filters -->
+        <div class="mt-12 p-2 bg-surface-container-low rounded-2xl ghost-border">
+            <div class="flex flex-col lg:flex-row gap-2">
+                <div class="flex-1 relative flex items-center">
+                    <span class="material-symbols-outlined absolute left-4 text-on-surface-variant">search</span>
+                    <input
+                        class="w-full bg-surface-container-lowest border-none rounded-xl py-4 pl-12 pr-4 text-on-surface placeholder:text-on-surface-variant/60 focus:ring-2 focus:ring-primary/20 transition-all font-body"
+                        placeholder="Buscar por nombre, especie o región..." type="text" />
+                </div>
+                <div class="flex flex-wrap md:flex-nowrap gap-2">
+                    <select
+                        class="bg-surface-container-lowest border-none rounded-xl py-4 px-6 text-sm font-semibold text-on-surface-variant focus:ring-2 focus:ring-primary/20 appearance-none min-w-[140px]">
+                        <option>Categoría</option>
+                        <option>Cereales</option>
+                        <option>Hortalizas</option>
+                        <option>Frutales</option>
+                    </select>
+                    <select
+                        class="bg-surface-container-lowest border-none rounded-xl py-4 px-6 text-sm font-semibold text-on-surface-variant focus:ring-2 focus:ring-primary/20 appearance-none min-w-[140px]">
+                        <option>Región</option>
+                        <option>Norte</option>
+                        <option>Bajío</option>
+                        <option>Sureste</option>
+                    </select>
+                    <select
+                        class="bg-surface-container-lowest border-none rounded-xl py-4 px-6 text-sm font-semibold text-on-surface-variant focus:ring-2 focus:ring-primary/20 appearance-none min-w-[140px]">
+                        <option>Clima</option>
+                        <option>Templado</option>
+                        <option>Tropical</option>
+                        <option>Árido</option>
+                    </select>
+                    <button
+                        class="bg-primary text-on-primary px-8 py-4 rounded-xl font-bold text-sm hover:bg-primary-dim transition-colors flex items-center gap-2">
+                        <span class="material-symbols-outlined text-sm">filter_list</span>
+                        Filtrar Resultados
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+    <!-- Catalog Grid -->
+    <section class="max-w-[1440px] mx-auto px-10">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            <!-- Card 1: Maíz -->
+            <article
+                class="group bg-surface-container-lowest rounded-xl overflow-hidden editorial-shadow ghost-border flex flex-col hover:translate-y-[-4px] transition-all duration-300">
+                <div class="relative h-56 overflow-hidden">
+                    <img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        data-alt="Campo de maíz dorado bajo el sol"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuAgfRf9UWyJx5z5CHWXhrLKlNHahVleaEWKrr17JNs0qb4he_WDpdUN3yjXMTtmInvS55sewSVKfnYxXMkH1RyAQW-F3LMePIaoKxCuZpp0_YxT0W_X6MGsFt-JIiNhShLu2fg8JC8UPVciYImOg31V67nrxamYEOsConHJhvuzep5M0a2LAqiB5Y8qLYXE2JnNyTP4uVmllRHwsVZBkUnpRDf_hOs4gC5oYJOFG-LJ-6E3EQSQVBazuw2VezRTawnqMhJBFdLmo9Jg" />
+                    <div
+                        class="absolute bottom-2 right-2 bg-black/40 backdrop-blur-sm px-2 py-1 rounded text-[10px] text-white/90 font-label">
+                        Foto: INIFAP Archivo
+                    </div>
+                </div>
+                <div class="p-6 flex-1 flex flex-col">
+                    <span
+                        class="text-[10px] font-label font-bold uppercase tracking-widest text-primary mb-2">Cereales</span>
+                    <h3 class="text-xl font-headline font-bold text-on-surface mb-1 leading-tight">Maíz</h3>
+                    <p class="text-sm italic text-on-surface-variant mb-4">Zea mays L.</p>
+                    <p class="text-sm text-on-surface-variant line-clamp-2 leading-relaxed mb-6">
+                        Base de la alimentación mexicana, requiere climas templados a cálidos y suelos profundos.
+                    </p>
+                    <div class="mt-auto pt-4 border-t border-surface-container flex justify-between items-center">
+                        <button class="text-primary font-bold text-sm flex items-center gap-1 group/btn">
+                            Ver detalle
+                            <span
+                                class="material-symbols-outlined text-sm group-hover/btn:translate-x-1 transition-transform">arrow_forward</span>
+                        </button>
+                    </div>
+                </div>
+            </article>
+            <!-- Card 2: Trigo -->
+            <article
+                class="group bg-surface-container-lowest rounded-xl overflow-hidden editorial-shadow ghost-border flex flex-col hover:translate-y-[-4px] transition-all duration-300">
+                <div class="relative h-56 overflow-hidden">
+                    <img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        data-alt="Espigas de trigo maduro en primer plano"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuCQuwQUyYWru1tx50ABndxAZnVv7iwW6RcIYYIoGWACxO0_jHnfzrMBd4nYciVpxwqt2Yg1BDkW32ldJ6PJHLWp1UwFojQPCKU9R1R87rFIQqnroHIOPv2nxou4wKe1TFEKOYVo0wGukpxRXAznZG6_dmCXjxwem4jDy-JTN20Ri2Zj9Uj8OiB2GJ5I6lYC8jwL_9Fm1wEhW9WRp8DGxtIidKzVYNVcVel8zALGjyYEHGxM4bVqfhMus3Y7dhux2ERBkRIwRH0kZ-m4" />
+                    <div
+                        class="absolute bottom-2 right-2 bg-black/40 backdrop-blur-sm px-2 py-1 rounded text-[10px] text-white/90 font-label">
+                        Foto: Producción Agrícola MX
+                    </div>
+                </div>
+                <div class="p-6 flex-1 flex flex-col">
+                    <span
+                        class="text-[10px] font-label font-bold uppercase tracking-widest text-primary mb-2">Cereales</span>
+                    <h3 class="text-xl font-headline font-bold text-on-surface mb-1 leading-tight">Trigo</h3>
+                    <p class="text-sm italic text-on-surface-variant mb-4">Triticum aestivum</p>
+                    <p class="text-sm text-on-surface-variant line-clamp-2 leading-relaxed mb-6">
+                        Cultivo esencial para la industria panificadora, adaptado a diversas regiones del Bajío.
+                    </p>
+                    <div class="mt-auto pt-4 border-t border-surface-container flex justify-between items-center">
+                        <button class="text-primary font-bold text-sm flex items-center gap-1 group/btn">
+                            Ver detalle
+                            <span
+                                class="material-symbols-outlined text-sm group-hover/btn:translate-x-1 transition-transform">arrow_forward</span>
+                        </button>
+                    </div>
+                </div>
+            </article>
+            <!-- Card 3: Aguacate -->
+            <article
+                class="group bg-surface-container-lowest rounded-xl overflow-hidden editorial-shadow ghost-border flex flex-col hover:translate-y-[-4px] transition-all duration-300">
+                <div class="relative h-56 overflow-hidden">
+                    <img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        data-alt="Aguacates colgando de una rama de árbol"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuDwRT4rPH8Wi07dW3JbFr5jNM__hu-VhPFfJVT_hu1eiFYeawsLvU0Tao0lN3eCfff6X_H6vN1YAeCq8MZOp4m4009k_X7jz60G3N8zOXk8-EMcocmjVtSEbUHt-A1yUR6nnXD4W851uou4RxFRQ0lD9kD4-7lffZe5W6dXM9aai9nNgaiJ8wFk8CTifsZoTJKmWRlHxS5vtrMHEGtfYO0WwbZ58r-wZ_COvrSHdrAKK-MilheLWmDmNbGk6zBFPF3NBnc7UHRDhVIo" />
+                    <div
+                        class="absolute bottom-2 right-2 bg-black/40 backdrop-blur-sm px-2 py-1 rounded text-[10px] text-white/90 font-label">
+                        Foto: BioAgro Research
+                    </div>
+                </div>
+                <div class="p-6 flex-1 flex flex-col">
+                    <span
+                        class="text-[10px] font-label font-bold uppercase tracking-widest text-primary mb-2">Frutales</span>
+                    <h3 class="text-xl font-headline font-bold text-on-surface mb-1 leading-tight">Aguacate</h3>
+                    <p class="text-sm italic text-on-surface-variant mb-4">Persea americana</p>
+                    <p class="text-sm text-on-surface-variant line-clamp-2 leading-relaxed mb-6">
+                        El oro verde mexicano. Requiere suelos bien drenados y climas templados-húmedos.
+                    </p>
+                    <div class="mt-auto pt-4 border-t border-surface-container flex justify-between items-center">
+                        <button class="text-primary font-bold text-sm flex items-center gap-1 group/btn">
+                            Ver detalle
+                            <span
+                                class="material-symbols-outlined text-sm group-hover/btn:translate-x-1 transition-transform">arrow_forward</span>
+                        </button>
+                    </div>
+                </div>
+            </article>
+            <!-- Card 4: Café -->
+            <article
+                class="group bg-surface-container-lowest rounded-xl overflow-hidden editorial-shadow ghost-border flex flex-col hover:translate-y-[-4px] transition-all duration-300">
+                <div class="relative h-56 overflow-hidden">
+                    <img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        data-alt="Cerezas rojas de café en la planta"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuDtYEnPeku7DZ12KrFHHJl-qYQXSWSrzXW9hOrVnyfWFvTCdWhq8tU6I9h4uLmfMcZJ7dIbzi0JBguK_p47QalXdfzlm9DYID9t6QHGt8VwQBAE6kWkyVe6cNWEiWv91WP1X65SnQ-R1nzlXF2WRcYn1YqsM9URorEeC8riCrcxPP_88BR5DuF5W9jqXS2ievggjbqg1sJds5R7XTt43Jf4WacYjhprtI1PtuW3DyEWvUOBMkfGTHxo2J4Snq31GCIk68_cXbIWYbOL" />
+                    <div
+                        class="absolute bottom-2 right-2 bg-black/40 backdrop-blur-sm px-2 py-1 rounded text-[10px] text-white/90 font-label">
+                        Foto: Café México S.A.
+                    </div>
+                </div>
+                <div class="p-6 flex-1 flex flex-col">
+                    <span
+                        class="text-[10px] font-label font-bold uppercase tracking-widest text-primary mb-2">Frutales</span>
+                    <h3 class="text-xl font-headline font-bold text-on-surface mb-1 leading-tight">Café</h3>
+                    <p class="text-sm italic text-on-surface-variant mb-4">Coffea arabica</p>
+                    <p class="text-sm text-on-surface-variant line-clamp-2 leading-relaxed mb-6">
+                        Cultivo de sombra predominante en el sureste, vital para la biodiversidad y economía local.
+                    </p>
+                    <div class="mt-auto pt-4 border-t border-surface-container flex justify-between items-center">
+                        <button class="text-primary font-bold text-sm flex items-center gap-1 group/btn">
+                            Ver detalle
+                            <span
+                                class="material-symbols-outlined text-sm group-hover/btn:translate-x-1 transition-transform">arrow_forward</span>
+                        </button>
+                    </div>
+                </div>
+            </article>
+            <!-- Card 5: Frijol -->
+            <article
+                class="group bg-surface-container-lowest rounded-xl overflow-hidden editorial-shadow ghost-border flex flex-col hover:translate-y-[-4px] transition-all duration-300">
+                <div class="relative h-56 overflow-hidden">
+                    <img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        data-alt="Plantas de frijol con vainas verdes"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuAYBbBGbyRHpcKJcDl3yZiVxCtP9pcUrQ8d6rx5IfKdz8FEVpfsxSPXt9xdiiirXRuxpFWGIeWbeXcRkgxXg5UW0IuRDo0bZgtBmPATwRfryhBXx_UV5TwNIGPJZArZnb74g_whxDkoZofd0AucVQzbxruoVrRhhPH0xtOwzYFlytU87NMRvTg41cfVfRFpu0zPI3FJK3dGhFsVZsM2j6Q8aex4d4sQpKrAvFdHGvXkrQ-MMzA3xYiZ_50eGYyHxSscfGKi0egXMI2E" />
+                    <div
+                        class="absolute bottom-2 right-2 bg-black/40 backdrop-blur-sm px-2 py-1 rounded text-[10px] text-white/90 font-label">
+                        Foto: INIFAP Archivo
+                    </div>
+                </div>
+                <div class="p-6 flex-1 flex flex-col">
+                    <span
+                        class="text-[10px] font-label font-bold uppercase tracking-widest text-primary mb-2">Leguminosas</span>
+                    <h3 class="text-xl font-headline font-bold text-on-surface mb-1 leading-tight">Frijol</h3>
+                    <p class="text-sm italic text-on-surface-variant mb-4">Phaseolus vulgaris</p>
+                    <p class="text-sm text-on-surface-variant line-clamp-2 leading-relaxed mb-6">
+                        Pilar proteico de la dieta mexicana, adaptable a diferentes altitudes y tipos de suelo.
+                    </p>
+                    <div class="mt-auto pt-4 border-t border-surface-container flex justify-between items-center">
+                        <button class="text-primary font-bold text-sm flex items-center gap-1 group/btn">
+                            Ver detalle
+                            <span
+                                class="material-symbols-outlined text-sm group-hover/btn:translate-x-1 transition-transform">arrow_forward</span>
+                        </button>
+                    </div>
+                </div>
+            </article>
+            <!-- Card 6: Chile -->
+            <article
+                class="group bg-surface-container-lowest rounded-xl overflow-hidden editorial-shadow ghost-border flex flex-col hover:translate-y-[-4px] transition-all duration-300">
+                <div class="relative h-56 overflow-hidden">
+                    <img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        data-alt="Chiles rojos y verdes en el campo"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuDhSwps_LNJGo5-PjpWA3i-E_x_ElRihoD3Lp5j1EQcN2QTVDCqKHOOShP6n-GvK2ky9ao7pl7SNTd3F7ngoRsvjTAzOLGrCWG7ouSro5_AJfDiZQbG52chKDnevX_uyfyW1uaLLc-03lz4vsZ-X5iZgtfaywP7ktm6z2gFZeH9-bGJl2IHQuoHl8kht77fEcDeAicwVQ6TcHhXywKkCaiW7j03WN7R7OyD8urjSuNMnS_l-r2tf34YiVeqPOHir878fpMWSvOAo4dN" />
+                    <div
+                        class="absolute bottom-2 right-2 bg-black/40 backdrop-blur-sm px-2 py-1 rounded text-[10px] text-white/90 font-label">
+                        Foto: Horticultura MX
+                    </div>
+                </div>
+                <div class="p-6 flex-1 flex flex-col">
+                    <span
+                        class="text-[10px] font-label font-bold uppercase tracking-widest text-primary mb-2">Hortalizas</span>
+                    <h3 class="text-xl font-headline font-bold text-on-surface mb-1 leading-tight">Chile</h3>
+                    <p class="text-sm italic text-on-surface-variant mb-4">Capsicum annuum</p>
+                    <p class="text-sm text-on-surface-variant line-clamp-2 leading-relaxed mb-6">
+                        Ingrediente esencial de la gastronomía mexicana, con más de 60 variedades cultivadas en el país.
+                    </p>
+                    <div class="mt-auto pt-4 border-t border-surface-container flex justify-between items-center">
+                        <button class="text-primary font-bold text-sm flex items-center gap-1 group/btn">
+                            Ver detalle
+                            <span
+                                class="material-symbols-outlined text-sm group-hover/btn:translate-x-1 transition-transform">arrow_forward</span>
+                        </button>
+                    </div>
+                </div>
+            </article>
+            <!-- Card 7: Tomate -->
+            <article
+                class="group bg-surface-container-lowest rounded-xl overflow-hidden editorial-shadow ghost-border flex flex-col hover:translate-y-[-4px] transition-all duration-300">
+                <div class="relative h-56 overflow-hidden">
+                    <img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        data-alt="Tomates rojos maduros en la planta"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuDFVIYnNpvlElOwOJohrbvHADP0pUo2qHoUGut_7g-uE7IqxVEKXnm3e90pBKuERXwyJbuGyDk3D7GyBtxStSUmPAMjf0hbmIV1m0TluXy1g_mF4Yb4B0UxR0TLDuSp7m9rYu0guCGxr31U1O5G2V0SI2sb9PkV_ySezpFXsOsDykeyn5e17B_230SkddLFOZ40rvRPm4rY03eIWwzUrAQ2GV22PtEYexkZYOUGPI_0L3riAV44U55BUK-DgT-ZCuvgvqvuTIy63-Lf" />
+                    <div
+                        class="absolute bottom-2 right-2 bg-black/40 backdrop-blur-sm px-2 py-1 rounded text-[10px] text-white/90 font-label">
+                        Foto: Agroindustria MX
+                    </div>
+                </div>
+                <div class="p-6 flex-1 flex flex-col">
+                    <span
+                        class="text-[10px] font-label font-bold uppercase tracking-widest text-primary mb-2">Hortalizas</span>
+                    <h3 class="text-xl font-headline font-bold text-on-surface mb-1 leading-tight">Jitomate</h3>
+                    <p class="text-sm italic text-on-surface-variant mb-4">Solanum lycopersicum</p>
+                    <p class="text-sm text-on-surface-variant line-clamp-2 leading-relaxed mb-6">
+                        Uno de los principales cultivos de exportación, se produce intensivamente en Sinaloa y Sonora.
+                    </p>
+                    <div class="mt-auto pt-4 border-t border-surface-container flex justify-between items-center">
+                        <button class="text-primary font-bold text-sm flex items-center gap-1 group/btn">
+                            Ver detalle
+                            <span
+                                class="material-symbols-outlined text-sm group-hover/btn:translate-x-1 transition-transform">arrow_forward</span>
+                        </button>
+                    </div>
+                </div>
+            </article>
+            <!-- CTA Card -->
+            <article
+                class="group bg-surface-container-lowest rounded-xl overflow-hidden editorial-shadow ghost-border flex flex-col hover:translate-y-[-4px] transition-all duration-300 border-2 border-dashed border-primary/20 items-center justify-center p-8">
+                <div class="text-center">
+                    <span class="material-symbols-outlined text-4xl text-primary/40 mb-4">add_circle</span>
+                    <h3 class="text-lg font-headline font-bold text-on-surface mb-2">¿Nuevo cultivo?</h3>
+                    <p class="text-xs text-on-surface-variant leading-relaxed mb-6">Colabora con nuestra red
+                        científica reportando un nuevo cultivo documentado.</p>
+                    <button
+                        class="px-6 py-2 bg-surface-container-high rounded-full text-xs font-bold text-primary uppercase tracking-wider hover:bg-primary-container transition-colors">Solicitar
+                        registro</button>
+                </div>
+            </article>
+        </div>
+        <!-- Pagination -->
+        <div class="mt-20 flex justify-center">
+            <nav class="flex items-center gap-1 bg-surface-container p-1 rounded-xl">
+                <button
+                    class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-surface-container-highest text-on-surface-variant">
+                    <span class="material-symbols-outlined">chevron_left</span>
+                </button>
+                <button
+                    class="w-10 h-10 flex items-center justify-center rounded-lg bg-primary text-on-primary font-bold text-sm">1</button>
+                <button
+                    class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-surface-container-highest text-on-surface-variant font-bold text-sm">2</button>
+                <button
+                    class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-surface-container-highest text-on-surface-variant font-bold text-sm">3</button>
+                <span class="px-2 text-on-surface-variant">...</span>
+                <button
+                    class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-surface-container-highest text-on-surface-variant font-bold text-sm">8</button>
+                <button
+                    class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-surface-container-highest text-on-surface-variant">
+                    <span class="material-symbols-outlined">chevron_right</span>
+                </button>
+            </nav>
+        </div>
+    </section>
+</main>
