@@ -49,8 +49,7 @@ export const renderHomeIndex = (req, res) => {
         },
     ];
 
-    res.render('homePublic', {
-        layout:      'main',
+    res.render('public/home', {
         pageTitle:   'Inicio',
         activePage:  'home',
         heroImage,
@@ -64,33 +63,29 @@ export const renderHomeIndex = (req, res) => {
 };
 
 export const renderPlaguesPublic = (req, res) => {
-        res.render('plaguesPublic', {
-            layout:      'main',
-            pageTitle:   'Plagas',
-            activePage:  'plagues',
-        });
-    };
+    res.render('public/plagues', {
+        pageTitle:   'Plagas',
+        activePage:  'plagues',
+    });
+};
 
-export const renderCropsPublic = (req, res)=>{
-    res.render('cropsPublic', {
-        layout:      'main',
+export const renderCropsPublic = (req, res) => {
+    res.render('public/crops', {
         pageTitle:   'Cultivos',
         activePage:  'crops',
     });
 }
 
-export const renderProductsPublic = (req, res)=>{
-    res.render('productsPublic', {
-        layout:      'main',
+export const renderProductsPublic = (req, res) => {
+    res.render('public/products', {
         pageTitle:   'Productos',
         activePage:  'products',
     });
 }
 
 
-export const renderForumPublic = (req, res)=>{
-    res.render('forumPublic', {
-        layout:      'main',
+export const renderForumPublic = (req, res) => {
+    res.render('public/forum', {
         pageTitle:   'Foro',
         activePage:  'forum',
     });

@@ -1,7 +1,10 @@
+<!DOCTYPE html>
+<html class="light" lang="es">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{#if pageTitle}}{{pageTitle}} — Agrosystem{{else}}Agrosystem{{/if}}</title>
+  <title>{{#if pageTitle}}{{pageTitle}} — INIFAP{{else}}INIFAP{{/if}}</title>
 
   <!-- Fonts: Manrope (headlines) + Inter (body) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -25,3 +28,20 @@
 
   {{#if extraHead}}{{{extraHead}}}{{/if}}
 </head>
+
+
+<body class="bg-surface text-on-surface">
+
+  {{> public/navbar}}
+
+  <main id="main-content">
+    {{{body}}}
+  </main>
+
+  {{> public/footer}}
+
+  <script src="/js/main.js"></script>
+  {{#if extraScripts}}{{{extraScripts}}}{{/if}}
+</body>
+
+</html>
