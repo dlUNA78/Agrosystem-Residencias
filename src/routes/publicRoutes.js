@@ -7,13 +7,13 @@ import {
   renderForumPublic,
 } from "../controllers/publicController.js";
 
-const router = express.Router();
+const publicRouter = express.Router();
 
 // GET /  →  Página de inicio pública
-router.get("/", renderHomeIndex);
-router.get("/plagues", renderPlaguesPublic);
-router.get("/crops", renderCropsPublic);
-router.get("/products", renderProductsPublic);
-router.get("/forum", renderForumPublic);
+publicRouter.get("/", renderHomeIndex);
+publicRouter.get("/plagues", renderPlaguesPublic);
+publicRouter.get("/crops", renderCropsPublic);
+publicRouter.get("/products", renderProductsPublic);
+publicRouter.get("/forum", renderForumPublic);
 
-export default router;
+export default publicRouter;
