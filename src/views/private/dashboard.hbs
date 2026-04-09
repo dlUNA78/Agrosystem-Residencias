@@ -1,141 +1,310 @@
-<!-- Main Content Canvas -->
 <main class="ml-64 pt-24 px-10 pb-12 min-h-screen">
-    <!-- Header Section -->
-    <header class="mb-12">
-        <h2 class="text-4xl font-extrabold text-[#0F2E2E] tracking-tight mb-2" style="">Panel de Administración</h2>
-        <p class="text-on-surface-variant text-lg max-w-2xl" style="">Supervise la integridad de la base de datos y
-            gestione el acceso de los usuarios a la plataforma Agrosystem.</p>
-    </header>
-    <!-- Stats Overview (Bento Style) -->
-    <section class="grid grid-cols-12 gap-6 mb-12">
+    <!-- Row 1: KPI Cards -->
+    <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <div
-            class="col-span-12 md:col-span-4 bg-surface-container-lowest p-6 rounded-xl shadow-sm border-l-4 border-primary">
-            <p class="text-on-surface-variant text-sm font-bold uppercase tracking-wider mb-2" style="">Pendientes de
-                Validación</p>
-            <div class="flex items-end gap-2">
-                <span class="text-4xl font-extrabold text-[#0F2E2E]" style="">24</span>
-                <span class="text-primary font-bold text-sm mb-1 pb-1" style="">+5 hoy</span>
+            class="bg-white p-6 rounded-2xl shadow-[0_4px_20px_-2px_rgba(0,0,0,0.05),0_2px_10px_-2px_rgba(0,0,0,0.02)] border border-slate-50 hover:shadow-[0_20px_25px_-5px_rgba(0,0,0,0.1),0_10px_10px_-5px_rgba(0,0,0,0.04)] transition-all cursor-pointer group">
+            <div class="flex items-start justify-between mb-6">
+                <div class="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center text-orange-500">
+                    <span class="material-symbols-outlined text-3xl">description</span>
+                </div>
+                <span class="text-[11px] font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full">+5 hoy</span>
+            </div>
+            <div>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Validaciones Pendientes
+                </p>
+                <span class="text-3xl font-extrabold text-[#0F2E2E]">24</span>
             </div>
         </div>
         <div
-            class="col-span-12 md:col-span-4 bg-surface-container-lowest p-6 rounded-xl shadow-sm border-l-4 border-secondary">
-            <p class="text-on-surface-variant text-sm font-bold uppercase tracking-wider mb-2" style="">Usuarios Activos
-            </p>
-            <div class="flex items-end gap-2">
-                <span class="text-4xl font-extrabold text-[#0F2E2E]" style="">1,284</span>
-                <span class="text-primary font-bold text-sm mb-1 pb-1" style="">Inifap (42)</span>
+            class="bg-white p-6 rounded-2xl shadow-[0_4px_20px_-2px_rgba(0,0,0,0.05),0_2px_10px_-2px_rgba(0,0,0,0.02)] border border-slate-50 hover:shadow-[0_20px_25px_-5px_rgba(0,0,0,0.1),0_10px_10px_-5px_rgba(0,0,0,0.04)] transition-all cursor-pointer group">
+            <div class="flex items-start justify-between mb-6">
+                <div class="w-12 h-12 rounded-xl bg-red-50 flex items-center justify-center text-red-500">
+                    <span class="material-symbols-outlined text-3xl">notification_important</span>
+                </div>
+                <span class="text-[10px] font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-full uppercase">Alerta
+                    Crítica</span>
             </div>
-        </div>
-        <div
-            class="col-span-12 md:col-span-4 bg-primary text-on-primary p-6 rounded-xl shadow-lg relative overflow-hidden">
-            <div class="relative z-10">
-                <p class="text-primary-container text-sm font-bold uppercase tracking-wider mb-2" style="">Estado del
-                    Servidor</p>
-                <div class="flex items-center gap-2">
-                    <span class="w-3 h-3 bg-primary-container rounded-full"></span>
-                    <span class="text-xl font-bold" style="">Óptimo</span>
+            <div>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Alertas Críticas Activas
+                </p>
+                <div class="flex items-baseline gap-2">
+                    <span class="text-3xl font-extrabold text-[#0F2E2E]">7</span>
+                    <span class="text-[11px] font-medium text-slate-400">En terrenos privados</span>
                 </div>
             </div>
-            <span class="material-symbols-outlined absolute -right-4 -bottom-4 text-8xl opacity-10"
-                data-icon="verified_user" style="">verified_user</span>
+        </div>
+        <div
+            class="bg-white p-6 rounded-2xl shadow-[0_4px_20px_-2px_rgba(0,0,0,0.05),0_2px_10px_-2px_rgba(0,0,0,0.02)] border border-slate-50 hover:shadow-[0_20px_25px_-5px_rgba(0,0,0,0.1),0_10px_10px_-5px_rgba(0,0,0,0.04)] transition-all cursor-pointer group">
+            <div class="flex items-start justify-between mb-6">
+                <div class="w-12 h-12 rounded-xl bg-green-50 flex items-center justify-center text-[#0F2E2E]">
+                    <span class="material-symbols-outlined text-3xl">map</span>
+                </div>
+                <span class="text-[10px] font-bold text-[#0F2E2E] bg-green-50 px-2 py-0.5 rounded-full uppercase">En
+                    Monitoreo</span>
+            </div>
+            <div>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Hectáreas Monitoreadas
+                </p>
+                <div class="flex items-baseline gap-1">
+                    <span class="text-3xl font-extrabold text-[#0F2E2E]">1,280</span>
+                    <span class="text-sm font-bold text-slate-400 uppercase">ha</span>
+                </div>
+            </div>
+        </div>
+        <div
+            class="bg-white p-6 rounded-2xl shadow-[0_4px_20px_-2px_rgba(0,0,0,0.05),0_2px_10px_-2px_rgba(0,0,0,0.02)] border border-slate-50 hover:shadow-[0_20px_25px_-5px_rgba(0,0,0,0.1),0_10px_10px_-5px_rgba(0,0,0,0.04)] transition-all cursor-pointer group">
+            <div class="flex items-start justify-between mb-6">
+                <div class="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-blue-500">
+                    <span class="material-symbols-outlined text-3xl">chat</span>
+                </div>
+                <span class="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full uppercase">Pulso
+                    Social</span>
+            </div>
+            <div>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Actividad Comunidad</p>
+                <div class="flex items-baseline gap-2">
+                    <span class="text-3xl font-extrabold text-[#0F2E2E]">142</span>
+                    <span class="text-[11px] font-medium text-slate-400">Posts/IDs últ 24h</span>
+                </div>
+            </div>
         </div>
     </section>
-    <div class="grid grid-cols-12 gap-10">
-        <!-- Dashboard Overview Section (Expanded to full width since Validation Queue was removed) -->
-        <section class="col-span-12 space-y-8">
-            <div class="bg-surface-container-lowest rounded-2xl shadow-sm p-8">
-                <div class="flex items-center justify-between mb-8">
-                    <div>
-                        <h3 class="text-2xl font-bold text-[#0F2E2E]" style="">Resumen de Actividad</h3>
-                        <p class="text-sm text-on-surface-variant" style="">Panorama general de interacciones en
-                            Agrosystem</p>
-                    </div>
-                    <div class="flex gap-2">
-                        <button
-                            class="p-2 bg-surface-container rounded-lg text-on-surface-variant hover:text-primary transition-colors"
-                            style="">
-                            <span class="material-symbols-outlined" data-icon="filter_list" style="">filter_list</span>
-                        </button>
-                    </div>
+    <!-- Row 2: Action Buttons (Relocated to top) -->
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <button
+            class="bg-[#2D4F4F] hover:bg-[#0F2E2E] text-white p-6 rounded-2xl shadow-lg transition-all flex items-center justify-between group">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center">
+                    <span
+                        class="material-symbols-outlined text-2xl group-hover:scale-110 transition-transform">add_location_alt</span>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                    <div class="p-6 rounded-xl bg-surface-container-low border border-surface-container">
-                        <div class="flex items-center gap-3 mb-2">
-                            <span class="material-symbols-outlined text-primary" data-icon="forum" style="">forum</span>
-                            <h4 class="text-sm font-bold text-on-surface" style="">Actividad del Foro</h4>
-                        </div>
-                        <p class="text-2xl font-extrabold text-[#0F2E2E]" style="">142 <span
-                                class="text-xs font-medium text-on-surface-variant" style="">hilos nuevos</span></p>
-                        <div class="mt-2 w-full bg-white rounded-full h-1.5 overflow-hidden">
-                            <div class="bg-primary h-full" style="width: 65%"></div>
-                        </div>
-                    </div>
-                    <div class="p-6 rounded-xl bg-surface-container-low border border-surface-container">
-                        <div class="flex items-center gap-3 mb-2">
-                            <span class="material-symbols-outlined text-secondary" data-icon="monitoring"
-                                style="">monitoring</span>
-                            <h4 class="text-sm font-bold text-on-surface" style="">Consultas de Registros</h4>
-                        </div>
-                        <p class="text-2xl font-extrabold text-[#0F2E2E]" style="">3.5k <span
-                                class="text-xs font-medium text-on-surface-variant" style="">este mes</span></p>
-                        <div class="mt-2 w-full bg-white rounded-full h-1.5 overflow-hidden">
-                            <div class="bg-secondary h-full" style="width: 80%"></div>
-                        </div>
-                    </div>
+                <div class="text-left">
+                    <span class="font-bold block text-lg">+ Registrar Nuevo Predio</span>
+                    <span class="text-[11px] text-white/60">Añadir polígono y cultivos</span>
                 </div>
-                <h4 class="text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-4" style="">Eventos
-                    Recientes</h4>
-                <div class="space-y-4">
-                    <div
-                        class="flex items-start gap-4 p-4 rounded-lg hover:bg-surface transition-colors border-l-2 border-transparent hover:border-primary">
-                        <div
-                            class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center shrink-0">
-                            <span class="material-symbols-outlined text-xs text-on-primary-container" data-icon="update"
-                                style="">update</span>
-                        </div>
-                        <div class="flex-1">
-                            <p class="text-sm font-bold text-on-surface" style="">Actualización de Ficha Técnica: Trigo
-                                Fénix</p>
-                            <p class="text-xs text-on-surface-variant" style="">Modificado por Dr. Ricardo Mendoza •
-                                Hace 3 horas</p>
-                        </div>
-                    </div>
-                    <div
-                        class="flex items-start gap-4 p-4 rounded-lg hover:bg-surface transition-colors border-l-2 border-transparent hover:border-primary">
-                        <div
-                            class="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center shrink-0">
-                            <span class="material-symbols-outlined text-xs text-on-secondary-container"
-                                data-icon="person_add" style="">person_add</span>
-                        </div>
-                        <div class="flex-1">
-                            <p class="text-sm font-bold text-on-surface" style="">Nueva solicitud de acceso
-                                institucional: Universidad Autónoma</p>
-                            <p class="text-xs text-on-surface-variant" style="">5 nuevos investigadores pendientes de
-                                validación • Hace 6 horas</p>
-                        </div>
-                    </div>
-                    <div
-                        class="flex items-start gap-4 p-4 rounded-lg hover:bg-surface transition-colors border-l-2 border-transparent hover:border-primary">
-                        <div
-                            class="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center shrink-0">
-                            <span class="material-symbols-outlined text-xs text-on-surface-variant" data-icon="error"
-                                style="">error</span>
-                        </div>
-                        <div class="flex-1">
-                            <p class="text-sm font-bold text-on-surface" style="">Reporte Crítico de Plaga: Gusano
-                                Cogollero</p>
-                            <p class="text-xs text-on-surface-variant" style="">Detección masiva en zona Noreste • Ayer
-                            </p>
-                        </div>
-                    </div>
+            </div>
+            <span
+                class="material-symbols-outlined opacity-50 group-hover:opacity-100 transition-opacity">chevron_right</span>
+        </button>
+        <button
+            class="bg-[#F2A900] hover:bg-[#D99800] text-white p-6 rounded-2xl shadow-lg transition-all flex items-center justify-between group">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center">
+                    <span
+                        class="material-symbols-outlined text-2xl group-hover:scale-110 transition-transform">pending_actions</span>
                 </div>
-                <button
-                    class="mt-6 w-full py-3 text-xs font-bold text-on-surface-variant hover:text-primary transition-colors flex items-center justify-center gap-2"
-                    style="">
-                    Ver logs detallados <span class="material-symbols-outlined text-sm" data-icon="arrow_forward"
-                        style="">arrow_forward</span>
+                <div class="text-left">
+                    <span class="font-bold block text-lg">Sugerencias Pendientes</span>
+                    <span class="text-[11px] text-white/60">Revisar cambios sugeridos</span>
+                </div>
+            </div>
+            <span
+                class="material-symbols-outlined opacity-50 group-hover:opacity-100 transition-opacity">chevron_right</span>
+        </button>
+        <button
+            class="bg-[#1A1A1A] hover:bg-black text-white p-6 rounded-2xl shadow-lg transition-all flex items-center justify-between group">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center">
+                    <span
+                        class="material-symbols-outlined text-2xl group-hover:scale-110 transition-transform">key</span>
+                </div>
+                <div class="text-left">
+                    <span class="font-bold block text-lg">Generar Código INIFAP</span>
+                    <span class="text-[11px] text-white/60">Acceso seguro para técnicos</span>
+                </div>
+            </div>
+            <span
+                class="material-symbols-outlined opacity-50 group-hover:opacity-100 transition-opacity">chevron_right</span>
+        </button>
+    </section>
+    <!-- Row 3: Alert Panel -->
+    <section class="mb-8">
+        <div class="bg-red-500 text-white p-4 rounded-xl flex items-center justify-between shadow-lg">
+            <div class="flex items-center gap-4">
+                <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined text-white">campaign</span>
+                </div>
+                <div>
+                    <p class="font-bold text-sm">
+                        ¡Atención! Posible brote de <span class="underline decoration-white/40 decoration-2">[Plaga
+                            X]</span> detectado en la región central
+                    </p>
+                    <p class="text-[10px] text-white/80">(3 reportes coincidentes en las últimas 2 horas)</p>
+                </div>
+            </div>
+            <button
+                class="bg-white text-red-500 px-6 py-2 rounded-lg text-xs font-extrabold hover:bg-red-50 transition-colors shadow-sm">
+                Ver Detalles
+            </button>
+        </div>
+    </section>
+    <!-- Row 4: Charts -->
+    <section class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <!-- Left: Bar Chart -->
+        <div class="bg-white p-8 rounded-2xl shadow-[0_4px_20px_-2px_rgba(0,0,0,0.05),0_2px_10px_-2px_rgba(0,0,0,0.02)] border border-slate-50">
+            <div class="flex items-center justify-between mb-8">
+                <h3 class="font-extrabold text-[#0F2E2E] font-headline">Top 5 Plagas del Mes</h3>
+                <button class="text-slate-400 hover:text-[#0F2E2E]">
+                    <span class="material-symbols-outlined">more_horiz</span>
                 </button>
             </div>
-        </section>
-    </div>
+            <div class="space-y-6">
+                <div class="space-y-2">
+                    <div class="flex justify-between text-xs font-bold mb-1">
+                        <span class="text-slate-600">Gusano Cogollero</span>
+                        <span class="text-slate-900">450 reportes</span>
+                    </div>
+                    <div class="w-full bg-slate-100 rounded-full h-2">
+                        <div class="bg-[#0F2E2E] h-2 rounded-full transition-[width] duration-1000 ease-in-out" style="width: 85%"></div>
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    <div class="flex justify-between text-xs font-bold mb-1">
+                        <span class="text-slate-600">Mosca de la Fruta</span>
+                        <span class="text-slate-900">320 reportes</span>
+                    </div>
+                    <div class="w-full bg-slate-100 rounded-full h-2">
+                        <div class="bg-[#0F2E2E] h-2 rounded-full transition-[width] duration-1000 ease-in-out" style="width: 65%"></div>
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    <div class="flex justify-between text-xs font-bold mb-1">
+                        <span class="text-slate-600">Pulgón Amarillo</span>
+                        <span class="text-slate-900">210 reportes</span>
+                    </div>
+                    <div class="w-full bg-slate-100 rounded-full h-2">
+                        <div class="bg-[#0F2E2E] h-2 rounded-full transition-[width] duration-1000 ease-in-out" style="width: 45%"></div>
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    <div class="flex justify-between text-xs font-bold mb-1">
+                        <span class="text-slate-600">Roya del Café</span>
+                        <span class="text-slate-900">150 reportes</span>
+                    </div>
+                    <div class="w-full bg-slate-100 rounded-full h-2">
+                        <div class="bg-[#0F2E2E] h-2 rounded-full transition-[width] duration-1000 ease-in-out" style="width: 35%"></div>
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    <div class="flex justify-between text-xs font-bold mb-1">
+                        <span class="text-slate-600">Picudo del Algodón</span>
+                        <span class="text-slate-900">95 reportes</span>
+                    </div>
+                    <div class="w-full bg-slate-100 rounded-full h-2">
+                        <div class="bg-[#0F2E2E] h-2 rounded-full transition-[width] duration-1000 ease-in-out" style="width: 20%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Right: Pie Chart -->
+        <div class="bg-white p-8 rounded-2xl shadow-[0_4px_20px_-2px_rgba(0,0,0,0.05),0_2px_10px_-2px_rgba(0,0,0,0.02)] border border-slate-50">
+            <div class="flex items-center justify-between mb-8">
+                <h3 class="font-extrabold text-[#0F2E2E] font-headline">Distribución de Cultivos Registrados</h3>
+                <button class="text-slate-400">
+                    <span class="material-symbols-outlined">filter_list</span>
+                </button>
+            </div>
+            <div class="flex flex-col md:flex-row items-center justify-around gap-8 h-[240px]">
+                <div
+                    class="relative w-44 h-44 rounded-full border-10 border-slate-50 flex items-center justify-center">
+                    <div class="absolute inset-0 rounded-full"
+                        style="background: conic-gradient(#43655c 0% 40%, #c5eadf 40% 70%, #0F2E2E 70% 100%); mask: radial-gradient(transparent 68%, black 70%); -webkit-mask: radial-gradient(transparent 68%, black 70%);">
+                    </div>
+                    <div class="text-center">
+                        <span class="block text-2xl font-black text-[#0F2E2E] leading-none">1.2k</span>
+                        <span class="text-[9px] text-slate-400 uppercase font-bold tracking-widest">Total
+                            Hectáreas</span>
+                    </div>
+                </div>
+                <div class="space-y-5">
+                    <div class="flex items-center gap-3">
+                        <div class="w-3 h-3 rounded-full bg-primary"></div>
+                        <div>
+                            <p class="text-xs font-bold text-slate-700">Limón Pérsico</p>
+                            <p class="text-[10px] text-slate-400 font-medium">40% del total</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="w-3 h-3 rounded-full bg-primary-container"></div>
+                        <div>
+                            <p class="text-xs font-bold text-slate-700">Aguacate Hass</p>
+                            <p class="text-[10px] text-slate-400 font-medium">30% del total</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="w-3 h-3 rounded-full bg-[#0F2E2E]"></div>
+                        <div>
+                            <p class="text-xs font-bold text-slate-700">Maíz Blanco</p>
+                            <p class="text-[10px] text-slate-400 font-medium">30% del total</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Row 5: Recent Activity Feed -->
+    <section class="bg-white p-8 rounded-2xl shadow-[0_4px_20px_-2px_rgba(0,0,0,0.05),0_2px_10px_-2px_rgba(0,0,0,0.02)] border border-slate-50">
+        <div class="flex items-center justify-between mb-8">
+            <h3 class="font-extrabold text-[#0F2E2E] font-headline">Actividad Reciente</h3>
+            <button class="text-xs font-bold text-slate-400 hover:text-[#0F2E2E] transition-colors">Ver todo el
+                historial</button>
+        </div>
+        <div class="space-y-0">
+            <div
+                class="flex items-center justify-between p-4 hover:bg-slate-50 transition-colors rounded-xl group cursor-pointer border-b border-slate-50">
+                <div class="flex items-center gap-4">
+                    <img alt="Pedro G." class="w-10 h-10 rounded-full border-2 border-white shadow-sm"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuBtLBHnwE8zmoHuJhTnlGdI8fsss0KLwdJvQGXhtmBmbQxRtCG1JBEW_qLcXXYaKfPjVm6ustypuCWpaqkvtxN9HNyKsHXPCQAL4HwYO73rA1HbpH_DgQEbJc2ccSd2H9MQvPIo6yZXDvRQRisOZdlSQsI30uGv5PGzU4eEeRXX_znyG8ESNdF5Pd5vZ4ZB7jWydbruznL5d3GmIimnZM_E7OWD8pQrvrHScczesd14Vkh4EAZvqCoxsEIJHjO3rOsWUCYUhX3SD8I0" />
+                    <div>
+                        <p class="text-sm text-slate-700">
+                            <span class="font-bold text-slate-900">Pedro G.</span> registró un nuevo predio <span
+                                class="font-medium text-slate-900">“La Esperanza”</span>
+                        </p>
+                        <p class="text-[10px] text-slate-400 flex items-center gap-1 mt-0.5">
+                            <span class="material-symbols-outlined text-[12px]">schedule</span> Hace 5 min
+                        </p>
+                    </div>
+                </div>
+                <span
+                    class="material-symbols-outlined text-slate-300 group-hover:text-slate-500 transition-colors">chevron_right</span>
+            </div>
+            <div
+                class="flex items-center justify-between p-4 hover:bg-slate-50 transition-colors rounded-xl group cursor-pointer border-b border-slate-50">
+                <div class="flex items-center gap-4">
+                    <img alt="América R." class="w-10 h-10 rounded-full border-2 border-white shadow-sm"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuAPvW4iyaM8rvHnpdY9DCPtq8mC8ZWNuW0f8t1gyLQffNrcRIL51yAviHIVAyDpLsYcn9obBom9FK-_sWXFjbpGic7tBQjNfOkLmeNuaqctSEhHW9hWKX5QIEEAexyF6s5slDg7FI-riN_pYCIGTKLuNNJaJ-ZKOlaVs0Am11-KfYvPmk1N5t2rmH_hP2iiZ06Q7a8Fb3GA-Qi5hDhq022R93qerB5MLKdOQE-sQPVI-wgbMrkg5_7jllECmjNJxGLhkcDeSBf-YWXV" />
+                    <div>
+                        <p class="text-sm text-slate-700">
+                            <span class="font-bold text-slate-900">América R.</span> aprobó <span
+                                class="px-1.5 py-0.5 bg-[#E8F5E9] text-[#2E7D32] rounded text-[11px] font-bold">Ficha de
+                                Plaga: Gusano Cogollero</span>
+                        </p>
+                        <p class="text-[10px] text-slate-400 flex items-center gap-1 mt-0.5">
+                            <span class="material-symbols-outlined text-[12px]">schedule</span> Hace 15 min
+                        </p>
+                    </div>
+                </div>
+                <span
+                    class="material-symbols-outlined text-slate-300 group-hover:text-slate-500 transition-colors">chevron_right</span>
+            </div>
+            <div
+                class="flex items-center justify-between p-4 hover:bg-slate-50 transition-colors rounded-xl group cursor-pointer">
+                <div class="flex items-center gap-4">
+                    <img alt="Ing. Ana S." class="w-10 h-10 rounded-full border-2 border-white shadow-sm"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuD8Xierx9Oy5s7ZeM0j4RtQUn7XaVR-k8By6Emj_1cCeZGLWcbM6q_iuiBsD6S0CFIFCxVbb5uXwDSCogEfmVvhlCV5fl3_9N_Jf73_Mt3TKr7MHs4m9ZCKv7Fz-2TTW_qz4cpKA-OnPBBBUVBW9sQOMUZUiCneJjVEJ8Cztsw_dWvaf7G0d1SJxw1hWtbMPumPfEk56Y0DdYbb9fvcW01-RKnsA8AygsIXzigguRYkOOeyh3zirhOJYxrGjbFc133_YhX-4X9WY8mA" />
+                    <div>
+                        <p class="text-sm text-slate-700">
+                            <span class="font-bold text-slate-900">Ing. Ana S.</span> identificó una plaga en el <span
+                                class="text-blue-500 hover:underline">foro de fitosanidad</span>
+                        </p>
+                        <p class="text-[10px] text-slate-400 flex items-center gap-1 mt-0.5">
+                            <span class="material-symbols-outlined text-[12px]">schedule</span> Hace 30 min
+                        </p>
+                    </div>
+                </div>
+                <span
+                    class="material-symbols-outlined text-slate-300 group-hover:text-slate-500 transition-colors">chevron_right</span>
+            </div>
+        </div>
+    </section>
 </main>

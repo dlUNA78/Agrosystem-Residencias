@@ -13,51 +13,82 @@
         </div>
     </div>
     <nav class="flex flex-col gap-1">
-        <a class="flex items-center gap-3 px-4 py-3 mb-2 text-[#0F2E2E] dark:text-emerald-400 hover:bg-[#f9f9f9] dark:hover:bg-zinc-900 rounded-lg transition-all scale-98 active:opacity-80 border border-[#0F2E2E]/10"
-            href="/" style="">
-            <span class="material-symbols-outlined" data-icon="public" style="">public</span>
-            <span class="font-bold text-sm" style="">Volver al sitio público</span>
+        <a class="flex items-center gap-3 px-4 py-3 rounded-lg font-bold transition-colors active:opacity-80
+            {{#if (eq activePage 'dashboard')}}bg-[#ebeeef] dark:bg-zinc-800 text-[#0F2E2E] dark:text-emerald-400{{else}}text-[#596061] dark:text-zinc-400 hover:bg-[#f9f9f9] dark:hover:bg-zinc-900{{/if}}"
+            href="/dashboard">
+            <span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+            <span>Dashboard</span>
         </a>
-        <a class="flex items-center gap-3 px-4 py-3 bg-[#ebeeef] dark:bg-zinc-800 text-[#0F2E2E] dark:text-emerald-400 rounded-lg font-bold scale-98 active:opacity-80 transition-transform"
-            href="/dashboard" style="">
-            <span class="material-symbols-outlined" data-icon="dashboard" style="">dashboard</span>
-            <span class="" style="">Dashboard</span>
+        <a class="flex items-center gap-3 px-4 py-3 rounded-lg font-bold transition-colors active:opacity-80
+            {{#if (eq activePage 'plagues')}}bg-[#ebeeef] dark:bg-zinc-800 text-[#0F2E2E] dark:text-emerald-400{{else}}text-[#596061] dark:text-zinc-400 hover:bg-[#f9f9f9] dark:hover:bg-zinc-900{{/if}}"
+            href="/private/plagues">
+            <span class="material-symbols-outlined" data-icon="bug_report">bug_report</span>
+            <span>Plagas</span>
         </a>
-        <a class="flex items-center gap-3 px-4 py-3 text-[#596061] dark:text-zinc-400 hover:bg-[#f9f9f9] dark:hover:bg-zinc-900 rounded-lg transition-colors scale-98 active:opacity-80 transition-transform"
-            href="#" style="">
-            <span class="material-symbols-outlined" data-icon="bug_report" style="">bug_report</span>
-            <span class="" style="">Plagas</span>
+        <a class="flex items-center gap-3 px-4 py-3 rounded-lg font-bold transition-colors active:opacity-80
+            {{#if (eq activePage 'crops')}}bg-[#ebeeef] dark:bg-zinc-800 text-[#0F2E2E] dark:text-emerald-400{{else}}text-[#596061] dark:text-zinc-400 hover:bg-[#f9f9f9] dark:hover:bg-zinc-900{{/if}}"
+            href="#">
+            <span class="material-symbols-outlined" data-icon="agriculture">agriculture</span>
+            <span>Cultivos</span>
         </a>
-        <a class="flex items-center gap-3 px-4 py-3 text-[#596061] dark:text-zinc-400 hover:bg-[#f9f9f9] dark:hover:bg-zinc-900 rounded-lg transition-colors scale-98 active:opacity-80 transition-transform"
-            href="#" style="">
-            <span class="material-symbols-outlined" data-icon="agriculture" style="">agriculture</span>
-            <span class="" style="">Cultivos</span>
-        </a><a
-            class="flex items-center gap-3 px-4 py-3 text-[#596061] dark:text-zinc-400 hover:bg-[#f9f9f9] dark:hover:bg-zinc-900 rounded-lg transition-colors scale-98 active:opacity-80 transition-transform"
-            href="#" style="">
-            <span class="material-symbols-outlined" data-icon="landscape" style="">landscape</span>
-            <span class="" style="">Gestión de Terrenos</span>
+        <a class="flex items-center gap-3 px-4 py-3 rounded-lg font-bold transition-colors active:opacity-80
+            {{#if (eq activePage 'lands')}}bg-[#ebeeef] dark:bg-zinc-800 text-[#0F2E2E] dark:text-emerald-400{{else}}text-[#596061] dark:text-zinc-400 hover:bg-[#f9f9f9] dark:hover:bg-zinc-900{{/if}}"
+            href="#">
+            <span class="material-symbols-outlined" data-icon="landscape">landscape</span>
+            <span>Terrenos</span>
         </a>
-        <a class="flex items-center gap-3 px-4 py-3 text-[#596061] dark:text-zinc-400 hover:bg-[#f9f9f9] dark:hover:bg-zinc-900 rounded-lg transition-colors scale-98 active:opacity-80 transition-transform"
-            href="#" style="">
-            <span class="material-symbols-outlined" data-icon="inventory_2" style="">inventory_2</span>
-            <span class="" style="">Productos</span>
+        <a class="flex items-center gap-3 px-4 py-3 rounded-lg font-bold transition-colors active:opacity-80
+            {{#if (eq activePage 'products')}}bg-[#ebeeef] dark:bg-zinc-800 text-[#0F2E2E] dark:text-emerald-400{{else}}text-[#596061] dark:text-zinc-400 hover:bg-[#f9f9f9] dark:hover:bg-zinc-900{{/if}}"
+            href="#">
+            <span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
+            <span>Productos</span>
         </a>
-        <a class="flex items-center gap-3 px-4 py-3 text-[#596061] dark:text-zinc-400 hover:bg-[#f9f9f9] dark:hover:bg-zinc-900 rounded-lg transition-colors scale-98 active:opacity-80 transition-transform"
-            href="#" style="">
-            <span class="material-symbols-outlined" data-icon="person" style="">person</span>
-            <span class="" style="">Usuario</span>
+        <a class="flex items-center gap-3 px-4 py-3 rounded-lg font-bold transition-colors active:opacity-80
+            {{#if (eq activePage 'users')}}bg-[#ebeeef] dark:bg-zinc-800 text-[#0F2E2E] dark:text-emerald-400{{else}}text-[#596061] dark:text-zinc-400 hover:bg-[#f9f9f9] dark:hover:bg-zinc-900{{/if}}"
+            href="#">
+            <span class="material-symbols-outlined" data-icon="person">person</span>
+            <span>Usuarios</span>
         </a>
-        <a class="flex items-center gap-3 px-4 py-3 text-[#596061] dark:text-zinc-400 hover:bg-[#f9f9f9] dark:hover:bg-zinc-900 rounded-lg transition-colors scale-98 active:opacity-80 transition-transform"
-            href="#" style="">
-            <span class="material-symbols-outlined" data-icon="forum" style="">forum</span>
-            <span class="" style="">Foro</span>
+        <a class="flex items-center gap-3 px-4 py-3 rounded-lg font-bold transition-colors active:opacity-80
+            {{#if (eq activePage 'forum')}}bg-[#ebeeef] dark:bg-zinc-800 text-[#0F2E2E] dark:text-emerald-400{{else}}text-[#596061] dark:text-zinc-400 hover:bg-[#f9f9f9] dark:hover:bg-zinc-900{{/if}}"
+            href="#">
+            <span class="material-symbols-outlined" data-icon="forum">forum</span>
+            <span>Foro</span>
         </a>
-        <button
-            class="mt-auto flex items-center gap-3 px-4 py-3 text-[#596061] dark:text-zinc-400 hover:bg-[#f9f9f9] dark:hover:bg-zinc-900 rounded-lg transition-all scale-98 active:opacity-80"
-            style="">
-            <span class="material-symbols-outlined" data-icon="side_navigation" style="">side_navigation</span>
-            <span class="font-bold text-sm" style="">Ocultar sidebar</span>
-        </button>
+        <a class="flex items-center gap-3 px-4 py-3 rounded-lg font-bold transition-colors active:opacity-80
+            {{#if (eq activePage 'ingredients')}}bg-[#ebeeef] dark:bg-zinc-800 text-[#0F2E2E] dark:text-emerald-400{{else}}text-[#596061] dark:text-zinc-400 hover:bg-[#f9f9f9] dark:hover:bg-zinc-900{{/if}}"
+            href="#">
+            <span class="material-symbols-outlined" data-icon="science">science</span>
+            <span>Ingredientes Activos</span>
+        </a>
+        <a class="flex items-center gap-3 px-4 py-3 rounded-lg font-bold transition-colors active:opacity-80
+            {{#if (eq activePage 'reports')}}bg-[#ebeeef] dark:bg-zinc-800 text-[#0F2E2E] dark:text-emerald-400{{else}}text-[#596061] dark:text-zinc-400 hover:bg-[#f9f9f9] dark:hover:bg-zinc-900{{/if}}"
+            href="#">
+            <span class="material-symbols-outlined" data-icon="report">report</span>
+            <span>Reportes y Estadísticas</span>
+        </a>
+        <a class="flex items-center gap-3 px-4 py-3 rounded-lg font-bold transition-colors active:opacity-80
+            {{#if (eq activePage 'suppliers')}}bg-[#ebeeef] dark:bg-zinc-800 text-[#0F2E2E] dark:text-emerald-400{{else}}text-[#596061] dark:text-zinc-400 hover:bg-[#f9f9f9] dark:hover:bg-zinc-900{{/if}}"
+            href="#">
+            <span class="material-symbols-outlined" data-icon="local_shipping">local_shipping</span>
+            <span>Proveedores</span>
+        </a>
+        <a class="flex items-center gap-3 px-4 py-3 rounded-lg font-bold transition-colors active:opacity-80
+            {{#if (eq activePage 'audit')}}bg-[#ebeeef] dark:bg-zinc-800 text-[#0F2E2E] dark:text-emerald-400{{else}}text-[#596061] dark:text-zinc-400 hover:bg-[#f9f9f9] dark:hover:bg-zinc-900{{/if}}"
+            href="#">
+            <span class="material-symbols-outlined" data-icon="fact_check">fact_check</span>
+            <span>Auditoría</span>
+        </a>
+        <div class="mt-auto pt-4 border-t border-surface-container dark:border-zinc-800">
+            <a class="flex items-center gap-3 px-4 py-3 text-[#596061] dark:text-zinc-400 hover:bg-[#f9f9f9] dark:hover:bg-zinc-900 rounded-lg transition-all active:opacity-80 font-bold"
+                href="#">
+                <span class="material-symbols-outlined" data-icon="settings">settings</span>
+                <span class="text-sm">Configuración</span>
+            </a>
+            <a href="/"
+                class="mt-4 w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg bg-transparent border border-primary text-primary font-bold hover:bg-surface-container-low transition-all text-xs">
+                Volver al Sitio Público
+            </a>
+        </div>
     </nav>
 </aside>

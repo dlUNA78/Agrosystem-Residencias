@@ -1,88 +1,18 @@
 <!DOCTYPE html>
 <html class="light" lang="es">
+
 <head>
-<meta charset="utf-8">
-<meta content="width=device-width, initial-scale=1.0" name="viewport">
-<title>{{#if pageTitle}}{{pageTitle}} — INIFAP{{else}}Agrosystem | Panel de Administrador{{/if}}</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
-<script id="tailwind-config">
-      tailwind.config = {
-        darkMode: "class",
-        theme: {
-          extend: {
-            colors: {
-              "background": "#f9f9f9",
-              "error-dim": "#4e0309",
-              "inverse-on-surface": "#9c9d9d",
-              "inverse-primary": "#d9fff2",
-              "on-secondary-fixed": "#30433f",
-              "surface-container": "#ebeeef",
-              "on-tertiary": "#e7ffea",
-              "on-background": "#2d3435",
-              "surface-tint": "#43655c",
-              "outline-variant": "#acb3b4",
-              "secondary-fixed-dim": "#c4d9d4",
-              "error-container": "#fe8983",
-              "on-error": "#fff7f6",
-              "on-primary-fixed-variant": "#406259",
-              "on-tertiary-fixed": "#334e3b",
-              "primary": "#43655c",
-              "primary-dim": "#375950",
-              "on-surface-variant": "#596061",
-              "tertiary": "#4a6552",
-              "surface-container-lowest": "#ffffff",
-              "secondary-container": "#d2e7e2",
-              "tertiary-fixed-dim": "#cbead1",
-              "tertiary-dim": "#3e5946",
-              "secondary-dim": "#445753",
-              "surface-container-highest": "#dde4e5",
-              "inverse-surface": "#0c0f0f",
-              "on-secondary-container": "#435552",
-              "surface": "#f9f9f9",
-              "primary-container": "#c5eadf",
-              "on-tertiary-container": "#45604d",
-              "on-tertiary-fixed-variant": "#4f6b57",
-              "surface-variant": "#dde4e5",
-              "on-surface": "#2d3435",
-              "on-primary": "#ddfff4",
-              "primary-fixed-dim": "#b7dcd1",
-              "error": "#9f403d",
-              "tertiary-fixed": "#d9f9df",
-              "on-error-container": "#752121",
-              "on-primary-container": "#36584f",
-              "surface-dim": "#d3dbdd",
-              "surface-bright": "#f9f9f9",
-              "on-primary-fixed": "#24453d",
-              "outline": "#757c7d",
-              "primary-fixed": "#c5eadf",
-              "surface-container-low": "#f2f4f4",
-              "surface-container-high": "#e4e9ea",
-              "secondary": "#50635f",
-              "on-secondary": "#e8fdf8",
-              "on-secondary-fixed-variant": "#4c5f5b",
-              "secondary-fixed": "#d2e7e2"
-            },
-            fontFamily: {
-              "headline": ["Manrope"],
-              "body": ["Inter"],
-              "label": ["Inter"]
-            },
-            borderRadius: {"DEFAULT": "0.5rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
-          },
-        },
-      }
-</script>
-<style>
-    body { font-family: 'Inter', sans-serif; }
-    h1, h2, h3, .font-headline { font-family: 'Manrope', sans-serif; }
-    .material-symbols-outlined {
-        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-    }
-</style>
-<link rel="stylesheet" href="/css/style.css">
-{{#if extraHead}}{{{extraHead}}}{{/if}}
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>{{#if pageTitle}}{{pageTitle}} — INIFAP{{else}}Agrosystem | Panel de Administrador{{/if}}</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    {{#if extraHead}}{{{extraHead}}}{{/if}}
 </head>
 
 <body class="bg-background text-on-surface antialiased">
@@ -97,7 +27,8 @@
 
     <!-- Contextual FAB -->
     <div class="fixed bottom-8 right-8 z-50">
-        <button class="w-14 h-14 bg-primary text-on-primary rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all">
+        <button
+            class="w-14 h-14 bg-primary text-on-primary rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all">
             <span class="material-symbols-outlined text-3xl" data-icon="terminal">terminal</span>
         </button>
     </div>
@@ -105,4 +36,5 @@
     <script src="/js/main.js"></script>
     {{#if extraScripts}}{{{extraScripts}}}{{/if}}
 </body>
+
 </html>

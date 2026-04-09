@@ -14,3 +14,11 @@ export const dashboard = (req, res) => {
         activePage:  'dashboard',
     });
 };
+
+export const plaguesPrivate = (req, res) => {
+    res.render('private/plagues', {
+        layout:      privateLayout,
+        pageTitle:   'Plagas',
+        activePage:  'plagues',
+    });
+};
