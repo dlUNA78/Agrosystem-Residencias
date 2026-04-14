@@ -58,3 +58,11 @@ export const landDetail = (req, res) => {
         ...land,
     });
 };
+
+export const productsPrivate = (req, res) => {
+    res.render('private/products', {
+        layout:      privateLayout,
+        pageTitle:   'Productos',
+        activePage:  'products',
+    });
+};
