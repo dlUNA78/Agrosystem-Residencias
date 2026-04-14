@@ -1,39 +1,10 @@
 <main class="min-h-screen flex flex-col">
     <!-- Content Area -->
     <div class="mt-20 p-12 space-y-10">
-        <!-- Control Bar & Search -->
-        <section
-            class="bg-surface-container-lowest p-5 rounded-xl shadow-sm border border-outline-variant/10 flex flex-wrap items-center gap-4">
-            <div class="flex-1 relative min-w-[300px]">
-                <span
-                    class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/50"
-                    data-icon="search">search</span>
-                <input
-                    class="w-full pl-12 pr-4 py-3 bg-surface-container-low border-none rounded-lg focus:ring-2 focus:ring-primary/20 text-sm placeholder:text-on-surface-variant/40"
-                    placeholder="Buscar por nombre o tipo de cultivo..." type="text" />
-            </div>
-            <div class="flex gap-4 items-center">
-                <select
-                    class="bg-surface-container-low border-none rounded-lg py-3 px-4 text-sm text-on-surface-variant font-medium focus:ring-primary/20 pr-10">
-                    <option>Tipo: Todos</option>
-                    <option>Cereal</option>
-                    <option>Frutal</option>
-                    <option>Hortaliza</option>
-                    <option>Leguminosa</option>
-                </select>
-                <select
-                    class="bg-surface-container-low border-none rounded-lg py-3 px-4 text-sm text-on-surface-variant font-medium focus:ring-primary/20 pr-10">
-                    <option>Estatus: Todos</option>
-                    <option>Aprobado</option>
-                    <option>Pendiente</option>
-                </select>
-                <button
-                    class="bg-[#43655c] text-white px-6 py-3 rounded-lg font-bold text-sm flex items-center gap-2 hover:bg-primary-dim transition-colors shadow-lg shadow-primary/10">
-                    <span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
-                    Añadir Cultivo
-                </button>
-            </div>
-        </section>
+        {{!-- Control Bar & Search --}}
+        {{> private/search-bar}}
+
+
 
         <!-- Info Panel -->
         <div class="bg-emerald-50 border border-emerald-100 p-4 rounded-xl flex items-center justify-between shadow-sm">

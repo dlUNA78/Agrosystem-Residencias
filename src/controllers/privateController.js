@@ -20,6 +20,32 @@ export const plaguesPrivate = (req, res) => {
         layout:      privateLayout,
         pageTitle:   'Plagas',
         activePage:  'plagues',
+        searchId:          'plague-search',
+        searchPlaceholder: 'Buscar por nombre, especie o cultivo afectado...',
+        searchFilters: [
+            {
+                id: 'filter-crop',
+                label: 'Cultivo: Todos',
+                options: [
+                    { value: 'maiz',  text: 'Maíz'  },
+                    { value: 'sorgo', text: 'Sorgo'  },
+                    { value: 'mango', text: 'Mango'  },
+                    { value: 'limon', text: 'Limón'  },
+                ],
+            },
+            {
+                id: 'filter-status',
+                label: 'Estatus: Todos',
+                options: [
+                    { value: 'aprobado',  text: 'Aprobado'  },
+                    { value: 'pendiente', text: 'Pendiente' },
+                ],
+            },
+        ],
+        ctaLabel:   'Añadir Plaga',
+        ctaIcon:    'bug_report',
+        ctaBtnId:   'btn-add-plague',
+        showViewToggle: false,
     });
 };
 
@@ -28,6 +54,32 @@ export const cropsPrivate = (req, res) => {
         layout:      privateLayout,
         pageTitle:   'Cultivos',
         activePage:  'crops',
+        searchId:          'crop-search',
+        searchPlaceholder: 'Buscar por nombre, especie o tipo de cultivo...',
+        searchFilters: [
+            {
+                id: 'filter-type',
+                label: 'Tipo: Todos',
+                options: [
+                    { value: 'cereal',     text: 'Cereal'     },
+                    { value: 'frutal',     text: 'Frutal'     },
+                    { value: 'hortaliza',  text: 'Hortaliza'  },
+                    { value: 'leguminosa', text: 'Leguminosa' },
+                ],
+            },
+            {
+                id: 'filter-status',
+                label: 'Estatus: Todos',
+                options: [
+                    { value: 'aprobado',  text: 'Aprobado'  },
+                    { value: 'pendiente', text: 'Pendiente' },
+                ],
+            },
+        ],
+        ctaLabel:   'Añadir Cultivo',
+        ctaIcon:    'agriculture',
+        ctaBtnId:   'btn-add-crop',
+        showViewToggle: false,
     });
 };
 
@@ -37,6 +89,31 @@ export const landsPrivate = (req, res) => {
         pageTitle:   'Terrenos',
         activePage:  'lands',
         isAdmin:     true,   // TODO: reemplazar con req.user.role === 'admin'
+        searchId:          'land-search',
+        searchPlaceholder: 'Buscar predio o propietario...',
+        searchFilters: [
+            {
+                id: 'land-filter-status',
+                label: 'Estatus: Todos',
+                options: [
+                    { value: 'activo',    text: 'Activo'    },
+                    { value: 'pendiente', text: 'Pendiente' },
+                    { value: 'inactivo',  text: 'Inactivo'  },
+                ],
+            },
+            {
+                id: 'land-filter-health',
+                label: 'Salud: Todos',
+                options: [
+                    { value: 'sano',   text: '🟢 Sano'        },
+                    { value: 'alerta', text: '🔴 Plaga activa' },
+                ],
+            },
+        ],
+        ctaLabel:   '+ Registrar Nuevo Predio',
+        ctaIcon:    'add_location_alt',
+        ctaBtnId:   'btn-open-new-land',
+        showViewToggle: false,
     });
 };
 
@@ -64,5 +141,45 @@ export const productsPrivate = (req, res) => {
         layout:      privateLayout,
         pageTitle:   'Productos',
         activePage:  'products',
+        searchId:          'product-search',
+        searchPlaceholder: 'Buscar por nombre, principio activo o ID...',
+        searchFilters: [
+            {
+                id: 'filter-category',
+                label: 'Categoría: Todas',
+                options: [
+                    { value: 'herbicida',    text: 'Herbicidas'    },
+                    { value: 'insecticida',  text: 'Insecticidas'  },
+                    { value: 'fungicida',    text: 'Fungicidas'    },
+                    { value: 'fertilizante', text: 'Fertilizantes' },
+                    { value: 'acaricida',    text: 'Acaricidas'    },
+                    { value: 'coadyuvante',  text: 'Coadyuvantes'  },
+                    { value: 'bactericida',  text: 'Bactericidas'  },
+                ],
+            },
+            {
+                id: 'filter-status',
+                label: 'Estatus: Todos',
+                options: [
+                    { value: 'aprobado',    text: 'Aprobado'    },
+                    { value: 'pendiente',   text: 'Pendiente'   },
+                    { value: 'restringido', text: 'Restringido' },
+                ],
+            },
+            {
+                id: 'filter-manufacturer',
+                label: 'Fabricante: Todos',
+                options: [
+                    { value: 'agroscience', text: 'AgroScience Labs'  },
+                    { value: 'biocrop',     text: 'BioCrop Solutions' },
+                    { value: 'terrachem',   text: 'TerraChem'         },
+                    { value: 'naturagro',   text: 'NaturAgro MX'      },
+                ],
+            },
+        ],
+        ctaLabel:   'Añadir Producto',
+        ctaIcon:    'add_circle',
+        ctaBtnId:   'btn-add-product',
+        showViewToggle: true,
     });
 };

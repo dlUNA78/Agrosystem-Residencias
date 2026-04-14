@@ -10,12 +10,8 @@
                 <h1 class="text-2xl font-extrabold text-[#0F2E2E]">Gestión de Terrenos y Parcelas</h1>
                 <p class="text-sm text-on-surface-variant mt-1">Visualiza, registra y monitorea todos los predios del sistema.</p>
             </div>
-            <button id="btn-open-new-land"
-                class="bg-[#43655c] text-white px-6 py-3 rounded-xl font-bold text-sm flex items-center gap-2 hover:bg-[#0F2E2E] transition-colors shadow-lg shadow-primary/10">
-                <span class="material-symbols-outlined" data-icon="add_location_alt">add_location_alt</span>
-                + Registrar Nuevo Predio
-            </button>
         </div>
+
 
         {{!-- ── Mapa Leaflet ── --}}
         <section class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
@@ -36,24 +32,10 @@
             <div id="lands-map" class="w-full" style="height: 380px;"></div>
         </section>
 
-        {{!-- ── Filtros rápidos ── --}}
-        <div class="flex flex-wrap gap-3 items-center">
-            <div class="relative flex-1 min-w-[260px]">
-                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant/50 text-lg" data-icon="search">search</span>
-                <input id="land-search" class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary/20 text-sm placeholder:text-on-surface-variant/40" placeholder="Buscar predio o propietario..." type="text" />
-            </div>
-            <select id="land-filter-status" class="bg-white border border-slate-200 rounded-xl py-2.5 px-4 text-sm text-on-surface-variant font-medium focus:ring-primary/20">
-                <option value="">Estatus: Todos</option>
-                <option value="activo">Activo</option>
-                <option value="pendiente">Pendiente</option>
-                <option value="inactivo">Inactivo</option>
-            </select>
-            <select id="land-filter-health" class="bg-white border border-slate-200 rounded-xl py-2.5 px-4 text-sm text-on-surface-variant font-medium focus:ring-primary/20">
-                <option value="">Salud: Todos</option>
-                <option value="sano">🟢 Sano</option>
-                <option value="alerta">🔴 Plaga activa</option>
-            </select>
-        </div>
+        {{!-- Control Bar & Search --}}
+        {{> private/search-bar}}
+
+
 
         {{!-- ── Grid de Tarjetas ── --}}
         <section id="lands-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
