@@ -1,16 +1,22 @@
 <!-- SideNavBar Shell -->
 <aside
-    class="h-screen w-64 fixed left-0 top-0 border-r-0 bg-white dark:bg-zinc-950 flex flex-col p-6 gap-2 font-manrope antialiased tracking-tight z-50">
+    id="sidebar"
+    class="h-screen w-64 fixed left-0 top-0 border-r-0 bg-white dark:bg-zinc-950 flex flex-col p-6 gap-2 font-manrope antialiased tracking-tight z-50 transition-transform duration-300 ease-in-out overflow-y-auto overscroll-contain">
     <div class="flex items-center gap-3 mb-8">
-        <div class="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
-            <span class="material-symbols-outlined text-on-primary" data-icon="agriculture" style="">agriculture</span>
+        <div class="w-10 h-10 rounded-lg bg-primary flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined text-on-primary" data-icon="agriculture">agriculture</span>
         </div>
-        <div>
-            <h1 class="text-xl font-extrabold text-[#0F2E2E] dark:text-emerald-500 leading-none" style="">INIFAP</h1>
-            <p class="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold mt-1" style="">
-            <div>rol:aDMIN</div>
-            </p>
+        <div class="flex-1 min-w-0">
+            <h1 class="text-xl font-extrabold text-[#0F2E2E] dark:text-emerald-500 leading-none">INIFAP</h1>
+            <div class="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold mt-1">rol:ADMIN</div>
         </div>
+        <!-- Botón cerrar sidebar (visible en pantallas pequeñas o cuando está abierto) -->
+        <button
+            id="sidebar-close-btn"
+            aria-label="Cerrar menú"
+            class="ml-auto p-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container-low dark:hover:bg-zinc-800 transition-colors active:scale-90 lg:hidden">
+            <span class="material-symbols-outlined text-xl leading-none" data-icon="close">close</span>
+        </button>
     </div>
     <nav class="flex flex-col gap-1">
         <a class="flex items-center gap-3 px-4 py-3 rounded-lg font-bold transition-colors active:opacity-80
@@ -27,13 +33,13 @@
         </a>
         <a class="flex items-center gap-3 px-4 py-3 rounded-lg font-bold transition-colors active:opacity-80
             {{#if (eq activePage 'crops')}}bg-[#ebeeef] dark:bg-zinc-800 text-[#0F2E2E] dark:text-emerald-400{{else}}text-[#596061] dark:text-zinc-400 hover:bg-[#f9f9f9] dark:hover:bg-zinc-900{{/if}}"
-            href="#">
+            href="/private/crops">
             <span class="material-symbols-outlined" data-icon="agriculture">agriculture</span>
             <span>Cultivos</span>
         </a>
         <a class="flex items-center gap-3 px-4 py-3 rounded-lg font-bold transition-colors active:opacity-80
             {{#if (eq activePage 'lands')}}bg-[#ebeeef] dark:bg-zinc-800 text-[#0F2E2E] dark:text-emerald-400{{else}}text-[#596061] dark:text-zinc-400 hover:bg-[#f9f9f9] dark:hover:bg-zinc-900{{/if}}"
-            href="#">
+            href="/private/lands">
             <span class="material-symbols-outlined" data-icon="landscape">landscape</span>
             <span>Terrenos</span>
         </a>

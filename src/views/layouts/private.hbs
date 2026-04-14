@@ -19,11 +19,15 @@
     {{> private/sidebar}}
     {{> private/navbar}}
 
-    <main id="main-content">
-        {{{body}}}
-    </main>
+    <!-- Backdrop overlay para móvil -->
+    <div id="sidebar-backdrop"
+        class="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300"
+        aria-hidden="true"></div>
 
-    {{> private/footer}}
+    <main id="main-content" class="transition-all duration-300 ease-in-out">
+        {{{body}}}
+        {{> private/footer}}
+    </main>
 
     <!-- Contextual FAB -->
     <div class="fixed bottom-8 right-8 z-50">

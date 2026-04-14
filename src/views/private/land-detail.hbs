@@ -1,0 +1,582 @@
+{{!-- ============================================================
+     TERRENOS — Vista de Detalle: El Expediente del Predio
+     ============================================================ --}}
+<main class="min-h-screen flex flex-col">
+    <div class="mt-20 p-10 space-y-8">
+
+        {{!-- ── Breadcrumb ── --}}
+        <nav class="flex items-center gap-2 text-xs text-on-surface-variant">
+            <a href="/private/lands" class="hover:text-primary transition-colors font-medium flex items-center gap-1">
+                <span class="material-symbols-outlined text-sm" data-icon="landscape">landscape</span>
+                Terrenos
+            </a>
+            <span class="material-symbols-outlined text-sm opacity-40" data-icon="chevron_right">chevron_right</span>
+            <span class="font-bold text-[#0F2E2E]">Expediente: {{landName}}</span>
+        </nav>
+
+        {{!-- ── Cabecera del Expediente ── --}}
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+            <div class="flex flex-wrap items-start justify-between gap-4">
+                <div class="flex items-center gap-4">
+                    <div class="w-14 h-14 rounded-2xl bg-primary-container flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-2xl text-on-primary-container" data-icon="landscape">landscape</span>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <h1 class="text-xl font-extrabold text-[#0F2E2E]">{{landName}}</h1>
+                            <span class="text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-100 px-2.5 py-0.5 rounded-full font-black uppercase">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block mr-1 align-middle"></span>Activo
+                            </span>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-4 text-xs text-on-surface-variant">
+                            <span class="flex items-center gap-1">
+                                <span class="material-symbols-outlined text-sm" data-icon="location_on">location_on</span>
+                                {{landLocation}} — <span class="font-mono ml-1">{{landLat}}, {{landLng}}</span>
+                            </span>
+                            <span class="flex items-center gap-1">
+                                <span class="material-symbols-outlined text-sm" data-icon="straighten">straighten</span>
+                                {{landHectares}} hectáreas
+                            </span>
+                            <span class="flex items-center gap-1">
+                                <span class="material-symbols-outlined text-sm" data-icon="badge">badge</span>
+                                ID: {{landId}}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex gap-3">
+                    <button class="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors">
+                        <span class="material-symbols-outlined text-base" data-icon="edit">edit</span>
+                        Editar Terreno
+                    </button>
+                    <button class="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-amber-200 text-sm font-bold text-amber-700 hover:bg-amber-50 transition-colors">
+                        <span class="material-symbols-outlined text-base" data-icon="check_circle">check_circle</span>
+                        Finalizar Ciclo
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        {{!-- ── Tabs ── --}}
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+            {{!-- Tab Bar --}}
+            <div class="flex border-b border-slate-100 bg-slate-50/50 overflow-x-auto">
+                <button data-tab="cultivo"
+                    class="tab-btn flex items-center gap-2 px-6 py-4 text-sm font-bold whitespace-nowrap border-b-2 border-primary text-[#0F2E2E] transition-colors">
+                    <span class="material-symbols-outlined text-base" data-icon="grass">grass</span>
+                    Cultivo Actual
+                </button>
+                <button data-tab="reportes"
+                    class="tab-btn flex items-center gap-2 px-6 py-4 text-sm font-bold whitespace-nowrap border-b-2 border-transparent text-on-surface-variant hover:text-[#0F2E2E] transition-colors">
+                    <span class="material-symbols-outlined text-base" data-icon="pest_control">pest_control</span>
+                    Reportes de Salud
+                    <span class="bg-red-100 text-red-700 text-[9px] font-black px-1.5 py-0.5 rounded-full">2</span>
+                </button>
+                <button data-tab="bitacora"
+                    class="tab-btn flex items-center gap-2 px-6 py-4 text-sm font-bold whitespace-nowrap border-b-2 border-transparent text-on-surface-variant hover:text-[#0F2E2E] transition-colors">
+                    <span class="material-symbols-outlined text-base" data-icon="science">science</span>
+                    Bitácora de Aplicaciones
+                </button>
+            </div>
+
+            {{!-- ══ PESTAÑA 1: Cultivo Actual ══ --}}
+            <div id="tab-cultivo" class="tab-panel p-8">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="font-extrabold text-[#0F2E2E]">Ciclo de Cultivo Actual</h2>
+                    <button class="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#43655c] text-white text-sm font-bold hover:bg-[#0F2E2E] transition-colors">
+                        <span class="material-symbols-outlined text-base" data-icon="add">add</span>
+                        Nuevo Ciclo
+                    </button>
+                </div>
+
+                {{!-- Info principal del ciclo --}}
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
+                    <div class="bg-primary-container/30 rounded-2xl p-5">
+                        <p class="text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-2">Cultivo Sembrado</p>
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-primary-container flex items-center justify-center">
+                                <span class="material-symbols-outlined text-on-primary-container" data-icon="grass">grass</span>
+                            </div>
+                            <div>
+                                <p class="font-extrabold text-[#0F2E2E] text-base">Limón Pérsico</p>
+                                <p class="text-xs italic text-on-surface-variant">Citrus latifolia</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-blue-50 rounded-2xl p-5 border border-blue-100">
+                        <p class="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-2">Fecha de Siembra</p>
+                        <p class="font-extrabold text-[#0F2E2E] text-lg">15 Enero 2025</p>
+                        <p class="text-xs text-on-surface-variant mt-1 flex items-center gap-1">
+                            <span class="material-symbols-outlined text-sm" data-icon="schedule">schedule</span>
+                            Hace 84 días
+                        </p>
+                    </div>
+                    <div class="bg-emerald-50 rounded-2xl p-5 border border-emerald-100">
+                        <p class="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-2">Etapa Fenológica</p>
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <p class="font-extrabold text-emerald-800 text-base">En Crecimiento</p>
+                        </div>
+                        <p class="text-xs text-emerald-600 mt-1">Estimado de cosecha: Oct 2025</p>
+                    </div>
+                </div>
+
+                {{!-- Barra de progreso fenológico --}}
+                <div class="border border-slate-100 rounded-2xl p-6">
+                    <p class="text-xs font-black text-on-surface-variant uppercase tracking-widest mb-4">Progreso del Ciclo</p>
+                    <div class="relative">
+                        <div class="w-full bg-slate-100 rounded-full h-3 mb-4">
+                            <div class="bg-gradient-to-r from-primary to-emerald-400 h-3 rounded-full transition-all duration-1000" style="width: 34%"></div>
+                        </div>
+                        <div class="flex justify-between text-[10px] font-bold text-on-surface-variant">
+                            <span>🌱 Siembra</span>
+                            <span>🌿 Crecimiento</span>
+                            <span>🌼 Floración</span>
+                            <span>🍋 Cosecha</span>
+                        </div>
+                    </div>
+                </div>
+
+                {{!-- Historial de ciclos anteriores --}}
+                <div class="mt-6">
+                    <h3 class="font-bold text-sm text-on-surface-variant uppercase tracking-widest mb-4">Ciclos Anteriores</h3>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-slate-200 flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-sm text-slate-500" data-icon="grass">grass</span>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-bold text-[#0F2E2E]">Maíz Blanco</p>
+                                    <p class="text-xs text-on-surface-variant">Ene 2024 — Oct 2024</p>
+                                </div>
+                            </div>
+                            <span class="px-3 py-1 bg-slate-200 text-slate-600 rounded-full text-[10px] font-black uppercase">Cosechado</span>
+                        </div>
+                        <div class="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-slate-200 flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-sm text-slate-500" data-icon="grass">grass</span>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-bold text-[#0F2E2E]">Sorgo Forrajero</p>
+                                    <p class="text-xs text-on-surface-variant">Ago 2023 — Feb 2024</p>
+                                </div>
+                            </div>
+                            <span class="px-3 py-1 bg-slate-200 text-slate-600 rounded-full text-[10px] font-black uppercase">Cosechado</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{!-- ══ PESTAÑA 2: Reportes de Salud ══ --}}
+            <div id="tab-reportes" class="tab-panel hidden p-8">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="font-extrabold text-[#0F2E2E]">Historial de Salud del Predio</h2>
+                    <button id="btn-open-reporte"
+                        class="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#43655c] text-white text-sm font-bold hover:bg-[#0F2E2E] transition-colors">
+                        <span class="material-symbols-outlined text-base" data-icon="add">add</span>
+                        + Reportar Hallazgo
+                    </button>
+                </div>
+
+                {{!-- Timeline --}}
+                <div class="relative pl-6 space-y-0 border-l-2 border-slate-100">
+
+                    {{!-- Entry 1 – Alerta --}}
+                    <div class="relative pb-8">
+                        <div class="absolute -left-[25px] top-0.5 w-5 h-5 rounded-full bg-red-500 border-2 border-white shadow flex items-center justify-center">
+                            <span class="material-symbols-outlined text-white text-[10px]" style="font-size:11px">bug_report</span>
+                        </div>
+                        <div class="ml-4 bg-red-50 border border-red-100 rounded-2xl p-5">
+                            <div class="flex flex-wrap items-start justify-between gap-3 mb-3">
+                                <div>
+                                    <p class="font-extrabold text-red-800 text-sm">Gusano Cogollero detectado</p>
+                                    <p class="text-xs italic text-red-500">Spodoptera frugiperda</p>
+                                </div>
+                                <div class="flex gap-2">
+                                    <span class="px-3 py-1 bg-red-500 text-white rounded-full text-[10px] font-black uppercase">Alta Severidad</span>
+                                    <span class="px-3 py-1 bg-white border border-red-200 text-red-700 rounded-full text-[10px] font-bold">Activa</span>
+                                </div>
+                            </div>
+                            <p class="text-xs text-red-700 mb-3">Se observaron larvas en el cogollo de plantas en la sección norte del predio. Aproximadamente 30% de afectación en esa zona.</p>
+                            <div class="flex items-center gap-4 text-[10px] text-red-500">
+                                <span class="flex items-center gap-1"><span class="material-symbols-outlined text-xs" data-icon="schedule">schedule</span> 5 Abril 2025</span>
+                                <span class="flex items-center gap-1"><span class="material-symbols-outlined text-xs" data-icon="person">person</span> Ing. América R.</span>
+                                <span class="flex items-center gap-1 text-primary hover:underline cursor-pointer"><span class="material-symbols-outlined text-xs" data-icon="photo_camera">photo_camera</span> Ver foto</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{!-- Entry 2 – Resuelta --}}
+                    <div class="relative pb-8">
+                        <div class="absolute -left-[25px] top-0.5 w-5 h-5 rounded-full bg-emerald-500 border-2 border-white shadow flex items-center justify-center">
+                            <span class="material-symbols-outlined text-white" style="font-size:11px">check</span>
+                        </div>
+                        <div class="ml-4 bg-slate-50 border border-slate-100 rounded-2xl p-5">
+                            <div class="flex flex-wrap items-start justify-between gap-3 mb-3">
+                                <div>
+                                    <p class="font-bold text-slate-700 text-sm">Mosca de la Fruta</p>
+                                    <p class="text-xs italic text-slate-400">Anastrepha ludens</p>
+                                </div>
+                                <div class="flex gap-2">
+                                    <span class="px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-[10px] font-black uppercase">Media Severidad</span>
+                                    <span class="px-3 py-1 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-full text-[10px] font-bold">Resuelta</span>
+                                </div>
+                            </div>
+                            <p class="text-xs text-slate-500 mb-3">Presencia leve en frutos maduros. Se aplicó tratamiento con Spinosad y se colocaron trampas. Controlada tras 2 semanas.</p>
+                            <div class="flex items-center gap-4 text-[10px] text-slate-400">
+                                <span class="flex items-center gap-1"><span class="material-symbols-outlined text-xs" data-icon="schedule">schedule</span> 18 Feb 2025</span>
+                                <span class="flex items-center gap-1"><span class="material-symbols-outlined text-xs" data-icon="person">person</span> Ing. Pedro G.</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{!-- Entry 3 --}}
+                    <div class="relative">
+                        <div class="absolute -left-[25px] top-0.5 w-5 h-5 rounded-full bg-emerald-500 border-2 border-white shadow flex items-center justify-center">
+                            <span class="material-symbols-outlined text-white" style="font-size:11px">check</span>
+                        </div>
+                        <div class="ml-4 bg-slate-50 border border-slate-100 rounded-2xl p-5">
+                            <div class="flex flex-wrap items-start justify-between gap-3 mb-2">
+                                <div>
+                                    <p class="font-bold text-slate-700 text-sm">Mancha Negra (Guignardia)</p>
+                                    <p class="text-xs italic text-slate-400">Guignardia citricarpa</p>
+                                </div>
+                                <div class="flex gap-2">
+                                    <span class="px-3 py-1 bg-slate-200 text-slate-600 rounded-full text-[10px] font-black uppercase">Baja Severidad</span>
+                                    <span class="px-3 py-1 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-full text-[10px] font-bold">Resuelta</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-4 text-[10px] text-slate-400">
+                                <span class="flex items-center gap-1"><span class="material-symbols-outlined text-xs" data-icon="schedule">schedule</span> 3 Dic 2024</span>
+                                <span class="flex items-center gap-1"><span class="material-symbols-outlined text-xs" data-icon="person">person</span> Ing. Ana S.</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>{{!-- /timeline --}}
+            </div>
+
+            {{!-- ══ PESTAÑA 3: Bitácora de Aplicaciones ══ --}}
+            <div id="tab-bitacora" class="tab-panel hidden p-8">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h2 class="font-extrabold text-[#0F2E2E]">Bitácora de Aplicaciones Químicas</h2>
+                        <p class="text-xs text-on-surface-variant mt-1">Registro legal de productos aplicados en el predio. Sólo visible para el equipo INIFAP.</p>
+                    </div>
+                    <button id="btn-open-aplicacion"
+                        class="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#43655c] text-white text-sm font-bold hover:bg-[#0F2E2E] transition-colors">
+                        <span class="material-symbols-outlined text-base" data-icon="add">add</span>
+                        + Registrar Aplicación
+                    </button>
+                </div>
+
+                <div class="bg-amber-50 border border-amber-100 rounded-xl p-4 flex items-center gap-3 mb-6">
+                    <span class="material-symbols-outlined text-amber-600" data-icon="gavel">gavel</span>
+                    <p class="text-xs font-medium text-amber-800">Esta bitácora tiene valor legal. Los registros aquí anotados pueden ser auditados por las autoridades sanitarias correspondientes.</p>
+                </div>
+
+                <div class="rounded-2xl overflow-hidden border border-slate-100">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50">
+                                <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Fecha</th>
+                                <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Producto Comercial</th>
+                                <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Ingrediente Activo</th>
+                                <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-on-surface-variant text-center">Dosis</th>
+                                <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">Aplicado por</th>
+                                <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-on-surface-variant text-right">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-50">
+                            <tr class="hover:bg-slate-50/50 transition-colors">
+                                <td class="px-6 py-5">
+                                    <p class="text-sm font-bold text-[#0F2E2E]">07 Abr 2025</p>
+                                    <p class="text-[10px] text-on-surface-variant">Hace 2 días</p>
+                                </td>
+                                <td class="px-6 py-5">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-7 h-7 rounded-lg bg-orange-100 flex items-center justify-center shrink-0">
+                                            <span class="material-symbols-outlined text-orange-600 text-sm" data-icon="science">science</span>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm font-bold text-[#0F2E2E]">Lorsban 480 E</p>
+                                            <p class="text-[10px] text-on-surface-variant">Insecticida</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-5">
+                                    <p class="text-sm text-on-surface">Clorpirifós</p>
+                                    <p class="text-[10px] italic text-on-surface-variant">Organofosforado</p>
+                                </td>
+                                <td class="px-6 py-5 text-center">
+                                    <span class="font-bold text-[#0F2E2E] text-sm">1.5 L/ha</span>
+                                </td>
+                                <td class="px-6 py-5">
+                                    <p class="text-sm font-medium text-on-surface">Ing. América R.</p>
+                                </td>
+                                <td class="px-6 py-5">
+                                    <div class="flex justify-end gap-2 text-on-surface-variant">
+                                        <button class="hover:text-primary transition-colors"><span class="material-symbols-outlined text-base" data-icon="visibility">visibility</span></button>
+                                        <button class="hover:text-error transition-colors"><span class="material-symbols-outlined text-base" data-icon="delete">delete</span></button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-slate-50/50 transition-colors">
+                                <td class="px-6 py-5">
+                                    <p class="text-sm font-bold text-[#0F2E2E]">22 Mar 2025</p>
+                                    <p class="text-[10px] text-on-surface-variant">Hace 18 días</p>
+                                </td>
+                                <td class="px-6 py-5">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-7 h-7 rounded-lg bg-green-100 flex items-center justify-center shrink-0">
+                                            <span class="material-symbols-outlined text-green-600 text-sm" data-icon="science">science</span>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm font-bold text-[#0F2E2E]">Manzate 200 WP</p>
+                                            <p class="text-[10px] text-on-surface-variant">Fungicida</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-5">
+                                    <p class="text-sm text-on-surface">Mancozeb</p>
+                                    <p class="text-[10px] italic text-on-surface-variant">Ditiocarbamato</p>
+                                </td>
+                                <td class="px-6 py-5 text-center">
+                                    <span class="font-bold text-[#0F2E2E] text-sm">2.0 kg/ha</span>
+                                </td>
+                                <td class="px-6 py-5">
+                                    <p class="text-sm font-medium text-on-surface">Ing. Pedro G.</p>
+                                </td>
+                                <td class="px-6 py-5">
+                                    <div class="flex justify-end gap-2 text-on-surface-variant">
+                                        <button class="hover:text-primary transition-colors"><span class="material-symbols-outlined text-base" data-icon="visibility">visibility</span></button>
+                                        <button class="hover:text-error transition-colors"><span class="material-symbols-outlined text-base" data-icon="delete">delete</span></button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-slate-50/50 transition-colors">
+                                <td class="px-6 py-5">
+                                    <p class="text-sm font-bold text-[#0F2E2E]">10 Feb 2025</p>
+                                    <p class="text-[10px] text-on-surface-variant">Hace 58 días</p>
+                                </td>
+                                <td class="px-6 py-5">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
+                                            <span class="material-symbols-outlined text-blue-600 text-sm" data-icon="science">science</span>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm font-bold text-[#0F2E2E]">Spintor SC</p>
+                                            <p class="text-[10px] text-on-surface-variant">Insecticida bioracional</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-5">
+                                    <p class="text-sm text-on-surface">Spinosad</p>
+                                    <p class="text-[10px] italic text-on-surface-variant">Espinosina</p>
+                                </td>
+                                <td class="px-6 py-5 text-center">
+                                    <span class="font-bold text-[#0F2E2E] text-sm">0.8 L/ha</span>
+                                </td>
+                                <td class="px-6 py-5">
+                                    <p class="text-sm font-medium text-on-surface">Ing. Ana S.</p>
+                                </td>
+                                <td class="px-6 py-5">
+                                    <div class="flex justify-end gap-2 text-on-surface-variant">
+                                        <button class="hover:text-primary transition-colors"><span class="material-symbols-outlined text-base" data-icon="visibility">visibility</span></button>
+                                        <button class="hover:text-error transition-colors"><span class="material-symbols-outlined text-base" data-icon="delete">delete</span></button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>{{!-- /table --}}
+            </div>{{!-- /tab-bitacora --}}
+
+        </div>{{!-- /tabs container --}}
+
+    </div>{{!-- /content --}}
+</main>
+
+
+{{!-- ════════════════════════════════════════════
+     MODAL — Reportar Hallazgo de Plaga
+     ════════════════════════════════════════════ --}}
+<div id="modal-reporte" class="hidden fixed inset-0 z-[200] flex items-center justify-center">
+    <div id="modal-reporte-backdrop" class="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
+    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+            <h3 class="font-extrabold text-[#0F2E2E] text-base flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary" data-icon="pest_control">pest_control</span>
+                Reportar Hallazgo de Plaga
+            </h3>
+            <button id="btn-close-reporte" class="text-slate-400 hover:text-slate-600">
+                <span class="material-symbols-outlined" data-icon="close">close</span>
+            </button>
+        </div>
+        <div class="p-6 space-y-5 max-h-[70vh] overflow-y-auto">
+            <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1.5">Plaga Identificada <span class="text-primary">*</span></label>
+                <select class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm text-on-surface-variant focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none">
+                    <option value="">— Seleccionar del Catálogo Oficial —</option>
+                    <option>Gusano Cogollero (Spodoptera frugiperda)</option>
+                    <option>Mosca de la Fruta (Anastrepha ludens)</option>
+                    <option>Mancha Negra (Guignardia citricarpa)</option>
+                    <option>Pulgón Amarillo (Melanaphis sacchari)</option>
+                    <option>Picudo del Algodón (Anthonomus grandis)</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-600 mb-2">Nivel de Severidad <span class="text-primary">*</span></label>
+                <div class="grid grid-cols-3 gap-3">
+                    <label class="flex items-center justify-center gap-2 p-3 rounded-xl border-2 border-slate-200 cursor-pointer hover:border-primary transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary-container/20">
+                        <input type="radio" name="severidad" value="baja" class="accent-primary" />
+                        <div class="text-center">
+                            <p class="text-lg">🟡</p>
+                            <p class="text-xs font-bold text-slate-600">Baja</p>
+                        </div>
+                    </label>
+                    <label class="flex items-center justify-center gap-2 p-3 rounded-xl border-2 border-slate-200 cursor-pointer hover:border-primary transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary-container/20">
+                        <input type="radio" name="severidad" value="media" class="accent-primary" />
+                        <div class="text-center">
+                            <p class="text-lg">🟠</p>
+                            <p class="text-xs font-bold text-slate-600">Media</p>
+                        </div>
+                    </label>
+                    <label class="flex items-center justify-center gap-2 p-3 rounded-xl border-2 border-slate-200 cursor-pointer hover:border-primary transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary-container/20">
+                        <input type="radio" name="severidad" value="alta" class="accent-primary" />
+                        <div class="text-center">
+                            <p class="text-lg">🔴</p>
+                            <p class="text-xs font-bold text-slate-600">Alta</p>
+                        </div>
+                    </label>
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1.5">Descripción del Hallazgo</label>
+                <textarea rows="3" placeholder="Describe lo que observaste en campo..." class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none resize-none"></textarea>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1.5">Fotografía de Evidencia</label>
+                <label class="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-slate-200 rounded-xl cursor-pointer hover:border-primary hover:bg-primary-container/5 transition-colors">
+                    <span class="material-symbols-outlined text-3xl text-slate-300 mb-1" data-icon="photo_camera">photo_camera</span>
+                    <p class="text-xs text-on-surface-variant">Arrastra una foto o <span class="text-primary font-bold">haz clic aquí</span></p>
+                    <input type="file" accept="image/*" class="hidden" />
+                </label>
+            </div>
+        </div>
+        <div class="flex justify-end gap-3 px-6 py-4 border-t border-slate-100 bg-slate-50">
+            <button id="btn-cancel-reporte" class="px-5 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-100 transition-colors">Cancelar</button>
+            <button class="px-6 py-2.5 rounded-xl bg-red-500 text-white text-sm font-bold hover:bg-red-600 transition-colors shadow-sm">Enviar Reporte</button>
+        </div>
+    </div>
+</div>
+
+
+{{!-- ════════════════════════════════════════════
+     MODAL — Registrar Aplicación Química
+     ════════════════════════════════════════════ --}}
+<div id="modal-aplicacion" class="hidden fixed inset-0 z-[200] flex items-center justify-center">
+    <div id="modal-aplicacion-backdrop" class="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
+    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+            <h3 class="font-extrabold text-[#0F2E2E] text-base flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary" data-icon="science">science</span>
+                Registrar Aplicación Química
+            </h3>
+            <button id="btn-close-aplicacion" class="text-slate-400 hover:text-slate-600">
+                <span class="material-symbols-outlined" data-icon="close">close</span>
+            </button>
+        </div>
+        <div class="p-6 space-y-5 max-h-[70vh] overflow-y-auto">
+            <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1.5">Producto Comercial <span class="text-primary">*</span></label>
+                <div class="relative">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant/50 text-lg" data-icon="search">search</span>
+                    <input type="text" placeholder="Buscar producto (ej. Lorsban, Spintor...)" class="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" />
+                </div>
+                <p class="text-[10px] text-on-surface-variant mt-1">Busca en el catálogo de Productos Comerciales registrados.</p>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1.5">Ingrediente Activo</label>
+                    <input type="text" readonly placeholder="Se llena automáticamente" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50 text-slate-500 outline-none" />
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1.5">Tipo</label>
+                    <input type="text" readonly placeholder="Insecticida / Fungicida..." class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50 text-slate-500 outline-none" />
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1.5">Dosis Aplicada <span class="text-primary">*</span></label>
+                    <div class="flex gap-2">
+                        <input type="number" step="0.1" min="0" placeholder="Ej. 1.5" class="flex-1 px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" />
+                        <select class="px-3 py-2.5 border border-slate-200 rounded-xl text-sm text-on-surface-variant focus:ring-primary/20 outline-none">
+                            <option>L/ha</option>
+                            <option>kg/ha</option>
+                            <option>ml/ha</option>
+                            <option>g/ha</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1.5">Fecha de Aplicación <span class="text-primary">*</span></label>
+                    <input type="date" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-on-surface-variant" />
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1.5">Notas adicionales</label>
+                <textarea rows="2" placeholder="Condiciones climatológicas, método de aplicación, etc." class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none resize-none"></textarea>
+            </div>
+        </div>
+        <div class="flex justify-end gap-3 px-6 py-4 border-t border-slate-100 bg-slate-50">
+            <button id="btn-cancel-aplicacion" class="px-5 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-100 transition-colors">Cancelar</button>
+            <button class="px-6 py-2.5 rounded-xl bg-[#43655c] text-white text-sm font-bold hover:bg-[#0F2E2E] transition-colors shadow-sm">Guardar Registro</button>
+        </div>
+    </div>
+</div>
+
+
+{{!-- ════════════════ SCRIPTS ════════════════ --}}
+{{#*inline "extraScripts"}}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script>
+(function () {
+    // ── Tabs ──
+    const tabBtns   = document.querySelectorAll('.tab-btn');
+    const tabPanels = document.querySelectorAll('.tab-panel');
+
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const target = btn.dataset.tab;
+            tabBtns.forEach(b => {
+                b.classList.remove('border-primary', 'text-[#0F2E2E]');
+                b.classList.add('border-transparent', 'text-on-surface-variant');
+            });
+            btn.classList.add('border-primary', 'text-[#0F2E2E]');
+            btn.classList.remove('border-transparent', 'text-on-surface-variant');
+            tabPanels.forEach(p => p.classList.add('hidden'));
+            document.getElementById('tab-' + target).classList.remove('hidden');
+        });
+    });
+
+    // ── Helpers de modales ──
+    function makeModal(modalId, openBtns, closeBtns, backdropId) {
+        const modal    = document.getElementById(modalId);
+        const backdrop = document.getElementById(backdropId);
+        function open()  { modal.classList.remove('hidden'); document.body.style.overflow = 'hidden'; }
+        function close() { modal.classList.add('hidden'); document.body.style.overflow = ''; }
+        openBtns.forEach(id => { const el = document.getElementById(id); if (el) el.addEventListener('click', open); });
+        closeBtns.forEach(id => { const el = document.getElementById(id); if (el) el.addEventListener('click', close); });
+        if (backdrop) backdrop.addEventListener('click', close);
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+    }
+
+    makeModal('modal-reporte',    ['btn-open-reporte'],    ['btn-close-reporte',    'btn-cancel-reporte'],    'modal-reporte-backdrop');
+    makeModal('modal-aplicacion', ['btn-open-aplicacion'], ['btn-close-aplicacion', 'btn-cancel-aplicacion'], 'modal-aplicacion-backdrop');
+})();
+</script>
+{{/inline}}

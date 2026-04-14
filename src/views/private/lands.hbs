@@ -1,0 +1,402 @@
+{{!-- ============================================================
+     TERRENOS — Vista Principal: Mis Parcelas Experimentales
+     ============================================================ --}}
+<main class="min-h-screen flex flex-col">
+    <div class="mt-20 p-10 space-y-8">
+
+        {{!-- ── Cabecera ── --}}
+        <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+                <h1 class="text-2xl font-extrabold text-[#0F2E2E]">Gestión de Terrenos y Parcelas</h1>
+                <p class="text-sm text-on-surface-variant mt-1">Visualiza, registra y monitorea todos los predios del sistema.</p>
+            </div>
+            <button id="btn-open-new-land"
+                class="bg-[#43655c] text-white px-6 py-3 rounded-xl font-bold text-sm flex items-center gap-2 hover:bg-[#0F2E2E] transition-colors shadow-lg shadow-primary/10">
+                <span class="material-symbols-outlined" data-icon="add_location_alt">add_location_alt</span>
+                + Registrar Nuevo Predio
+            </button>
+        </div>
+
+        {{!-- ── Mapa Leaflet ── --}}
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-slate-50">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary" data-icon="map">map</span>
+                    <span class="font-bold text-[#0F2E2E] text-sm">Mapa de Predios</span>
+                    <span class="text-[10px] bg-primary-container text-on-primary-container px-2 py-0.5 rounded-full font-bold uppercase ml-2">
+                        {{#if isAdmin}}Vista Global{{else}}Mis Tierras{{/if}}
+                    </span>
+                </div>
+                <div class="flex gap-2">
+                    <button id="map-zoom-fit" class="text-xs font-bold text-on-surface-variant hover:text-primary transition-colors flex items-center gap-1 px-3 py-1.5 rounded-lg hover:bg-surface-container-low">
+                        <span class="material-symbols-outlined text-base">fit_screen</span> Ajustar vista
+                    </button>
+                </div>
+            </div>
+            <div id="lands-map" class="w-full" style="height: 380px;"></div>
+        </section>
+
+        {{!-- ── Filtros rápidos ── --}}
+        <div class="flex flex-wrap gap-3 items-center">
+            <div class="relative flex-1 min-w-[260px]">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant/50 text-lg" data-icon="search">search</span>
+                <input id="land-search" class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary/20 text-sm placeholder:text-on-surface-variant/40" placeholder="Buscar predio o propietario..." type="text" />
+            </div>
+            <select id="land-filter-status" class="bg-white border border-slate-200 rounded-xl py-2.5 px-4 text-sm text-on-surface-variant font-medium focus:ring-primary/20">
+                <option value="">Estatus: Todos</option>
+                <option value="activo">Activo</option>
+                <option value="pendiente">Pendiente</option>
+                <option value="inactivo">Inactivo</option>
+            </select>
+            <select id="land-filter-health" class="bg-white border border-slate-200 rounded-xl py-2.5 px-4 text-sm text-on-surface-variant font-medium focus:ring-primary/20">
+                <option value="">Salud: Todos</option>
+                <option value="sano">🟢 Sano</option>
+                <option value="alerta">🔴 Plaga activa</option>
+            </select>
+        </div>
+
+        {{!-- ── Grid de Tarjetas ── --}}
+        <section id="lands-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+
+            {{!-- Card 1 --}}
+            <article data-status="activo" data-health="sano"
+                class="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all group overflow-hidden">
+                <div class="relative h-36 bg-gradient-to-br from-emerald-50 to-teal-100 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-7xl text-emerald-300/60" data-icon="landscape">landscape</span>
+                    {{!-- Semáforo --}}
+                    <div class="absolute top-3 right-3 flex items-center gap-1.5 bg-white/90 backdrop-blur px-2.5 py-1 rounded-full shadow-sm">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span class="text-[10px] font-black text-emerald-700 uppercase">Sano</span>
+                    </div>
+                    {{!-- ID --}}
+                    <div class="absolute top-3 left-3 bg-white/80 backdrop-blur text-[10px] font-bold text-slate-500 px-2 py-0.5 rounded-full">#PRD-0041</div>
+                </div>
+                <div class="p-5">
+                    <h2 class="font-extrabold text-[#0F2E2E] text-base leading-tight">La Esperanza</h2>
+                    <div class="flex items-center gap-1 text-xs text-on-surface-variant mt-1">
+                        <span class="material-symbols-outlined text-sm" data-icon="location_on">location_on</span>
+                        Culiacán, Sinaloa
+                    </div>
+                    <div class="mt-4 grid grid-cols-2 gap-3">
+                        <div class="bg-surface-container-low rounded-xl p-3">
+                            <p class="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider">Tamaño</p>
+                            <p class="font-extrabold text-[#0F2E2E] text-lg mt-0.5">142 <span class="text-sm font-bold text-slate-400">ha</span></p>
+                        </div>
+                        <div class="bg-surface-container-low rounded-xl p-3">
+                            <p class="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider">Cultivo Actual</p>
+                            <p class="font-bold text-[#0F2E2E] text-sm mt-0.5 truncate">Maíz Blanco</p>
+                        </div>
+                    </div>
+                    <div class="mt-3 flex items-center gap-2">
+                        <span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-full text-[10px] font-black uppercase border border-emerald-100">Activo</span>
+                        <span class="px-2.5 py-1 bg-blue-50 text-blue-700 rounded-full text-[10px] font-black uppercase border border-blue-100">Ciclo: Primavera-Verano</span>
+                    </div>
+                </div>
+                <div class="px-5 pb-5">
+                    <a href="/private/lands/1/expediente"
+                        class="w-full flex items-center justify-center gap-2 py-2.5 bg-[#0F2E2E] text-white rounded-xl text-sm font-bold hover:bg-[#43655c] transition-colors group-hover:shadow-md">
+                        <span class="material-symbols-outlined text-base" data-icon="folder_open">folder_open</span>
+                        Abrir Expediente
+                    </a>
+                </div>
+            </article>
+
+            {{!-- Card 2 --}}
+            <article data-status="activo" data-health="alerta"
+                class="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all group overflow-hidden">
+                <div class="relative h-36 bg-gradient-to-br from-amber-50 to-orange-100 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-7xl text-orange-300/60" data-icon="landscape">landscape</span>
+                    <div class="absolute top-3 right-3 flex items-center gap-1.5 bg-white/90 backdrop-blur px-2.5 py-1 rounded-full shadow-sm">
+                        <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                        <span class="text-[10px] font-black text-red-700 uppercase">Plaga activa</span>
+                    </div>
+                    <div class="absolute top-3 left-3 bg-white/80 backdrop-blur text-[10px] font-bold text-slate-500 px-2 py-0.5 rounded-full">#PRD-0038</div>
+                </div>
+                <div class="p-5">
+                    <h2 class="font-extrabold text-[#0F2E2E] text-base leading-tight">El Progreso</h2>
+                    <div class="flex items-center gap-1 text-xs text-on-surface-variant mt-1">
+                        <span class="material-symbols-outlined text-sm" data-icon="location_on">location_on</span>
+                        Navolato, Sinaloa
+                    </div>
+                    <div class="mt-4 grid grid-cols-2 gap-3">
+                        <div class="bg-surface-container-low rounded-xl p-3">
+                            <p class="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider">Tamaño</p>
+                            <p class="font-extrabold text-[#0F2E2E] text-lg mt-0.5">280 <span class="text-sm font-bold text-slate-400">ha</span></p>
+                        </div>
+                        <div class="bg-surface-container-low rounded-xl p-3">
+                            <p class="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider">Cultivo Actual</p>
+                            <p class="font-bold text-[#0F2E2E] text-sm mt-0.5 truncate">Limón Pérsico</p>
+                        </div>
+                    </div>
+                    <div class="mt-3 flex items-center gap-2">
+                        <span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-full text-[10px] font-black uppercase border border-emerald-100">Activo</span>
+                        <span class="px-2.5 py-1 bg-red-50 text-red-700 rounded-full text-[10px] font-black uppercase border border-red-100">⚠ Cogollero</span>
+                    </div>
+                </div>
+                <div class="px-5 pb-5">
+                    <a href="/private/lands/2/expediente"
+                        class="w-full flex items-center justify-center gap-2 py-2.5 bg-[#0F2E2E] text-white rounded-xl text-sm font-bold hover:bg-[#43655c] transition-colors group-hover:shadow-md">
+                        <span class="material-symbols-outlined text-base" data-icon="folder_open">folder_open</span>
+                        Abrir Expediente
+                    </a>
+                </div>
+            </article>
+
+            {{!-- Card 3 --}}
+            <article data-status="activo" data-health="sano"
+                class="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all group overflow-hidden">
+                <div class="relative h-36 bg-gradient-to-br from-green-50 to-emerald-100 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-7xl text-emerald-300/60" data-icon="landscape">landscape</span>
+                    <div class="absolute top-3 right-3 flex items-center gap-1.5 bg-white/90 backdrop-blur px-2.5 py-1 rounded-full shadow-sm">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span class="text-[10px] font-black text-emerald-700 uppercase">Sano</span>
+                    </div>
+                    <div class="absolute top-3 left-3 bg-white/80 backdrop-blur text-[10px] font-bold text-slate-500 px-2 py-0.5 rounded-full">#PRD-0035</div>
+                </div>
+                <div class="p-5">
+                    <h2 class="font-extrabold text-[#0F2E2E] text-base leading-tight">Rancho San Miguel</h2>
+                    <div class="flex items-center gap-1 text-xs text-on-surface-variant mt-1">
+                        <span class="material-symbols-outlined text-sm" data-icon="location_on">location_on</span>
+                        Mocorito, Sinaloa
+                    </div>
+                    <div class="mt-4 grid grid-cols-2 gap-3">
+                        <div class="bg-surface-container-low rounded-xl p-3">
+                            <p class="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider">Tamaño</p>
+                            <p class="font-extrabold text-[#0F2E2E] text-lg mt-0.5">95 <span class="text-sm font-bold text-slate-400">ha</span></p>
+                        </div>
+                        <div class="bg-surface-container-low rounded-xl p-3">
+                            <p class="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider">Cultivo Actual</p>
+                            <p class="font-bold text-[#0F2E2E] text-sm mt-0.5 truncate">Sorgo Forrajero</p>
+                        </div>
+                    </div>
+                    <div class="mt-3 flex items-center gap-2">
+                        <span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-full text-[10px] font-black uppercase border border-emerald-100">Activo</span>
+                        <span class="px-2.5 py-1 bg-blue-50 text-blue-700 rounded-full text-[10px] font-black uppercase border border-blue-100">Ciclo: Otoño-Invierno</span>
+                    </div>
+                </div>
+                <div class="px-5 pb-5">
+                    <a href="/private/lands/3/expediente"
+                        class="w-full flex items-center justify-center gap-2 py-2.5 bg-[#0F2E2E] text-white rounded-xl text-sm font-bold hover:bg-[#43655c] transition-colors group-hover:shadow-md">
+                        <span class="material-symbols-outlined text-base" data-icon="folder_open">folder_open</span>
+                        Abrir Expediente
+                    </a>
+                </div>
+            </article>
+
+            {{!-- Card 4 – Pendiente --}}
+            <article data-status="pendiente" data-health="sano"
+                class="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all group overflow-hidden opacity-75">
+                <div class="relative h-36 bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-7xl text-slate-300/60" data-icon="landscape">landscape</span>
+                    <div class="absolute top-3 right-3 flex items-center gap-1.5 bg-white/90 backdrop-blur px-2.5 py-1 rounded-full shadow-sm">
+                        <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+                        <span class="text-[10px] font-black text-amber-700 uppercase">Sin cultivo</span>
+                    </div>
+                    <div class="absolute top-3 left-3 bg-white/80 backdrop-blur text-[10px] font-bold text-slate-500 px-2 py-0.5 rounded-full">#PRD-0049</div>
+                </div>
+                <div class="p-5">
+                    <h2 class="font-extrabold text-[#0F2E2E] text-base leading-tight">Los Álamos</h2>
+                    <div class="flex items-center gap-1 text-xs text-on-surface-variant mt-1">
+                        <span class="material-symbols-outlined text-sm" data-icon="location_on">location_on</span>
+                        Guasave, Sinaloa
+                    </div>
+                    <div class="mt-4 grid grid-cols-2 gap-3">
+                        <div class="bg-surface-container-low rounded-xl p-3">
+                            <p class="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider">Tamaño</p>
+                            <p class="font-extrabold text-[#0F2E2E] text-lg mt-0.5">210 <span class="text-sm font-bold text-slate-400">ha</span></p>
+                        </div>
+                        <div class="bg-surface-container-low rounded-xl p-3">
+                            <p class="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider">Cultivo Actual</p>
+                            <p class="text-sm text-on-surface-variant/60 italic mt-0.5">No asignado</p>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <span class="px-2.5 py-1 bg-amber-50 text-amber-700 rounded-full text-[10px] font-black uppercase border border-amber-100">⏱ Pendiente</span>
+                    </div>
+                </div>
+                <div class="px-5 pb-5">
+                    <a href="/private/lands/4/expediente"
+                        class="w-full flex items-center justify-center gap-2 py-2.5 bg-[#0F2E2E] text-white rounded-xl text-sm font-bold hover:bg-[#43655c] transition-colors">
+                        <span class="material-symbols-outlined text-base" data-icon="folder_open">folder_open</span>
+                        Abrir Expediente
+                    </a>
+                </div>
+            </article>
+
+        </section><!-- /lands-grid -->
+
+    </div><!-- /content -->
+</main>
+
+
+{{!-- ════════════════════════════════════════════
+     MODAL — Registrar Nuevo Predio
+     ════════════════════════════════════════════ --}}
+<div id="modal-new-land" class="hidden fixed inset-0 z-[200] flex items-center justify-center">
+    {{!-- Backdrop --}}
+    <div id="modal-new-land-backdrop" class="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
+    {{!-- Panel --}}
+    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-xl mx-4 overflow-hidden animate-[fadeInUp_0.25s_ease]">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+            <h3 class="font-extrabold text-[#0F2E2E] text-base">Registrar Nuevo Predio</h3>
+            <button id="btn-close-new-land" class="text-slate-400 hover:text-slate-600 transition-colors">
+                <span class="material-symbols-outlined" data-icon="close">close</span>
+            </button>
+        </div>
+        <div class="p-6 space-y-5 overflow-y-auto max-h-[75vh]">
+            <div class="grid grid-cols-2 gap-4">
+                <div class="col-span-2">
+                    <label class="block text-xs font-bold text-slate-600 mb-1.5">Nombre del Predio <span class="text-primary">*</span></label>
+                    <input type="text" placeholder="Ej. Parcela Norte" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" />
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1.5">Hectáreas <span class="text-primary">*</span></label>
+                    <input type="number" step="0.1" min="0" placeholder="Ej. 5.2" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" />
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1.5">Municipio</label>
+                    <select class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-on-surface-variant">
+                        <option>Culiacán</option>
+                        <option>Navolato</option>
+                        <option>Mocorito</option>
+                        <option>Guasave</option>
+                        <option>Ahome</option>
+                    </select>
+                </div>
+            </div>
+            {{!-- Mini-mapa para selección GPS --}}
+            <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1.5">Ubicación GPS <span class="text-xs font-normal text-slate-400">— Haz clic en el mapa para marcar el punto</span></label>
+                <div id="modal-map" class="w-full rounded-xl overflow-hidden border border-slate-200" style="height: 220px;"></div>
+                <div class="grid grid-cols-2 gap-3 mt-2">
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase">Latitud</label>
+                        <input id="modal-lat" type="text" readonly placeholder="—" class="w-full mt-1 px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 text-slate-600" />
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase">Longitud</label>
+                        <input id="modal-lng" type="text" readonly placeholder="—" class="w-full mt-1 px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 text-slate-600" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="flex justify-end gap-3 px-6 py-4 border-t border-slate-100 bg-slate-50">
+            <button id="btn-cancel-new-land" class="px-5 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-100 transition-colors">Cancelar</button>
+            <button class="px-6 py-2.5 rounded-xl bg-[#43655c] text-white text-sm font-bold hover:bg-[#0F2E2E] transition-colors shadow-sm">Guardar Predio</button>
+        </div>
+    </div>
+</div>
+
+
+{{!-- ════════════════ SCRIPTS ════════════════ --}}
+{{#*inline "extraScripts"}}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script>
+(function () {
+    // ── Datos de parcelas (en producción vendrían del servidor) ──
+    const parcelas = [
+        { id: 1, nombre: "La Esperanza",    lat: 24.7994, lng: -107.3877, salud: "sano",   ha: 142, municipio: "Culiacán" },
+        { id: 2, nombre: "El Progreso",     lat: 24.7608, lng: -107.6988, salud: "alerta", ha: 280, municipio: "Navolato" },
+        { id: 3, nombre: "Rancho San Miguel",lat: 25.4847, lng: -107.9606, salud: "sano",  ha: 95,  municipio: "Mocorito" },
+        { id: 4, nombre: "Los Álamos",      lat: 25.5666, lng: -108.4697, salud: "sano",   ha: 210, municipio: "Guasave" },
+    ];
+
+    // ── Mapa principal ──
+    const map = L.map('lands-map', { zoomControl: true }).setView([25.0, -107.9], 8);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors', maxZoom: 18
+    }).addTo(map);
+
+    const sanoIcon = L.divIcon({
+        html: `<div style="width:28px;height:28px;background:#10b981;border:3px solid white;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.25)">
+                 <svg width="13" height="13" fill="white" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>
+               </div>`,
+        className: '', iconSize: [28, 28], iconAnchor: [14, 28]
+    });
+    const alertaIcon = L.divIcon({
+        html: `<div style="width:28px;height:28px;background:#ef4444;border:3px solid white;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.25)">
+                 <svg width="13" height="13" fill="white" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>
+               </div>`,
+        className: '', iconSize: [28, 28], iconAnchor: [14, 28]
+    });
+
+    const markers = [];
+    parcelas.forEach(p => {
+        const icon = p.salud === 'alerta' ? alertaIcon : sanoIcon;
+        const m = L.marker([p.lat, p.lng], { icon })
+            .addTo(map)
+            .bindPopup(`<b>${p.nombre}</b><br>${p.ha} ha — ${p.municipio}<br>
+                <a href="/private/lands/${p.id}/expediente" style="color:#43655c;font-weight:bold;font-size:12px">
+                    📂 Abrir Expediente →</a>`);
+        markers.push(m);
+    });
+
+    // Ajustar vista al grupo
+    document.getElementById('map-zoom-fit').addEventListener('click', () => {
+        const group = new L.featureGroup(markers);
+        map.fitBounds(group.getBounds().pad(0.2));
+    });
+
+    // ── Filtro de tarjetas ──
+    function filterCards() {
+        const q      = document.getElementById('land-search').value.toLowerCase();
+        const status = document.getElementById('land-filter-status').value;
+        const health = document.getElementById('land-filter-health').value;
+        document.querySelectorAll('#lands-grid article').forEach(card => {
+            const name   = card.querySelector('h2').textContent.toLowerCase();
+            const loc    = card.querySelector('.text-on-surface-variant')?.textContent.toLowerCase() ?? '';
+            const cStatus= card.dataset.status ?? '';
+            const cHealth= card.dataset.health ?? '';
+            const show = (q === '' || name.includes(q) || loc.includes(q))
+                      && (status === '' || cStatus === status)
+                      && (health === '' || cHealth === health);
+            card.style.display = show ? '' : 'none';
+        });
+    }
+    document.getElementById('land-search').addEventListener('input', filterCards);
+    document.getElementById('land-filter-status').addEventListener('change', filterCards);
+    document.getElementById('land-filter-health').addEventListener('change', filterCards);
+
+    // ── Modal Nuevo Predio ──
+    const modalNewLand     = document.getElementById('modal-new-land');
+    const btnOpenNewLand   = document.getElementById('btn-open-new-land');
+    const btnCloseNewLand  = document.getElementById('btn-close-new-land');
+    const btnCancelNewLand = document.getElementById('btn-cancel-new-land');
+    const backdrop         = document.getElementById('modal-new-land-backdrop');
+
+    let modalMap = null;
+    let modalMarker = null;
+
+    function openModal() {
+        modalNewLand.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        // Init mapa modal la primera vez
+        if (!modalMap) {
+            modalMap = L.map('modal-map').setView([24.8, -107.4], 9);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap', maxZoom: 18
+            }).addTo(modalMap);
+            modalMap.on('click', function (e) {
+                const { lat, lng } = e.latlng;
+                document.getElementById('modal-lat').value = lat.toFixed(6);
+                document.getElementById('modal-lng').value = lng.toFixed(6);
+                if (modalMarker) modalMap.removeLayer(modalMarker);
+                modalMarker = L.marker([lat, lng]).addTo(modalMap);
+            });
+        }
+        setTimeout(() => modalMap.invalidateSize(), 150);
+    }
+    function closeModal() {
+        modalNewLand.classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+
+    btnOpenNewLand.addEventListener('click', openModal);
+    btnCloseNewLand.addEventListener('click', closeModal);
+    btnCancelNewLand.addEventListener('click', closeModal);
+    backdrop.addEventListener('click', closeModal);
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+})();
+</script>
+{{/inline}}

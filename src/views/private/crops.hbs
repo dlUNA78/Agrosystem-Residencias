@@ -10,15 +10,16 @@
                     data-icon="search">search</span>
                 <input
                     class="w-full pl-12 pr-4 py-3 bg-surface-container-low border-none rounded-lg focus:ring-2 focus:ring-primary/20 text-sm placeholder:text-on-surface-variant/40"
-                    placeholder="Buscar por nombre o cultivo..." type="text" />
+                    placeholder="Buscar por nombre o tipo de cultivo..." type="text" />
             </div>
             <div class="flex gap-4 items-center">
                 <select
                     class="bg-surface-container-low border-none rounded-lg py-3 px-4 text-sm text-on-surface-variant font-medium focus:ring-primary/20 pr-10">
-                    <option>Filtro: Todos los cultivos</option>
-                    <option>Maíz</option>
-                    <option>Sorgo</option>
-                    <option>Mango</option>
+                    <option>Tipo: Todos</option>
+                    <option>Cereal</option>
+                    <option>Frutal</option>
+                    <option>Hortaliza</option>
+                    <option>Leguminosa</option>
                 </select>
                 <select
                     class="bg-surface-container-low border-none rounded-lg py-3 px-4 text-sm text-on-surface-variant font-medium focus:ring-primary/20 pr-10">
@@ -29,24 +30,26 @@
                 <button
                     class="bg-[#43655c] text-white px-6 py-3 rounded-lg font-bold text-sm flex items-center gap-2 hover:bg-primary-dim transition-colors shadow-lg shadow-primary/10">
                     <span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
-                    Añadir Plaga
+                    Añadir Cultivo
                 </button>
             </div>
         </section>
-        <!-- Alert Panel -->
-        <div class="bg-amber-50 border border-amber-100 p-4 rounded-xl flex items-center justify-between shadow-sm">
+
+        <!-- Info Panel -->
+        <div class="bg-emerald-50 border border-emerald-100 p-4 rounded-xl flex items-center justify-between shadow-sm">
             <div class="flex items-center gap-3">
-                <div class="bg-amber-100 p-2 rounded-full">
-                    <span class="material-symbols-outlined text-amber-700" data-icon="feedback">feedback</span>
+                <div class="bg-emerald-100 p-2 rounded-full">
+                    <span class="material-symbols-outlined text-emerald-700" data-icon="eco">eco</span>
                 </div>
-                <p class="text-amber-900 font-medium text-sm tracking-tight">Tienes <span class="font-bold">24
-                        sugerencias</span> de la comunidad pendientes de revisión.</p>
+                <p class="text-emerald-900 font-medium text-sm tracking-tight">Hay <span class="font-bold">8
+                        cultivos</span> pendientes de validación taxonómica por el equipo técnico.</p>
             </div>
             <button
-                class="bg-white text-amber-800 border border-amber-200 px-5 py-2 rounded-lg text-xs font-bold hover:bg-amber-100 transition-colors">
-                Revisar Sugerencias
+                class="bg-white text-emerald-800 border border-emerald-200 px-5 py-2 rounded-lg text-xs font-bold hover:bg-emerald-100 transition-colors">
+                Revisar Cultivos
             </button>
         </div>
+
         <!-- Data Grid -->
         <div class="bg-surface-container-lowest rounded-2xl shadow-sm overflow-hidden border border-outline-variant/10">
             <table class="w-full text-left border-collapse">
@@ -55,12 +58,12 @@
                         <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
                             Imagen</th>
                         <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
-                            Detalles de la Plaga</th>
+                            Detalles del Cultivo</th>
                         <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
-                            Cultivos Afectados</th>
+                            Tipo / Familia</th>
                         <th
                             class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant text-center">
-                            Nivel de Riesgo</th>
+                            Temporada</th>
                         <th
                             class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant text-center">
                             Estatus</th>
@@ -73,26 +76,25 @@
                     <!-- Row 1 -->
                     <tr class="hover:bg-surface/50 transition-colors">
                         <td class="px-8 py-6">
-                            <img alt="Gusano Cogollero"
+                            <img alt="Maíz Blanco"
                                 class="w-20 h-14 rounded-lg object-cover bg-surface-container shadow-sm"
-                                data-alt="macro photograph of a fall armyworm larvae on a green maize leaf with high detail and soft natural lighting"
-                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCvGg05uHOcjq2RDm221NmjHgHbWrbJ3Tp8Ko_0OsskfF3A8zvyskYQ3W0Xwx8FwKMZm80IzKcaPAeU_P06srWHy-fXuIXuZeKbJqPMInSEFCi7oCqDYqU2TYLw0dx7GJEs2nYla4i-ZioAjYCQLLuGvAQgdHAxfMTUVbRlHr5QIj1OSqlKZ3RxiL1zv-zOzsitnh08lYhonkm4QqHKu9LUr1-Lc5E9dauUGJCeRYdCVPAEUodFyVwxaPJeGHwnQKUcW_RCF1VdXDdS" />
+                                src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=160&h=112&fit=crop&q=80" />
                         </td>
                         <td class="px-8 py-6">
-                            <p class="font-bold text-on-surface text-sm">Gusano Cogollero</p>
-                            <p class="text-xs italic text-on-surface-variant">Spodoptera frugiperda</p>
+                            <p class="font-bold text-on-surface text-sm">Maíz Blanco</p>
+                            <p class="text-xs italic text-on-surface-variant">Zea mays</p>
                         </td>
                         <td class="px-8 py-6">
                             <div class="flex flex-wrap gap-2">
                                 <span
-                                    class="px-3 py-1 bg-primary-container text-on-primary-container rounded-full text-[10px] font-bold uppercase tracking-tight">Maíz</span>
+                                    class="px-3 py-1 bg-primary-container text-on-primary-container rounded-full text-[10px] font-bold uppercase tracking-tight">Cereal</span>
                                 <span
-                                    class="px-3 py-1 bg-primary-container text-on-primary-container rounded-full text-[10px] font-bold uppercase tracking-tight">Sorgo</span>
+                                    class="px-3 py-1 bg-surface-container text-on-surface-variant rounded-full text-[10px] font-bold uppercase tracking-tight">Poaceae</span>
                             </div>
                         </td>
                         <td class="px-8 py-6 text-center">
                             <span
-                                class="px-4 py-1.5 bg-error/10 text-error rounded-full text-[10px] font-black uppercase">Crítica</span>
+                                class="px-4 py-1.5 bg-blue-400/10 text-blue-700 rounded-full text-[10px] font-black uppercase">Primavera-Verano</span>
                         </td>
                         <td class="px-8 py-6 text-center">
                             <div
@@ -117,26 +119,25 @@
                     <!-- Row 2 -->
                     <tr class="hover:bg-surface/50 transition-colors">
                         <td class="px-8 py-6">
-                            <img alt="Mosca de la Fruta"
+                            <img alt="Limón Pérsico"
                                 class="w-20 h-14 rounded-lg object-cover bg-surface-container shadow-sm"
-                                data-alt="detailed close-up of a fruit fly with colorful wings perched on an orange peel with scientific studio lighting"
-                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuACnZHI0xMk2AZtsIA6KERw_7OKqazuJPsbnH3JCGc4UV3R4snTy7jnlrojVrJr38ODmERf6TyfM_IS1PbWljtJtQ6DFXYlggjpzKjLmxwdXO1CSR69O_DLAA_pRHp4RhHoJv_bvmc_ByErq-2aAfg6KvQ2l8yps6ag6MB9aiTcoypoq1wbBzSZE53Nh33s0rAXxEKKtmwfNN8C7vVW4kX7Rri3QPFMbloA6cIzBRPq9MgCQo1FR6ntRZA9z7_0UJcm827aYtLUCDW4" />
+                                src="https://images.unsplash.com/photo-1568702846914-96b305d2aaeb?w=160&h=112&fit=crop&q=80" />
                         </td>
                         <td class="px-8 py-6">
-                            <p class="font-bold text-on-surface text-sm">Mosca de la Fruta</p>
-                            <p class="text-xs italic text-on-surface-variant">Anastrepha ludens</p>
+                            <p class="font-bold text-on-surface text-sm">Limón Pérsico</p>
+                            <p class="text-xs italic text-on-surface-variant">Citrus latifolia</p>
                         </td>
                         <td class="px-8 py-6">
                             <div class="flex flex-wrap gap-2">
                                 <span
-                                    class="px-3 py-1 bg-primary-container text-on-primary-container rounded-full text-[10px] font-bold uppercase tracking-tight">Mango</span>
+                                    class="px-3 py-1 bg-primary-container text-on-primary-container rounded-full text-[10px] font-bold uppercase tracking-tight">Frutal</span>
                                 <span
-                                    class="px-3 py-1 bg-primary-container text-on-primary-container rounded-full text-[10px] font-bold uppercase tracking-tight">Naranja</span>
+                                    class="px-3 py-1 bg-surface-container text-on-surface-variant rounded-full text-[10px] font-bold uppercase tracking-tight">Rutaceae</span>
                             </div>
                         </td>
                         <td class="px-8 py-6 text-center">
                             <span
-                                class="px-4 py-1.5 bg-amber-400/10 text-amber-700 rounded-full text-[10px] font-black uppercase">Media</span>
+                                class="px-4 py-1.5 bg-green-400/10 text-green-700 rounded-full text-[10px] font-black uppercase">Todo el año</span>
                         </td>
                         <td class="px-8 py-6 text-center">
                             <div
@@ -158,27 +159,113 @@
                             </div>
                         </td>
                     </tr>
-                    <!-- Row 3 Pending -->
-                    <tr class="hover:bg-surface/50 transition-colors bg-surface-container-low/20">
+                    <!-- Row 3 -->
+                    <tr class="hover:bg-surface/50 transition-colors">
                         <td class="px-8 py-6">
-                            <img alt="Mancha Negra"
-                                class="w-20 h-14 rounded-lg object-cover bg-surface-container shadow-sm grayscale-[0.5]"
-                                data-alt="botanical close-up of citrus black spot disease on a lemon leaf showing distinct dark necrotic lesions"
-                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCXGgfFW0_KE80C3KNFmLdGUaiZmis9KNxWmRoKXSidzj3jed2UDPv7s0iVB07LC3ImhzSZYSVHoZKJYcp1dAmtGjKhjCRuIw3S-8HUYqqlRNXa-yzEh8dWCMfrJS66mh0N-CvqrlUoqhzZo-K1xZDxXEjASe6qEKngAcPlZnl86XPJXBT2z7WjHGCveyaskHV1O6fhPb63cMt5Dkd0u4S9O0VQRq_P98rQFZm5UiYMB9X2y6n3V4MIsmnBel8zEYdAQWuRSwc42OwK" />
+                            <img alt="Aguacate Hass"
+                                class="w-20 h-14 rounded-lg object-cover bg-surface-container shadow-sm"
+                                src="https://images.unsplash.com/photo-1519162808019-7de1683fa2ad?w=160&h=112&fit=crop&q=80" />
                         </td>
                         <td class="px-8 py-6">
-                            <p class="font-bold text-on-surface text-sm">Mancha Negra</p>
-                            <p class="text-xs italic text-on-surface-variant">Guignardia citricarpa</p>
+                            <p class="font-bold text-on-surface text-sm">Aguacate Hass</p>
+                            <p class="text-xs italic text-on-surface-variant">Persea americana</p>
                         </td>
                         <td class="px-8 py-6">
                             <div class="flex flex-wrap gap-2">
                                 <span
-                                    class="px-3 py-1 bg-primary-container text-on-primary-container rounded-full text-[10px] font-bold uppercase tracking-tight">Limón</span>
+                                    class="px-3 py-1 bg-primary-container text-on-primary-container rounded-full text-[10px] font-bold uppercase tracking-tight">Frutal</span>
+                                <span
+                                    class="px-3 py-1 bg-surface-container text-on-surface-variant rounded-full text-[10px] font-bold uppercase tracking-tight">Lauraceae</span>
                             </div>
                         </td>
                         <td class="px-8 py-6 text-center">
                             <span
-                                class="px-4 py-1.5 bg-amber-400/10 text-amber-700 rounded-full text-[10px] font-black uppercase">Media</span>
+                                class="px-4 py-1.5 bg-amber-400/10 text-amber-700 rounded-full text-[10px] font-black uppercase">Otoño-Invierno</span>
+                        </td>
+                        <td class="px-8 py-6 text-center">
+                            <div
+                                class="flex items-center justify-center gap-1.5 text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100 mx-auto w-fit">
+                                <span class="material-symbols-outlined text-sm" data-icon="check_circle"
+                                    data-weight="fill" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                                <span class="text-[10px] font-black uppercase">Aprobado</span>
+                            </div>
+                        </td>
+                        <td class="px-8 py-6">
+                            <div class="flex justify-end gap-3 text-on-surface-variant">
+                                <button class="hover:text-primary transition-colors"><span
+                                        class="material-symbols-outlined"
+                                        data-icon="visibility">visibility</span></button>
+                                <button class="hover:text-primary transition-colors"><span
+                                        class="material-symbols-outlined" data-icon="edit">edit</span></button>
+                                <button class="hover:text-error transition-colors"><span
+                                        class="material-symbols-outlined" data-icon="delete">delete</span></button>
+                            </div>
+                        </td>
+                    </tr>
+                    <!-- Row 4 Pending -->
+                    <tr class="hover:bg-surface/50 transition-colors bg-surface-container-low/20">
+                        <td class="px-8 py-6">
+                            <img alt="Sorgo"
+                                class="w-20 h-14 rounded-lg object-cover bg-surface-container shadow-sm grayscale-[0.5]"
+                                src="https://images.unsplash.com/photo-1599940824399-b87987ceb72a?w=160&h=112&fit=crop&q=80" />
+                        </td>
+                        <td class="px-8 py-6">
+                            <p class="font-bold text-on-surface text-sm">Sorgo Forrajero</p>
+                            <p class="text-xs italic text-on-surface-variant">Sorghum bicolor</p>
+                        </td>
+                        <td class="px-8 py-6">
+                            <div class="flex flex-wrap gap-2">
+                                <span
+                                    class="px-3 py-1 bg-primary-container text-on-primary-container rounded-full text-[10px] font-bold uppercase tracking-tight">Cereal</span>
+                                <span
+                                    class="px-3 py-1 bg-surface-container text-on-surface-variant rounded-full text-[10px] font-bold uppercase tracking-tight">Poaceae</span>
+                            </div>
+                        </td>
+                        <td class="px-8 py-6 text-center">
+                            <span
+                                class="px-4 py-1.5 bg-blue-400/10 text-blue-700 rounded-full text-[10px] font-black uppercase">Primavera-Verano</span>
+                        </td>
+                        <td class="px-8 py-6 text-center">
+                            <div
+                                class="flex items-center justify-center gap-1.5 text-orange-600 bg-orange-50 px-3 py-1.5 rounded-full border border-orange-100 mx-auto w-fit">
+                                <span class="material-symbols-outlined text-sm" data-icon="schedule">schedule</span>
+                                <span class="text-[10px] font-black uppercase">Pendiente</span>
+                            </div>
+                        </td>
+                        <td class="px-8 py-6">
+                            <div class="flex justify-end gap-3 text-on-surface-variant">
+                                <button class="hover:text-primary transition-colors"><span
+                                        class="material-symbols-outlined"
+                                        data-icon="visibility">visibility</span></button>
+                                <button class="hover:text-primary transition-colors"><span
+                                        class="material-symbols-outlined" data-icon="edit">edit</span></button>
+                                <button class="hover:text-error transition-colors"><span
+                                        class="material-symbols-outlined" data-icon="delete">delete</span></button>
+                            </div>
+                        </td>
+                    </tr>
+                    <!-- Row 5 Pending -->
+                    <tr class="hover:bg-surface/50 transition-colors bg-surface-container-low/20">
+                        <td class="px-8 py-6">
+                            <img alt="Mango Ataulfo"
+                                class="w-20 h-14 rounded-lg object-cover bg-surface-container shadow-sm grayscale-[0.5]"
+                                src="https://images.unsplash.com/photo-1553279768-865429fa0078?w=160&h=112&fit=crop&q=80" />
+                        </td>
+                        <td class="px-8 py-6">
+                            <p class="font-bold text-on-surface text-sm">Mango Ataulfo</p>
+                            <p class="text-xs italic text-on-surface-variant">Mangifera indica</p>
+                        </td>
+                        <td class="px-8 py-6">
+                            <div class="flex flex-wrap gap-2">
+                                <span
+                                    class="px-3 py-1 bg-primary-container text-on-primary-container rounded-full text-[10px] font-bold uppercase tracking-tight">Frutal</span>
+                                <span
+                                    class="px-3 py-1 bg-surface-container text-on-surface-variant rounded-full text-[10px] font-bold uppercase tracking-tight">Anacardiaceae</span>
+                            </div>
+                        </td>
+                        <td class="px-8 py-6 text-center">
+                            <span
+                                class="px-4 py-1.5 bg-amber-400/10 text-amber-700 rounded-full text-[10px] font-black uppercase">Primavera</span>
                         </td>
                         <td class="px-8 py-6 text-center">
                             <div
@@ -206,7 +293,7 @@
                 class="px-8 py-6 bg-surface-container-low/30 border-t border-outline-variant/10 flex items-center justify-between">
                 <p class="text-xs font-medium text-on-surface-variant">
                     Mostrando <span class="font-bold text-on-surface">1 a 10</span> de <span
-                        class="font-bold text-on-surface">156</span> registros
+                        class="font-bold text-on-surface">87</span> registros
                 </p>
                 <div class="flex gap-2">
                     <button
