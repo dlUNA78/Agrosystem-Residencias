@@ -1,0 +1,398 @@
+<main class="min-h-screen flex flex-col">
+    <!-- Content Area -->
+    <div class="mt-20 p-12 space-y-10">
+
+        {{!-- Control Bar & Search --}}
+        {{> private/search-bar}}
+
+        {{!-- Stats Bar --}}
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm p-5 flex items-center gap-4">
+                <div class="w-11 h-11 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined text-primary" data-icon="group">group</span>
+                </div>
+                <div>
+                    <p class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant">Total Usuarios</p>
+                    <p class="text-2xl font-extrabold text-on-surface">48</p>
+                </div>
+            </div>
+            <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm p-5 flex items-center gap-4">
+                <div class="w-11 h-11 rounded-full bg-emerald-500/10 flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined text-emerald-600" data-icon="verified_user">verified_user</span>
+                </div>
+                <div>
+                    <p class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant">Activos</p>
+                    <p class="text-2xl font-extrabold text-on-surface">41</p>
+                </div>
+            </div>
+            <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm p-5 flex items-center gap-4">
+                <div class="w-11 h-11 rounded-full bg-amber-500/10 flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined text-amber-600" data-icon="schedule">schedule</span>
+                </div>
+                <div>
+                    <p class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant">Pendientes</p>
+                    <p class="text-2xl font-extrabold text-on-surface">5</p>
+                </div>
+            </div>
+            <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm p-5 flex items-center gap-4">
+                <div class="w-11 h-11 rounded-full bg-error/10 flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined text-error" data-icon="block">block</span>
+                </div>
+                <div>
+                    <p class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant">Suspendidos</p>
+                    <p class="text-2xl font-extrabold text-on-surface">2</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Grid -->
+        <div class="bg-surface-container-lowest rounded-2xl shadow-sm overflow-hidden border border-outline-variant/10">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-surface-container-low/50">
+                        <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
+                            Usuario</th>
+                        <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
+                            Contacto</th>
+                        <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
+                            Institución</th>
+                        <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant text-center">
+                            Rol</th>
+                        <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant text-center">
+                            Estatus</th>
+                        <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant text-right">
+                            Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-surface-container">
+
+                    <!-- Row 1 — Admin -->
+                    <tr class="hover:bg-surface/50 transition-colors">
+                        <td class="px-8 py-5">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-on-primary font-extrabold text-sm shrink-0">
+                                    MR</div>
+                                <div>
+                                    <p class="font-bold text-on-surface text-sm">Marcos Ramírez</p>
+                                    <p class="text-xs text-on-surface-variant">Registrado 12 Ene 2024</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-8 py-5">
+                            <p class="text-sm text-on-surface">m.ramirez@inifap.gob.mx</p>
+                            <p class="text-xs text-on-surface-variant mt-0.5">+52 667 123 4567</p>
+                        </td>
+                        <td class="px-8 py-5">
+                            <p class="text-sm font-medium text-on-surface">INIFAP — Sinaloa</p>
+                        </td>
+                        <td class="px-8 py-5 text-center">
+                            <span class="px-3 py-1.5 bg-primary/10 text-primary rounded-full text-[10px] font-black uppercase">Admin</span>
+                        </td>
+                        <td class="px-8 py-5 text-center">
+                            <div class="flex items-center justify-center gap-1.5 text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100 mx-auto w-fit">
+                                <span class="material-symbols-outlined text-sm" data-icon="check_circle"
+                                    data-weight="fill" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                                <span class="text-[10px] font-black uppercase">Activo</span>
+                            </div>
+                        </td>
+                        <td class="px-8 py-5">
+                            <div class="flex justify-end gap-3 text-on-surface-variant">
+                                <button class="hover:text-primary transition-colors" title="Ver perfil"><span
+                                        class="material-symbols-outlined"
+                                        data-icon="visibility">visibility</span></button>
+                                <button class="hover:text-primary transition-colors" title="Editar"><span
+                                        class="material-symbols-outlined" data-icon="edit">edit</span></button>
+                                <button class="hover:text-error transition-colors" title="Suspender"><span
+                                        class="material-symbols-outlined" data-icon="block">block</span></button>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Row 2 — Investigador -->
+                    <tr class="hover:bg-surface/50 transition-colors">
+                        <td class="px-8 py-5">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-on-secondary font-extrabold text-sm shrink-0">
+                                    LV</div>
+                                <div>
+                                    <p class="font-bold text-on-surface text-sm">Laura Vázquez</p>
+                                    <p class="text-xs text-on-surface-variant">Registrada 03 Mar 2024</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-8 py-5">
+                            <p class="text-sm text-on-surface">l.vazquez@inifap.gob.mx</p>
+                            <p class="text-xs text-on-surface-variant mt-0.5">+52 667 234 5678</p>
+                        </td>
+                        <td class="px-8 py-5">
+                            <p class="text-sm font-medium text-on-surface">INIFAP — Culiacán</p>
+                        </td>
+                        <td class="px-8 py-5 text-center">
+                            <span class="px-3 py-1.5 bg-secondary/10 text-secondary rounded-full text-[10px] font-black uppercase">Investigador</span>
+                        </td>
+                        <td class="px-8 py-5 text-center">
+                            <div class="flex items-center justify-center gap-1.5 text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100 mx-auto w-fit">
+                                <span class="material-symbols-outlined text-sm" data-icon="check_circle"
+                                    data-weight="fill" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                                <span class="text-[10px] font-black uppercase">Activo</span>
+                            </div>
+                        </td>
+                        <td class="px-8 py-5">
+                            <div class="flex justify-end gap-3 text-on-surface-variant">
+                                <button class="hover:text-primary transition-colors" title="Ver perfil"><span
+                                        class="material-symbols-outlined"
+                                        data-icon="visibility">visibility</span></button>
+                                <button class="hover:text-primary transition-colors" title="Editar"><span
+                                        class="material-symbols-outlined" data-icon="edit">edit</span></button>
+                                <button class="hover:text-error transition-colors" title="Suspender"><span
+                                        class="material-symbols-outlined" data-icon="block">block</span></button>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Row 3 — Técnico Pendiente -->
+                    <tr class="hover:bg-surface/50 transition-colors bg-surface-container-low/20">
+                        <td class="px-8 py-5">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant font-extrabold text-sm shrink-0">
+                                    JH</div>
+                                <div>
+                                    <p class="font-bold text-on-surface text-sm">Jorge Herrera</p>
+                                    <p class="text-xs text-on-surface-variant">Registrado 22 Abr 2025</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-8 py-5">
+                            <p class="text-sm text-on-surface">j.herrera@uas.edu.mx</p>
+                            <p class="text-xs text-on-surface-variant mt-0.5">+52 667 345 6789</p>
+                        </td>
+                        <td class="px-8 py-5">
+                            <p class="text-sm font-medium text-on-surface">UAS — Facultad de Agronomía</p>
+                        </td>
+                        <td class="px-8 py-5 text-center">
+                            <span class="px-3 py-1.5 bg-surface-container-high text-on-surface-variant rounded-full text-[10px] font-black uppercase">Técnico</span>
+                        </td>
+                        <td class="px-8 py-5 text-center">
+                            <div class="flex items-center justify-center gap-1.5 text-orange-600 bg-orange-50 px-3 py-1.5 rounded-full border border-orange-100 mx-auto w-fit">
+                                <span class="material-symbols-outlined text-sm" data-icon="schedule">schedule</span>
+                                <span class="text-[10px] font-black uppercase">Pendiente</span>
+                            </div>
+                        </td>
+                        <td class="px-8 py-5">
+                            <div class="flex justify-end gap-3 text-on-surface-variant">
+                                <button class="hover:text-primary transition-colors" title="Ver perfil"><span
+                                        class="material-symbols-outlined"
+                                        data-icon="visibility">visibility</span></button>
+                                <button class="hover:text-emerald-600 transition-colors" title="Aprobar"><span
+                                        class="material-symbols-outlined" data-icon="check_circle">check_circle</span></button>
+                                <button class="hover:text-error transition-colors" title="Rechazar"><span
+                                        class="material-symbols-outlined" data-icon="cancel">cancel</span></button>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Row 4 — Agricultor Suspendido -->
+                    <tr class="hover:bg-surface/50 transition-colors opacity-60">
+                        <td class="px-8 py-5">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-error/10 flex items-center justify-center text-error font-extrabold text-sm shrink-0">
+                                    AP</div>
+                                <div>
+                                    <p class="font-bold text-on-surface text-sm">Ana Patricia Flores</p>
+                                    <p class="text-xs text-on-surface-variant">Registrada 10 Jun 2023</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-8 py-5">
+                            <p class="text-sm text-on-surface">a.flores@agro.mx</p>
+                            <p class="text-xs text-on-surface-variant mt-0.5">+52 667 456 7890</p>
+                        </td>
+                        <td class="px-8 py-5">
+                            <p class="text-sm font-medium text-on-surface">Productor Independiente</p>
+                        </td>
+                        <td class="px-8 py-5 text-center">
+                            <span class="px-3 py-1.5 bg-surface-container-high text-on-surface-variant rounded-full text-[10px] font-black uppercase">Agricultor</span>
+                        </td>
+                        <td class="px-8 py-5 text-center">
+                            <div class="flex items-center justify-center gap-1.5 text-error bg-error/5 px-3 py-1.5 rounded-full border border-error/20 mx-auto w-fit">
+                                <span class="material-symbols-outlined text-sm" data-icon="block">block</span>
+                                <span class="text-[10px] font-black uppercase">Suspendido</span>
+                            </div>
+                        </td>
+                        <td class="px-8 py-5">
+                            <div class="flex justify-end gap-3 text-on-surface-variant">
+                                <button class="hover:text-primary transition-colors" title="Ver perfil"><span
+                                        class="material-symbols-outlined"
+                                        data-icon="visibility">visibility</span></button>
+                                <button class="hover:text-emerald-600 transition-colors" title="Reactivar"><span
+                                        class="material-symbols-outlined" data-icon="lock_open">lock_open</span></button>
+                                <button class="hover:text-error transition-colors" title="Eliminar"><span
+                                        class="material-symbols-outlined" data-icon="delete">delete</span></button>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Row 5 — Investigador -->
+                    <tr class="hover:bg-surface/50 transition-colors">
+                        <td class="px-8 py-5">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-on-secondary font-extrabold text-sm shrink-0">
+                                    CF</div>
+                                <div>
+                                    <p class="font-bold text-on-surface text-sm">Carlos Fuentes</p>
+                                    <p class="text-xs text-on-surface-variant">Registrado 05 Ago 2024</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-8 py-5">
+                            <p class="text-sm text-on-surface">c.fuentes@cimmyt.org</p>
+                            <p class="text-xs text-on-surface-variant mt-0.5">+52 55 5804 2004</p>
+                        </td>
+                        <td class="px-8 py-5">
+                            <p class="text-sm font-medium text-on-surface">CIMMYT — México</p>
+                        </td>
+                        <td class="px-8 py-5 text-center">
+                            <span class="px-3 py-1.5 bg-secondary/10 text-secondary rounded-full text-[10px] font-black uppercase">Investigador</span>
+                        </td>
+                        <td class="px-8 py-5 text-center">
+                            <div class="flex items-center justify-center gap-1.5 text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100 mx-auto w-fit">
+                                <span class="material-symbols-outlined text-sm" data-icon="check_circle"
+                                    data-weight="fill" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                                <span class="text-[10px] font-black uppercase">Activo</span>
+                            </div>
+                        </td>
+                        <td class="px-8 py-5">
+                            <div class="flex justify-end gap-3 text-on-surface-variant">
+                                <button class="hover:text-primary transition-colors" title="Ver perfil"><span
+                                        class="material-symbols-outlined"
+                                        data-icon="visibility">visibility</span></button>
+                                <button class="hover:text-primary transition-colors" title="Editar"><span
+                                        class="material-symbols-outlined" data-icon="edit">edit</span></button>
+                                <button class="hover:text-error transition-colors" title="Suspender"><span
+                                        class="material-symbols-outlined" data-icon="block">block</span></button>
+                            </div>
+                        </td>
+                    </tr>
+
+                </tbody>
+            </table>
+
+            <!-- Pagination -->
+            <div class="px-8 py-6 bg-surface-container-low/30 border-t border-outline-variant/10 flex items-center justify-between">
+                <p class="text-xs font-medium text-on-surface-variant">
+                    Mostrando <span class="font-bold text-on-surface">1 a 10</span> de <span
+                        class="font-bold text-on-surface">48</span> registros
+                </p>
+                <div class="flex gap-2">
+                    <button
+                        class="px-5 py-2 rounded-lg bg-surface-container-highest/50 text-on-surface text-xs font-bold hover:bg-surface-container-highest transition-colors flex items-center gap-2">
+                        <span class="material-symbols-outlined text-sm" data-icon="chevron_left">chevron_left</span>
+                        Anterior
+                    </button>
+                    <button
+                        class="px-5 py-2 rounded-lg bg-primary text-white text-xs font-bold hover:bg-primary-dim transition-colors flex items-center gap-2 shadow-sm shadow-primary/20">
+                        Siguiente
+                        <span class="material-symbols-outlined text-sm" data-icon="chevron_right">chevron_right</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+{{!-- ═══════════════════════════════════════════════════════════
+     MODAL: Añadir / Editar Usuario
+════════════════════════════════════════════════════════════ --}}
+<div id="modal-user" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+    <div class="bg-surface-container-lowest rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between px-8 py-6 border-b border-outline-variant/10">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-primary text-xl" data-icon="person_add">person_add</span>
+                </div>
+                <h2 class="text-base font-extrabold text-on-surface tracking-tight">Nuevo Usuario</h2>
+            </div>
+            <button id="btn-close-modal-user"
+                class="p-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-colors">
+                <span class="material-symbols-outlined" data-icon="close">close</span>
+            </button>
+        </div>
+        <!-- Modal Body -->
+        <form id="form-user" class="px-8 py-6 space-y-4">
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">Nombre</label>
+                    <input type="text" id="user-nombre" placeholder="Nombre(s)"
+                        class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+                </div>
+                <div>
+                    <label class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">Apellidos</label>
+                    <input type="text" id="user-apellidos" placeholder="Apellidos"
+                        class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+                </div>
+            </div>
+            <div>
+                <label class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">Correo Electrónico</label>
+                <input type="email" id="user-email" placeholder="usuario@institución.mx"
+                    class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+            </div>
+            <div>
+                <label class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">Institución</label>
+                <input type="text" id="user-institucion" placeholder="Nombre de la institución u organización"
+                    class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">Rol</label>
+                    <select id="user-rol"
+                        class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+                        <option value="">Seleccionar...</option>
+                        <option value="admin">Admin</option>
+                        <option value="investigador">Investigador</option>
+                        <option value="tecnico">Técnico</option>
+                        <option value="agricultor">Agricultor</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">Estatus</label>
+                    <select id="user-estatus"
+                        class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+                        <option value="activo">Activo</option>
+                        <option value="pendiente">Pendiente</option>
+                        <option value="suspendido">Suspendido</option>
+                    </select>
+                </div>
+            </div>
+        </form>
+        <!-- Modal Footer -->
+        <div class="px-8 py-5 bg-surface-container-low/30 border-t border-outline-variant/10 flex justify-end gap-3">
+            <button id="btn-cancel-modal-user"
+                class="px-6 py-2.5 rounded-lg text-on-surface-variant text-sm font-bold hover:bg-surface-container-low transition-colors">
+                Cancelar
+            </button>
+            <button type="submit" form="form-user"
+                class="px-6 py-2.5 rounded-lg bg-[#43655c] text-white text-sm font-bold hover:bg-[#354f47] transition-colors shadow-lg shadow-primary/10 flex items-center gap-2">
+                <span class="material-symbols-outlined text-base" data-icon="save">save</span>
+                Guardar Usuario
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Modal toggle
+    const modalUser     = document.getElementById('modal-user');
+    const btnAddUser    = document.getElementById('btn-add-user');
+    const btnCloseUser  = document.getElementById('btn-close-modal-user');
+    const btnCancelUser = document.getElementById('btn-cancel-modal-user');
+
+    const openModal  = () => modalUser.classList.replace('hidden', 'flex');
+    const closeModal = () => modalUser.classList.replace('flex', 'hidden');
+
+    btnAddUser?.addEventListener('click', openModal);
+    btnCloseUser?.addEventListener('click', closeModal);
+    btnCancelUser?.addEventListener('click', closeModal);
+    modalUser?.addEventListener('click', (e) => { if (e.target === modalUser) closeModal(); });
+</script>

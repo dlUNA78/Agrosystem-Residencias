@@ -183,3 +183,38 @@ export const productsPrivate = (req, res) => {
         showViewToggle: true,
     });
 };
+
+export const usersPrivate = (req, res) => {
+    res.render('private/users', {
+        layout:      privateLayout,
+        pageTitle:   'Usuarios',
+        activePage:  'users',
+        searchId:          'user-search',
+        searchPlaceholder: 'Buscar por nombre, correo o institución...',
+        searchFilters: [
+            {
+                id: 'filter-rol',
+                label: 'Rol: Todos',
+                options: [
+                    { value: 'admin',         text: 'Admin'         },
+                    { value: 'investigador',  text: 'Investigador'  },
+                    { value: 'tecnico',       text: 'Técnico'       },
+                    { value: 'agricultor',    text: 'Agricultor'    },
+                ],
+            },
+            {
+                id: 'filter-status',
+                label: 'Estatus: Todos',
+                options: [
+                    { value: 'activo',     text: 'Activo'     },
+                    { value: 'pendiente',  text: 'Pendiente'  },
+                    { value: 'suspendido', text: 'Suspendido' },
+                ],
+            },
+        ],
+        ctaLabel:   'Añadir Usuario',
+        ctaIcon:    'person_add',
+        ctaBtnId:   'btn-add-user',
+        showViewToggle: false,
+    });
+};
