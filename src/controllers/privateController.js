@@ -184,6 +184,14 @@ export const productsPrivate = (req, res) => {
     });
 };
 
+export const reportsPrivate = (req, res) => {
+    res.render('private/reports', {
+        layout:     privateLayout,
+        pageTitle:  'Reportes y Estadísticas',
+        activePage: 'reports',
+    });
+};
+
 export const ingredientsPrivate = (req, res) => {
     res.render('private/ingredients', {
         layout:      privateLayout,
