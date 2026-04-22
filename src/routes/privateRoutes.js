@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { dashboard, plaguesPrivate, cropsPrivate, landsPrivate, landDetail, productsPrivate, ingredientsPrivate, reportsPrivate, usersPrivate } from "../controllers/privateController.js";
+import { dashboard, plaguesPrivate, cropsPrivate, landsPrivate, landDetail, productsPrivate, ingredientsPrivate, reportsPrivate, usersPrivate, suppliersPrivate, auditPrivate } from "../controllers/privateController.js";
 
 const privateRouter = Router();
 
@@ -12,5 +12,7 @@ privateRouter.get("/private/products", productsPrivate);
 privateRouter.get("/private/reports", reportsPrivate);
 privateRouter.get("/private/ingredients", ingredientsPrivate);
 privateRouter.get("/private/users", usersPrivate);
+privateRouter.get("/private/suppliers", suppliersPrivate);
+privateRouter.get("/private/audit", auditPrivate);
 
 export default privateRouter;

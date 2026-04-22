@@ -1,0 +1,176 @@
+<main class="min-h-screen flex flex-col">
+    <!-- Content Area -->
+    <div class="mt-20 p-12 space-y-10">
+
+        {{!-- Control Bar & Search --}}
+        {{> private/search-bar}}
+
+        <!-- Timeline / Data Grid -->
+        <div class="bg-surface-container-lowest rounded-2xl shadow-sm overflow-hidden border border-outline-variant/10">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-surface-container-low/50">
+                        <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
+                            Fecha y Hora</th>
+                        <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
+                            Usuario</th>
+                        <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
+                            Acción Realizada</th>
+                        <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant text-center">
+                            Módulo</th>
+                        <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant text-right">
+                            Detalles</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-surface-container">
+
+                    <!-- Row 1 -->
+                    <tr class="hover:bg-surface/50 transition-colors">
+                        <td class="px-8 py-5">
+                            <p class="font-bold text-on-surface text-sm">Hoy, 10:45 AM</p>
+                            <p class="text-xs text-on-surface-variant">15 Oct 2024</p>
+                        </td>
+                        <td class="px-8 py-5">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-extrabold text-xs shrink-0">
+                                    MR</div>
+                                <div>
+                                    <p class="font-bold text-on-surface text-sm">Marcos Ramírez</p>
+                                    <p class="text-[10px] text-on-surface-variant uppercase tracking-wide">Admin</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-8 py-5">
+                            <div class="flex items-center gap-2">
+                                <span class="material-symbols-outlined text-emerald-600 text-sm" data-icon="add_circle">add_circle</span>
+                                <p class="text-sm font-medium text-on-surface">Creó un nuevo producto</p>
+                            </div>
+                        </td>
+                        <td class="px-8 py-5 text-center">
+                            <span class="px-3 py-1.5 bg-surface-container text-on-surface-variant rounded-full text-[10px] font-black uppercase">Productos</span>
+                        </td>
+                        <td class="px-8 py-5 text-right">
+                            <p class="text-xs text-on-surface-variant">ID: PROD-1029 (Herbicida X)</p>
+                            <button class="text-[10px] text-primary hover:underline font-bold mt-1">Ver Detalle Completo</button>
+                        </td>
+                    </tr>
+
+                    <!-- Row 2 -->
+                    <tr class="hover:bg-surface/50 transition-colors">
+                        <td class="px-8 py-5">
+                            <p class="font-bold text-on-surface text-sm">Ayer, 16:30 PM</p>
+                            <p class="text-xs text-on-surface-variant">14 Oct 2024</p>
+                        </td>
+                        <td class="px-8 py-5">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-full bg-secondary/10 flex items-center justify-center text-secondary font-extrabold text-xs shrink-0">
+                                    CF</div>
+                                <div>
+                                    <p class="font-bold text-on-surface text-sm">Carlos Fuentes</p>
+                                    <p class="text-[10px] text-on-surface-variant uppercase tracking-wide">Investigador</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-8 py-5">
+                            <div class="flex items-center gap-2">
+                                <span class="material-symbols-outlined text-amber-600 text-sm" data-icon="edit">edit</span>
+                                <p class="text-sm font-medium text-on-surface">Actualizó estado de terreno</p>
+                            </div>
+                        </td>
+                        <td class="px-8 py-5 text-center">
+                            <span class="px-3 py-1.5 bg-surface-container text-on-surface-variant rounded-full text-[10px] font-black uppercase">Terrenos</span>
+                        </td>
+                        <td class="px-8 py-5 text-right">
+                            <p class="text-xs text-on-surface-variant">ID: PRD-0041 - Estatus: Alerta de plaga</p>
+                            <button class="text-[10px] text-primary hover:underline font-bold mt-1">Ver Detalle Completo</button>
+                        </td>
+                    </tr>
+
+                    <!-- Row 3 -->
+                    <tr class="hover:bg-surface/50 transition-colors">
+                        <td class="px-8 py-5">
+                            <p class="font-bold text-on-surface text-sm">Ayer, 09:15 AM</p>
+                            <p class="text-xs text-on-surface-variant">14 Oct 2024</p>
+                        </td>
+                        <td class="px-8 py-5">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-extrabold text-xs shrink-0">
+                                    MR</div>
+                                <div>
+                                    <p class="font-bold text-on-surface text-sm">Marcos Ramírez</p>
+                                    <p class="text-[10px] text-on-surface-variant uppercase tracking-wide">Admin</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-8 py-5">
+                            <div class="flex items-center gap-2">
+                                <span class="material-symbols-outlined text-error text-sm" data-icon="delete">delete</span>
+                                <p class="text-sm font-medium text-on-surface">Eliminó un usuario</p>
+                            </div>
+                        </td>
+                        <td class="px-8 py-5 text-center">
+                            <span class="px-3 py-1.5 bg-surface-container text-on-surface-variant rounded-full text-[10px] font-black uppercase">Usuarios</span>
+                        </td>
+                        <td class="px-8 py-5 text-right">
+                            <p class="text-xs text-on-surface-variant">Email: d.gomez@empresa.com</p>
+                            <button class="text-[10px] text-primary hover:underline font-bold mt-1">Ver Detalle Completo</button>
+                        </td>
+                    </tr>
+
+                    <!-- Row 4 -->
+                    <tr class="hover:bg-surface/50 transition-colors">
+                        <td class="px-8 py-5">
+                            <p class="font-bold text-on-surface text-sm">12 Oct, 11:20 AM</p>
+                            <p class="text-xs text-on-surface-variant">12 Oct 2024</p>
+                        </td>
+                        <td class="px-8 py-5">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-full bg-emerald-600/10 flex items-center justify-center text-emerald-700 font-extrabold text-xs shrink-0">
+                                    AP</div>
+                                <div>
+                                    <p class="font-bold text-on-surface text-sm">Ana Pérez</p>
+                                    <p class="text-[10px] text-on-surface-variant uppercase tracking-wide">Técnico</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-8 py-5">
+                            <div class="flex items-center gap-2">
+                                <span class="material-symbols-outlined text-emerald-600 text-sm" data-icon="check_circle">check_circle</span>
+                                <p class="text-sm font-medium text-on-surface">Aprobó una nueva plaga</p>
+                            </div>
+                        </td>
+                        <td class="px-8 py-5 text-center">
+                            <span class="px-3 py-1.5 bg-surface-container text-on-surface-variant rounded-full text-[10px] font-black uppercase">Plagas</span>
+                        </td>
+                        <td class="px-8 py-5 text-right">
+                            <p class="text-xs text-on-surface-variant">Spodoptera frugiperda (Gusano cogollero)</p>
+                            <button class="text-[10px] text-primary hover:underline font-bold mt-1">Ver Detalle Completo</button>
+                        </td>
+                    </tr>
+
+                </tbody>
+            </table>
+
+            <!-- Pagination -->
+            <div class="px-8 py-6 bg-surface-container-low/30 border-t border-outline-variant/10 flex items-center justify-between">
+                <p class="text-xs font-medium text-on-surface-variant">
+                    Mostrando <span class="font-bold text-on-surface">1 a 4</span> de <span
+                        class="font-bold text-on-surface">1,024</span> registros
+                </p>
+                <div class="flex gap-2">
+                    <button
+                        class="px-5 py-2 rounded-lg bg-surface-container-highest/50 text-on-surface text-xs font-bold hover:bg-surface-container-highest transition-colors flex items-center gap-2">
+                        <span class="material-symbols-outlined text-sm" data-icon="chevron_left">chevron_left</span>
+                        Anterior
+                    </button>
+                    <button
+                        class="px-5 py-2 rounded-lg bg-primary text-white text-xs font-bold hover:bg-primary-dim transition-colors flex items-center gap-2 shadow-sm shadow-primary/20">
+                        Siguiente
+                        <span class="material-symbols-outlined text-sm" data-icon="chevron_right">chevron_right</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</main>
