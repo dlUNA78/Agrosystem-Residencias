@@ -361,3 +361,11 @@ export const getGlyphomaxDetail = (req, res) => {
         activePage: 'products',
     });
 };
+
+export const getCropDetail = (req, res) => {
+    res.render('private/crop-detail', {
+        layout: privateLayout,
+        pageTitle: 'Maíz - Cultivos',
+        activePage: 'crops',
+    });
+};
