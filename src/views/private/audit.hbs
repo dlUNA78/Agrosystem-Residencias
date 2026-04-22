@@ -5,8 +5,21 @@
         {{!-- Control Bar & Search --}}
         {{> private/search-bar}}
 
-        <!-- Timeline / Data Grid -->
-        <div class="bg-surface-container-lowest rounded-2xl shadow-sm overflow-hidden border border-outline-variant/10">
+        <!-- Alert Panel -->
+        <div class="bg-blue-50 border border-blue-100 p-4 rounded-xl flex items-center justify-between shadow-sm">
+            <div class="flex items-center gap-3">
+                <div class="bg-blue-100 p-2 rounded-full">
+                    <span class="material-symbols-outlined text-blue-700" data-icon="info">info</span>
+                </div>
+                <p class="text-blue-900 font-medium text-sm tracking-tight">Registro de auditoría activo. <span class="font-bold">128 acciones</span> registradas hoy.</p>
+            </div>
+            <button class="bg-white text-blue-800 border border-blue-200 px-5 py-2 rounded-lg text-xs font-bold hover:bg-blue-100 transition-colors">
+                Descargar reporte diario
+            </button>
+        </div>
+
+        <!-- TABLE VIEW -->
+        <div id="audit-table-view" style="display:none" class="bg-surface-container-lowest rounded-2xl shadow-sm overflow-hidden border border-outline-variant/10">
             <table class="w-full text-left border-collapse">
                 <thead>
                     <tr class="bg-surface-container-low/50">
@@ -164,7 +177,7 @@
                         Anterior
                     </button>
                     <button
-                        class="px-5 py-2 rounded-lg bg-primary text-white text-xs font-bold hover:bg-primary-dim transition-colors flex items-center gap-2 shadow-sm shadow-primary/20">
+                        class="px-5 py-2 rounded-lg bg-[#43655c] text-white text-xs font-bold hover:bg-[#354f47] transition-colors flex items-center gap-2 shadow-sm">
                         Siguiente
                         <span class="material-symbols-outlined text-sm" data-icon="chevron_right">chevron_right</span>
                     </button>
@@ -172,5 +185,157 @@
             </div>
         </div>
 
+        <!-- GRID VIEW -->
+        <div id="audit-grid-view" class="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 grid">
+
+            <!-- Card 1 -->
+            <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm overflow-hidden group hover:-translate-y-1 transition-all duration-300">
+                <div class="p-5">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-on-primary font-extrabold text-base shrink-0 shadow-md">
+                            MR
+                        </div>
+                        <div class="flex items-center justify-center gap-1.5 text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full border border-blue-100">
+                            <span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">add_circle</span>
+                            <span class="text-[9px] font-black uppercase">Creación</span>
+                        </div>
+                    </div>
+                    <span class="text-[9px] font-black uppercase tracking-widest text-primary">Marcos Ramírez</span>
+                    <h3 class="font-bold text-on-surface text-base mt-1">Nuevo Cultivo: Sorgo</h3>
+                    <p class="text-xs text-on-surface-variant truncate mt-1">Módulo: Cultivos</p>
+                    <div class="flex items-center gap-1.5 mt-2">
+                        <span class="px-2 py-0.5 bg-surface-container text-on-surface-variant rounded text-[10px] font-bold tracking-tight">IP: 192.168.1.45</span>
+                    </div>
+
+                    <div class="mt-4 pt-4 border-t border-surface-container flex justify-between items-center">
+                        <span class="text-[10px] text-on-surface-variant font-bold">10:30 AM · Hoy</span>
+                        <div class="flex gap-2 text-on-surface-variant">
+                            <button class="hover:text-primary transition-colors"><span class="material-symbols-outlined text-base">visibility</span></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 2 -->
+            <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm overflow-hidden group hover:-translate-y-1 transition-all duration-300">
+                <div class="p-5">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-on-secondary font-extrabold text-base shrink-0 shadow-md">
+                            LV
+                        </div>
+                        <div class="flex items-center justify-center gap-1.5 text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100">
+                            <span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                            <span class="text-[9px] font-black uppercase">Aprobación</span>
+                        </div>
+                    </div>
+                    <span class="text-[9px] font-black uppercase tracking-widest text-secondary">Laura Vázquez</span>
+                    <h3 class="font-bold text-on-surface text-base mt-1">Validó Producto ID: IN-9921</h3>
+                    <p class="text-xs text-on-surface-variant truncate mt-1">Módulo: Productos</p>
+                    <div class="flex items-center gap-1.5 mt-2">
+                        <span class="px-2 py-0.5 bg-surface-container text-on-surface-variant rounded text-[10px] font-bold tracking-tight">IP: 10.0.0.12</span>
+                    </div>
+
+                    <div class="mt-4 pt-4 border-t border-surface-container flex justify-between items-center">
+                        <span class="text-[10px] text-on-surface-variant font-bold">09:15 AM · Hoy</span>
+                        <div class="flex gap-2 text-on-surface-variant">
+                            <button class="hover:text-primary transition-colors"><span class="material-symbols-outlined text-base">visibility</span></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 3 -->
+            <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm overflow-hidden group hover:-translate-y-1 transition-all duration-300">
+                <div class="p-5">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant font-extrabold text-base shrink-0 shadow-md">
+                            Sistema
+                        </div>
+                        <div class="flex items-center justify-center gap-1.5 text-orange-600 bg-orange-50 px-2.5 py-1 rounded-full border border-orange-100">
+                            <span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">edit</span>
+                            <span class="text-[9px] font-black uppercase">Edición</span>
+                        </div>
+                    </div>
+                    <span class="text-[9px] font-black uppercase tracking-widest text-on-surface-variant">Sistema</span>
+                    <h3 class="font-bold text-on-surface text-base mt-1">Sincronización API INIFAP</h3>
+                    <p class="text-xs text-on-surface-variant truncate mt-1">Módulo: Ingredientes Activos</p>
+                    <div class="flex items-center gap-1.5 mt-2">
+                        <span class="px-2 py-0.5 bg-surface-container text-on-surface-variant rounded text-[10px] font-bold tracking-tight">IP: localhost</span>
+                    </div>
+
+                    <div class="mt-4 pt-4 border-t border-surface-container flex justify-between items-center">
+                        <span class="text-[10px] text-on-surface-variant font-bold">01:00 AM · Hoy</span>
+                        <div class="flex gap-2 text-on-surface-variant">
+                            <button class="hover:text-primary transition-colors"><span class="material-symbols-outlined text-base">visibility</span></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 4 -->
+            <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm overflow-hidden group hover:-translate-y-1 transition-all duration-300 opacity-80">
+                <div class="p-5">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="w-12 h-12 rounded-full bg-error/10 flex items-center justify-center text-error font-extrabold text-base shrink-0 shadow-md">
+                            MR
+                        </div>
+                        <div class="flex items-center justify-center gap-1.5 text-error bg-error/5 px-2.5 py-1 rounded-full border border-error/20">
+                            <span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">delete</span>
+                            <span class="text-[9px] font-black uppercase">Eliminación</span>
+                        </div>
+                    </div>
+                    <span class="text-[9px] font-black uppercase tracking-widest text-primary">Marcos Ramírez</span>
+                    <h3 class="font-bold text-on-surface text-base mt-1">Eliminó Usuario: AP</h3>
+                    <p class="text-xs text-on-surface-variant truncate mt-1">Módulo: Usuarios</p>
+                    <div class="flex items-center gap-1.5 mt-2">
+                        <span class="px-2 py-0.5 bg-surface-container text-on-surface-variant rounded text-[10px] font-bold tracking-tight">IP: 192.168.1.45</span>
+                    </div>
+
+                    <div class="mt-4 pt-4 border-t border-surface-container flex justify-between items-center">
+                        <span class="text-[10px] text-on-surface-variant font-bold">16:45 PM · Ayer</span>
+                        <div class="flex gap-2 text-on-surface-variant">
+                            <button class="hover:text-primary transition-colors"><span class="material-symbols-outlined text-base">visibility</span></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
     </div>
 </main>
+
+<script>
+    (function () {
+        // View toggle
+        const tableView = document.getElementById('audit-table-view');
+        const gridView = document.getElementById('audit-grid-view');
+        const btnTable = document.getElementById('view-table');
+        const btnGrid = document.getElementById('view-grid');
+
+        if (btnTable && btnGrid) {
+            btnGrid.classList.add('bg-[#43655c]', 'text-white');
+            btnGrid.classList.remove('text-on-surface-variant');
+            btnTable.classList.remove('bg-[#43655c]', 'text-white');
+            btnTable.classList.add('text-on-surface-variant');
+
+            btnTable.addEventListener('click', function () {
+                tableView.style.display = '';
+                gridView.style.display = 'none';
+                btnTable.classList.add('bg-[#43655c]', 'text-white');
+                btnTable.classList.remove('text-on-surface-variant');
+                btnGrid.classList.remove('bg-[#43655c]', 'text-white');
+                btnGrid.classList.add('text-on-surface-variant');
+            });
+
+            btnGrid.addEventListener('click', function () {
+                tableView.style.display = 'none';
+                gridView.style.display = 'grid';
+                btnGrid.classList.add('bg-[#43655c]', 'text-white');
+                btnGrid.classList.remove('text-on-surface-variant');
+                btnTable.classList.remove('bg-[#43655c]', 'text-white');
+                btnTable.classList.add('text-on-surface-variant');
+            });
+        }
+    })();
+</script>

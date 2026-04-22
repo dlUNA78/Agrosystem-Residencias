@@ -82,7 +82,7 @@
         </div>
 
         <!-- TABLE VIEW -->
-        <div id="products-table-view"
+        <div id="products-table-view" style="display:none"
             class="bg-surface-container-lowest rounded-2xl shadow-sm overflow-hidden border border-outline-variant/10">
             <table class="w-full text-left border-collapse min-w-[900px]">
                 <thead>
@@ -394,9 +394,8 @@
             </div>
         </div>
 
-        <!-- GRID VIEW (hidden by default) -->
-        <div id="products-grid-view" class="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5"
-            style="display:none">
+        <!-- GRID VIEW -->
+        <div id="products-grid-view" class="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 grid">
             <!-- Grid cards would render here (same data as table) -->
             <div
                 class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm overflow-hidden group hover:-translate-y-1 transition-all duration-300">
@@ -484,11 +483,11 @@
                     </div>
                 </div>
             </div>
-            <div
-                class="bg-surface-container-lowest rounded-xl border-2 border-dashed border-primary/20 shadow-sm overflow-hidden group hover:-translate-y-1 transition-all duration-300 flex items-center justify-center min-h-[220px]">
+            <!-- Add New Card -->
+            <div id="btn-add-product-card" class="bg-surface-container-lowest rounded-xl border-2 border-dashed border-primary/20 shadow-sm overflow-hidden group hover:-translate-y-1 transition-all duration-300 flex items-center justify-center min-h-[220px] cursor-pointer">
                 <div class="text-center p-6">
-                    <span class="material-symbols-outlined text-3xl text-primary/30 mb-2">add_circle</span>
-                    <p class="text-sm font-bold text-on-surface-variant">Añadir producto</p>
+                    <span class="material-symbols-outlined text-3xl text-primary/30 mb-2 group-hover:text-primary/50 transition-colors">add_circle</span>
+                    <p class="text-sm font-bold text-on-surface-variant group-hover:text-primary transition-colors">Añadir producto</p>
                 </div>
             </div>
         </div>
@@ -606,6 +605,7 @@
         // Modal
         const modal = document.getElementById('modal-product');
         const openBtn = document.getElementById('btn-add-product');
+        const openBtnCard = document.getElementById('btn-add-product-card');
         const closeBtn = document.getElementById('modal-product-close');
         const cancelBtn = document.getElementById('modal-product-cancel');
         const backdrop = document.getElementById('modal-product-backdrop');
@@ -614,6 +614,7 @@
         function closeModal() { modal.classList.add('hidden'); modal.classList.remove('flex'); }
 
         if (openBtn) openBtn.addEventListener('click', openModal);
+        if (openBtnCard) openBtnCard.addEventListener('click', openModal);
         if (closeBtn) closeBtn.addEventListener('click', closeModal);
         if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
         if (backdrop) backdrop.addEventListener('click', closeModal);
@@ -625,6 +626,11 @@
         const btnGrid = document.getElementById('view-grid');
 
         if (btnTable && btnGrid) {
+            btnGrid.classList.add('bg-[#43655c]', 'text-white');
+            btnGrid.classList.remove('text-on-surface-variant');
+            btnTable.classList.remove('bg-[#43655c]', 'text-white');
+            btnTable.classList.add('text-on-surface-variant');
+
             btnTable.addEventListener('click', function () {
                 tableView.style.display = '';
                 gridView.style.display = 'none';
