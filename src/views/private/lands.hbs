@@ -205,6 +205,14 @@
                 </div>
             </article>
 
+            <!-- Add New Card -->
+            <article id="btn-open-new-land-card" class="bg-surface-container-lowest rounded-xl border-2 border-dashed border-primary/20 shadow-sm overflow-hidden group hover:-translate-y-1 transition-all duration-300 flex items-center justify-center min-h-[380px] cursor-pointer">
+                <div class="text-center p-6">
+                    <span class="material-symbols-outlined text-4xl text-primary/30 mb-3 group-hover:text-primary/50 transition-colors">add_location_alt</span>
+                    <p class="text-base font-bold text-on-surface-variant group-hover:text-primary transition-colors">Registrar Nuevo Predio</p>
+                </div>
+            </article>
+
         </section><!-- /lands-grid -->
 
     </div><!-- /content -->
@@ -340,9 +348,41 @@
     document.getElementById('land-filter-status').addEventListener('change', filterCards);
     document.getElementById('land-filter-health').addEventListener('change', filterCards);
 
+    // View toggle (though lands is primarily grid, keep logic if toggle enabled)
+    const tableView = document.getElementById('lands-table-view'); // Doesn't exist, but good practice
+    const gridView = document.getElementById('lands-grid');
+    const btnTable = document.getElementById('view-table');
+    const btnGrid = document.getElementById('view-grid');
+
+    if (btnTable && btnGrid && gridView) {
+        btnGrid.classList.add('bg-[#43655c]', 'text-white');
+        btnGrid.classList.remove('text-on-surface-variant');
+        btnTable.classList.remove('bg-[#43655c]', 'text-white');
+        btnTable.classList.add('text-on-surface-variant');
+
+        btnTable.addEventListener('click', function () {
+            if(tableView) tableView.style.display = '';
+            gridView.style.display = 'none';
+            btnTable.classList.add('bg-[#43655c]', 'text-white');
+            btnTable.classList.remove('text-on-surface-variant');
+            btnGrid.classList.remove('bg-[#43655c]', 'text-white');
+            btnGrid.classList.add('text-on-surface-variant');
+        });
+
+        btnGrid.addEventListener('click', function () {
+            if(tableView) tableView.style.display = 'none';
+            gridView.style.display = 'grid'; // Note: lands uses grid-cols-1 md:grid-cols-2 xl:grid-cols-3
+            btnGrid.classList.add('bg-[#43655c]', 'text-white');
+            btnGrid.classList.remove('text-on-surface-variant');
+            btnTable.classList.remove('bg-[#43655c]', 'text-white');
+            btnTable.classList.add('text-on-surface-variant');
+        });
+    }
+
     // ── Modal Nuevo Predio ──
     const modalNewLand     = document.getElementById('modal-new-land');
     const btnOpenNewLand   = document.getElementById('btn-open-new-land');
+    const btnOpenNewLandCard = document.getElementById('btn-open-new-land-card');
     const btnCloseNewLand  = document.getElementById('btn-close-new-land');
     const btnCancelNewLand = document.getElementById('btn-cancel-new-land');
     const backdrop         = document.getElementById('modal-new-land-backdrop');
@@ -375,6 +415,7 @@
     }
 
     btnOpenNewLand.addEventListener('click', openModal);
+    if (btnOpenNewLandCard) btnOpenNewLandCard.addEventListener('click', openModal);
     btnCloseNewLand.addEventListener('click', closeModal);
     btnCancelNewLand.addEventListener('click', closeModal);
     backdrop.addEventListener('click', closeModal);

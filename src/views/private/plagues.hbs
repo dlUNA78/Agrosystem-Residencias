@@ -18,8 +18,9 @@
                 Revisar Sugerencias
             </button>
         </div>
-        <!-- Data Grid -->
-        <div class="bg-surface-container-lowest rounded-2xl shadow-sm overflow-hidden border border-outline-variant/10">
+
+        <!-- TABLE VIEW -->
+        <div id="plagues-table-view" style="display:none" class="bg-surface-container-lowest rounded-2xl shadow-sm overflow-hidden border border-outline-variant/10">
             <table class="w-full text-left border-collapse">
                 <thead>
                     <tr class="bg-surface-container-low/50">
@@ -186,12 +187,173 @@
                         Anterior
                     </button>
                     <button
-                        class="px-5 py-2 rounded-lg bg-primary text-white text-xs font-bold hover:bg-primary-dim transition-colors flex items-center gap-2 shadow-sm shadow-primary/20">
+                        class="px-5 py-2 rounded-lg bg-[#43655c] text-white text-xs font-bold hover:bg-[#354f47] transition-colors flex items-center gap-2 shadow-sm">
                         Siguiente
                         <span class="material-symbols-outlined text-sm" data-icon="chevron_right">chevron_right</span>
                     </button>
                 </div>
             </div>
         </div>
+
+        <!-- GRID VIEW -->
+        <div id="plagues-grid-view" class="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 grid">
+
+            <!-- Card 1 -->
+            <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm overflow-hidden group hover:-translate-y-1 transition-all duration-300">
+                <div class="relative h-40 overflow-hidden">
+                    <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuB21633F-y-L5i2A4XG8d6N9Lh3W26YkX_R9g2PzG4zR7tQZkHjWpQfBvP9sM1J3vG0mJ5wT1X2xY5fJ_sL_l7yCjH3sZ3bA2F9hS_T0zR1J_qR6C8d2W6T9zM5V2Z5V_aP_P0K5q_J1G0R8K8H1g_X5sL4xN7mB_W_P1_Z3J_N7P9W4qD1H4d_C_m3N4bH4S7L7h5M1h4D1sH5Z1H7m1B5_F4p1P4P2D"
+                        alt="Gusano Cogollero" />
+                </div>
+                <div class="p-4">
+                    <span class="text-[9px] font-black uppercase tracking-widest text-error">Crítica</span>
+                    <h3 class="font-bold text-on-surface text-sm mt-1">Gusano Cogollero</h3>
+                    <p class="text-xs italic text-on-surface-variant">Spodoptera frugiperda</p>
+                    <div class="flex flex-wrap items-center gap-1.5 mt-2">
+                        <span class="px-2 py-0.5 bg-surface-container text-on-surface-variant rounded text-[10px] font-bold uppercase tracking-tight">Maíz</span>
+                        <span class="px-2 py-0.5 bg-surface-container text-on-surface-variant rounded text-[10px] font-bold uppercase tracking-tight">Sorgo</span>
+                    </div>
+                    <div class="mt-3 pt-3 border-t border-surface-container flex justify-between items-center">
+                        <div class="flex items-center gap-1.5 text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full border border-emerald-100">
+                            <span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                            <span class="text-[9px] font-black uppercase">Aprobado</span>
+                        </div>
+                        <div class="flex gap-2 text-on-surface-variant">
+                            <button class="hover:text-primary transition-colors"><span class="material-symbols-outlined text-base">edit</span></button>
+                            <button class="hover:text-error transition-colors"><span class="material-symbols-outlined text-base">delete</span></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 2 -->
+            <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm overflow-hidden group hover:-translate-y-1 transition-all duration-300">
+                <div class="relative h-40 overflow-hidden">
+                    <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuACnZHI0xMk2AZtsIA6KERw_7OKqazuJPsbnH3JCGc4UV3R4snTy7jnlrojVrJr38ODmERf6TyfM_IS1PbWljtJtQ6DFXYlggjpzKjLmxwdXO1CSR69O_DLAA_pRHp4RhHoJv_bvmc_ByErq-2aAfg6KvQ2l8yps6ag6MB9aiTcoypoq1wbBzSZE53Nh33s0rAXxEKKtmwfNN8C7vVW4kX7Rri3QPFMbloA6cIzBRPq9MgCQo1FR6ntRZA9z7_0UJcm827aYtLUCDW4"
+                        alt="Mosca de la Fruta" />
+                </div>
+                <div class="p-4">
+                    <span class="text-[9px] font-black uppercase tracking-widest text-amber-700">Media</span>
+                    <h3 class="font-bold text-on-surface text-sm mt-1">Mosca de la Fruta</h3>
+                    <p class="text-xs italic text-on-surface-variant">Anastrepha ludens</p>
+                    <div class="flex flex-wrap items-center gap-1.5 mt-2">
+                        <span class="px-2 py-0.5 bg-surface-container text-on-surface-variant rounded text-[10px] font-bold uppercase tracking-tight">Mango</span>
+                        <span class="px-2 py-0.5 bg-surface-container text-on-surface-variant rounded text-[10px] font-bold uppercase tracking-tight">Naranja</span>
+                    </div>
+                    <div class="mt-3 pt-3 border-t border-surface-container flex justify-between items-center">
+                        <div class="flex items-center gap-1.5 text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full border border-emerald-100">
+                            <span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                            <span class="text-[9px] font-black uppercase">Aprobado</span>
+                        </div>
+                        <div class="flex gap-2 text-on-surface-variant">
+                            <button class="hover:text-primary transition-colors"><span class="material-symbols-outlined text-base">edit</span></button>
+                            <button class="hover:text-error transition-colors"><span class="material-symbols-outlined text-base">delete</span></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 3 Pending -->
+            <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm overflow-hidden group hover:-translate-y-1 transition-all duration-300 bg-surface-container-low/20">
+                <div class="relative h-40 overflow-hidden">
+                    <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 grayscale-[0.5]"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuCXGgfFW0_KE80C3KNFmLdGUaiZmis9KNxWmRoKXSidzj3jed2UDPv7s0iVB07LC3ImhzSZYSVHoZKJYcp1dAmtGjKhjCRuIw3S-8HUYqqlRNXa-yzEh8dWCMfrJS66mh0N-CvqrlUoqhzZo-K1xZDxXEjASe6qEKngAcPlZnl86XPJXBT2z7WjHGCveyaskHV1O6fhPb63cMt5Dkd0u4S9O0VQRq_P98rQFZm5UiYMB9X2y6n3V4MIsmnBel8zEYdAQWuRSwc42OwK"
+                        alt="Mancha Negra" />
+                </div>
+                <div class="p-4">
+                    <span class="text-[9px] font-black uppercase tracking-widest text-amber-700">Media</span>
+                    <h3 class="font-bold text-on-surface text-sm mt-1">Mancha Negra</h3>
+                    <p class="text-xs italic text-on-surface-variant">Guignardia citricarpa</p>
+                    <div class="flex flex-wrap items-center gap-1.5 mt-2">
+                        <span class="px-2 py-0.5 bg-surface-container text-on-surface-variant rounded text-[10px] font-bold uppercase tracking-tight">Limón</span>
+                    </div>
+                    <div class="mt-3 pt-3 border-t border-surface-container flex justify-between items-center">
+                        <div class="flex items-center gap-1.5 text-orange-600 bg-orange-50 px-2 py-1 rounded-full border border-orange-100">
+                            <span class="material-symbols-outlined text-xs">schedule</span>
+                            <span class="text-[9px] font-black uppercase">Pendiente</span>
+                        </div>
+                        <div class="flex gap-2 text-on-surface-variant">
+                            <button class="hover:text-primary transition-colors"><span class="material-symbols-outlined text-base">edit</span></button>
+                            <button class="hover:text-error transition-colors"><span class="material-symbols-outlined text-base">delete</span></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add New Card -->
+            <div id="btn-add-plague-card" class="bg-surface-container-lowest rounded-xl border-2 border-dashed border-primary/20 shadow-sm overflow-hidden group hover:-translate-y-1 transition-all duration-300 flex items-center justify-center min-h-[220px] cursor-pointer">
+                <div class="text-center p-6">
+                    <span class="material-symbols-outlined text-3xl text-primary/30 mb-2 group-hover:text-primary/50 transition-colors">bug_report</span>
+                    <p class="text-sm font-bold text-on-surface-variant group-hover:text-primary transition-colors">Añadir plaga</p>
+                </div>
+            </div>
+
+        </div>
     </div>
 </main>
+
+<!-- Modal: Añadir/Editar Plaga (Placeholder) -->
+<div id="modal-plague" class="fixed inset-0 z-100 hidden items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" id="modal-plague-backdrop"></div>
+    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-6 z-10">
+        <div class="flex items-center justify-between border-b border-surface-container pb-4 mb-4">
+            <h3 class="text-lg font-extrabold text-[#0F2E2E]">Nueva Plaga</h3>
+            <button id="modal-plague-close" class="p-2 rounded-lg hover:bg-surface-container-low text-on-surface-variant transition-colors"><span class="material-symbols-outlined">close</span></button>
+        </div>
+        <p class="text-sm text-on-surface-variant">Formulario de plaga (pendiente de implementación).</p>
+        <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-surface-container">
+            <button id="modal-plague-cancel" class="px-6 py-2.5 rounded-lg bg-surface-container-low text-on-surface-variant text-sm font-bold">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function () {
+        // Modal logic (basic)
+        const modalPlague = document.getElementById('modal-plague');
+        const btnAddPlague = document.getElementById('btn-add-plague');
+        const btnAddPlagueCard = document.getElementById('btn-add-plague-card');
+        const btnClosePlague = document.getElementById('modal-plague-close');
+        const btnCancelPlague = document.getElementById('modal-plague-cancel');
+
+        const openModal = () => modalPlague.classList.replace('hidden', 'flex');
+        const closeModal = () => modalPlague.classList.replace('flex', 'hidden');
+
+        if(btnAddPlague) btnAddPlague.addEventListener('click', openModal);
+        if(btnAddPlagueCard) btnAddPlagueCard.addEventListener('click', openModal);
+        if(btnClosePlague) btnClosePlague.addEventListener('click', closeModal);
+        if(btnCancelPlague) btnCancelPlague.addEventListener('click', closeModal);
+
+        // View toggle
+        const tableView = document.getElementById('plagues-table-view');
+        const gridView = document.getElementById('plagues-grid-view');
+        const btnTable = document.getElementById('view-table');
+        const btnGrid = document.getElementById('view-grid');
+
+        if (btnTable && btnGrid) {
+            btnGrid.classList.add('bg-[#43655c]', 'text-white');
+            btnGrid.classList.remove('text-on-surface-variant');
+            btnTable.classList.remove('bg-[#43655c]', 'text-white');
+            btnTable.classList.add('text-on-surface-variant');
+
+            btnTable.addEventListener('click', function () {
+                tableView.style.display = '';
+                gridView.style.display = 'none';
+                btnTable.classList.add('bg-[#43655c]', 'text-white');
+                btnTable.classList.remove('text-on-surface-variant');
+                btnGrid.classList.remove('bg-[#43655c]', 'text-white');
+                btnGrid.classList.add('text-on-surface-variant');
+            });
+
+            btnGrid.addEventListener('click', function () {
+                tableView.style.display = 'none';
+                gridView.style.display = 'grid';
+                btnGrid.classList.add('bg-[#43655c]', 'text-white');
+                btnGrid.classList.remove('text-on-surface-variant');
+                btnTable.classList.remove('bg-[#43655c]', 'text-white');
+                btnTable.classList.add('text-on-surface-variant');
+            });
+        }
+    })();
+</script>

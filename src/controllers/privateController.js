@@ -45,7 +45,7 @@ export const plaguesPrivate = (req, res) => {
         ctaLabel:   'Añadir Plaga',
         ctaIcon:    'bug_report',
         ctaBtnId:   'btn-add-plague',
-        showViewToggle: false,
+        showViewToggle: true,
     });
 };
 
@@ -80,7 +80,7 @@ export const suppliersPrivate = (req, res) => {
         ctaLabel:   'Añadir Proveedor',
         ctaIcon:    'add_business',
         ctaBtnId:   'btn-add-supplier',
-        showViewToggle: false,
+        showViewToggle: true,
     });
 };
 
@@ -117,7 +117,7 @@ export const auditPrivate = (req, res) => {
         ctaLabel:   'Exportar Log',
         ctaIcon:    'download',
         ctaBtnId:   'btn-export-audit',
-        showViewToggle: false,
+        showViewToggle: true,
     });
 };
 
@@ -151,7 +151,7 @@ export const cropsPrivate = (req, res) => {
         ctaLabel:   'Añadir Cultivo',
         ctaIcon:    'agriculture',
         ctaBtnId:   'btn-add-crop',
-        showViewToggle: false,
+        showViewToggle: true,
     });
 };
 
@@ -185,7 +185,7 @@ export const landsPrivate = (req, res) => {
         ctaLabel:   '+ Registrar Nuevo Predio',
         ctaIcon:    'add_location_alt',
         ctaBtnId:   'btn-open-new-land',
-        showViewToggle: false,
+        showViewToggle: true,
     });
 };
 
@@ -307,7 +307,7 @@ export const ingredientsPrivate = (req, res) => {
         ctaLabel:   'Añadir Ingrediente',
         ctaIcon:    'science',
         ctaBtnId:   'btn-add-ingredient',
-        showViewToggle: false,
+        showViewToggle: true,
     });
 };
 
@@ -342,7 +342,7 @@ export const usersPrivate = (req, res) => {
         ctaLabel:   'Añadir Usuario',
         ctaIcon:    'person_add',
         ctaBtnId:   'btn-add-user',
-        showViewToggle: false,
+        showViewToggle: true,
     });
 };
 
