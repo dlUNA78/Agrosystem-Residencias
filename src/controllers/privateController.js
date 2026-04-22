@@ -345,3 +345,11 @@ export const usersPrivate = (req, res) => {
         showViewToggle: false,
     });
 };
+
+export const renderPlagueDetailPrivate = (req, res) => {
+    res.render('private/plague-detail', {
+        layout: privateLayout,
+        pageTitle: 'Pulgón Verde - Plagas',
+        activePage: 'plagues',
+    });
+};
