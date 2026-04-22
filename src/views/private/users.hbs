@@ -45,8 +45,23 @@
             </div>
         </div>
 
-        <!-- Data Grid -->
-        <div class="bg-surface-container-lowest rounded-2xl shadow-sm overflow-hidden border border-outline-variant/10">
+        <!-- Alert Panel (Optional based on design, but good for consistency) -->
+        <div class="bg-amber-50 border border-amber-100 p-4 rounded-xl flex flex-wrap items-center justify-between gap-3 shadow-sm">
+            <div class="flex items-center gap-3">
+                <div class="bg-amber-100 p-2 rounded-full">
+                    <span class="material-symbols-outlined text-amber-700">feedback</span>
+                </div>
+                <p class="text-amber-900 font-medium text-sm tracking-tight">
+                    Tienes <span class="font-bold">5 usuarios</span> con registro pendiente de aprobación.
+                </p>
+            </div>
+            <button class="bg-white text-amber-800 border border-amber-200 px-5 py-2 rounded-lg text-xs font-bold hover:bg-amber-100 transition-colors">
+                Ver pendientes
+            </button>
+        </div>
+
+        <!-- TABLE VIEW -->
+        <div id="users-table-view" style="display:none" class="bg-surface-container-lowest rounded-2xl shadow-sm overflow-hidden border border-outline-variant/10">
             <table class="w-full text-left border-collapse">
                 <thead>
                     <tr class="bg-surface-container-low/50">
@@ -290,12 +305,165 @@
                         Anterior
                     </button>
                     <button
-                        class="px-5 py-2 rounded-lg bg-primary text-white text-xs font-bold hover:bg-primary-dim transition-colors flex items-center gap-2 shadow-sm shadow-primary/20">
+                        class="px-5 py-2 rounded-lg bg-[#43655c] text-white text-xs font-bold hover:bg-[#354f47] transition-colors flex items-center gap-2 shadow-sm">
                         Siguiente
                         <span class="material-symbols-outlined text-sm" data-icon="chevron_right">chevron_right</span>
                     </button>
                 </div>
             </div>
+        </div>
+
+        <!-- GRID VIEW -->
+        <div id="users-grid-view" class="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 grid">
+
+            <!-- Card 1 -->
+            <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm overflow-hidden group hover:-translate-y-1 transition-all duration-300">
+                <div class="p-5">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-on-primary font-extrabold text-base shrink-0 shadow-md">
+                            MR
+                        </div>
+                        <div class="flex items-center justify-center gap-1.5 text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100">
+                            <span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                            <span class="text-[9px] font-black uppercase">Activo</span>
+                        </div>
+                    </div>
+                    <span class="text-[9px] font-black uppercase tracking-widest text-primary">Admin</span>
+                    <h3 class="font-bold text-on-surface text-base mt-1">Marcos Ramírez</h3>
+                    <p class="text-xs text-on-surface-variant truncate">m.ramirez@inifap.gob.mx</p>
+                    <p class="text-xs text-on-surface-variant font-medium mt-2">INIFAP — Sinaloa</p>
+
+                    <div class="mt-4 pt-4 border-t border-surface-container flex justify-between items-center">
+                        <span class="text-[10px] text-on-surface-variant">12 Ene 2024</span>
+                        <div class="flex gap-2 text-on-surface-variant">
+                            <button class="hover:text-primary transition-colors"><span class="material-symbols-outlined text-base">visibility</span></button>
+                            <button class="hover:text-primary transition-colors"><span class="material-symbols-outlined text-base">edit</span></button>
+                            <button class="hover:text-error transition-colors"><span class="material-symbols-outlined text-base">block</span></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 2 -->
+            <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm overflow-hidden group hover:-translate-y-1 transition-all duration-300">
+                <div class="p-5">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-on-secondary font-extrabold text-base shrink-0 shadow-md">
+                            LV
+                        </div>
+                        <div class="flex items-center justify-center gap-1.5 text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100">
+                            <span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                            <span class="text-[9px] font-black uppercase">Activo</span>
+                        </div>
+                    </div>
+                    <span class="text-[9px] font-black uppercase tracking-widest text-secondary">Investigador</span>
+                    <h3 class="font-bold text-on-surface text-base mt-1">Laura Vázquez</h3>
+                    <p class="text-xs text-on-surface-variant truncate">l.vazquez@inifap.gob.mx</p>
+                    <p class="text-xs text-on-surface-variant font-medium mt-2">INIFAP — Culiacán</p>
+
+                    <div class="mt-4 pt-4 border-t border-surface-container flex justify-between items-center">
+                        <span class="text-[10px] text-on-surface-variant">03 Mar 2024</span>
+                        <div class="flex gap-2 text-on-surface-variant">
+                            <button class="hover:text-primary transition-colors"><span class="material-symbols-outlined text-base">visibility</span></button>
+                            <button class="hover:text-primary transition-colors"><span class="material-symbols-outlined text-base">edit</span></button>
+                            <button class="hover:text-error transition-colors"><span class="material-symbols-outlined text-base">block</span></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 3 -->
+            <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm overflow-hidden group hover:-translate-y-1 transition-all duration-300 bg-surface-container-low/20">
+                <div class="p-5">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant font-extrabold text-base shrink-0 shadow-md">
+                            JH
+                        </div>
+                        <div class="flex items-center justify-center gap-1.5 text-orange-600 bg-orange-50 px-2.5 py-1 rounded-full border border-orange-100">
+                            <span class="material-symbols-outlined text-xs">schedule</span>
+                            <span class="text-[9px] font-black uppercase">Pendiente</span>
+                        </div>
+                    </div>
+                    <span class="text-[9px] font-black uppercase tracking-widest text-on-surface-variant">Técnico</span>
+                    <h3 class="font-bold text-on-surface text-base mt-1">Jorge Herrera</h3>
+                    <p class="text-xs text-on-surface-variant truncate">j.herrera@uas.edu.mx</p>
+                    <p class="text-xs text-on-surface-variant font-medium mt-2">UAS — Agronomía</p>
+
+                    <div class="mt-4 pt-4 border-t border-surface-container flex justify-between items-center">
+                        <span class="text-[10px] text-on-surface-variant">22 Abr 2025</span>
+                        <div class="flex gap-2 text-on-surface-variant">
+                            <button class="hover:text-primary transition-colors"><span class="material-symbols-outlined text-base">visibility</span></button>
+                            <button class="hover:text-emerald-600 transition-colors"><span class="material-symbols-outlined text-base">check_circle</span></button>
+                            <button class="hover:text-error transition-colors"><span class="material-symbols-outlined text-base">cancel</span></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 4 -->
+            <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm overflow-hidden group hover:-translate-y-1 transition-all duration-300 opacity-60">
+                <div class="p-5">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="w-12 h-12 rounded-full bg-error/10 flex items-center justify-center text-error font-extrabold text-base shrink-0 shadow-md">
+                            AP
+                        </div>
+                        <div class="flex items-center justify-center gap-1.5 text-error bg-error/5 px-2.5 py-1 rounded-full border border-error/20">
+                            <span class="material-symbols-outlined text-xs">block</span>
+                            <span class="text-[9px] font-black uppercase">Suspendido</span>
+                        </div>
+                    </div>
+                    <span class="text-[9px] font-black uppercase tracking-widest text-on-surface-variant">Agricultor</span>
+                    <h3 class="font-bold text-on-surface text-base mt-1">Ana Patricia Flores</h3>
+                    <p class="text-xs text-on-surface-variant truncate">a.flores@agro.mx</p>
+                    <p class="text-xs text-on-surface-variant font-medium mt-2">Productor Independiente</p>
+
+                    <div class="mt-4 pt-4 border-t border-surface-container flex justify-between items-center">
+                        <span class="text-[10px] text-on-surface-variant">10 Jun 2023</span>
+                        <div class="flex gap-2 text-on-surface-variant">
+                            <button class="hover:text-primary transition-colors"><span class="material-symbols-outlined text-base">visibility</span></button>
+                            <button class="hover:text-emerald-600 transition-colors"><span class="material-symbols-outlined text-base">lock_open</span></button>
+                            <button class="hover:text-error transition-colors"><span class="material-symbols-outlined text-base">delete</span></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 5 -->
+            <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm overflow-hidden group hover:-translate-y-1 transition-all duration-300">
+                <div class="p-5">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-on-secondary font-extrabold text-base shrink-0 shadow-md">
+                            CF
+                        </div>
+                        <div class="flex items-center justify-center gap-1.5 text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100">
+                            <span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                            <span class="text-[9px] font-black uppercase">Activo</span>
+                        </div>
+                    </div>
+                    <span class="text-[9px] font-black uppercase tracking-widest text-secondary">Investigador</span>
+                    <h3 class="font-bold text-on-surface text-base mt-1">Carlos Fuentes</h3>
+                    <p class="text-xs text-on-surface-variant truncate">c.fuentes@cimmyt.org</p>
+                    <p class="text-xs text-on-surface-variant font-medium mt-2">CIMMYT — México</p>
+
+                    <div class="mt-4 pt-4 border-t border-surface-container flex justify-between items-center">
+                        <span class="text-[10px] text-on-surface-variant">05 Ago 2024</span>
+                        <div class="flex gap-2 text-on-surface-variant">
+                            <button class="hover:text-primary transition-colors"><span class="material-symbols-outlined text-base">visibility</span></button>
+                            <button class="hover:text-primary transition-colors"><span class="material-symbols-outlined text-base">edit</span></button>
+                            <button class="hover:text-error transition-colors"><span class="material-symbols-outlined text-base">block</span></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add New Card -->
+            <div id="btn-add-user-card" class="bg-surface-container-lowest rounded-xl border-2 border-dashed border-primary/20 shadow-sm overflow-hidden group hover:-translate-y-1 transition-all duration-300 flex items-center justify-center min-h-[220px] cursor-pointer">
+                <div class="text-center p-6">
+                    <span class="material-symbols-outlined text-3xl text-primary/30 mb-2 group-hover:text-primary/50 transition-colors">person_add</span>
+                    <p class="text-sm font-bold text-on-surface-variant group-hover:text-primary transition-colors">Añadir usuario</p>
+                </div>
+            </div>
+
         </div>
 
     </div>
@@ -391,8 +559,43 @@
     const openModal  = () => modalUser.classList.replace('hidden', 'flex');
     const closeModal = () => modalUser.classList.replace('flex', 'hidden');
 
+    const btnAddUserCard = document.getElementById('btn-add-user-card');
+
     btnAddUser?.addEventListener('click', openModal);
+    btnAddUserCard?.addEventListener('click', openModal);
     btnCloseUser?.addEventListener('click', closeModal);
     btnCancelUser?.addEventListener('click', closeModal);
     modalUser?.addEventListener('click', (e) => { if (e.target === modalUser) closeModal(); });
+
+    // View toggle
+    const tableView = document.getElementById('users-table-view');
+    const gridView = document.getElementById('users-grid-view');
+    const btnTable = document.getElementById('view-table');
+    const btnGrid = document.getElementById('view-grid');
+
+    if (btnTable && btnGrid) {
+        // Inicializar botones (Grid es default)
+        btnGrid.classList.add('bg-[#43655c]', 'text-white');
+        btnGrid.classList.remove('text-on-surface-variant');
+        btnTable.classList.remove('bg-[#43655c]', 'text-white');
+        btnTable.classList.add('text-on-surface-variant');
+
+        btnTable.addEventListener('click', function () {
+            tableView.style.display = '';
+            gridView.style.display = 'none';
+            btnTable.classList.add('bg-[#43655c]', 'text-white');
+            btnTable.classList.remove('text-on-surface-variant');
+            btnGrid.classList.remove('bg-[#43655c]', 'text-white');
+            btnGrid.classList.add('text-on-surface-variant');
+        });
+
+        btnGrid.addEventListener('click', function () {
+            tableView.style.display = 'none';
+            gridView.style.display = 'grid';
+            btnGrid.classList.add('bg-[#43655c]', 'text-white');
+            btnGrid.classList.remove('text-on-surface-variant');
+            btnTable.classList.remove('bg-[#43655c]', 'text-white');
+            btnTable.classList.add('text-on-surface-variant');
+        });
+    }
 </script>
