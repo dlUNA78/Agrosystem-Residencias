@@ -346,10 +346,18 @@ export const usersPrivate = (req, res) => {
     });
 };
 
-export const renderPlagueDetailPrivate = (req, res) => {
-    res.render('private/plague-detail', {
+export const getPestDetail = (req, res) => {
+    res.render('private/pest-detail', {
         layout: privateLayout,
         pageTitle: 'Pulgón Verde - Plagas',
         activePage: 'plagues',
+    });
+};
+
+export const getGlyphomaxDetail = (req, res) => {
+    res.render('private/product-detail', {
+        layout: privateLayout,
+        pageTitle: 'Glyphomax Pro 480 - Productos',
+        activePage: 'products',
     });
 };
