@@ -24,13 +24,33 @@ export const plaguesPrivate = (req, res) => {
         searchPlaceholder: 'Buscar por nombre, especie o cultivo afectado...',
         searchFilters: [
             {
+                id: 'filter-risk',
+                label: 'Nivel de Riesgo: Todos',
+                options: [
+                    { value: 'bajo',     text: 'Bajo'    },
+                    { value: 'medio',    text: 'Medio'   },
+                    { value: 'alto',     text: 'Alto'    },
+                    { value: 'critico',  text: 'Crítico' },
+                ],
+            },
+            {
+                id: 'filter-status',
+                label: 'Estatus: Todos',
+                options: [
+                    { value: 'borrador', text: 'Borrador' },
+                    { value: 'revision', text: 'Revisión' },
+                    { value: 'aprobado', text: 'Aprobado' },
+                    { value: 'archivado', text: 'Archivado' },
+                ],
+            },
+            {
                 id: 'filter-crop',
                 label: 'Cultivo: Todos',
                 options: [
                     { value: 'maiz',  text: 'Maíz'  },
-                    { value: 'sorgo', text: 'Sorgo'  },
-                    { value: 'mango', text: 'Mango'  },
-                    { value: 'limon', text: 'Limón'  },
+                    { value: 'sorgo', text: 'Sorgo' },
+                    { value: 'mango', text: 'Mango' },
+                    { value: 'limon', text: 'Limón' },
                 ],
             },
             {

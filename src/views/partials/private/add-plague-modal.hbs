@@ -1,0 +1,137 @@
+<!-- Add Plague Modal -->
+<div id="add-plague-modal" class="fixed inset-0 z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <!-- Background backdrop -->
+    <div class="fixed inset-0 bg-surface/50 backdrop-blur-sm transition-opacity" aria-hidden="true" id="modal-backdrop"></div>
+
+    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+        <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+            <!-- Modal panel -->
+            <div class="relative transform overflow-hidden rounded-2xl bg-surface text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl border border-outline-variant/20">
+
+                <!-- Modal Header -->
+                <div class="bg-surface-container-low px-6 py-4 border-b border-outline-variant/10 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-primary/10 p-2 rounded-xl">
+                            <span class="material-symbols-outlined text-primary" data-icon="bug_report">bug_report</span>
+                        </div>
+                        <h3 class="text-lg font-bold text-on-surface" id="modal-title">Registrar Nueva Plaga</h3>
+                    </div>
+                    <button type="button" class="text-on-surface-variant hover:bg-surface-container rounded-lg p-2 transition-colors" id="btn-close-modal">
+                        <span class="material-symbols-outlined text-xl">close</span>
+                    </button>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="px-6 py-6 space-y-6">
+                    <form id="add-plague-form">
+
+                        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                            <!-- Nombre Común -->
+                            <div class="space-y-2">
+                                <label for="common-name" class="block text-sm font-bold text-on-surface">Nombre Común <span class="text-error">*</span></label>
+                                <input type="text" id="common-name" name="common-name" required
+                                    class="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors text-on-surface"
+                                    placeholder="Ej: Gusano Cogollero">
+                            </div>
+
+                            <!-- Nombre Científico -->
+                            <div class="space-y-2">
+                                <label for="scientific-name" class="block text-sm font-bold text-on-surface">Nombre Científico <span class="text-error">*</span></label>
+                                <input type="text" id="scientific-name" name="scientific-name" required
+                                    class="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors text-on-surface font-mono"
+                                    placeholder="Ej: Spodoptera frugiperda">
+                            </div>
+
+                            <!-- Nivel de Riesgo -->
+                            <div class="space-y-2">
+                                <label for="risk-level" class="block text-sm font-bold text-on-surface">Nivel de Riesgo <span class="text-error">*</span></label>
+                                <select id="risk-level" name="risk-level" required
+                                    class="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors text-on-surface">
+                                    <option value="" disabled selected>Selecciona un nivel</option>
+                                    <option value="bajo">Bajo</option>
+                                    <option value="medio">Medio</option>
+                                    <option value="alto">Alto</option>
+                                    <option value="critico">Crítico</option>
+                                </select>
+                            </div>
+
+                            <!-- Estatus -->
+                            <div class="space-y-2">
+                                <label for="status" class="block text-sm font-bold text-on-surface">Estatus <span class="text-error">*</span></label>
+                                <select id="status" name="status" required
+                                    class="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors text-on-surface">
+                                    <option value="pendiente">Pendiente (Requiere revisión)</option>
+                                    {{#if isAdmin}}
+                                    <option value="aprobado">Aprobado</option>
+                                    {{/if}}
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Cultivos Afectados -->
+                        <div class="space-y-2 mt-6">
+                            <label for="crops" class="block text-sm font-bold text-on-surface">Cultivos Afectados</label>
+                            <input type="text" id="crops" name="crops"
+                                class="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors text-on-surface"
+                                placeholder="Ej: Maíz, Sorgo (Separados por coma)">
+                            <p class="text-xs text-on-surface-variant mt-1">Escribe los cultivos separados por coma.</p>
+                        </div>
+
+                        <!-- Descripción -->
+                        <div class="space-y-2 mt-6">
+                            <label for="description" class="block text-sm font-bold text-on-surface">Descripción y Síntomas</label>
+                            <textarea id="description" name="description" rows="3"
+                                class="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors text-on-surface resize-none"
+                                placeholder="Describe cómo afecta a la planta, síntomas visibles, etc."></textarea>
+                        </div>
+
+                        <!-- Métodos de Control -->
+                        <div class="space-y-2 mt-6">
+                            <label for="control-methods" class="block text-sm font-bold text-on-surface">Métodos de Control Sugeridos</label>
+                            <textarea id="control-methods" name="control-methods" rows="3"
+                                class="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors text-on-surface resize-none"
+                                placeholder="Tratamientos recomendados, químicos o biológicos."></textarea>
+                        </div>
+
+                    </form>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="bg-surface-container-low px-6 py-4 border-t border-outline-variant/10 flex items-center justify-end gap-3">
+                    <button type="button" class="px-5 py-2.5 rounded-xl font-bold text-sm text-on-surface-variant hover:bg-surface-container transition-colors" id="btn-cancel-modal">
+                        Cancelar
+                    </button>
+                    <button type="submit" form="add-plague-form" class="px-6 py-2.5 rounded-xl font-bold text-sm bg-primary text-white hover:bg-primary-dim transition-colors shadow-sm shadow-primary/20 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[18px]">save</span>
+                        Guardar Plaga
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const modal = document.getElementById('add-plague-modal');
+        const btnOpen = document.getElementById('btn-add-plague'); // Este ID viene del controlador
+        const btnClose = document.getElementById('btn-close-modal');
+        const btnCancel = document.getElementById('btn-cancel-modal');
+        const backdrop = document.getElementById('modal-backdrop');
+
+        const openModal = () => {
+            modal.classList.remove('hidden');
+            // Timeout para permitir que el display block se aplique antes de animar opacidad (si se añadieran clases de opacidad)
+        };
+
+        const closeModal = () => {
+            modal.classList.add('hidden');
+        };
+
+        if(btnOpen) btnOpen.addEventListener('click', openModal);
+        if(btnClose) btnClose.addEventListener('click', closeModal);
+        if(btnCancel) btnCancel.addEventListener('click', closeModal);
+        if(backdrop) backdrop.addEventListener('click', closeModal);
+    });
+</script>

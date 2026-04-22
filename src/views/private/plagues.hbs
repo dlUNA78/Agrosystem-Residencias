@@ -75,13 +75,15 @@
                         </td>
                         <td class="px-8 py-6">
                             <div class="flex justify-end gap-3 text-on-surface-variant">
-                                <button class="hover:text-primary transition-colors"><span
+                                <button class="hover:text-primary transition-colors" title="Ver detalles"><span
                                         class="material-symbols-outlined"
                                         data-icon="visibility">visibility</span></button>
-                                <button class="hover:text-primary transition-colors"><span
+                                {{#if isAdmin}}
+                                <button class="hover:text-primary transition-colors" title="Editar"><span
                                         class="material-symbols-outlined" data-icon="edit">edit</span></button>
-                                <button class="hover:text-error transition-colors"><span
+                                <button class="hover:text-error transition-colors" title="Eliminar"><span
                                         class="material-symbols-outlined" data-icon="delete">delete</span></button>
+                                {{/if}}
                             </div>
                         </td>
                     </tr>
@@ -119,13 +121,15 @@
                         </td>
                         <td class="px-8 py-6">
                             <div class="flex justify-end gap-3 text-on-surface-variant">
-                                <button class="hover:text-primary transition-colors"><span
+                                <button class="hover:text-primary transition-colors" title="Ver detalles"><span
                                         class="material-symbols-outlined"
                                         data-icon="visibility">visibility</span></button>
-                                <button class="hover:text-primary transition-colors"><span
+                                {{#if isAdmin}}
+                                <button class="hover:text-primary transition-colors" title="Editar"><span
                                         class="material-symbols-outlined" data-icon="edit">edit</span></button>
-                                <button class="hover:text-error transition-colors"><span
+                                <button class="hover:text-error transition-colors" title="Eliminar"><span
                                         class="material-symbols-outlined" data-icon="delete">delete</span></button>
+                                {{/if}}
                             </div>
                         </td>
                     </tr>
@@ -160,13 +164,15 @@
                         </td>
                         <td class="px-8 py-6">
                             <div class="flex justify-end gap-3 text-on-surface-variant">
-                                <button class="hover:text-primary transition-colors"><span
+                                <button class="hover:text-primary transition-colors" title="Ver detalles"><span
                                         class="material-symbols-outlined"
                                         data-icon="visibility">visibility</span></button>
-                                <button class="hover:text-primary transition-colors"><span
+                                {{#if isAdmin}}
+                                <button class="hover:text-primary transition-colors" title="Editar"><span
                                         class="material-symbols-outlined" data-icon="edit">edit</span></button>
-                                <button class="hover:text-error transition-colors"><span
+                                <button class="hover:text-error transition-colors" title="Eliminar"><span
                                         class="material-symbols-outlined" data-icon="delete">delete</span></button>
+                                {{/if}}
                             </div>
                         </td>
                     </tr>
@@ -195,3 +201,6 @@
         </div>
     </div>
 </main>
+
+{{!-- Modal para añadir nueva plaga --}}
+{{> private/add-plague-modal}}
