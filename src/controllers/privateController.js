@@ -345,3 +345,27 @@ export const usersPrivate = (req, res) => {
         showViewToggle: false,
     });
 };
+
+export const getPestDetail = (req, res) => {
+    res.render('private/pest-detail', {
+        layout: privateLayout,
+        pageTitle: 'Pulgón Verde - Plagas',
+        activePage: 'plagues',
+    });
+};
+
+export const getGlyphomaxDetail = (req, res) => {
+    res.render('private/product-detail', {
+        layout: privateLayout,
+        pageTitle: 'Glyphomax Pro 480 - Productos',
+        activePage: 'products',
+    });
+};
+
+export const getCropDetail = (req, res) => {
+    res.render('private/crop-detail', {
+        layout: privateLayout,
+        pageTitle: 'Maíz - Cultivos',
+        activePage: 'crops',
+    });
+};

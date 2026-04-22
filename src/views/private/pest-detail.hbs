@@ -1,0 +1,334 @@
+<div class="pt-24 px-4 md:px-10 pb-12 min-h-screen">
+<!-- Breadcrumbs & Header -->
+<div class="mb-8">
+    <nav aria-label="Breadcrumb" class="flex mb-4">
+        <ol class="inline-flex items-center space-x-1 md:space-x-3 text-xs font-medium tracking-widest uppercase text-on-surface-variant">
+            <li class="inline-flex items-center">
+                <a class="hover:text-primary transition-colors" href="/dashboard">Dashboard</a>
+            </li>
+            <li>
+                <div class="flex items-center">
+                    <span class="material-symbols-outlined text-sm mx-1">chevron_right</span>
+                    <a class="hover:text-primary transition-colors" href="/private/plagues">Plagas</a>
+                </div>
+            </li>
+            <li aria-current="page">
+                <div class="flex items-center">
+                    <span class="material-symbols-outlined text-sm mx-1">chevron_right</span>
+                    <span class="text-primary font-bold">Pulgón Verde</span>
+                </div>
+            </li>
+        </ol>
+    </nav>
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div>
+            <h1 class="text-5xl md:text-6xl font-headline font-extrabold text-on-surface tracking-tighter mb-2">Pulgón Verde</h1>
+            <p class="text-lg text-on-surface-variant font-medium">Análisis fitosanitario avanzado de <span class="italic">Schizaphis graminum</span></p>
+        </div>
+        <div>
+            <button class="flex items-center gap-2 px-6 py-4 bg-surface-container-high text-on-surface font-bold text-sm rounded-lg hover:bg-surface-container-highest transition-all">
+                <span class="material-symbols-outlined text-xl">add_circle</span>
+                Proponer nuevo registro
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Hero Image Section -->
+<div class="mb-20">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+        <div class="col-span-1 lg:col-span-8">
+            <div class="overflow-hidden rounded-xl bg-surface-container-low shadow-sm mb-3">
+                <img alt="Detalle de pulgón verde en hoja de cereal" class="w-full h-[500px] object-cover hover:scale-105 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDc0B7-FtEHqvDxsI2DnlT2mqPQYeslTeAChw6k2kxkGpkDOFffw6gzoD4NpjDYrx143yEJHQ2R_Zc8ivfjxIZD6OP5SFUCblJ3jDgXTzkwrxpv-GBJ-jXoZcPN5AICIxX0grMLPX3QnpCmwwkUEhsbf1MGLnaw0mbzJIjRr5-P6v_SN0gxUvFOv026hkUHXL8UXEmooRvB8gc1C5C3UyH5BsBlCXysz2pueqo15O8XPF_OAxezSNDDGuG3nM0S1U_jFk_ymdQgInyD"/>
+            </div>
+            <span class="text-[10px] text-on-surface-variant uppercase tracking-widest px-1 font-bold">Imagen por: Banco de Germoplasma INIFAP</span>
+        </div>
+        <div class="col-span-1 lg:col-span-4 flex flex-col gap-6">
+            <!-- Color Coded Risk Level: Crítico (Red) -->
+            <div class="flex-1 p-6 md:p-8 rounded-xl flex flex-col justify-end text-white bg-gradient-to-br from-error-container to-error">
+                <span class="text-white/80 text-xs font-bold uppercase tracking-widest mb-2">Estado de Riesgo</span>
+                <div class="flex items-center gap-2">
+                    <div class="text-4xl font-headline font-extrabold tracking-tighter">Crítico</div>
+                    <span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">warning</span>
+                </div>
+                <p class="text-white/90 text-sm mt-4 leading-relaxed">Considerada una de las plagas más devastadoras para cereales en etapas tempranas. Se requiere intervención inmediata en zonas de alerta.</p>
+            </div>
+            <div class="bg-surface-container-lowest border-l-4 border-primary p-6 md:p-8 rounded-xl shadow-sm">
+                <span class="text-on-surface-variant text-xs font-bold uppercase tracking-widest mb-2">Validación Científica</span>
+                <div class="flex items-center gap-4">
+                    <div class="text-lg font-headline font-bold text-on-surface">INIFAP Verified</div>
+                    <span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">verified</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Complete Technical Sheet (Expanded) -->
+<div class="mb-24">
+    <h2 class="text-2xl font-headline font-extrabold tracking-tight mb-8">Ficha Técnica Completa</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-6 gap-6">
+        <!-- Spec Cards -->
+        <div class="bg-surface-container-low p-6 rounded-xl border border-outline-variant/10">
+            <h3 class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2">Nombre Científico</h3>
+            <p class="text-base font-bold italic text-on-surface leading-tight">Schizaphis graminum</p>
+        </div>
+        <div class="bg-surface-container-low p-6 rounded-xl border border-outline-variant/10">
+            <h3 class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2">Clasificación</h3>
+            <p class="text-base font-bold text-on-surface leading-tight">Hemiptera: Aphididae</p>
+        </div>
+        <div class="bg-surface-container-low p-6 rounded-xl border border-outline-variant/10">
+            <h3 class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2">Origen</h3>
+            <p class="text-base font-bold text-on-surface leading-tight">Paleártico</p>
+        </div>
+        <div class="bg-surface-container-low p-6 rounded-xl border border-outline-variant/10">
+            <h3 class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2">Temp. Óptima</h3>
+            <p class="text-base font-bold text-on-surface leading-tight">20°C - 25°C</p>
+        </div>
+        <div class="bg-surface-container-low p-6 rounded-xl border border-outline-variant/10">
+            <h3 class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2">Humedad</h3>
+            <p class="text-base font-bold text-on-surface leading-tight">50% - 70% HR</p>
+        </div>
+        <div class="bg-surface-container-low p-6 rounded-xl border border-outline-variant/10">
+            <h3 class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2">Longevidad</h3>
+            <p class="text-base font-bold text-on-surface leading-tight">25-30 días</p>
+        </div>
+    </div>
+</div>
+
+<!-- Biological Cycle Section -->
+<div class="bg-surface-container-low p-10 md:p-14 rounded-2xl mb-24">
+    <div class="mb-12">
+        <h2 class="text-3xl font-headline font-extrabold tracking-tight mb-4">Ciclo Biológico</h2>
+        <p class="text-on-surface-variant max-w-2xl">Proceso de desarrollo y reproducción de la especie en condiciones controladas. El pulgón verde destaca por su reproducción vivípara.</p>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <!-- Step 1 -->
+        <div class="relative flex flex-col items-center text-center">
+            <div class="w-16 h-16 rounded-full bg-primary text-on-primary flex items-center justify-center text-xl font-bold mb-6 z-10">1</div>
+            <div class="hidden md:block absolute top-8 left-1/2 w-full h-[2px] bg-primary/20"></div>
+            <h4 class="font-headline font-bold text-lg mb-2">Huevo / Fundación</h4>
+            <p class="text-sm text-on-surface-variant leading-relaxed">En climas fríos pasan el invierno como huevos. En México predominan hembras fundatrices.</p>
+        </div>
+        <!-- Step 2 -->
+        <div class="relative flex flex-col items-center text-center">
+            <div class="w-16 h-16 rounded-full bg-primary text-on-primary flex items-center justify-center text-xl font-bold mb-6 z-10">2</div>
+            <div class="hidden md:block absolute top-8 left-1/2 w-full h-[2px] bg-primary/20"></div>
+            <h4 class="font-headline font-bold text-lg mb-2">Ninfas (4 Instares)</h4>
+            <p class="text-sm text-on-surface-variant leading-relaxed">Crecimiento rápido de 5 a 10 días. Succionan savia activamente provocando clorosis.</p>
+        </div>
+        <!-- Step 3 -->
+        <div class="relative flex flex-col items-center text-center">
+            <div class="w-16 h-16 rounded-full bg-primary text-on-primary flex items-center justify-center text-xl font-bold mb-6 z-10">3</div>
+            <div class="hidden md:block absolute top-8 left-1/2 w-full h-[2px] bg-primary/20"></div>
+            <h4 class="font-headline font-bold text-lg mb-2">Adulto Áptero</h4>
+            <p class="text-sm text-on-surface-variant leading-relaxed">Hembras sin alas dedicadas a la reproducción masiva (partenogénesis).</p>
+        </div>
+        <!-- Step 4 -->
+        <div class="relative flex flex-col items-center text-center">
+            <div class="w-16 h-16 rounded-full bg-primary text-on-primary flex items-center justify-center text-xl font-bold mb-6 z-10">4</div>
+            <h4 class="font-headline font-bold text-lg mb-2">Adulto Alado</h4>
+            <p class="text-sm text-on-surface-variant leading-relaxed">Formas migratorias que surgen cuando la planta se deteriora o hay sobrepoblación.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Distribution & Control Section -->
+<div class="mb-24 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
+    <div class="col-span-1 lg:col-span-12 xl:col-span-7">
+        <h2 class="text-3xl font-headline font-extrabold tracking-tight mb-8">Estrategias de Manejo Integrado</h2>
+        <div class="space-y-12">
+            <!-- Control Item -->
+            <div class="flex gap-6">
+                <div class="flex-none">
+                    <div class="w-12 h-12 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container">
+                        <span class="material-symbols-outlined">biotech</span>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="font-headline text-xl font-bold mb-3">Control Biológico</h4>
+                    <p class="text-on-surface-variant leading-relaxed">Implementación de depredadores naturales como <span class="italic">Hippodamia convergens</span> (catarinitas) y <span class="italic">Chrysoperla spp.</span>. El uso de parasitoides como <span class="italic">Lysiphlebus testaceipes</span> ha demostrado una reducción del 40% en poblaciones activas.</p>
+                </div>
+            </div>
+            <!-- Control Item -->
+            <div class="flex gap-6">
+                <div class="flex-none">
+                    <div class="w-12 h-12 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container">
+                        <span class="material-symbols-outlined">opacity</span>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="font-headline text-xl font-bold mb-3">Control Químico</h4>
+                    <p class="text-on-surface-variant leading-relaxed">Aplicación foliar de insecticidas sistémicos bajo umbrales de acción (50 pulgones/planta). Se recomienda el uso de Imidacloprid o Tiametoxam siguiendo estrictamente las dosis validadas por INIFAP para evitar resistencia.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recommended Products Section -->
+        <div class="mt-20">
+            <h2 class="text-2xl font-headline font-extrabold tracking-tight mb-8">Productos Recomendados Validados por INIFAP</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                <!-- Product Card 1 -->
+                <div class="bg-white p-6 rounded-xl border border-outline-variant/15 shadow-sm hover:shadow-md transition-shadow flex flex-col">
+                    <div class="flex justify-between items-start mb-4">
+                        <span class="material-symbols-outlined text-primary text-3xl">science</span>
+                        <span class="inline-flex items-center gap-1 px-2 py-1 bg-primary-container text-on-primary-container text-[10px] font-bold uppercase tracking-wider rounded">
+                            <span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">verified</span>
+                            Val. INIFAP
+                        </span>
+                    </div>
+                    <div class="mb-4 overflow-hidden rounded-lg bg-surface-container-low aspect-square">
+                        <img alt="Confidor 350 SC" class="w-full h-full object-contain p-4 mix-blend-multiply" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCcp66flgFPY09hfjOiw83t3hxKo85xwXmpC2iiWsAsWur8pye4X5CKc5PFAl6wAR_CbRvQNE-W0eeuh94lGeDpIMBqXH2Wy7h4kIPNN6t6F7nWOvHdTh1nnFHnDC_ohTTUGjsr2naRIA2Fo9QG8pHdiVD2-0787BR5dauvU2al2h7JFaXELxX_oHcCoS0RCetpe_T-RQPJzLafZsDQH1eTjhwTkRQOWOXloWGV5a_QYeJansNtpUq0pEB99P26_b9cORJUzSqQ0BCn"/>
+                    </div>
+                    <h4 class="font-headline text-lg font-bold text-on-surface mb-1">Confidor 350 SC</h4>
+                    <p class="text-sm font-medium text-primary mb-3">Imidacloprid</p>
+                    <div class="pt-3 border-t border-outline-variant/10 mb-6">
+                        <span class="text-[10px] text-on-surface-variant uppercase tracking-widest font-bold">Fabricante / Marca</span>
+                        <p class="text-sm font-semibold text-on-surface">Bayer CropScience</p>
+                    </div>
+                    <a class="mt-auto flex items-center justify-center gap-2 w-full py-2.5 bg-primary text-on-primary text-sm font-bold rounded-lg hover:bg-primary-dim transition-colors" href="/private/products">
+                        Ver producto
+                        <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                    </a>
+                </div>
+                <!-- Product Card 2 -->
+                <div class="bg-white p-6 rounded-xl border border-outline-variant/15 shadow-sm hover:shadow-md transition-shadow flex flex-col">
+                    <div class="flex justify-between items-start mb-4">
+                        <span class="material-symbols-outlined text-primary text-3xl">science</span>
+                        <span class="inline-flex items-center gap-1 px-2 py-1 bg-primary-container text-on-primary-container text-[10px] font-bold uppercase tracking-wider rounded">
+                            <span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">verified</span>
+                            Val. INIFAP
+                        </span>
+                    </div>
+                    <div class="mb-4 overflow-hidden rounded-lg bg-surface-container-low aspect-square">
+                        <img alt="Actara 25 WG" class="w-full h-full object-contain p-4 mix-blend-multiply" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD2bv1q4qR-Jd_OtABe1u_0wF5uG5oq7DbI97bWyxcPFoBkpuITtF-PNAoU6O5RO2hO4yuv9K4nRClOcY6gC6DVGyz5-o4I-37qwrOoGYW3VG0B72Cvv3TjmXdNaEGwiWHe_MsiVkuFOQIrGpJ0RvHoALMjQ6pHvy-SgHQyrLy0t13SAhfxf_n4Ay2HZfyNd-U09s3CATVsh12KzB0smBcw9xk0TC59MqK9ZFglt6iKOnwZFkiuxSltOXD85BHATw4Gz28EoaJXcZjU"/>
+                    </div>
+                    <h4 class="font-headline text-lg font-bold text-on-surface mb-1">Actara 25 WG</h4>
+                    <p class="text-sm font-medium text-primary mb-3">Thiamethoxam</p>
+                    <div class="pt-3 border-t border-outline-variant/10 mb-6">
+                        <span class="text-[10px] text-on-surface-variant uppercase tracking-widest font-bold">Fabricante / Marca</span>
+                        <p class="text-sm font-semibold text-on-surface">Syngenta</p>
+                    </div>
+                    <a class="mt-auto flex items-center justify-center gap-2 w-full py-2.5 bg-primary text-on-primary text-sm font-bold rounded-lg hover:bg-primary-dim transition-colors" href="/private/products">
+                        Ver producto
+                        <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                    </a>
+                </div>
+                <!-- Product Card 3 -->
+                <div class="bg-white p-6 rounded-xl border border-outline-variant/15 shadow-sm hover:shadow-md transition-shadow flex flex-col">
+                    <div class="flex justify-between items-start mb-4">
+                        <span class="material-symbols-outlined text-primary text-3xl">science</span>
+                        <span class="inline-flex items-center gap-1 px-2 py-1 bg-primary-container text-on-primary-container text-[10px] font-bold uppercase tracking-wider rounded">
+                            <span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">verified</span>
+                            Val. INIFAP
+                        </span>
+                    </div>
+                    <div class="mb-4 overflow-hidden rounded-lg bg-surface-container-low aspect-square">
+                        <img alt="Engeo" class="w-full h-full object-contain p-4 mix-blend-multiply" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDsb89qTkrmxlcKCFaty-ee5fY6ej2Cbaea_MM3pbknLyDO6LrgQ2z4KAuh6ArmWn8SNP63fNlckqCxclO-0VVe70bqvkS5z95CgEJAfiJpSyvlP5wf9T2rIUASsx51-SjD4FbGc7zWnORMO3Mf8s7NPhtv486oMPNoF9AQ9ub2IVPWB6QJ35iOtnyu8lEOrf68f0QTUgf7Zdg7x523oksU9UA7dfU2GqF8D2FBuxYpn8DiT5N3FDyFeEHzWh-_X2iehzYxWyNvxUWt"/>
+                    </div>
+                    <h4 class="font-headline text-lg font-bold text-on-surface mb-1">Engeo</h4>
+                    <p class="text-sm font-medium text-primary mb-3">Thiamethoxam + Lambda-cyhalothrin</p>
+                    <div class="pt-3 border-t border-outline-variant/10 mb-6">
+                        <span class="text-[10px] text-on-surface-variant uppercase tracking-widest font-bold">Fabricante / Marca</span>
+                        <p class="text-sm font-semibold text-on-surface">Syngenta</p>
+                    </div>
+                    <a class="mt-auto flex items-center justify-center gap-2 w-full py-2.5 bg-primary text-on-primary text-sm font-bold rounded-lg hover:bg-primary-dim transition-colors" href="/private/products">
+                        Ver producto
+                        <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Visual Carousel Section -->
+        <div class="mt-20 p-6 md:p-8 rounded-2xl bg-surface-container-low border border-outline-variant/10 shadow-sm overflow-hidden relative">
+            <div class="flex items-center justify-between mb-8">
+                <h3 class="text-2xl font-headline font-extrabold tracking-tight text-on-surface">Referencia Visual de Daños</h3>
+                <div class="flex gap-2">
+                    <button class="w-10 h-10 rounded-full border border-primary/20 flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all shadow-sm bg-white" onclick="document.getElementById('carousel-container').scrollBy({left: -350, behavior: 'smooth'})">
+                        <span class="material-symbols-outlined">chevron_left</span>
+                    </button>
+                    <button class="w-10 h-10 rounded-full border border-primary/20 flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all shadow-sm bg-white" onclick="document.getElementById('carousel-container').scrollBy({left: 350, behavior: 'smooth'})">
+                        <span class="material-symbols-outlined">chevron_right</span>
+                    </button>
+                </div>
+            </div>
+
+            <style>
+                .no-scrollbar::-webkit-scrollbar {
+                    display: none;
+                }
+                .no-scrollbar {
+                    -ms-overflow-style: none;
+                    scrollbar-width: none;
+                }
+            </style>
+
+            <div class="flex gap-6 overflow-x-auto no-scrollbar snap-x snap-mandatory pb-4" id="carousel-container">
+                <!-- Carousel Item 1 -->
+                <div class="flex-none w-[280px] md:w-[350px] snap-start group">
+                    <div class="overflow-hidden rounded-xl bg-surface-container-highest mb-3 relative aspect-[4/3]">
+                        <img alt="Clorosis severa en trigo" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCp8z3-y6-5pXf_r9bX7fV9x2y_R4uX9R_8-7Xp_9r-8fV-r7y_R4uX9R_8-7Xp_9r-8fV-r7y_R4uX9R_8-7Xp_9r-8fV-r7y_R4uX9R_8-7Xp_9r-8fV-r7y_"/>
+                        <div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent">
+                            <span class="text-white text-sm font-bold">Clorosis en Trigo</span>
+                        </div>
+                    </div>
+                    <span class="text-[10px] text-on-surface-variant uppercase tracking-widest px-1 font-bold block">Ref: Centro de Investigación del Bajío (INIFAP)</span>
+                </div>
+                <!-- Carousel Item 2 -->
+                <div class="flex-none w-[280px] md:w-[350px] snap-start group">
+                    <div class="overflow-hidden rounded-xl bg-surface-container-highest mb-3 relative aspect-[4/3]">
+                        <img alt="Necrosis de tejidos en cebada" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD9S3Z_rV-Gf7E9I_z-v_T6q3n-p-7_R4uX9R_8-7Xp_9r-8fV-r7y_R4uX9R_8-7Xp_9r-8fV-r7y_R4uX9R_8-7Xp_9r-8fV-r7y_"/>
+                        <div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent">
+                            <span class="text-white text-sm font-bold">Necrosis en Cebada</span>
+                        </div>
+                    </div>
+                    <span class="text-[10px] text-on-surface-variant uppercase tracking-widest px-1 font-bold block">Ref: Laboratorio de Fitopatología - Valle de Culiacán</span>
+                </div>
+                <!-- Carousel Item 3 -->
+                <div class="flex-none w-[280px] md:w-[350px] snap-start group">
+                    <div class="overflow-hidden rounded-xl bg-surface-container-highest mb-3 relative aspect-[4/3]">
+                        <img alt="Colonización masiva en envés" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB2v_N-f_r7y_R4uX9R_8-7Xp_9r-8fV-r7y_R4uX9R_8-7Xp_9r-8fV-r7y_R4uX9R_8-7Xp_9r-8fV-r7y_"/>
+                        <div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent">
+                            <span class="text-white text-sm font-bold">Colonización en Envés</span>
+                        </div>
+                    </div>
+                    <span class="text-[10px] text-on-surface-variant uppercase tracking-widest px-1 font-bold block">Ref: Estación Experimental "La Posta" (INIFAP)</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Distribution Map Sidebar -->
+    <div class="col-span-1 lg:col-span-12 xl:col-span-5">
+        <div class="bg-surface-container p-6 md:p-8 rounded-xl sticky top-28">
+            <h2 class="text-xl font-headline font-extrabold tracking-tight mb-6">Mapa de Incidencia Nacional</h2>
+            <div class="aspect-square bg-surface-container-highest rounded-lg overflow-hidden mb-3 relative">
+                <img alt="Mapa de distribución de plagas" class="w-full h-full object-cover grayscale opacity-50" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBN8z1VLK1HstceNarVO6N8fZ0gO8Rs9MI14ORPR09VzzmZL_wW1uP4i77aoymLM-8xk0-3luxdfNpObg-59oLm0opMVr9E-DrAQQFesAy_4V1slPXP2PxfnWzlWPAYvFo64NRkyl1qelftREI9zpX52YNDGBqb8TaCj5tLGzxrmNKAt3iXo2MWH-qUPWfjMl8G2bMGSpdcG-r3zlwzJ40-fc886Fi1pjRd3kIyB4ENOh3tE60lhs1ZkLdigQPO6MqmrnTR2pa0erru"/>
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <span class="text-xs font-bold text-on-surface bg-white/90 px-4 py-2 rounded-full shadow-sm">Zona de Alta Incidencia</span>
+                </div>
+            </div>
+            <div class="mb-6"><span class="text-[10px] text-on-surface-variant uppercase tracking-widest px-1 font-bold">Cartografía: SIAP / INIFAP 2024</span></div>
+
+            <div>
+                <h4 class="text-sm font-bold uppercase tracking-widest text-on-surface-variant mb-4">Regiones Monitoreadas</h4>
+                <ul class="space-y-3">
+                    <li class="flex items-center justify-between text-sm py-2 border-b border-outline-variant/20">
+                        <span class="font-medium">El Bajío</span>
+                        <span class="px-2 py-1 bg-error-container text-on-error-container rounded-full text-[10px] font-bold">CRÍTICO</span>
+                    </li>
+                    <li class="flex items-center justify-between text-sm py-2 border-b border-outline-variant/20">
+                        <span class="font-medium">Valle del Fuerte</span>
+                        <span class="px-2 py-1 bg-primary-container text-on-primary-container rounded-full text-[10px] font-bold">BAJO</span>
+                    </li>
+                    <li class="flex items-center justify-between text-sm py-2 border-b border-outline-variant/20">
+                        <span class="font-medium">Norte de Tamaulipas</span>
+                        <span class="px-2 py-1 bg-yellow-200 text-yellow-900 rounded-full text-[10px] font-bold uppercase">Moderado</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
