@@ -49,6 +49,78 @@ export const plaguesPrivate = (req, res) => {
     });
 };
 
+export const suppliersPrivate = (req, res) => {
+    res.render('private/suppliers', {
+        layout:      privateLayout,
+        pageTitle:   'Proveedores',
+        activePage:  'suppliers',
+        searchId:          'supplier-search',
+        searchPlaceholder: 'Buscar por empresa, contacto o RFC...',
+        searchFilters: [
+            {
+                id: 'filter-type',
+                label: 'Tipo: Todos',
+                options: [
+                    { value: 'agroquimicos', text: 'Agroquímicos' },
+                    { value: 'semillas',     text: 'Semillas'     },
+                    { value: 'equipo',       text: 'Equipo'       },
+                    { value: 'servicios',    text: 'Servicios'    },
+                ],
+            },
+            {
+                id: 'filter-status',
+                label: 'Estatus: Todos',
+                options: [
+                    { value: 'activo',    text: 'Activo'    },
+                    { value: 'inactivo',  text: 'Inactivo'  },
+                    { value: 'pendiente', text: 'Pendiente' },
+                ],
+            },
+        ],
+        ctaLabel:   'Añadir Proveedor',
+        ctaIcon:    'add_business',
+        ctaBtnId:   'btn-add-supplier',
+        showViewToggle: false,
+    });
+};
+
+export const auditPrivate = (req, res) => {
+    res.render('private/audit', {
+        layout:      privateLayout,
+        pageTitle:   'Auditoría',
+        activePage:  'audit',
+        searchId:          'audit-search',
+        searchPlaceholder: 'Buscar por usuario, acción o detalles...',
+        searchFilters: [
+            {
+                id: 'filter-module',
+                label: 'Módulo: Todos',
+                options: [
+                    { value: 'plagas',      text: 'Plagas'      },
+                    { value: 'cultivos',    text: 'Cultivos'    },
+                    { value: 'productos',   text: 'Productos'   },
+                    { value: 'usuarios',    text: 'Usuarios'    },
+                    { value: 'proveedores', text: 'Proveedores' },
+                ],
+            },
+            {
+                id: 'filter-action',
+                label: 'Acción: Todas',
+                options: [
+                    { value: 'crear',    text: 'Creación'    },
+                    { value: 'editar',   text: 'Edición'     },
+                    { value: 'eliminar', text: 'Eliminación' },
+                    { value: 'aprobar',  text: 'Aprobación'  },
+                ],
+            },
+        ],
+        ctaLabel:   'Exportar Log',
+        ctaIcon:    'download',
+        ctaBtnId:   'btn-export-audit',
+        showViewToggle: false,
+    });
+};
+
 export const cropsPrivate = (req, res) => {
     res.render('private/crops', {
         layout:      privateLayout,

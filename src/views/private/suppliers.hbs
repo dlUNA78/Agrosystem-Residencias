@@ -1,0 +1,274 @@
+<main class="min-h-screen flex flex-col">
+    <!-- Content Area -->
+    <div class="mt-20 p-12 space-y-10">
+
+        {{!-- Control Bar & Search --}}
+        {{> private/search-bar}}
+
+        {{!-- Stats Bar --}}
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm p-5 flex items-center gap-4">
+                <div class="w-11 h-11 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined text-primary" data-icon="local_shipping">local_shipping</span>
+                </div>
+                <div>
+                    <p class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant">Total Proveedores</p>
+                    <p class="text-2xl font-extrabold text-on-surface">15</p>
+                </div>
+            </div>
+            <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm p-5 flex items-center gap-4">
+                <div class="w-11 h-11 rounded-full bg-emerald-500/10 flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined text-emerald-600" data-icon="verified">verified</span>
+                </div>
+                <div>
+                    <p class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant">Activos</p>
+                    <p class="text-2xl font-extrabold text-on-surface">12</p>
+                </div>
+            </div>
+            <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm p-5 flex items-center gap-4">
+                <div class="w-11 h-11 rounded-full bg-amber-500/10 flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined text-amber-600" data-icon="schedule">schedule</span>
+                </div>
+                <div>
+                    <p class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant">Pendientes</p>
+                    <p class="text-2xl font-extrabold text-on-surface">2</p>
+                </div>
+            </div>
+            <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm p-5 flex items-center gap-4">
+                <div class="w-11 h-11 rounded-full bg-error/10 flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined text-error" data-icon="block">block</span>
+                </div>
+                <div>
+                    <p class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant">Inactivos</p>
+                    <p class="text-2xl font-extrabold text-on-surface">1</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Grid -->
+        <div class="bg-surface-container-lowest rounded-2xl shadow-sm overflow-hidden border border-outline-variant/10">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-surface-container-low/50">
+                        <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
+                            Empresa</th>
+                        <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
+                            RFC</th>
+                        <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
+                            Contacto</th>
+                        <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant text-center">
+                            Tipo de Suministro</th>
+                        <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant text-center">
+                            Estatus</th>
+                        <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant text-right">
+                            Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-surface-container">
+
+                    <!-- Row 1 -->
+                    <tr class="hover:bg-surface/50 transition-colors">
+                        <td class="px-8 py-5">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-on-primary font-extrabold text-sm shrink-0">
+                                    AS</div>
+                                <div>
+                                    <p class="font-bold text-on-surface text-sm">AgroScience Labs S.A. de C.V.</p>
+                                    <p class="text-xs text-on-surface-variant">Sinaloa, México</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-8 py-5">
+                            <p class="text-sm font-medium text-on-surface">AGL981023XYZ</p>
+                        </td>
+                        <td class="px-8 py-5">
+                            <p class="text-sm text-on-surface">contacto@agroscience.mx</p>
+                            <p class="text-xs text-on-surface-variant mt-0.5">+52 667 123 4567</p>
+                        </td>
+                        <td class="px-8 py-5 text-center">
+                            <span class="px-3 py-1.5 bg-primary/10 text-primary rounded-full text-[10px] font-black uppercase">Agroquímicos</span>
+                        </td>
+                        <td class="px-8 py-5 text-center">
+                            <div class="flex items-center justify-center gap-1.5 text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100 mx-auto w-fit">
+                                <span class="material-symbols-outlined text-sm" data-icon="check_circle"
+                                    data-weight="fill" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                                <span class="text-[10px] font-black uppercase">Activo</span>
+                            </div>
+                        </td>
+                        <td class="px-8 py-5">
+                            <div class="flex justify-end gap-3 text-on-surface-variant">
+                                <button class="hover:text-primary transition-colors" title="Ver detalle"><span
+                                        class="material-symbols-outlined"
+                                        data-icon="visibility">visibility</span></button>
+                                <button class="hover:text-primary transition-colors" title="Editar"><span
+                                        class="material-symbols-outlined" data-icon="edit">edit</span></button>
+                                <button class="hover:text-error transition-colors" title="Inactivar"><span
+                                        class="material-symbols-outlined" data-icon="block">block</span></button>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Row 2 -->
+                    <tr class="hover:bg-surface/50 transition-colors">
+                        <td class="px-8 py-5">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-[#115e59] flex items-center justify-center text-white font-extrabold text-sm shrink-0">
+                                    BS</div>
+                                <div>
+                                    <p class="font-bold text-on-surface text-sm">BioSemillas del Norte</p>
+                                    <p class="text-xs text-on-surface-variant">Sonora, México</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-8 py-5">
+                            <p class="text-sm font-medium text-on-surface">BSN050412ABC</p>
+                        </td>
+                        <td class="px-8 py-5">
+                            <p class="text-sm text-on-surface">ventas@biosemillas.com</p>
+                            <p class="text-xs text-on-surface-variant mt-0.5">+52 662 987 6543</p>
+                        </td>
+                        <td class="px-8 py-5 text-center">
+                            <span class="px-3 py-1.5 bg-[#f59e0b]/10 text-[#d97706] rounded-full text-[10px] font-black uppercase">Semillas</span>
+                        </td>
+                        <td class="px-8 py-5 text-center">
+                            <div class="flex items-center justify-center gap-1.5 text-amber-600 bg-amber-50 px-3 py-1.5 rounded-full border border-amber-100 mx-auto w-fit">
+                                <span class="material-symbols-outlined text-sm" data-icon="schedule"
+                                    data-weight="fill" style="font-variation-settings: 'FILL' 1;">schedule</span>
+                                <span class="text-[10px] font-black uppercase">Pendiente</span>
+                            </div>
+                        </td>
+                        <td class="px-8 py-5">
+                            <div class="flex justify-end gap-3 text-on-surface-variant">
+                                <button class="hover:text-primary transition-colors" title="Ver detalle"><span
+                                        class="material-symbols-outlined"
+                                        data-icon="visibility">visibility</span></button>
+                                <button class="hover:text-primary transition-colors" title="Editar"><span
+                                        class="material-symbols-outlined" data-icon="edit">edit</span></button>
+                                <button class="hover:text-error transition-colors" title="Inactivar"><span
+                                        class="material-symbols-outlined" data-icon="block">block</span></button>
+                            </div>
+                        </td>
+                    </tr>
+
+                </tbody>
+            </table>
+
+            <!-- Pagination -->
+            <div class="px-8 py-6 bg-surface-container-low/30 border-t border-outline-variant/10 flex items-center justify-between">
+                <p class="text-xs font-medium text-on-surface-variant">
+                    Mostrando <span class="font-bold text-on-surface">1 a 2</span> de <span
+                        class="font-bold text-on-surface">15</span> registros
+                </p>
+                <div class="flex gap-2">
+                    <button
+                        class="px-5 py-2 rounded-lg bg-surface-container-highest/50 text-on-surface text-xs font-bold hover:bg-surface-container-highest transition-colors flex items-center gap-2">
+                        <span class="material-symbols-outlined text-sm" data-icon="chevron_left">chevron_left</span>
+                        Anterior
+                    </button>
+                    <button
+                        class="px-5 py-2 rounded-lg bg-primary text-white text-xs font-bold hover:bg-primary-dim transition-colors flex items-center gap-2 shadow-sm shadow-primary/20">
+                        Siguiente
+                        <span class="material-symbols-outlined text-sm" data-icon="chevron_right">chevron_right</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+{{!-- ═══════════════════════════════════════════════════════════
+     MODAL: Añadir / Editar Proveedor
+════════════════════════════════════════════════════════════ --}}
+<div id="modal-supplier" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+    <div class="bg-surface-container-lowest rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between px-8 py-6 border-b border-outline-variant/10">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-primary text-xl" data-icon="add_business">add_business</span>
+                </div>
+                <h2 class="text-base font-extrabold text-on-surface tracking-tight">Nuevo Proveedor</h2>
+            </div>
+            <button id="btn-close-modal-supplier"
+                class="p-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-colors">
+                <span class="material-symbols-outlined" data-icon="close">close</span>
+            </button>
+        </div>
+        <!-- Modal Body -->
+        <form id="form-supplier" class="px-8 py-6 space-y-4">
+            <div>
+                <label class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">Nombre de la Empresa</label>
+                <input type="text" id="supplier-nombre" placeholder="Razón social o nombre comercial"
+                    class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">RFC</label>
+                    <input type="text" id="supplier-rfc" placeholder="ABC123456XYZ"
+                        class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+                </div>
+                <div>
+                    <label class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">Teléfono</label>
+                    <input type="text" id="supplier-telefono" placeholder="Número de contacto"
+                        class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+                </div>
+            </div>
+            <div>
+                <label class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">Correo Electrónico</label>
+                <input type="email" id="supplier-email" placeholder="contacto@empresa.com"
+                    class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">Tipo de Suministro</label>
+                    <select id="supplier-tipo"
+                        class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+                        <option value="">Seleccionar...</option>
+                        <option value="agroquimicos">Agroquímicos</option>
+                        <option value="semillas">Semillas</option>
+                        <option value="equipo">Equipo</option>
+                        <option value="servicios">Servicios</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">Estatus</label>
+                    <select id="supplier-estatus"
+                        class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+                        <option value="activo">Activo</option>
+                        <option value="pendiente">Pendiente</option>
+                        <option value="inactivo">Inactivo</option>
+                    </select>
+                </div>
+            </div>
+        </form>
+        <!-- Modal Footer -->
+        <div class="px-8 py-5 bg-surface-container-low/30 border-t border-outline-variant/10 flex justify-end gap-3">
+            <button id="btn-cancel-modal-supplier"
+                class="px-6 py-2.5 rounded-lg text-on-surface-variant text-sm font-bold hover:bg-surface-container-low transition-colors">
+                Cancelar
+            </button>
+            <button type="submit" form="form-supplier"
+                class="px-6 py-2.5 rounded-lg bg-[#43655c] text-white text-sm font-bold hover:bg-[#354f47] transition-colors shadow-lg shadow-primary/10 flex items-center gap-2">
+                <span class="material-symbols-outlined text-base" data-icon="save">save</span>
+                Guardar Proveedor
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Modal toggle
+    const modalSupplier     = document.getElementById('modal-supplier');
+    const btnAddSupplier    = document.getElementById('btn-add-supplier');
+    const btnCloseSupplier  = document.getElementById('btn-close-modal-supplier');
+    const btnCancelSupplier = document.getElementById('btn-cancel-modal-supplier');
+
+    const openModal  = () => modalSupplier.classList.replace('hidden', 'flex');
+    const closeModal = () => modalSupplier.classList.replace('flex', 'hidden');
+
+    btnAddSupplier?.addEventListener('click', openModal);
+    btnCloseSupplier?.addEventListener('click', closeModal);
+    btnCancelSupplier?.addEventListener('click', closeModal);
+    modalSupplier?.addEventListener('click', (e) => { if (e.target === modalSupplier) closeModal(); });
+</script>
