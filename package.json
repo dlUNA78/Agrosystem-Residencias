@@ -20,14 +20,17 @@
   },
   "homepage": "https://github.com/dlUNA78/Agrosystem-Residencias#readme",
   "dependencies": {
-    "@supabase/supabase-js": "^2.100.0",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
-    "express-hbs": "^2.5.0"
+    "express-hbs": "^2.5.0",
+    "pg": "^8.21.0",
+    "pg-hstore": "^2.3.4",
+    "sequelize": "^6.37.8"
   },
   "devDependencies": {
     "@tailwindcss/cli": "^4.2.2",
     "nodemon": "^3.1.14",
+    "sequelize-cli": "^6.6.5",
     "tailwindcss": "^4.2.4"
   }
 }
