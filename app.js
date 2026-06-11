@@ -4,6 +4,9 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import 'dotenv/config';
 
+// Importar la instancia de Sequelize
+import sequelize from './src/config/database.js';
+
 // __dirname no existe en ES Modules — lo reconstruimos
 const __filename = fileURLToPath(import.meta.url);
 const __dirname  = path.dirname(__filename);
@@ -39,9 +42,17 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/', publicRoutes);
 app.use('/', privateRoutes);   // /dashboard, etc.
 
-// Arrancar el servidor
-app.listen(PORT, () => {
-    console.log(`✅ Servidor AgroSystem encendido en: http://localhost:${PORT}`);
-});
+// Probar la conexión a la base de datos y arrancar el servidor
+try {
+    await sequelize.authenticate();
+    console.log('✅ Conexión a la base de datos PostgreSQL establecida exitosamente.');
+
+    app.listen(PORT, () => {
+        console.log(`✅ Servidor AgroSystem encendido en: http://localhost:${PORT}`);
+    });
+} catch (error) {
+    console.error('❌ Error al conectar con la base de datos PostgreSQL:', error);
+    process.exit(1); // Detiene el proceso si no hay base de datos como se solicitó
+}
 
 export default app;
