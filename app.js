@@ -52,7 +52,7 @@ try {
     });
 } catch (error) {
     console.error('❌ Error al conectar con la base de datos PostgreSQL:', error);
-    process.exit(1); // Detiene el proceso si no hay base de datos como se solicitó
+    process.exit(1); // Detiene el proceso si no hay base de datos como se solicita
 }
 
 export default app;
