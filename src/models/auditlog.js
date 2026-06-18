@@ -1,3 +1,5 @@
+import { Model } from "sequelize";
+
 export default (sequelize, DataTypes) => {
   class AuditLog extends Model {
     /**
