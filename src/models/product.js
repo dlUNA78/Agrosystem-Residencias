@@ -16,7 +16,11 @@ export default (sequelize, DataTypes) => {
     name: DataTypes.STRING,
     category: DataTypes.STRING,
     active_ingredient: DataTypes.STRING,
+    registration_code: DataTypes.STRING,
     manufacturer: DataTypes.STRING,
+    validation_status: DataTypes.STRING,
+    expiration_date: DataTypes.DATE,
+    target_crops: DataTypes.TEXT,
     description: DataTypes.TEXT,
     image_url: DataTypes.STRING,
     status: DataTypes.BOOLEAN

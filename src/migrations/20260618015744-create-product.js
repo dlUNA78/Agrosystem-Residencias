@@ -13,12 +13,30 @@ export default {
       },
       category: {
         type: Sequelize.STRING,
+        allowNull: false,
       },
       active_ingredient: {
         type: Sequelize.STRING,
+        allowNull: false,
+      },
+      registration_code: {
+        type: Sequelize.STRING,
+        allowNull: false,
       },
       manufacturer: {
         type: Sequelize.STRING,
+        allowNull: false,
+      },
+      validation_status: {
+        type: Sequelize.STRING,
+        allowNull: false,
+        defaultValue: 'En revisión',
+      },
+      expiration_date: {
+        type: Sequelize.DATE,
+      },
+      target_crops: {
+        type: Sequelize.TEXT,
       },
       description: {
         type: Sequelize.TEXT,
