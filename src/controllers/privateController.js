@@ -212,18 +212,69 @@ export const landDetail = (req, res) => {
 
 export const productsPrivate = async (req, res) => {
     try {
-        const products = await db.Product.findAll({
-            raw: true
+
+        const products = await db.Product.findAll({ raw: true });
+
+        const norm = (v) => (v || "").toString().trim().toLowerCase();
+
+        const total = products.length;
+
+        const aprobados = products.filter(
+            p => norm(p.validation_status) === "aprobado"
+        ).length;
+
+        const pendientes = products.filter(
+            p => norm(p.validation_status) === "pendiente"
+        ).length;
+
+        const restringidos = products.filter(
+            p => norm(p.validation_status) === "restringido"
+        ).length;
+
+        // Productos que vencen en los próximos 60 días
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const limit = new Date(today);
+        limit.setDate(limit.getDate() + 60);
+
+        const expiringProducts = products.filter(product => {
+
+            if (!product.expiration_date) return false;
+
+            const expDate = new Date(product.expiration_date);
+
+            if (isNaN(expDate)) return false;
+
+            expDate.setHours(0, 0, 0, 0);
+
+            return expDate >= today && expDate <= limit;
         });
+
+        const expiringSoon = expiringProducts.length;
 
         res.render("private/products", {
             layout: privateLayout,
             pageTitle: "Productos",
             activePage: "products",
+
+            // SIEMPRE mostrar todos
             products,
+
+            // Modal
+            expiringProducts,
+            expiringSoon,
+
+            stats: {
+                total,
+                aprobados,
+                pendientes,
+                restringidos
+            },
 
             searchId: "product-search",
             searchPlaceholder: "Buscar por nombre, registro y fabricante....",
+
             searchFilters: [
                 {
                     id: "filter-category",
@@ -239,11 +290,13 @@ export const productsPrivate = async (req, res) => {
                     ],
                 },
             ],
+
             ctaLabel: "Añadir Producto",
             ctaIcon: "add_circle",
             ctaBtnId: "btn-add-product",
             showViewToggle: true,
         });
+
     } catch (error) {
         console.error(error);
         res.status(500).send("Error al obtener los productos");
