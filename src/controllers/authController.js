@@ -1,24 +1,24 @@
-import bcrypt from 'bcrypt';
-import db from '../models/index.js';
+import bcrypt from "bcrypt";
+import db from "../models/index.js";
 
 const { User } = db;
 
 export const authController = {
-// Se renderiza la vitsa
-  
+  // Se renderiza la vitsa
+
   showRegister: (req, res) => {
     // Si el usuario ya esta logeado, va directo al dash
     if (req.isAuthenticated && req.isAuthenticated()) {
-      return res.redirect('/');
+      return res.redirect("/");
     }
-    res.render('auth/register', { title: 'Registrarse en INIFAP' });
+    res.render("auth/register", { title: "Registrarse en INIFAP" });
   },
 
   showLogin: (req, res) => {
     if (req.isAuthenticated && req.isAuthenticated()) {
-      return res.redirect('/');
+      return res.redirect("/");
     }
-    res.render('auth/login', { title: 'Iniciar Sesión' });
+    res.render("auth/login", { title: "Iniciar Sesión" });
   },
 
   //Logica de Negocio
@@ -29,16 +29,16 @@ export const authController = {
 
       // Evitar datos nulos o manipulados desde herramientas como Postman
       if (!full_name || !email || !password) {
-        return res.status(400).render('auth/register', {
-          error: 'Todos los campos son obligatorios.'
+        return res.status(400).render("auth/register", {
+          error: "Todos los campos son obligatorios.",
         });
       }
 
       // Evitar cuentas duplicadas
       const existingUser = await User.findOne({ where: { email } });
       if (existingUser) {
-        return res.status(400).render('auth/register', {
-          error: 'Este correo electrónico ya está registrado.'
+        return res.status(400).render("auth/register", {
+          error: "Este correo electrónico ya está registrado.",
         });
       }
 
@@ -50,31 +50,33 @@ export const authController = {
         full_name,
         email,
         password_hash,
-        role: 'agricultor' 
+        role: "agricultor",
       });
 
       // Se envía al login para que inicie sesión
-      res.redirect('/login');
-
+      res.redirect("/auth/login");
     } catch (error) {
-      console.error('CRITICAL ERROR en authController.register:', error);
-      res.status(500).render('auth/register', {
-        error: 'Error interno del servidor. Por favor contacte al administrador.'
+      console.error("CRITICAL ERROR en authController.register:", error);
+      res.status(500).render("auth/register", {
+        error:
+          "Error interno del servidor. Por favor contacte al administrador.",
       });
     }
   },
 
- // DESTRUCCIÓN DE SESIÓN
+  // DESTRUCCIÓN DE SESIÓN
 
   logout: (req, res, next) => {
     req.logout((err) => {
-      if (err) { return next(err); }
-      
+      if (err) {
+        return next(err);
+      }
+
       // Destruimos explícitamente la sesión de la memoria para que el gafete pierda validez
       req.session.destroy(() => {
-        res.clearCookie('connect.sid'); // connect.sid es el nombre por defecto de la cookie de sesión
-        res.redirect('/login');
+        res.clearCookie("connect.sid"); // connect.sid es el nombre por defecto de la cookie de sesión
+        res.redirect("/auth/login");
       });
     });
-  }
+  },
 };

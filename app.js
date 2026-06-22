@@ -7,14 +7,12 @@ import session from "express-session";
 import passport from "passport";
 import LocalStrategy from "passport-local";
 import bcrypt from "bcrypt";
-
 // Importar la instancia de Sequelize
 import sequelize from "./src/config/database.js";
 import db from "./src/models/index.js";
-
-
 import publicRoutes from "./src/routes/publicRoutes.js";
 import privateRoutes from "./src/routes/privateRoutes.js";
+import authRoutes from "./src/routes/auth.js";
 
 const { User } = db;
 
@@ -48,9 +46,7 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-//Renderizar vista principal
-app.use('/', publicRoutes);
-app.use('/', privateRoutes);
+
 
 // --- CONFIGURACIÓN DE SESIONES Y PASSPORT ---
 
@@ -70,6 +66,11 @@ app.use(
 // Inicializamos Passport para que se cuelgue de la sesión
 app.use(passport.initialize());
 app.use(passport.session());
+
+app.use("/auth", authRoutes);
+app.use("/", publicRoutes);
+app.use("/", privateRoutes);
+
 
 passport.use(
   new LocalStrategy(
@@ -126,13 +127,17 @@ passport.deserializeUser(async (id, done) => {
 // Arrancar el servidor
 // Probar la conexión a la base de datos y arrancar el servidor
 try {
-    await sequelize.authenticate();
-    console.log('✅ Conexión a la base de datos PostgreSQL establecida exitosamente.');
+  await sequelize.authenticate();
+  console.log(
+    "✅ Conexión a la base de datos PostgreSQL establecida exitosamente.",
+  );
 
-    app.listen(PORT, () => {
-        console.log(`✅ Servidor AgroSystem encendido en: http://localhost:${PORT}`);
-    });
+  app.listen(PORT, () => {
+    console.log(
+      `✅ Servidor AgroSystem encendido en: http://localhost:${PORT}`,
+    );
+  });
 } catch (error) {
-    console.error('❌ Error al conectar con la base de datos PostgreSQL:', error);
-    process.exit(1); // Detiene el proceso si no hay base de datos como se solicitó
+  console.error("❌ Error al conectar con la base de datos PostgreSQL:", error);
+  process.exit(1); // Detiene el proceso si no hay base de datos como se solicitó
 }
