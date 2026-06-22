@@ -12,10 +12,13 @@
 <section
     class="bg-surface-container-lowest p-4 rounded-xl shadow-sm border border-outline-variant/10 flex flex-wrap items-center gap-3">
 
-    {{!-- Buscador --}}
+    {{!-- BUSCADOR --}}
     <div class="flex-1 relative min-w-[240px]">
         <span
-            class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/50 text-lg">search</span>
+            class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/50 text-lg">
+            search
+        </span>
+
         <input
             id="{{searchId}}"
             class="w-full pl-11 pr-4 py-3 bg-surface-container-low border-none rounded-lg focus:ring-2 focus:ring-primary/20 text-sm placeholder:text-on-surface-variant/40"
@@ -23,42 +26,49 @@
             type="text" />
     </div>
 
-    {{!-- Filtros + CTA + Toggle --}}
+    {{!-- FILTROS + BOTONES --}}
     <div class="flex flex-wrap gap-2 items-center">
 
-        {{!-- Selects de filtro generados desde el controlador --}}
+        {{!-- FILTROS --}}
         {{#each searchFilters}}
         <select
             id="{{this.id}}"
-            class="bg-surface-container-low border-none rounded-lg py-3 px-4 text-sm text-on-surface-variant font-medium focus:ring-primary/20 min-w-[140px]">
+            class="filter-select bg-surface-container-low border-none rounded-lg py-3 px-4 text-sm text-on-surface-variant font-medium focus:ring-primary/20 min-w-[140px]">
+
             <option value="">{{this.label}}</option>
+
             {{#each this.options}}
             <option value="{{this.value}}">{{this.text}}</option>
             {{/each}}
+
         </select>
         {{/each}}
 
-        {{!-- Botón CTA --}}
+        {{!-- CTA --}}
         {{#if ctaLabel}}
         <button
             id="{{#if ctaBtnId}}{{ctaBtnId}}{{else}}btn-cta-action{{/if}}"
             class="bg-[#43655c] text-white px-5 py-3 rounded-lg font-bold text-sm flex items-center gap-2 hover:bg-[#354f47] transition-colors shadow-lg shadow-primary/10">
+
             <span class="material-symbols-outlined text-base">{{ctaIcon}}</span>
             {{ctaLabel}}
         </button>
         {{/if}}
 
-        {{!-- Toggle tabla / cuadrícula (solo si showViewToggle = true) --}}
+        {{!-- TOGGLE VISTA --}}
         {{#if showViewToggle}}
         <div class="flex bg-surface-container-low rounded-lg p-1 gap-1">
-            <button id="view-table" aria-label="Vista tabla"
-                class="p-2 rounded-md bg-[#43655c] text-white transition-colors">
-                <span class="material-symbols-outlined text-sm leading-none">table_rows</span>
+
+            <button id="view-table"
+                class="view-btn p-2 rounded-md bg-[#43655c] text-white transition-colors">
+                <span class="material-symbols-outlined text-sm">table_rows</span>
             </button>
-            <button id="view-grid" aria-label="Vista cuadrícula"
-                class="p-2 rounded-md text-on-surface-variant hover:bg-surface-container transition-colors">
-                <span class="material-symbols-outlined text-sm leading-none">grid_view</span>
+
+            <button id="view-grid"
+                class="view-btn p-2 rounded-md text-on-surface-variant hover:bg-surface-container transition-colors">
+                <span class="material-symbols-outlined text-sm">grid_view</span>
             </button>
+
         </div>
         {{/if}}
 

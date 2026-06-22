@@ -71,7 +71,7 @@
                     <span class="material-symbols-outlined text-amber-700">feedback</span>
                 </div>
                 <p class="text-amber-900 font-medium text-sm tracking-tight">
-                    Tienes <span class="font-bold">18 productos</span> con registro próximo a vencer en los próximos 90
+                    Tienes <span class="font-bold"></span> con registro próximo a vencer en los próximos 90
                     días.
                 </p>
             </div>
@@ -145,8 +145,11 @@
                     </thead>
 
                     <tbody>
+
                         {{#each products}}
-                        <tr class="border-b border-outline-variant/10 hover:bg-surface-container-low/40">
+                        <tr class="product-item" data-name="{{name}}" data-category="{{category}}"
+                            data-manufacturer="{{manufacturer}}" data-active="{{active_ingredient}}"
+                            data-registration="{{registration_code}}" data-status="{{validation_status}}">
 
                             <td class="px-6 py-4">
                                 <img src="/{{image_url}}" alt="{{name}}" class="w-14 h-14 rounded-lg object-cover"
@@ -240,9 +243,10 @@
         <div id="products-grid-view" class="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 grid">
 
             {{#each products}}
-
-            <div
-                class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm overflow-hidden group hover:-translate-y-1 transition-all duration-300">
+            <!-- para buscar-->
+            <div class="product-item" data-name="{{name}}" data-category="{{category}}"
+                data-manufacturer="{{manufacturer}}" data-active="{{active_ingredient}}"
+                data-registration="{{registration_code}}" data-status="{{validation_status}}">
 
                 <!-- IMAGE -->
                 <div class="relative h-40 overflow-hidden">
@@ -606,6 +610,78 @@
 
         confirmBtn.addEventListener('click', () => {
             if (formToDelete) formToDelete.submit();
+        });
+
+    });
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+
+        const searchInput = document.getElementById("{{searchId}}");
+
+        // todos los productos (tabla + grid)
+        const items = document.querySelectorAll(".product-item");
+
+        // selects de filtros
+        const selects = document.querySelectorAll(".filter-select");
+
+        function applyFilters() {
+
+            const query = (searchInput?.value || "")
+                .toLowerCase()
+                .trim();
+
+            // obtener filtros activos
+            const activeFilters = {};
+
+            selects.forEach(sel => {
+                if (sel.value) {
+                    activeFilters[sel.id] = sel.value.toLowerCase();
+                }
+            });
+
+            items.forEach(item => {
+
+                //datos del producto
+                const name = (item.dataset.name || "").toLowerCase();
+                const category = (item.dataset.category || "").toLowerCase();
+                const manufacturer = (item.dataset.manufacturer || "").toLowerCase();
+                const active = (item.dataset.active || "").toLowerCase();
+                const registration = (item.dataset.registration || "").toLowerCase();
+
+                const matchSearch =
+                    name.includes(query) ||
+                    category.includes(query) ||
+                    manufacturer.includes(query) ||
+                    active.includes(query) ||
+                    registration.includes(query);
+
+                // filtros selects
+                let matchFilters = true;
+
+                for (const key in activeFilters) {
+
+                    const value = activeFilters[key];
+
+                    if (key.includes("category") && category !== value) matchFilters = false;
+                    if (key.includes("manufacturer") && manufacturer !== value) matchFilters = false;
+                    if (key.includes("status") && status !== value) matchFilters = false;
+                    if (key.includes("active") && active !== value) matchFilters = false;
+                }
+
+                // mostrar / ocultar
+                item.style.display = (matchSearch && matchFilters) ? "" : "none";
+            });
+        }
+
+        //eventos
+        if (searchInput) {
+            searchInput.addEventListener("input", applyFilters);
+        }
+
+        selects.forEach(sel => {
+            sel.addEventListener("change", applyFilters);
         });
 
     });

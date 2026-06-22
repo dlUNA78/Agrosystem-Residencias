@@ -223,7 +223,7 @@ export const productsPrivate = async (req, res) => {
             products,
 
             searchId: "product-search",
-            searchPlaceholder: "Buscar por nombre, principio activo o ID...",
+            searchPlaceholder: "Buscar por nombre, registro y fabricante....",
             searchFilters: [
                 {
                     id: "filter-category",
@@ -232,6 +232,10 @@ export const productsPrivate = async (req, res) => {
                         { value: "herbicida", text: "Herbicidas" },
                         { value: "insecticida", text: "Insecticidas" },
                         { value: "fungicida", text: "Fungicidas" },
+                        { value: "fertilizante", text: "Fertilizantes" },
+                        { value: "acaricida", text: "Acaricidas" },
+                        { value: "bactericida", text: "Bactericidas" },
+                        { value: "coadyuvante", text: "Coadyuvantes" },
                     ],
                 },
             ],
