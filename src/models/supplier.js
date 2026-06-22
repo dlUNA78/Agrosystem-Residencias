@@ -1,7 +1,5 @@
-'use strict';
-const {
-  Model
-} = require('sequelize');
+import { Model } from "sequelize";
+
 export default (sequelize, DataTypes) => {
   class Supplier extends Model {
     /**
@@ -13,12 +11,20 @@ export default (sequelize, DataTypes) => {
       // define association here
     }
   }
+
   Supplier.init({
-    nombre: DataTypes.STRING,
-    contacto: DataTypes.STRING
+    name: DataTypes.STRING,
+    rfc: DataTypes.STRING,
+    contact_name: DataTypes.STRING,
+    email: DataTypes.STRING,
+    phone: DataTypes.STRING,
+    supply_type: DataTypes.STRING,
+    address: DataTypes.STRING,
+    status: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'Supplier',
   });
+
   return Supplier;
 };

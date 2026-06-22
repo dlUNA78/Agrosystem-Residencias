@@ -1,31 +1,47 @@
-'use strict';
-/** @type {import('sequelize-cli').Migration} */
 export default {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable('Forums', {
       id: {
+        type: Sequelize.INTEGER,
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
-        type: Sequelize.INTEGER
       },
-      titulo: {
-        type: Sequelize.STRING
+      title: {
+        type: Sequelize.STRING,
+        allowNull: false,
       },
-      contenido: {
-        type: Sequelize.TEXT
+      content: {
+        type: Sequelize.TEXT,
+      },
+      category: {
+        type: Sequelize.STRING,
+      },
+      image_url: {
+        type: Sequelize.STRING,
+      },
+      user_id: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        references: {
+          model: 'Users',
+          key: 'id',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE',
       },
       createdAt: {
+        type: Sequelize.DATE,
         allowNull: false,
-        type: Sequelize.DATE
       },
       updatedAt: {
+        type: Sequelize.DATE,
         allowNull: false,
-        type: Sequelize.DATE
-      }
+      },
     });
   },
-  async down(queryInterface, Sequelize) {
+
+  async down(queryInterface) {
     await queryInterface.dropTable('Forums');
-  }
+  },
 };

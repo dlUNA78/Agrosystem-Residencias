@@ -1,7 +1,5 @@
-'use strict';
-const {
-  Model
-} = require('sequelize');
+import { Model } from "sequelize";
+
 export default (sequelize, DataTypes) => {
   class Forum extends Model {
     /**
@@ -13,12 +11,17 @@ export default (sequelize, DataTypes) => {
       // define association here
     }
   }
+
   Forum.init({
-    titulo: DataTypes.STRING,
-    contenido: DataTypes.TEXT
+    title: DataTypes.STRING,
+    content: DataTypes.TEXT,
+    category: DataTypes.STRING,
+    image_url: DataTypes.STRING,
+    user_id: DataTypes.INTEGER
   }, {
     sequelize,
     modelName: 'Forum',
   });
+
   return Forum;
 };

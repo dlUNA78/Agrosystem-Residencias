@@ -1,31 +1,53 @@
-'use strict';
-/** @type {import('sequelize-cli').Migration} */
 export default {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable('Plagues', {
       id: {
+        type: Sequelize.INTEGER,
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
-        type: Sequelize.INTEGER
       },
-      nombre: {
-        type: Sequelize.STRING
+      name: {
+        type: Sequelize.STRING,
+        allowNull: false,
       },
-      sintomas: {
-        type: Sequelize.STRING
+      category: {
+        type: Sequelize.STRING,
+      },
+      description: {
+        type: Sequelize.TEXT,
+      },
+      risk_level: {
+        type: Sequelize.STRING,
+      },
+      region: {
+        type: Sequelize.STRING,
+      },
+      image_url: {
+        type: Sequelize.STRING,
+      },
+      symptoms: {
+        type: Sequelize.TEXT,
+      },
+      control_methods: {
+        type: Sequelize.TEXT,
+      },
+      status: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: true,
       },
       createdAt: {
+        type: Sequelize.DATE,
         allowNull: false,
-        type: Sequelize.DATE
       },
       updatedAt: {
+        type: Sequelize.DATE,
         allowNull: false,
-        type: Sequelize.DATE
-      }
+      },
     });
   },
-  async down(queryInterface, Sequelize) {
+
+  async down(queryInterface) {
     await queryInterface.dropTable('Plagues');
-  }
+  },
 };

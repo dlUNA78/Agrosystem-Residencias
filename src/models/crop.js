@@ -1,7 +1,5 @@
-'use strict';
-const {
-  Model
-} = require('sequelize');
+import { Model } from "sequelize";
+
 export default (sequelize, DataTypes) => {
   class Crop extends Model {
     /**
@@ -13,12 +11,19 @@ export default (sequelize, DataTypes) => {
       // define association here
     }
   }
+
   Crop.init({
-    nombre: DataTypes.STRING,
-    descripcion: DataTypes.STRING
+    name: DataTypes.STRING,
+    category: DataTypes.STRING,
+    description: DataTypes.TEXT,
+    climate: DataTypes.STRING,
+    region: DataTypes.STRING,
+    image_url: DataTypes.STRING,
+    status: DataTypes.BOOLEAN
   }, {
     sequelize,
     modelName: 'Crop',
   });
+
   return Crop;
 };

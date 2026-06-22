@@ -19,7 +19,7 @@
                     <span class="material-symbols-outlined text-[#43655c] text-xl">inventory_2</span>
                 </div>
                 <div>
-                    <p class="text-2xl font-extrabold text-[#0F2E2E] leading-none">800</p>
+                    <p class="text-2xl font-extrabold text-[#0F2E2E] leading-none">{{stats.total}}</p>
                     <p class="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold mt-0.5">Total</p>
                 </div>
             </div>
@@ -29,7 +29,7 @@
                     <span class="material-symbols-outlined text-emerald-600 text-xl">verified</span>
                 </div>
                 <div>
-                    <p class="text-2xl font-extrabold text-[#0F2E2E] leading-none">612</p>
+                    <p class="text-2xl font-extrabold text-[#0F2E2E] leading-none">{{stats.aprobados}}</p>
                     <p class="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold mt-0.5">Aprobados
                     </p>
                 </div>
@@ -40,7 +40,7 @@
                     <span class="material-symbols-outlined text-amber-600 text-xl">schedule</span>
                 </div>
                 <div>
-                    <p class="text-2xl font-extrabold text-[#0F2E2E] leading-none">147</p>
+                    <p class="text-2xl font-extrabold text-[#0F2E2E] leading-none">{{stats.pendientes}}</p>
                     <p class="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold mt-0.5">Pendientes
                     </p>
                 </div>
@@ -51,326 +51,268 @@
                     <span class="material-symbols-outlined text-red-500 text-xl">block</span>
                 </div>
                 <div>
-                    <p class="text-2xl font-extrabold text-[#0F2E2E] leading-none">41</p>
+                    <p class="text-2xl font-extrabold text-[#0F2E2E] leading-none">{{stats.restringidos}}</p>
                     <p class="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold mt-0.5">
                         Restringidos</p>
                 </div>
+
             </div>
         </div>
 
         {{!-- Control Bar & Search --}}
         {{> private/search-bar}}
 
-
-
         <!-- Alert Panel -->
         <div
             class="bg-amber-50 border border-amber-100 p-4 rounded-xl flex flex-wrap items-center justify-between gap-3 shadow-sm">
+
             <div class="flex items-center gap-3">
                 <div class="bg-amber-100 p-2 rounded-full">
                     <span class="material-symbols-outlined text-amber-700">feedback</span>
                 </div>
+
                 <p class="text-amber-900 font-medium text-sm tracking-tight">
-                    Tienes <span class="font-bold">18 productos</span> con registro próximo a vencer en los próximos 90
-                    días.
+                    Tienes
+                    <span class="font-bold">{{expiringSoon}}</span>
+                    productos con registro próximo a vencer en los próximos 60 días.
                 </p>
             </div>
-            <button
+
+            <!-- BOTÓN CORRECTO -->
+            <button id="btn-expiring-products"
                 class="bg-white text-amber-800 border border-amber-200 px-5 py-2 rounded-lg text-xs font-bold hover:bg-amber-100 transition-colors">
                 Ver registros
             </button>
+
         </div>
 
+        <!-- MODAL PRODUCTOS POR VENCER -->
+        <div id="expiring-products-modal" class="fixed inset-0 hidden items-center justify-center bg-black/50 z-50">
+
+            <div class="bg-white rounded-2xl shadow-xl w-full max-w-5xl max-h-[85vh] overflow-hidden">
+
+                <!-- Header -->
+                <div class="flex items-center justify-between p-5 border-b">
+                    <div>
+                        <h2 class="text-xl font-bold text-[#0F2E2E]">
+                            Productos próximos a vencer
+                        </h2>
+
+                        <p class="text-sm text-gray-500">
+                            Registros que vencerán en los próximos 60 días.
+                        </p>
+                    </div>
+
+                    <button id="close-expiring-modal" class="text-gray-500 hover:text-red-600 text-2xl">
+                        &times;
+                    </button>
+                </div>
+
+                <!-- Tabla -->
+                <div class="overflow-y-auto max-h-[500px]">
+
+                    <table class="w-full">
+
+                        <thead class="bg-gray-100">
+
+                            <tr>
+                                <th class="p-3 text-left">Producto</th>
+                                <th class="p-3 text-left">Registro</th>
+                                <th class="p-3 text-left">Fabricante</th>
+                                <th class="p-3 text-left">Vence</th>
+                                <th class="p-3 text-center">Acciones</th>
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            {{#each expiringProducts}}
+
+                            <tr class="border-b">
+
+                                <td class="p-3">{{name}}</td>
+
+                                <td class="p-3">{{registration_code}}</td>
+
+                                <td class="p-3">{{manufacturer}}</td>
+
+                                <td class="p-3">{{expiration_date}}</td>
+
+                                <td class="p-3 text-center">
+
+                                    <button onclick="window.location.href='/private/products/edit/{{id}}'"
+                                        class="text-blue-600 hover:underline mr-4">
+                                        ✏️ Editar
+                                    </button>
+
+                                </td>
+
+                            </tr>
+
+                            {{else}}
+
+                            <tr>
+                                <td colspan="5" class="text-center p-6 text-gray-500">
+                                    No hay productos próximos a vencer.
+                                </td>
+                            </tr>
+
+                            {{/each}}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+                <!-- Footer -->
+                <div class="flex justify-end p-5 border-t">
+
+                    <button id="cancel-expiring-modal" class="px-5 py-2 rounded-lg bg-gray-200 hover:bg-gray-300">
+                        Cancelar
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
         <!-- TABLE VIEW -->
         <div id="products-table-view" style="display:none"
-            class="bg-surface-container-lowest rounded-2xl shadow-sm overflow-hidden border border-outline-variant/10">
-            <table class="w-full text-left border-collapse min-w-[900px]">
-                <thead>
-                    <tr class="bg-surface-container-low/50">
-                        <th class="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
-                            Imagen</th>
-                        <th class="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
-                            Producto</th>
-                        <th class="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
-                            Categoría</th>
-                        <th class="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
-                            Fabricante</th>
-                        <th
-                            class="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant text-center">
-                            Validación</th>
-                        <th
-                            class="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant text-center">
-                            Estatus</th>
-                        <th
-                            class="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant text-right">
-                            Acciones</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-surface-container">
-                    <!-- Row 1 -->
-                    <tr class="hover:bg-surface/50 transition-colors">
-                        <td class="px-6 py-5">
-                            <img alt="Glyphomax Pro"
-                                class="w-20 h-14 rounded-lg object-cover bg-surface-container shadow-sm"
-                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBpYvHdfyRdsXBovCCwkEFfy0uToHjDFKtazlAJYltEsM93mMCaoKeyMyPdCy9DMaOklI2-RgBprSvR8TAtOTbq8sysvmtza4RceIEThHyVjb-2Dt6qALOFVvAfUckXSta61eU7gWnXb15LZqFKgIIattsfmn1EZ4uskCr-RIu-jbKONm5SatA__VBIeuWs7ovJ4HLGSDtH3kZBc_rDrpwW6NLCYansjmNY-HKwpaMbItXduTYb0x7Tjr5o52GI1fXe83CXKPUuvrif" />
-                        </td>
-                        <td class="px-6 py-5">
-                            <a href="/private/products/glyphomax-pro-480" class="hover:text-primary transition-colors">
-                                <p class="font-bold text-on-surface text-sm">Glyphomax Pro 480</p>
-                            </a>
-                            <p class="text-xs italic text-on-surface-variant">Glifosato 48% · ID: AG-4022</p>
-                        </td>
-                        <td class="px-6 py-5">
-                            <span
-                                class="px-3 py-1 bg-blue-50 text-blue-700 border border-blue-100 rounded-full text-[10px] font-bold uppercase tracking-tight">Herbicida</span>
-                        </td>
-                        <td class="px-6 py-5 text-sm text-on-surface-variant font-medium">AgroScience Labs</td>
-                        <td class="px-6 py-5 text-center">
-                        <span class="px-3 py-1.5 bg-[#43655c] text-white rounded-full text-[10px] font-black uppercase flex items-center gap-1 mx-auto w-fit">
-                                <span class="material-symbols-outlined text-xs leading-none" style="font-variation-settings:'FILL' 1">verified</span>
-                                INIFAP
-                            </span>
-                        </td>
-                        <td class="px-6 py-5 text-center">
-                            <div
-                                class="flex items-center justify-center gap-1.5 text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100 mx-auto w-fit">
-                                <span class="material-symbols-outlined text-sm"
-                                    style="font-variation-settings: 'FILL' 1;">check_circle</span>
-                                <span class="text-[10px] font-black uppercase">Aprobado</span>
-                            </div>
-                        </td>
-                        <td class="px-6 py-5">
-                            <div class="flex justify-end gap-3 text-on-surface-variant">
-                                <button class="hover:text-primary transition-colors" title="Ver detalles">
-                                    <span class="material-symbols-outlined">visibility</span>
+            class="bg-surface-container-lowest rounded-2xl shadow-sm border border-outline-variant/10 overflow-x-auto">
+
+            <div class="min-w-[1200px]">
+                <table class="w-full text-left border-collapse min-w-[1200px]">
+
+                    <thead>
+                        <tr class="bg-surface-container-low/50">
+
+                            <th
+                                class="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
+                                Imagen
+                            </th>
+
+                            <th
+                                class="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
+                                Producto
+                            </th>
+
+                            <th
+                                class="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
+                                Categoría
+                            </th>
+
+                            <th
+                                class="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
+                                Ingrediente activo
+                            </th>
+
+                            <th
+                                class="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
+                                Registro
+                            </th>
+
+                            <th
+                                class="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
+                                Fabricante
+                            </th>
+
+                            <th
+                                class="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
+                                Cultivos
+                            </th>
+
+                            <th
+                                class="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant text-center">
+                                Validación
+                            </th>
+
+                            <th
+                                class="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant text-center">
+                                Estatus
+                            </th>
+
+                            <th
+                                class="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant text-right">
+                                Acciones
+                            </th>
+
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {{#each products}}
+                        <tr class="product-item" data-name="{{name}}" data-category="{{category}}"
+                            data-manufacturer="{{manufacturer}}" data-active="{{active_ingredient}}"
+                            data-registration="{{registration_code}}" data-status="{{validation_status}}">
+
+                            <td class="px-6 py-4">
+                                <img src="/{{image_url}}" alt="{{name}}" class="w-14 h-14 rounded-lg object-cover"
+                                    onerror="this.src='/images/test/default.png'">
+                            </td>
+
+                            <td class="px-6 py-4 font-semibold">
+                                {{name}}
+                            </td>
+
+                            <td class="px-6 py-4">
+                                {{category}}
+                            </td>
+
+                            <td class="px-6 py-4">
+                                {{active_ingredient}}
+                            </td>
+
+                            <td class="px-6 py-4">
+                                {{registration_code}}
+                            </td>
+
+                            <td class="px-6 py-4">
+                                {{manufacturer}}
+                            </td>
+
+                            <td class="px-6 py-4">
+                                {{target_crops}}
+                            </td>
+
+                            <td class="px-6 py-4 text-center">
+                                {{validation_status}}
+                            </td>
+
+                            <td class="px-6 py-4 text-center">
+                                {{#if status}}
+                                <span class="text-green-600 font-semibold">Activo</span>
+                                {{else}}
+                                <span class="text-red-600 font-semibold">Inactivo</span>
+                                {{/if}}
+                            </td>
+
+                            <td class="px-6 py-4 text-right whitespace-nowrap">
+
+                                <button type="button" onclick="window.location.href='/private/products/edit/{{id}}'"
+                                    class="inline-flex items-center gap-1 text-blue-600 hover:underline">
+                                    ✏️ Editar
                                 </button>
-                                <button class="hover:text-primary transition-colors" title="Editar">
-                                    <span class="material-symbols-outlined">edit</span>
-                                </button>
-                                <button class="hover:text-error transition-colors" title="Eliminar">
-                                    <span class="material-symbols-outlined">delete</span>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    <!-- Row 2 -->
-                    <tr class="hover:bg-surface/50 transition-colors">
-                        <td class="px-6 py-5">
-                            <img alt="Cyper-Guard Ultra"
-                                class="w-20 h-14 rounded-lg object-cover bg-surface-container shadow-sm"
-                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCCBVn1Zglj4tUI93JXjq1ke8wH_QCArUZSZOszxg4YpVZdW-FPz1Z8EIZ4cCRTkZoj8XwHk41xHMgiywjevrlIfG4beORYJ2WKOKxBjYYb_mmUbLFPHH25hbv4_W6yDaRJE9X5Pl-ZKwhuAsUQ2dgo32mGnRWuiiVu8btAUl41zmD3OC07_XuIRTa11-PpW3j5UQs9TqPrJ-wCe9H7Rctr6gVuoOyPbsTiLxhJF2bnf9dC5YfymKt-WpRpTU6vzJxL2swz9PMoeASx" />
-                        </td>
-                        <td class="px-6 py-5">
-                            <p class="font-bold text-on-surface text-sm">Cyper-Guard Ultra</p>
-                            <p class="text-xs italic text-on-surface-variant">Cipermetrina 25% · ID: IN-9921</p>
-                        </td>
-                        <td class="px-6 py-5">
-                            <span
-                                class="px-3 py-1 bg-orange-50 text-orange-700 border border-orange-100 rounded-full text-[10px] font-bold uppercase tracking-tight">Insecticida</span>
-                        </td>
-                        <td class="px-6 py-5 text-sm text-on-surface-variant font-medium">BioCrop Solutions</td>
-                        <td class="px-6 py-5 text-center">
-                        <span class="px-3 py-1.5 bg-[#43655c] text-white rounded-full text-[10px] font-black uppercase flex items-center gap-1 mx-auto w-fit">
-                                <span class="material-symbols-outlined text-xs leading-none" style="font-variation-settings:'FILL' 1">verified</span>
-                                INIFAP
-                            </span>
-                        </td>
-                        <td class="px-6 py-5 text-center">
-                            <div
-                                class="flex items-center justify-center gap-1.5 text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100 mx-auto w-fit">
-                                <span class="material-symbols-outlined text-sm"
-                                    style="font-variation-settings: 'FILL' 1;">check_circle</span>
-                                <span class="text-[10px] font-black uppercase">Aprobado</span>
-                            </div>
-                        </td>
-                        <td class="px-6 py-5">
-                            <div class="flex justify-end gap-3 text-on-surface-variant">
-                                <button class="hover:text-primary transition-colors" title="Ver detalles">
-                                    <span class="material-symbols-outlined">visibility</span>
-                                </button>
-                                <button class="hover:text-primary transition-colors" title="Editar">
-                                    <span class="material-symbols-outlined">edit</span>
-                                </button>
-                                <button class="hover:text-error transition-colors" title="Eliminar">
-                                    <span class="material-symbols-outlined">delete</span>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    <!-- Row 3 -->
-                    <tr class="hover:bg-surface/50 transition-colors">
-                        <td class="px-6 py-5">
-                            <img alt="Tebuzol Plus"
-                                class="w-20 h-14 rounded-lg object-cover bg-surface-container shadow-sm"
-                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuAYr0Ji2garOqLnZ6jCTdSb9pt81V7BabTyik232h_ssCFwoIcwBjgfNlpz1rmmSYAUMhEPUhgc03jF4oq7ks6qY-UpoiuYR1O4z4mBKOYJHRt8JFnhUOdBiOtvRzcpNk4yDhtnskZshRSQdal4qGKkIV61oKi53elEyFLbBeCIr63cbWxxDuKYxEI_8ccms_LnbOBhfsPpPd0-CDcMNvaV5uVvQpt6Y0_O_bSApO-RpfioM__-n9aH0t-lmq2enx5sB_9ueRIT4oIu" />
-                        </td>
-                        <td class="px-6 py-5">
-                            <p class="font-bold text-on-surface text-sm">Tebuzol Plus 250</p>
-                            <p class="text-xs italic text-on-surface-variant">Tebuconazol · ID: FU-1105</p>
-                        </td>
-                        <td class="px-6 py-5">
-                            <span
-                                class="px-3 py-1 bg-green-50 text-green-700 border border-green-100 rounded-full text-[10px] font-bold uppercase tracking-tight">Fungicida</span>
-                        </td>
-                        <td class="px-6 py-5 text-sm text-on-surface-variant font-medium">TerraChem</td>
-                        <td class="px-6 py-5 text-center">
-                        <span class="px-3 py-1.5 bg-[#43655c] text-white rounded-full text-[10px] font-black uppercase flex items-center gap-1 mx-auto w-fit">
-                                <span class="material-symbols-outlined text-xs leading-none" style="font-variation-settings:'FILL' 1">verified</span>
-                                INIFAP
-                            </span>
-                        </td>
-                        <td class="px-6 py-5 text-center">
-                            <div
-                                class="flex items-center justify-center gap-1.5 text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100 mx-auto w-fit">
-                                <span class="material-symbols-outlined text-sm"
-                                    style="font-variation-settings: 'FILL' 1;">check_circle</span>
-                                <span class="text-[10px] font-black uppercase">Aprobado</span>
-                            </div>
-                        </td>
-                        <td class="px-6 py-5">
-                            <div class="flex justify-end gap-3 text-on-surface-variant">
-                                <button class="hover:text-primary transition-colors" title="Ver detalles">
-                                    <span class="material-symbols-outlined">visibility</span>
-                                </button>
-                                <button class="hover:text-primary transition-colors" title="Editar">
-                                    <span class="material-symbols-outlined">edit</span>
-                                </button>
-                                <button class="hover:text-error transition-colors" title="Eliminar">
-                                    <span class="material-symbols-outlined">delete</span>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    <!-- Row 4 - Pending -->
-                    <tr class="hover:bg-surface/50 transition-colors bg-surface-container-low/20">
-                        <td class="px-6 py-5">
-                            <img alt="NutriMax Foliar"
-                                class="w-20 h-14 rounded-lg object-cover bg-surface-container shadow-sm grayscale-[0.4]"
-                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuAC7fjMtnPsmtrBBcGa74YxhhOaMx5kse8RnQ9u6TIyo8AWaLbR0me-ZObEOpDmlEyz78gQlSxXblGL0w-TPDhhIBqIKakuc5TLYvcllFVy2vsNi-yl3cQzOCXk2aIlg24X6mqspsXSHyERcr8vZ4galGyF79ucZcbZn7uuQdIDgRgqCQrSlYs0fgBSz3oVow41dB61FuDLR5bI4qJudihQppc30jrSfuz-YLc8H_NRBVa4i4ZgTxthwrDSlOBVncjEA5gxQyNCdEph" />
-                        </td>
-                        <td class="px-6 py-5">
-                            <p class="font-bold text-on-surface text-sm">NutriMax Foliar 20</p>
-                            <p class="text-xs italic text-on-surface-variant">NPK 20-20-20 · ID: NF-0088</p>
-                        </td>
-                        <td class="px-6 py-5">
-                            <span
-                                class="px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-full text-[10px] font-bold uppercase tracking-tight">Fertilizante</span>
-                        </td>
-                        <td class="px-6 py-5 text-sm text-on-surface-variant font-medium">TerraChem</td>
-                        <td class="px-6 py-5 text-center">
-                            <span
-                                class="px-3 py-1.5 bg-amber-50 text-amber-700 rounded-full text-[10px] font-black uppercase border border-amber-100">En
-                                revisión</span>
-                        </td>
-                        <td class="px-6 py-5 text-center">
-                            <div
-                                class="flex items-center justify-center gap-1.5 text-orange-600 bg-orange-50 px-3 py-1.5 rounded-full border border-orange-100 mx-auto w-fit">
-                                <span class="material-symbols-outlined text-sm">schedule</span>
-                                <span class="text-[10px] font-black uppercase">Pendiente</span>
-                            </div>
-                        </td>
-                        <td class="px-6 py-5">
-                            <div class="flex justify-end gap-3 text-on-surface-variant">
-                                <button class="hover:text-primary transition-colors" title="Ver detalles">
-                                    <span class="material-symbols-outlined">visibility</span>
-                                </button>
-                                <button class="hover:text-primary transition-colors" title="Editar">
-                                    <span class="material-symbols-outlined">edit</span>
-                                </button>
-                                <button class="hover:text-error transition-colors" title="Eliminar">
-                                    <span class="material-symbols-outlined">delete</span>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    <!-- Row 5 - Restricted -->
-                    <tr class="hover:bg-surface/50 transition-colors">
-                        <td class="px-6 py-5">
-                            <img alt="AcaroStop WP"
-                                class="w-20 h-14 rounded-lg object-cover bg-surface-container shadow-sm"
-                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDFVIYnNpvlElOwOJohrbvHADP0pUo2qHoUGut_7g-uE7IqxVEKXnm3e90pBKuERXwyJbuGyDk3D7GyBtxStSUmPAMjf0hbmIV1m0TluXy1g_mF4Yb4B0UxR0TLDuSp7m9rYu0guCGxr31U1O5G2V0SI2sb9PkV_ySezpFXsOsDykeyn5e17B_230SkddLFOZ40rvRPm4rY03eIWwzUrAQ2GV22PtEYexkZYOUGPI_0L3riAV44U55BUK-DgT-ZCuvgvqvuTIy63-Lf" />
-                        </td>
-                        <td class="px-6 py-5">
-                            <p class="font-bold text-on-surface text-sm">AcaroStop WP 50</p>
-                            <p class="text-xs italic text-on-surface-variant">Abamectina 1.8% · ID: AC-5512</p>
-                        </td>
-                        <td class="px-6 py-5">
-                            <span
-                                class="px-3 py-1 bg-red-50 text-red-700 border border-red-100 rounded-full text-[10px] font-bold uppercase tracking-tight">Acaricida</span>
-                        </td>
-                        <td class="px-6 py-5 text-sm text-on-surface-variant font-medium">AgroScience Labs</td>
-                        <td class="px-6 py-5 text-center">
-                            <span
-                                class="px-3 py-1.5 bg-red-50 text-red-600 rounded-full text-[10px] font-black uppercase border border-red-100">Restringido</span>
-                        </td>
-                        <td class="px-6 py-5 text-center">
-                            <div
-                                class="flex items-center justify-center gap-1.5 text-red-600 bg-red-50 px-3 py-1.5 rounded-full border border-red-100 mx-auto w-fit">
-                                <span class="material-symbols-outlined text-sm"
-                                    style="font-variation-settings: 'FILL' 1;">block</span>
-                                <span class="text-[10px] font-black uppercase">Restringido</span>
-                            </div>
-                        </td>
-                        <td class="px-6 py-5">
-                            <div class="flex justify-end gap-3 text-on-surface-variant">
-                                <button class="hover:text-primary transition-colors" title="Ver detalles">
-                                    <span class="material-symbols-outlined">visibility</span>
-                                </button>
-                                <button class="hover:text-primary transition-colors" title="Editar">
-                                    <span class="material-symbols-outlined">edit</span>
-                                </button>
-                                <button class="hover:text-error transition-colors" title="Eliminar">
-                                    <span class="material-symbols-outlined">delete</span>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    <!-- Row 6 -->
-                    <tr class="hover:bg-surface/50 transition-colors">
-                        <td class="px-6 py-5">
-                            <img alt="Strepto-Bio Control"
-                                class="w-20 h-14 rounded-lg object-cover bg-surface-container shadow-sm"
-                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDIrkOyiWW01AhxioPu8KGeNnTt3jBnegKAJ79UqnsoSpZIxaJEa2uGusC8ok8bR9YqfJRJwgxwdiv1IJPZ_aE-3RIZ6x5GVpr-c0h4FNeRCZQbPj_wWdfERW22GV8EWAGT5qdAclnWjEu_hKHi8icZwqyLos6TnAxo94U68dBIG_6LuzjFBsTcfsBTfWch2nd1UYHA_UcT9s80avDBe3zTCRdBmGgRlhavPA0m7kTrjad9Vwq2KBXK8fjhRoZFQchs-auZUcMh27bR" />
-                        </td>
-                        <td class="px-6 py-5">
-                            <p class="font-bold text-on-surface text-sm">Strepto-Bio Control</p>
-                            <p class="text-xs italic text-on-surface-variant">Estreptomicina · ID: BA-3301</p>
-                        </td>
-                        <td class="px-6 py-5">
-                            <span
-                                class="px-3 py-1 bg-purple-50 text-purple-700 border border-purple-100 rounded-full text-[10px] font-bold uppercase tracking-tight">Bactericida</span>
-                        </td>
-                        <td class="px-6 py-5 text-sm text-on-surface-variant font-medium">BioCrop Solutions</td>
-                        <td class="px-6 py-5 text-center">
-                        <span class="px-3 py-1.5 bg-[#43655c] text-white rounded-full text-[10px] font-black uppercase flex items-center gap-1 mx-auto w-fit">
-                                <span class="material-symbols-outlined text-xs leading-none" style="font-variation-settings:'FILL' 1">verified</span>
-                                INIFAP
-                            </span>
-                        </td>
-                        <td class="px-6 py-5 text-center">
-                            <div
-                                class="flex items-center justify-center gap-1.5 text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100 mx-auto w-fit">
-                                <span class="material-symbols-outlined text-sm"
-                                    style="font-variation-settings: 'FILL' 1;">check_circle</span>
-                                <span class="text-[10px] font-black uppercase">Aprobado</span>
-                            </div>
-                        </td>
-                        <td class="px-6 py-5">
-                            <div class="flex justify-end gap-3 text-on-surface-variant">
-                                <button class="hover:text-primary transition-colors" title="Ver detalles">
-                                    <span class="material-symbols-outlined">visibility</span>
-                                </button>
-                                <button class="hover:text-primary transition-colors" title="Editar">
-                                    <span class="material-symbols-outlined">edit</span>
-                                </button>
-                                <button class="hover:text-error transition-colors" title="Eliminar">
-                                    <span class="material-symbols-outlined">delete</span>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+                                <form id="delete-form-{{id}}" action="/private/products/delete/{{id}}" method="POST"
+                                    style="display:inline;">
+
+                                    <button type="button" data-delete-btn data-id="{{id}}" data-name="{{name}}"
+                                        class="inline-flex items-center gap-1 text-red-600 hover:underline">
+                                        🗑 Eliminar
+                                    </button>
+
+                                </form>
+
+                            </td>
+
+                        </tr>
+                        {{/each}}
+                    </tbody>
+
+                </table>
+            </div>
 
             <!-- Pagination -->
             <div
@@ -396,100 +338,88 @@
 
         <!-- GRID VIEW -->
         <div id="products-grid-view" class="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 grid">
-            <!-- Grid cards would render here (same data as table) -->
-            <div
-                class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm overflow-hidden group hover:-translate-y-1 transition-all duration-300">
+
+            {{#each products}}
+            <!-- para buscar-->
+            <div class="product-item" data-name="{{name}}" data-category="{{category}}"
+                data-manufacturer="{{manufacturer}}" data-active="{{active_ingredient}}"
+                data-registration="{{registration_code}}" data-status="{{validation_status}}">
+
+                <!-- IMAGE -->
                 <div class="relative h-40 overflow-hidden">
                     <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuBpYvHdfyRdsXBovCCwkEFfy0uToHjDFKtazlAJYltEsM93mMCaoKeyMyPdCy9DMaOklI2-RgBprSvR8TAtOTbq8sysvmtza4RceIEThHyVjb-2Dt6qALOFVvAfUckXSta61eU7gWnXb15LZqFKgIIattsfmn1EZ4uskCr-RIu-jbKONm5SatA__VBIeuWs7ovJ4HLGSDtH3kZBc_rDrpwW6NLCYansjmNY-HKwpaMbItXduTYb0x7Tjr5o52GI1fXe83CXKPUuvrif"
-                        alt="Glyphomax Pro" />
+                        src="/{{image_url}}" alt="{{name}}" onerror="this.src='/images/test/default.png'" />
+
                     <div class="absolute top-2 left-2">
-                        <span class="inline-flex items-center gap-0.5 px-2 py-1 bg-[#43655c] text-white rounded text-[9px] font-black uppercase shadow-lg">
-                                <span class="material-symbols-outlined text-xs leading-none" style="font-variation-settings:'FILL' 1">verified</span>
-                                INIFAP
-                            </span>
+                        <span
+                            class="inline-flex items-center gap-0.5 px-2 py-1 bg-[#43655c] text-white rounded text-[9px] font-black uppercase shadow-lg">
+                            <span class="material-symbols-outlined text-xs leading-none"
+                                style="font-variation-settings:'FILL' 1">verified</span>
+                            {{validation_status}}
+                        </span>
                     </div>
                 </div>
+
+                <!-- CONTENT -->
                 <div class="p-4">
-                    <span class="text-[9px] font-black uppercase tracking-widest text-blue-600">Herbicida</span>
-                    <a href="/private/products/glyphomax-pro-480" class="hover:text-primary transition-colors">
-                        <h3 class="font-bold text-on-surface text-sm mt-1">Glyphomax Pro 480</h3>
-                    </a>
-                    <p class="text-xs italic text-on-surface-variant">Glifosato 48% · AG-4022</p>
+
+                    <span class="text-[9px] font-black uppercase tracking-widest
+                {{#if (eq category " Insecticida")}}text-orange-600{{/if}} {{#if (eq category "Fungicida"
+                        )}}text-green-600{{/if}} {{#if (eq category "Herbicida" )}}text-blue-600{{/if}}">
+                        {{category}}
+                    </span>
+
+                    <h3 class="font-bold text-on-surface text-sm mt-1">
+                        {{name}}
+                    </h3>
+
+                    <p class="text-xs italic text-on-surface-variant">
+                        {{active_ingredient}} · {{registration_code}}
+                    </p>
+
                     <div class="mt-3 pt-3 border-t border-surface-container flex justify-between items-center">
-                        <span class="text-[10px] text-on-surface-variant">AgroScience Labs</span>
-                        <div class="flex gap-2 text-on-surface-variant">
-                            <button class="hover:text-primary transition-colors"><span
-                                    class="material-symbols-outlined text-base">edit</span></button>
-                            <button class="hover:text-error transition-colors"><span
-                                    class="material-symbols-outlined text-base">delete</span></button>
+
+                        <span class="text-[10px] text-on-surface-variant">
+                            {{manufacturer}}
+                        </span>
+
+                        <!-- ACTIONS -->
+                        <div class="flex gap-3">
+
+                            <button type="button" onclick="window.location.href='/private/products/edit/{{id}}'"
+                                class="text-blue-600 hover:underline">
+                                ✏️ Editar
+                            </button>
+
+                            <button type="button" data-delete-btn data-id="{{id}}" data-name="{{name}}"
+                                class="text-red-600 hover:underline">
+                                🗑 Eliminar
+                            </button>
+
                         </div>
+
                     </div>
                 </div>
             </div>
-            <div
-                class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm overflow-hidden group hover:-translate-y-1 transition-all duration-300">
-                <div class="relative h-40 overflow-hidden">
-                    <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuCCBVn1Zglj4tUI93JXjq1ke8wH_QCArUZSZOszxg4YpVZdW-FPz1Z8EIZ4cCRTkZoj8XwHk41xHMgiywjevrlIfG4beORYJ2WKOKxBjYYb_mmUbLFPHH25hbv4_W6yDaRJE9X5Pl-ZKwhuAsUQ2dgo32mGnRWuiiVu8btAUl41zmD3OC07_XuIRTa11-PpW3j5UQs9TqPrJ-wCe9H7Rctr6gVuoOyPbsTiLxhJF2bnf9dC5YfymKt-WpRpTU6vzJxL2swz9PMoeASx"
-                        alt="Cyper-Guard Ultra" />
-                    <div class="absolute top-2 left-2">
-                        <span class="inline-flex items-center gap-0.5 px-2 py-1 bg-[#43655c] text-white rounded text-[9px] font-black uppercase shadow-lg">
-                                <span class="material-symbols-outlined text-xs leading-none" style="font-variation-settings:'FILL' 1">verified</span>
-                                INIFAP
-                            </span>
-                    </div>
-                </div>
-                <div class="p-4">
-                    <span class="text-[9px] font-black uppercase tracking-widest text-orange-600">Insecticida</span>
-                    <h3 class="font-bold text-on-surface text-sm mt-1">Cyper-Guard Ultra</h3>
-                    <p class="text-xs italic text-on-surface-variant">Cipermetrina 25% · IN-9921</p>
-                    <div class="mt-3 pt-3 border-t border-surface-container flex justify-between items-center">
-                        <span class="text-[10px] text-on-surface-variant">BioCrop Solutions</span>
-                        <div class="flex gap-2 text-on-surface-variant">
-                            <button class="hover:text-primary transition-colors"><span
-                                    class="material-symbols-outlined text-base">edit</span></button>
-                            <button class="hover:text-error transition-colors"><span
-                                    class="material-symbols-outlined text-base">delete</span></button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div
-                class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm overflow-hidden group hover:-translate-y-1 transition-all duration-300">
-                <div class="relative h-40 overflow-hidden">
-                    <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuAYr0Ji2garOqLnZ6jCTdSb9pt81V7BabTyik232h_ssCFwoIcwBjgfNlpz1rmmSYAUMhEPUhgc03jF4oq7ks6qY-UpoiuYR1O4z4mBKOYJHRt8JFnhUOdBiOtvRzcpNk4yDhtnskZshRSQdal4qGKkIV61oKi53elEyFLbBeCIr63cbWxxDuKYxEI_8ccms_LnbOBhfsPpPd0-CDcMNvaV5uVvQpt6Y0_O_bSApO-RpfioM__-n9aH0t-lmq2enx5sB_9ueRIT4oIu"
-                        alt="Tebuzol Plus" />
-                    <div class="absolute top-2 left-2">
-                        <span class="inline-flex items-center gap-0.5 px-2 py-1 bg-[#43655c] text-white rounded text-[9px] font-black uppercase shadow-lg">
-                                <span class="material-symbols-outlined text-xs leading-none" style="font-variation-settings:'FILL' 1">verified</span>
-                                INIFAP
-                            </span>
-                    </div>
-                </div>
-                <div class="p-4">
-                    <span class="text-[9px] font-black uppercase tracking-widest text-green-600">Fungicida</span>
-                    <h3 class="font-bold text-on-surface text-sm mt-1">Tebuzol Plus 250</h3>
-                    <p class="text-xs italic text-on-surface-variant">Tebuconazol · FU-1105</p>
-                    <div class="mt-3 pt-3 border-t border-surface-container flex justify-between items-center">
-                        <span class="text-[10px] text-on-surface-variant">TerraChem</span>
-                        <div class="flex gap-2 text-on-surface-variant">
-                            <button class="hover:text-primary transition-colors"><span
-                                    class="material-symbols-outlined text-base">edit</span></button>
-                            <button class="hover:text-error transition-colors"><span
-                                    class="material-symbols-outlined text-base">delete</span></button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- Add New Card -->
-            <div id="btn-add-product-card" class="bg-surface-container-lowest rounded-xl border-2 border-dashed border-primary/20 shadow-sm overflow-hidden group hover:-translate-y-1 transition-all duration-300 flex items-center justify-center min-h-[220px] cursor-pointer">
+
+            {{/each}}
+
+            <!-- ADD CARD -->
+            <div id="btn-add-product-card"
+                class="bg-surface-container-lowest rounded-xl border-2 border-dashed border-primary/20 shadow-sm overflow-hidden group hover:-translate-y-1 transition-all duration-300 flex items-center justify-center min-h-[220px] cursor-pointer">
+
                 <div class="text-center p-6">
-                    <span class="material-symbols-outlined text-3xl text-primary/30 mb-2 group-hover:text-primary/50 transition-colors">add_circle</span>
-                    <p class="text-sm font-bold text-on-surface-variant group-hover:text-primary transition-colors">Añadir producto</p>
+                    <span
+                        class="material-symbols-outlined text-3xl text-primary/30 mb-2 group-hover:text-primary/50 transition-colors">
+                        add_circle
+                    </span>
+
+                    <p class="text-sm font-bold text-on-surface-variant group-hover:text-primary transition-colors">
+                        Añadir producto
+                    </p>
                 </div>
             </div>
+
         </div>
 
     </div>
@@ -510,94 +440,187 @@
                 <span class="material-symbols-outlined">close</span>
             </button>
         </div>
-        <form class="p-6 space-y-5">
+        <form action="/private/products/create" method="POST" enctype="multipart/form-data" class="p-6 space-y-5">
+
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+                <!-- Nombre -->
                 <div class="sm:col-span-2">
-                    <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-2">Nombre
-                        Comercial *</label>
-                    <input type="text" placeholder="Ej. Glyphomax Pro 480"
-                        class="w-full bg-surface-container-low border-none rounded-lg py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20 placeholder:text-on-surface-variant/40" />
+                    <label class="block text-xs font-bold uppercase tracking-widest mb-2">
+                        Nombre Comercial *
+                    </label>
+
+                    <input type="text" name="name" required placeholder="Ej. Glyphomax Pro 480"
+                        class="w-full bg-surface-container-low rounded-lg py-3 px-4 text-sm border-none focus:ring-2 focus:ring-primary/20">
                 </div>
-                <div>
-                    <label
-                        class="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-2">Principio
-                        Activo *</label>
-                    <input type="text" placeholder="Ej. Glifosato 48%"
-                        class="w-full bg-surface-container-low border-none rounded-lg py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20 placeholder:text-on-surface-variant/40" />
+
+                <!-- Imagen -->
+                <div class="sm:col-span-2">
+                    <label class="block text-xs font-bold uppercase tracking-widest mb-2">
+                        Imagen del Producto *
+                    </label>
+
+                    <input type="file" name="image" accept="image/*" required
+                        class="w-full bg-surface-container-low rounded-lg py-3 px-4 text-sm border-none">
+
+                    <p class="text-xs text-gray-500 mt-2">
+                        Formatos permitidos: JPG, PNG, JPEG, WEBP
+                    </p>
                 </div>
+
+                <!-- Categoría -->
                 <div>
-                    <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-2">ID /
-                        Registro *</label>
-                    <input type="text" placeholder="Ej. AG-4022"
-                        class="w-full bg-surface-container-low border-none rounded-lg py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20 placeholder:text-on-surface-variant/40" />
-                </div>
-                <div>
-                    <label
-                        class="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-2">Categoría
-                        *</label>
-                    <select
-                        class="w-full bg-surface-container-low border-none rounded-lg py-3 px-4 text-sm text-on-surface-variant focus:ring-2 focus:ring-primary/20">
-                        <option value="">Seleccionar categoría</option>
-                        <option>Herbicida</option>
-                        <option>Insecticida</option>
-                        <option>Fungicida</option>
-                        <option>Fertilizante</option>
-                        <option>Acaricida</option>
-                        <option>Coadyuvante</option>
-                        <option>Bactericida</option>
+                    <label class="block text-xs font-bold uppercase tracking-widest mb-2">
+                        Categoría *
+                    </label>
+
+                    <select name="category" required
+                        class="w-full bg-surface-container-low rounded-lg py-3 px-4 text-sm border-none">
+
+                        <option value="">Seleccionar...</option>
+                        <option value="Herbicida">Herbicida</option>
+                        <option value="Insecticida">Insecticida</option>
+                        <option value="Fungicida">Fungicida</option>
+                        <option value="Fertilizante">Fertilizante</option>
+                        <option value="Acaricida">Acaricida</option>
+                        <option value="Bactericida">Bactericida</option>
+                        <option value="Coadyuvante">Coadyuvante</option>
+
                     </select>
                 </div>
+
+                <!-- Fabricante -->
                 <div>
-                    <label
-                        class="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-2">Fabricante
-                        *</label>
-                    <input type="text" placeholder="Ej. AgroScience Labs"
-                        class="w-full bg-surface-container-low border-none rounded-lg py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20 placeholder:text-on-surface-variant/40" />
+                    <label class="block text-xs font-bold uppercase tracking-widest mb-2">
+                        Fabricante *
+                    </label>
+
+                    <input type="text" name="manufacturer" required placeholder="Ej. Bayer"
+                        class="w-full bg-surface-container-low rounded-lg py-3 px-4 text-sm border-none">
                 </div>
+
+                <!-- Principio Activo -->
                 <div>
-                    <label
-                        class="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-2">Validación
-                        INIFAP</label>
-                    <select
-                        class="w-full bg-surface-container-low border-none rounded-lg py-3 px-4 text-sm text-on-surface-variant focus:ring-2 focus:ring-primary/20">
-                        <option>En revisión</option>
-                        <option>Validado INIFAP</option>
-                        <option>Restringido</option>
+                    <label class="block text-xs font-bold uppercase tracking-widest mb-2">
+                        Principio Activo *
+                    </label>
+
+                    <input type="text" name="active_ingredient" required placeholder="Ej. Glifosato 48%"
+                        class="w-full bg-surface-container-low rounded-lg py-3 px-4 text-sm border-none">
+                </div>
+
+                <!-- Registro -->
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-widest mb-2">
+                        Registro COFEPRIS *
+                    </label>
+
+                    <input type="text" name="registration_code" required placeholder="Ej. RSCO-1234"
+                        class="w-full bg-surface-container-low rounded-lg py-3 px-4 text-sm border-none">
+                </div>
+
+                <!-- Validación -->
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-widest mb-2">
+                        Estado de Validación
+                    </label>
+
+                    <select name="validation_status"
+                        class="w-full bg-surface-container-low rounded-lg py-3 px-4 text-sm border-none">
+
+                        <option value="pendiente">Pendiente</option>
+                        <option value="aprobado">Aprobado</option>
+                        <option value="restringido">Restringido</option>
+
                     </select>
                 </div>
+
+                <!-- Fecha -->
                 <div>
-                    <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-2">Fecha
-                        de Vencimiento de Registro</label>
-                    <input type="date"
-                        class="w-full bg-surface-container-low border-none rounded-lg py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20" />
+                    <label class="block text-xs font-bold uppercase tracking-widest mb-2">
+                        Fecha de Vencimiento
+                    </label>
+
+                    <input type="date" name="expiration_date"
+                        class="w-full bg-surface-container-low rounded-lg py-3 px-4 text-sm border-none">
                 </div>
-                <div>
-                    <label
-                        class="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-2">Cultivos
-                        Objetivo</label>
-                    <input type="text" placeholder="Ej. Maíz, Sorgo, Trigo"
-                        class="w-full bg-surface-container-low border-none rounded-lg py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20 placeholder:text-on-surface-variant/40" />
-                </div>
+
+                <!-- Cultivos -->
                 <div class="sm:col-span-2">
-                    <label
-                        class="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-2">Descripción
-                        técnica</label>
-                    <textarea rows="3" placeholder="Mecanismo de acción, espectro de control, formulación..."
-                        class="w-full bg-surface-container-low border-none rounded-lg py-3 px-4 text-sm focus:ring-2 focus:ring-primary/20 placeholder:text-on-surface-variant/40 resize-none"></textarea>
+                    <label class="block text-xs font-bold uppercase tracking-widest mb-2">
+                        Cultivos Objetivo
+                    </label>
+
+                    <input type="text" name="target_crops" placeholder="Ej. Maíz, Trigo, Sorgo"
+                        class="w-full bg-surface-container-low rounded-lg py-3 px-4 text-sm border-none">
                 </div>
+
+                <!-- Descripción -->
+                <div class="sm:col-span-2">
+                    <label class="block text-xs font-bold uppercase tracking-widest mb-2">
+                        Descripción Técnica
+                    </label>
+
+                    <textarea name="description" rows="4" placeholder="Descripción del producto..."
+                        class="w-full bg-surface-container-low rounded-lg py-3 px-4 text-sm border-none resize-none"></textarea>
+                </div>
+
+                <!-- Estado -->
+                <div class="sm:col-span-2">
+                    <label class="flex items-center gap-3">
+
+                        <input type="checkbox" name="status" value="true" checked>
+
+                        <span class="text-sm font-semibold">
+                            Producto Activo
+                        </span>
+
+                    </label>
+                </div>
+
             </div>
-            <div class="flex justify-end gap-3 pt-2 border-t border-surface-container">
+
+            <div class="flex justify-end gap-3 pt-4 border-t">
+
                 <button type="button" id="modal-product-cancel"
-                    class="px-6 py-2.5 rounded-lg bg-surface-container-low text-on-surface-variant text-sm font-bold hover:bg-surface-container transition-colors">
+                    class="px-6 py-3 rounded-lg bg-gray-200 hover:bg-gray-300">
                     Cancelar
                 </button>
-                <button type="submit"
-                    class="px-6 py-2.5 rounded-lg bg-[#43655c] text-white text-sm font-bold hover:bg-[#354f47] transition-colors shadow-sm">
+                <button type="submit" class="px-6 py-3 rounded-lg bg-[#43655c] hover:bg-[#36514a] text-white font-bold">
                     Guardar Producto
                 </button>
+
             </div>
+
         </form>
     </div>
+</div>
+
+<!-- MODAL CONFIRM DELETE -->
+<div id="delete-modal" class="fixed inset-0 hidden items-center justify-center bg-black/50 z-50">
+
+    <div class="bg-white rounded-xl shadow-xl p-6 w-full max-w-md">
+
+        <h2 class="text-lg font-bold text-[#0F2E2E]">Confirmar eliminación</h2>
+
+        <p class="text-sm text-gray-600 mt-2">
+            ¿Seguro que deseas eliminar <span id="delete-product-name" class="font-semibold"></span>?
+        </p>
+
+        <div class="flex justify-end gap-3 mt-6">
+
+            <button id="cancel-delete" class="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300">
+                Cancelar
+            </button>
+
+            <button id="confirm-delete" class="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700">
+                Eliminar
+            </button>
+
+        </div>
+
+    </div>
+
 </div>
 
 <script>
@@ -650,4 +673,137 @@
             });
         }
     })();
+</script>
+
+<script>
+    window.addEventListener('DOMContentLoaded', () => {
+
+        const modal = document.getElementById('delete-modal');
+        const nameSpan = document.getElementById('delete-product-name');
+        const cancelBtn = document.getElementById('cancel-delete');
+        const confirmBtn = document.getElementById('confirm-delete');
+
+        let formToDelete = null;
+
+        document.querySelectorAll('[data-delete-btn]').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const id = this.dataset.id;
+                const name = this.dataset.name;
+
+                formToDelete = document.getElementById('delete-form-' + id);
+
+                nameSpan.textContent = name;
+
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            });
+        });
+
+        cancelBtn.addEventListener('click', () => {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            formToDelete = null;
+        });
+
+        confirmBtn.addEventListener('click', () => {
+            if (formToDelete) formToDelete.submit();
+        });
+
+    });
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+
+        const searchInput = document.getElementById("{{searchId}}");
+
+        // todos los productos (tabla + grid)
+        const items = document.querySelectorAll(".product-item");
+
+        // selects de filtros
+        const selects = document.querySelectorAll(".filter-select");
+
+        function applyFilters() {
+
+            const query = (searchInput?.value || "")
+                .toLowerCase()
+                .trim();
+
+            // obtener filtros activos
+            const activeFilters = {};
+
+            selects.forEach(sel => {
+                if (sel.value) {
+                    activeFilters[sel.id] = sel.value.toLowerCase();
+                }
+            });
+
+            items.forEach(item => {
+
+                //datos del producto
+                const name = (item.dataset.name || "").toLowerCase();
+                const category = (item.dataset.category || "").toLowerCase();
+                const manufacturer = (item.dataset.manufacturer || "").toLowerCase();
+                const active = (item.dataset.active || "").toLowerCase();
+                const registration = (item.dataset.registration || "").toLowerCase();
+
+                const matchSearch =
+                    name.includes(query) ||
+                    category.includes(query) ||
+                    manufacturer.includes(query) ||
+                    active.includes(query) ||
+                    registration.includes(query);
+
+                // filtros selects
+                let matchFilters = true;
+
+                for (const key in activeFilters) {
+
+                    const value = activeFilters[key];
+
+                    if (key.includes("category") && category !== value) matchFilters = false;
+                    if (key.includes("manufacturer") && manufacturer !== value) matchFilters = false;
+                    if (key.includes("status") && status !== value) matchFilters = false;
+                    if (key.includes("active") && active !== value) matchFilters = false;
+                }
+
+                // mostrar / ocultar
+                item.style.display = (matchSearch && matchFilters) ? "" : "none";
+            });
+        }
+
+        //eventos
+        if (searchInput) {
+            searchInput.addEventListener("input", applyFilters);
+        }
+
+        selects.forEach(sel => {
+            sel.addEventListener("change", applyFilters);
+        });
+
+    });
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+
+        const btnOpen = document.getElementById("btn-expiring-products");
+        const modal = document.getElementById("expiring-products-modal");
+        const btnClose = document.getElementById("close-expiring-modal");
+        const btnCancel = document.getElementById("cancel-expiring-modal");
+
+        btnOpen.addEventListener("click", () => {
+            modal.classList.remove("hidden");
+            modal.classList.add("flex");
+        });
+
+        function closeModal() {
+            modal.classList.add("hidden");
+            modal.classList.remove("flex");
+        }
+
+        btnClose.addEventListener("click", closeModal);
+        btnCancel.addEventListener("click", closeModal);
+
+    });
 </script>
