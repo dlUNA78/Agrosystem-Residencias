@@ -11,17 +11,14 @@ Una plataforma web Full-Stack desarrollada para digitalizar y centralizar proces
 
 ## 🛠️ Tecnologías Utilizadas
 
-*   **Backend:** Node.js, Express[cite: 1, 2, 3]
-*   **Frontend:** Express-Handlebars, HTML, CSS[cite: 1, 2, 3]
-*   **Base de Datos:** PostgreSQL implementado mediante ORM[cite: 1, 2, 3]
+*   **Backend:** Node.js, Express
+*   **Frontend:** Express-Handlebars, HTML, TailwindCSS
+*   **Base de Datos:** PostgreSQL implementado mediante ORM
 
-## 📸 Interfaz del Sistema
-
-*(Nota: Reemplaza este texto con 1 o 2 capturas de pantalla de la plataforma. Usa el formato `![Descripción](enlace-de-la-imagen)`)*
 
 ## ⚙️ Instalación y Uso Local
 
 1. Clona este repositorio: `git clone [URL_DEL_REPOSITORIO]`
-2. Instala las dependencias: `npm install`
+2. Instala las dependencias: `pnpm install`
 3. Configura tu archivo `.env` con las credenciales de tu base de datos PostgreSQL local.
-4. Inicia el servidor: `npm start`
+4. Inicia el servidor: `pnpm start`
