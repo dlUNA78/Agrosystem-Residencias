@@ -1,6 +1,7 @@
 import express from 'express';
 import passport from 'passport';
 import { authController } from '../controllers/authController.js';
+import { isAuthenticated } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
@@ -21,5 +22,8 @@ router.post('/login', passport.authenticate('local', {
 
 // --- RUTA DE CERRAR SESIÓN ---
 router.get('/logout', authController.logout);
+
+router.get('/inifap-upgrade', isAuthenticated, authController.showUpgrade);
+router.post('/inifap-upgrade', isAuthenticated, authController.processUpgrade);
 
 export default router;

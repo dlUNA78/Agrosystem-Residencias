@@ -1,0 +1,40 @@
+<div class="min-h-screen flex items-center justify-center bg-gray-900">
+    <div class="max-w-md w-full bg-white p-8 rounded-lg shadow-2xl border-t-4 border-green-700">
+
+        <div class="text-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-800">Portal Interno INIFAP</h2>
+            <p class="text-sm text-gray-500 mt-2">Ingrese sus credenciales de ascenso administrativo.</p>
+        </div>
+
+        {{#if error}}
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+            <span class="block sm:inline">{{error}}</span>
+        </div>
+        {{/if}}
+
+        <form action="/auth/inifap-upgrade" method="POST" class="space-y-5">
+            <div>
+                <label for="secret_code" class="block text-sm font-bold text-gray-700">Código de Acceso Único</label>
+                <input type="password" id="secret_code" name="secret_code" placeholder="XXXX-XXXX-XXXX" required
+                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 tracking-widest text-center focus:ring-green-500 focus:border-green-500">
+            </div>
+
+            <div>
+                <label for="job_title" class="block text-sm font-bold text-gray-700">Cargo / Puesto Asignado</label>
+                <select id="job_title" name="job_title" required
+                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md bg-white focus:ring-green-500 focus:border-green-500">
+                    <option value="Investigador Principal">Investigador Principal</option>
+                    <option value="Biólogo">Biólogo</option>
+                    <option value="Auditor">Auditor</option>
+                    <option value="Supervisor">Supervisor</option>
+                    <option value="Otro">Otro</option>
+                </select>
+            </div>
+
+            <button type="submit"
+                class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-bold text-white bg-green-700 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors">
+                Validar Credenciales
+            </button>
+        </form>
+    </div>
+</div>

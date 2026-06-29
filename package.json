@@ -21,6 +21,7 @@
   "homepage": "https://github.com/dlUNA78/Agrosystem-Residencias#readme",
   "dependencies": {
     "bcrypt": "^6.0.0",
+    "connect-pg-simple": "^10.0.0",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
     "express-hbs": "^2.5.0",

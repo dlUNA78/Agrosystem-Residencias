@@ -59,6 +59,7 @@ export const renderHomeIndex = (req, res) => {
         trends,
         recentThreads,
     });
+    
  
 };
 

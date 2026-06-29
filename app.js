@@ -5,8 +5,9 @@ import express from "express";
 import hbs from "express-hbs";
 import session from "express-session";
 import passport from "passport";
-import LocalStrategy from "passport-local";
-import bcrypt from "bcrypt";
+import connectPgSimple from "connect-pg-simple";
+import configurePassport from "./src/config/passport.js";
+
 // Importar la instancia de Sequelize
 import sequelize from "./src/config/database.js";
 import db from "./src/models/index.js";
@@ -31,6 +32,11 @@ app.engine(
     layoutsDir: path.join(__dirname, "src/views/layouts"),
     defaultLayout: path.join(__dirname, "src/views/layouts/public"),
     partialsDir: path.join(__dirname, "src/views/partials"),
+    helpers: {
+      eq: function (a, b) {
+        return a === b;
+      },
+    },
   }),
 );
 
@@ -46,83 +52,60 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-
-
 // --- CONFIGURACIÓN DE SESIONES Y PASSPORT ---
+
+const PgSession = connectPgSimple(session);
 
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || "secreto_de_respaldo",
+    // Conectamos la sesión a tu base de datos
+    store: new PgSession({
+      conObject: {
+        user: process.env.DB_USER || "postgres",
+        password: process.env.DB_PASS || "tu_contraseña", // Usa tus variables reales
+        host: process.env.DB_HOST || "localhost",
+        port: process.env.DB_PORT || 5432,
+        database: process.env.DB_NAME || "agrosystem_db",
+      },
+      // 🛡️ Magia de dev: Esto crea la tabla "session" automáticamente en PostgreSQL si no existe
+      createTableIfMissing: true,
+    }),
+    secret:
+      process.env.SESSION_SECRET || "SuperSecretoAgrosystem2026_Residencias",
     resave: false,
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      maxAge: 1000 * 60 * 60 * 24,
+      maxAge: 1000 * 60 * 60 * 24, // 1 día
     },
   }),
 );
 
 // Inicializamos Passport para que se cuelgue de la sesión
+configurePassport(passport);
 app.use(passport.initialize());
 app.use(passport.session());
+app.use((req, res, next) => {
+  // Convierte la instancia del modelo a objeto plano
+  res.locals.user = req.user ? req.user.toJSON() : null;
+
+  const _render = res.render.bind(res);
+  res.render = function (view, options, callback) {
+    if (typeof options === 'function') {
+      callback = options;
+      options  = {};
+    }
+    const merged = { ...res.locals, ...(options || {}) };
+    return _render(view, merged, callback);
+  };
+
+  next();
+});
 
 app.use("/auth", authRoutes);
 app.use("/", publicRoutes);
 app.use("/", privateRoutes);
-
-
-passport.use(
-  new LocalStrategy(
-    { usernameField: "email", passwordField: "password" }, // Le decimos que usaremos 'email' en vez de 'username'
-    async (email, password, done) => {
-      try {
-        // Buscamos al usuario
-        const user = await User.findOne({ where: { email } });
-
-        // No revelar si el error fue el correo o la contraseña
-        if (!user) {
-          return done(null, false, { message: "Credenciales incorrectas." });
-        }
-
-        // Si el usuario se registró con Google, no tiene contraseña. Si intenta entrar por aquí, lo bloqueamos.
-        if (!user.password_hash) {
-          return done(null, false, {
-            message: "Esta cuenta utiliza inicio de sesión con Google.",
-          });
-        }
-
-        // Verificación Criptográfica
-        const isMatch = await bcrypt.compare(password, user.password_hash);
-        if (!isMatch) {
-          return done(null, false, { message: "Credenciales incorrectas." });
-        }
-
-        // Return to Passport to be stored in the Session
-        return done(null, user);
-      } catch (error) {
-        return done(error);
-      }
-    },
-  ),
-);
-
-// Convierte el usuario en un simple ID para que la cookie sea ligera y segura.
-passport.serializeUser((user, done) => {
-  done(null, user.id);
-});
-
-// Recuperar de la Sesión
-// En CADA petición del usuario (ej. cambiar de página), Passport lee el ID de la cookie,
-// busca al usuario en la BD y lo inyecta en `req.user` para que lo usemos.
-passport.deserializeUser(async (id, done) => {
-  try {
-    const user = await User.findByPk(id);
-    done(null, user);
-  } catch (error) {
-    done(error);
-  }
-});
 
 // Arrancar el servidor
 // Probar la conexión a la base de datos y arrancar el servidor
