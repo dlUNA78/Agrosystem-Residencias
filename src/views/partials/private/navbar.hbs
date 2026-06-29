@@ -1,12 +1,8 @@
-<!-- TopNavBar Shell -->
-<header
-    id="topnav"
+<header id="topnav"
     class="fixed top-0 right-0 h-16 z-40 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md flex items-center justify-between px-4 sm:px-8 font-manrope font-medium text-sm border-b border-surface-container-low transition-all duration-300 ease-in-out sidebar-open:w-[calc(100%-16rem)] w-[calc(100%-16rem)]">
+
     <div class="flex items-center gap-3">
-        <!-- Hamburger / sidebar toggle -->
-        <button
-            id="sidebar-toggle-btn"
-            aria-label="Alternar menú lateral"
+        <button id="sidebar-toggle-btn" aria-label="Alternar menú lateral"
             class="p-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low dark:hover:bg-zinc-800 transition-colors active:scale-90 shrink-0">
             <span class="material-symbols-outlined text-xl leading-none" data-icon="menu">menu</span>
         </button>
@@ -16,6 +12,7 @@
                 placeholder="Buscar reportes, usuarios o registros..." type="text">
         </div>
     </div>
+
     <div class="flex items-center gap-6">
         <div class="flex items-center gap-4 pr-6 border-r border-surface-container">
             <button
@@ -24,13 +21,30 @@
                 <span class="absolute top-0 right-0 w-2 h-2 bg-error rounded-full"></span>
             </button>
         </div>
-        <div class="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity">
+
+        <div class="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity relative group">
             <div class="text-right hidden sm:block">
-                <p class="text-xs font-bold text-on-surface leading-tight">Admin Principal</p>
-                <p class="text-[10px] text-on-surface-variant leading-tight">admin@agrosystem.com</p>
+                <p class="text-xs font-bold text-on-surface leading-tight">{{user.full_name}}</p>
+                <p class="text-[10px] text-on-surface-variant leading-tight">{{user.email}}</p>
             </div>
-            <img alt="Admin portrait" class="w-9 h-9 rounded-full object-cover ring-2 ring-primary/10"
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuAPvW4iyaM8rvHnpdY9DCPtq8mC8ZWNuW0f8t1gyLQffNrcRIL51yAviHIVAyDpLsYcn9obBom9FK-_sWXFjbpGic7tBQjNfOkLmeNuaqctSEhHW9hWKX5QIEEAexyF6s5slDg7FI-riN_pYCIGTKLuNNJaJ-ZKOlaVs0Am11-KfYvPmk1N5t2rmH_hP2iiZ06Q7a8Fb3GA-Qi5hDhq022R93qerB5MLKdOQE-sQPVI-wgbMrkg5_7jllECmjNJxGLhkcDeSBf-YWXV">
+
+            {{#if user.photo_url}}
+            <img alt="User profile" class="w-9 h-9 rounded-full object-cover ring-2 ring-primary/10"
+                src="{{user.photo_url}}">
+            {{else}}
+            <div
+                class="w-9 h-9 rounded-full bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 flex items-center justify-center font-bold border border-zinc-300 dark:border-zinc-700">
+                U
+            </div>
+            {{/if}}
+
+            <div
+                class="absolute right-0 top-10 mt-2 w-48 bg-white dark:bg-zinc-900 rounded-md shadow-lg py-1 border border-zinc-200 dark:border-zinc-800 hidden group-hover:block transition-all">
+                <a href="/auth/logout"
+                    class="block px-4 py-2 text-sm text-red-600 hover:bg-zinc-100 dark:hover:bg-zinc-800">Cerrar
+                    Sesión</a>
+            </div>
         </div>
+
     </div>
 </header>
