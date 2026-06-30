@@ -5,6 +5,7 @@ import express from "express";
 import hbs from "express-hbs";
 import session from "express-session";
 import passport from "passport";
+import pg from "pg";
 import connectPgSimple from "connect-pg-simple";
 import configurePassport from "./src/config/passport.js";
 
@@ -21,8 +22,45 @@ const { User } = db;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// ─── VALIDACIÓN DE ENTORNO ────────────────────────────────────────────────
+// Si falta una variable crítica, el servidor NO debe arrancar.
+// Un fallback "silencioso" en producción es peor que un crash explícito:
+// preferimos un error claro en el log a una sesión firmada con un secreto
+// público o a una caída de sesiones en producción.
+const requiredEnvVars = [
+  "SESSION_SECRET",
+  "DB_HOST",
+  "DB_PORT",
+  "DB_NAME",
+  "DB_USER",
+  "DB_PASS",
+];
+
+const missingEnvVars = requiredEnvVars.filter((key) => !process.env[key]);
+
+if (missingEnvVars.length > 0) {
+  console.error(
+    `❌ Faltan variables de entorno requeridas: ${missingEnvVars.join(", ")}`,
+  );
+  console.error("   Revisa tu archivo .env antes de continuar.");
+  process.exit(1);
+}
+
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// ─── POOL DE CONEXIÓN COMPARTIDO (pg) ─────────────────────────────────────
+// connect-pg-simple necesita un cliente `pg` crudo, no una instancia Sequelize.
+// En vez de duplicar credenciales manualmente, construimos un Pool una sola
+// vez aquí, usando las mismas variables de entorno que ya usa Sequelize en
+// src/config/database.js. Si la contraseña de BD cambia, sólo se edita el .env.
+const pgPool = new pg.Pool({
+  host: process.env.DB_HOST,
+  port: process.env.DB_PORT,
+  database: process.env.DB_NAME,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASS,
+});
 
 // Configuración de Handlebars
 app.engine(
@@ -58,20 +96,17 @@ const PgSession = connectPgSimple(session);
 
 app.use(
   session({
-    // Conectamos la sesión a tu base de datos
+    // Reutilizamos el pool de pg en vez de pasar credenciales sueltas.
+    // Esto elimina la duplicación con src/config/database.js y garantiza
+    // que ambas conexiones (Sequelize y sesiones) siempre usan la misma fuente.
     store: new PgSession({
-      conObject: {
-        user: process.env.DB_USER || "postgres",
-        password: process.env.DB_PASS || "tu_contraseña", // Usa tus variables reales
-        host: process.env.DB_HOST || "localhost",
-        port: process.env.DB_PORT || 5432,
-        database: process.env.DB_NAME || "agrosystem_db",
-      },
+      pool: pgPool,
       // 🛡️ Magia de dev: Esto crea la tabla "session" automáticamente en PostgreSQL si no existe
       createTableIfMissing: true,
     }),
-    secret:
-      process.env.SESSION_SECRET || "SuperSecretoAgrosystem2026_Residencias",
+    // Ya no hay fallback hardcoded: si SESSION_SECRET falta, el proceso
+    // ya se detuvo arriba en la validación de entorno.
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     cookie: {
@@ -92,9 +127,9 @@ app.use((req, res, next) => {
 
   const _render = res.render.bind(res);
   res.render = function (view, options, callback) {
-    if (typeof options === 'function') {
+    if (typeof options === "function") {
       callback = options;
-      options  = {};
+      options = {};
     }
     const merged = { ...res.locals, ...(options || {}) };
     return _render(view, merged, callback);
