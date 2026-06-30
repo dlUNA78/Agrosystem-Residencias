@@ -5,6 +5,7 @@ export default {
       [
         {
           name: "Pulgón Verde",
+          scientific_name: "Myzus persicae",
           category: "Insecto",
           description: "Plaga que se alimenta de la savia de las plantas.",
           risk_level: "Alto",
@@ -18,6 +19,7 @@ export default {
         },
         {
           name: "Roya",
+          scientific_name: "Puccinia graminis",
           category: "Hongo",
           description: "Enfermedad causada por hongos que afecta las hojas.",
           risk_level: "Medio",

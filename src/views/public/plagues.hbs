@@ -1,347 +1,482 @@
 <main class="pt-32 pb-24">
-    <!-- Header Section -->
-    <header class="max-w-[1440px] mx-auto px-10 mb-16">
-        <div class="flex flex-col md:flex-row md:items-end justify-between gap-8">
-            <div class="max-w-2xl">
-                <span
-                    class="inline-block px-3 py-1 mb-4 rounded-full bg-primary-container text-on-primary-container font-label text-xs font-bold tracking-wider uppercase">Base
-                    de Datos Científica</span>
-                <h1 class="text-5xl md:text-6xl font-headline font-extrabold tracking-tighter text-on-surface mb-4">
-                    Catálogo de Plagas</h1>
-                <p class="text-on-surface-variant text-lg font-medium leading-relaxed">
-                    Explora nuestra enciclopedia especializada de agentes biológicos. Información técnica para la
-                    gestión inteligente de cultivos.
-                </p>
-            </div>
-            <div
-                class="bg-surface-container rounded-xl p-6 ghost-border flex flex-col items-center justify-center min-w-[200px]">
-                <span class="text-4xl font-headline font-extrabold text-primary tracking-tighter">1,240</span>
-                <span
-                    class="text-xs font-label uppercase tracking-widest text-on-surface-variant font-bold mt-1">especies
-                    registradas</span>
-            </div>
+  <!-- Header Section -->
+  <header class="max-w-[1440px] mx-auto px-10 mb-16">
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-8">
+      <div class="max-w-2xl">
+        <span
+          class="inline-block px-3 py-1 mb-4 rounded-full bg-primary-container text-on-primary-container font-label text-xs font-bold tracking-wider uppercase"
+        >Base de Datos Científica</span>
+        <h1
+          class="text-5xl md:text-6xl font-headline font-extrabold tracking-tighter text-on-surface mb-4"
+        >
+          Catálogo de Plagas</h1>
+        <p class="text-on-surface-variant text-lg font-medium leading-relaxed">
+          Explora nuestra enciclopedia especializada de agentes biológicos.
+          Información técnica para la gestión inteligente de cultivos.
+        </p>
+      </div>
+      <div
+        class="bg-surface-container rounded-xl p-6 ghost-border flex flex-col items-center justify-center min-w-[200px]"
+      >
+        <span
+          class="text-4xl font-headline font-extrabold text-primary tracking-tighter"
+        >1,240</span>
+        <span
+          class="text-xs font-label uppercase tracking-widest text-on-surface-variant font-bold mt-1"
+        >especies registradas</span>
+      </div>
+    </div>
+    <!-- Search & Filters -->
+    <div class="mt-12 p-2 bg-surface-container-low rounded-2xl ghost-border">
+      <div class="flex flex-col lg:flex-row gap-2">
+        <div class="flex-1 relative flex items-center">
+          <span
+            class="material-symbols-outlined absolute left-4 text-on-surface-variant"
+          >search</span>
+          <input
+            class="w-full bg-surface-container-lowest border-none rounded-xl py-4 pl-12 pr-4 text-on-surface placeholder:text-on-surface-variant/60 focus:ring-2 focus:ring-primary/20 transition-all font-body"
+            placeholder="Buscar por nombre, género o síntoma..."
+            type="text"
+          />
         </div>
-        <!-- Search & Filters -->
-        <div class="mt-12 p-2 bg-surface-container-low rounded-2xl ghost-border">
-            <div class="flex flex-col lg:flex-row gap-2">
-                <div class="flex-1 relative flex items-center">
-                    <span class="material-symbols-outlined absolute left-4 text-on-surface-variant">search</span>
-                    <input
-                        class="w-full bg-surface-container-lowest border-none rounded-xl py-4 pl-12 pr-4 text-on-surface placeholder:text-on-surface-variant/60 focus:ring-2 focus:ring-primary/20 transition-all font-body"
-                        placeholder="Buscar por nombre, género o síntoma..." type="text" />
-                </div>
-                <div class="flex flex-wrap md:flex-nowrap gap-2">
-                    <select
-                        class="bg-surface-container-lowest border-none rounded-xl py-4 px-6 text-sm font-semibold text-on-surface-variant focus:ring-2 focus:ring-primary/20 appearance-none min-w-[140px]">
-                        <option>Categoría</option>
-                        <option>Insectos</option>
-                        <option>Hongos</option>
-                        <option>Bacterias</option>
-                        <option>Virus</option>
-                    </select>
-                    <select
-                        class="bg-surface-container-lowest border-none rounded-xl py-4 px-6 text-sm font-semibold text-on-surface-variant focus:ring-2 focus:ring-primary/20 appearance-none min-w-[140px]">
-                        <option>Región</option>
-                        <option>Tropical</option>
-                        <option>Mediterránea</option>
-                        <option>Templada</option>
-                    </select>
-                    <select
-                        class="bg-surface-container-lowest border-none rounded-xl py-4 px-6 text-sm font-semibold text-on-surface-variant focus:ring-2 focus:ring-primary/20 appearance-none min-w-[140px]">
-                        <option>Riesgo</option>
-                        <option>Crítico</option>
-                        <option>Moderado</option>
-                        <option>Bajo</option>
-                    </select>
-                    <button
-                        class="bg-primary text-on-primary px-8 py-4 rounded-xl font-bold text-sm hover:bg-primary-dim transition-colors flex items-center gap-2">
-                        <span class="material-symbols-outlined text-sm">filter_list</span>
-                        Filtrar Resultados
-                    </button>
-                </div>
-            </div>
+        <div class="flex flex-wrap md:flex-nowrap gap-2">
+          <select
+            class="bg-surface-container-lowest border-none rounded-xl py-4 px-6 text-sm font-semibold text-on-surface-variant focus:ring-2 focus:ring-primary/20 appearance-none min-w-[140px]"
+          >
+            <option>Categoría</option>
+            <option>Insectos</option>
+            <option>Hongos</option>
+            <option>Bacterias</option>
+            <option>Virus</option>
+          </select>
+          <select
+            class="bg-surface-container-lowest border-none rounded-xl py-4 px-6 text-sm font-semibold text-on-surface-variant focus:ring-2 focus:ring-primary/20 appearance-none min-w-[140px]"
+          >
+            <option>Región</option>
+            <option>Tropical</option>
+            <option>Mediterránea</option>
+            <option>Templada</option>
+          </select>
+          <select
+            class="bg-surface-container-lowest border-none rounded-xl py-4 px-6 text-sm font-semibold text-on-surface-variant focus:ring-2 focus:ring-primary/20 appearance-none min-w-[140px]"
+          >
+            <option>Riesgo</option>
+            <option>Crítico</option>
+            <option>Moderado</option>
+            <option>Bajo</option>
+          </select>
+          <button
+            class="bg-primary text-on-primary px-8 py-4 rounded-xl font-bold text-sm hover:bg-primary-dim transition-colors flex items-center gap-2"
+          >
+            <span class="material-symbols-outlined text-sm">filter_list</span>
+            Filtrar Resultados
+          </button>
         </div>
-    </header>
-    <!-- Catalog Grid -->
-    <section class="max-w-[1440px] mx-auto px-10">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-            <!-- Card 1 -->
-            <article
-                class="group bg-surface-container-lowest rounded-xl overflow-hidden editorial-shadow ghost-border flex flex-col hover:translate-y-[-4px] transition-all duration-300">
-                <div class="relative h-56 overflow-hidden">
-                    <img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                        data-alt="Microscopic view of agricultural insect pest"
-                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuAC7fjMtnPsmtrBBcGa74YxhhOaMx5kse8RnQ9u6TIyo8AWaLbR0me-ZObEOpDmlEyz78gQlSxXblGL0w-TPDhhIBqIKakuc5TLYvcllFVy2vsNi-yl3cQzOCXk2aIlg24X6mqspsXSHyERcr8vZ4galGyF79ucZcbZn7uuQdIDgRgqCQrSlYs0fgBSz3oVow41dB61FuDLR5bI4qJudihQppc30jrSfuz-YLc8H_NRBVa4i4ZgTxthwrDSlOBVncjEA5gxQyNCdEph" />
-                    <div class="absolute top-4 left-4">
-                        <span
-                            class="px-2 py-1 rounded bg-error-container text-on-error-container text-[10px] font-bold uppercase tracking-wider">Riesgo
-                            Crítico</span>
-                    </div>
-                    <div
-                        class="absolute bottom-2 right-2 bg-black/40 backdrop-blur-sm px-2 py-1 rounded text-[10px] text-white/90 font-label">
-                        Foto: Laboratorio Agrosystem
-                    </div>
-                </div>
-                <div class="p-6 flex-1 flex flex-col">
-                    <span
-                        class="text-[10px] font-label font-bold uppercase tracking-widest text-primary mb-2">Insecto</span>
-                    <h3 class="text-xl font-headline font-bold text-on-surface mb-1 leading-tight">Pulgón Verde</h3>
-                    <p class="text-sm italic text-on-surface-variant mb-4">Myzus persicae</p>
-                    <p class="text-sm text-on-surface-variant line-clamp-2 leading-relaxed mb-6">
-                        Afecta a más de 400 especies vegetales, transmitiendo virus fitopatógenos y debilitando el
-                        follaje.
-                    </p>
-                    <div class="mt-auto pt-4 border-t border-surface-container flex justify-between items-center">
-                        <button class="text-primary font-bold text-sm flex items-center gap-1 group/btn">
-                            Ver detalle
-                            <span
-                                class="material-symbols-outlined text-sm group-hover/btn:translate-x-1 transition-transform">arrow_forward</span>
-                        </button>
-                    </div>
-                </div>
-            </article>
-            <!-- Card 2 -->
-            <article
-                class="group bg-surface-container-lowest rounded-xl overflow-hidden editorial-shadow ghost-border flex flex-col hover:translate-y-[-4px] transition-all duration-300">
-                <div class="relative h-56 overflow-hidden">
-                    <img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                        data-alt="Fungal growth on leaf close up"
-                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuCmevnexaLq8gyX1g4_2_RLoXYuI_U0CUMFkXyEqhtk9_hlpisYZh19i4FH4MPpVemuEccVj2jP5piZ6clI00bDfF8rELn3-YDDP_-lr6Tuw-7jF4nfkWEcbnI05LmDzMmBhywug7LzCk_Sz-7oDowwNl4zfPQmkUnsKnfhvWa9Q_NEcViBR2ouWKZjohS-SB6A-tme3yHeq6EBQFnGA4aDR8YqLf5y4U3bVKS9pxcoUUUuz8f1K-6vSPXrF-kEfkOdJSHNWsiQczbb" />
-                    <div class="absolute top-4 left-4">
-                        <span
-                            class="px-2 py-1 rounded bg-primary-container text-on-primary-container text-[10px] font-bold uppercase tracking-wider">Moderado</span>
-                    </div>
-                    <div
-                        class="absolute bottom-2 right-2 bg-black/40 backdrop-blur-sm px-2 py-1 rounded text-[10px] text-white/90 font-label">
-                        Foto: Fitopatología MX
-                    </div>
-                </div>
-                <div class="p-6 flex-1 flex flex-col">
-                    <span
-                        class="text-[10px] font-label font-bold uppercase tracking-widest text-primary mb-2">Hongo</span>
-                    <h3 class="text-xl font-headline font-bold text-on-surface mb-1 leading-tight">Mildiu Velloso</h3>
-                    <p class="text-sm italic text-on-surface-variant mb-4">Peronosporaceae</p>
-                    <p class="text-sm text-on-surface-variant line-clamp-2 leading-relaxed mb-6">
-                        Produce manchas amarillentas en el haz de las hojas y un fieltro grisáceo en el envés bajo alta
-                        humedad.
-                    </p>
-                    <div class="mt-auto pt-4 border-t border-surface-container flex justify-between items-center">
-                        <button class="text-primary font-bold text-sm flex items-center gap-1 group/btn">
-                            Ver detalle
-                            <span
-                                class="material-symbols-outlined text-sm group-hover/btn:translate-x-1 transition-transform">arrow_forward</span>
-                        </button>
-                    </div>
-                </div>
-            </article>
-            <!-- Card 3 -->
-            <article
-                class="group bg-surface-container-lowest rounded-xl overflow-hidden editorial-shadow ghost-border flex flex-col hover:translate-y-[-4px] transition-all duration-300">
-                <div class="relative h-56 overflow-hidden">
-                    <img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                        data-alt="Wilt disease in commercial agriculture"
-                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuBdyBUJCJenpF6rRhotnAknUJFwmQYTkaWim_s5j5qT4rVXba38q7g4nERHsx_DW1iLYNPxO4VzD1mQe292aD0kraYxAPNOg5mA8qZrGNf4JrDvyJGjhl1LHOPkXQA5UeQ9PjbUmVQQV4dsi1U4eee0rL1ClfvTnut6IjKjvdtTz7EkZZbdU6aUPhjdA8ey83w8JbFCYxb_EOoNkB_J7MPf4h84wzvS03j7yPqFXHH1rL5SGXA49hUGxZrZnhtwXxevdLRE9W4cG2A9" />
-                    <div class="absolute top-4 left-4">
-                        <span
-                            class="px-2 py-1 rounded bg-error-container text-on-error-container text-[10px] font-bold uppercase tracking-wider">Riesgo
-                            Crítico</span>
-                    </div>
-                    <div
-                        class="absolute bottom-2 right-2 bg-black/40 backdrop-blur-sm px-2 py-1 rounded text-[10px] text-white/90 font-label">
-                        Foto: Archivo Científico
-                    </div>
-                </div>
-                <div class="p-6 flex-1 flex flex-col">
-                    <span
-                        class="text-[10px] font-label font-bold uppercase tracking-widest text-primary mb-2">Bacteria</span>
-                    <h3 class="text-xl font-headline font-bold text-on-surface mb-1 leading-tight">Marchitez Bacteriana
-                    </h3>
-                    <p class="text-sm italic text-on-surface-variant mb-4">Ralstonia solanacearum</p>
-                    <p class="text-sm text-on-surface-variant line-clamp-2 leading-relaxed mb-6">
-                        Coloniza los vasos del xilema bloqueando el flujo de agua, causando una muerte rápida de la
-                        planta.
-                    </p>
-                    <div class="mt-auto pt-4 border-t border-surface-container flex justify-between items-center">
-                        <button class="text-primary font-bold text-sm flex items-center gap-1 group/btn">
-                            Ver detalle
-                            <span
-                                class="material-symbols-outlined text-sm group-hover/btn:translate-x-1 transition-transform">arrow_forward</span>
-                        </button>
-                    </div>
-                </div>
-            </article>
-            <!-- Card 4 -->
-            <article
-                class="group bg-surface-container-lowest rounded-xl overflow-hidden editorial-shadow ghost-border flex flex-col hover:translate-y-[-4px] transition-all duration-300">
-                <div class="relative h-56 overflow-hidden">
-                    <img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                        data-alt="Agricultural beetle on green leaf"
-                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuAFC04Ho56Uvp1Ly-BTzG4COo9SX-JW4gLjI8toMHd39Vs4JcmGAcE5YvkJE3xpIs2g9pZjxGZ_1ixiJAsKy366d49Y_kkbU0V9TUkrpj9xSAzumrkQ_iwB27RMTS6jIWwV56VGeGASwUHyPvpTckrP7jFhXpVI3UykbfLhMdrVV0bwi4_HvbqwDiDibCktcLY6nuHSWsyjmzlaqZFZdj0bTcDDqs8_DHO4SAbvZlwYWwP6aGcQ0u6gBpdWl3iS3RsgW3rP2vUZKW7s" />
-                    <div class="absolute top-4 left-4">
-                        <span
-                            class="px-2 py-1 rounded bg-surface-container-highest text-on-surface-variant text-[10px] font-bold uppercase tracking-wider">Bajo</span>
-                    </div>
-                    <div
-                        class="absolute bottom-2 right-2 bg-black/40 backdrop-blur-sm px-2 py-1 rounded text-[10px] text-white/90 font-label">
-                        Foto: Entomología Aplicada
-                    </div>
-                </div>
-                <div class="p-6 flex-1 flex flex-col">
-                    <span
-                        class="text-[10px] font-label font-bold uppercase tracking-widest text-primary mb-2">Insecto</span>
-                    <h3 class="text-xl font-headline font-bold text-on-surface mb-1 leading-tight">Escarabajo de la
-                        Patata</h3>
-                    <p class="text-sm italic text-on-surface-variant mb-4">Leptinotarsa decemlineata</p>
-                    <p class="text-sm text-on-surface-variant line-clamp-2 leading-relaxed mb-6">
-                        Reconocible por sus rayas amarillas y negras, devora rápidamente el follaje de cultivos de
-                        solanáceas.
-                    </p>
-                    <div class="mt-auto pt-4 border-t border-surface-container flex justify-between items-center">
-                        <button class="text-primary font-bold text-sm flex items-center gap-1 group/btn">
-                            Ver detalle
-                            <span
-                                class="material-symbols-outlined text-sm group-hover/btn:translate-x-1 transition-transform">arrow_forward</span>
-                        </button>
-                    </div>
-                </div>
-            </article>
-            <!-- More cards following the pattern -->
-            <article
-                class="group bg-surface-container-lowest rounded-xl overflow-hidden editorial-shadow ghost-border flex flex-col hover:translate-y-[-4px] transition-all duration-300">
-                <div class="relative h-56 overflow-hidden">
-                    <img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                        data-alt="Microscopic fungi culture"
-                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuAYBbBGbyRHpcKJcDl3yZiVxCtP9pcUrQ8d6rx5IfKdz8FEVpfsxSPXt9xdiiirXRuxpFWGIeWbeXcRkgxXg5UW0IuRDo0bZgtBmPATwRfryhBXx_UV5TwNIGPJZArZnb74g_whxDkoZofd0AucVQzbxruoVrRhhPH0xtOwzYFlytU87NMRvTg41cfVfRFpu0zPI3FJK3dGhFsVZsM2j6Q8aex4d4sQpKrAvFdHGvXkrQ-MMzA3xYiZ_50eGYyHxSscfGKi0egXMI2E" />
-                    <div class="absolute top-4 left-4">
-                        <span
-                            class="px-2 py-1 rounded bg-primary-container text-on-primary-container text-[10px] font-bold uppercase tracking-wider">Moderado</span>
-                    </div>
-                    <div
-                        class="absolute bottom-2 right-2 bg-black/40 backdrop-blur-sm px-2 py-1 rounded text-[10px] text-white/90 font-label">
-                        Foto: INIFAP Archivo
-                    </div>
-                </div>
-                <div class="p-6 flex-1 flex flex-col">
-                    <span
-                        class="text-[10px] font-label font-bold uppercase tracking-widest text-primary mb-2">Hongo</span>
-                    <h3 class="text-xl font-headline font-bold text-on-surface mb-1 leading-tight">Roya del Trigo</h3>
-                    <p class="text-sm italic text-on-surface-variant mb-4">Puccinia graminis</p>
-                    <p class="text-sm text-on-surface-variant line-clamp-2 leading-relaxed mb-6">
-                        Pústulas de color óxido que absorben nutrientes y agua, reduciendo drásticamente el rendimiento
-                        del grano.
-                    </p>
-                    <div class="mt-auto pt-4 border-t border-surface-container flex justify-between items-center">
-                        <button class="text-primary font-bold text-sm flex items-center gap-1 group/btn">
-                            Ver detalle
-                            <span
-                                class="material-symbols-outlined text-sm group-hover/btn:translate-x-1 transition-transform">arrow_forward</span>
-                        </button>
-                    </div>
-                </div>
-            </article>
-            <!-- More placeholder cards to fill grid -->
-            <article
-                class="group bg-surface-container-lowest rounded-xl overflow-hidden editorial-shadow ghost-border flex flex-col hover:translate-y-[-4px] transition-all duration-300">
-                <div class="relative h-56 overflow-hidden">
-                    <img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                        data-alt="Spider mite damage on crops"
-                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuDhSwps_LNJGo5-PjpWA3i-E_x_ElRihoD3Lp5j1EQcN2QTVDCqKHOOShP6n-GvK2ky9ao7pl7SNTd3F7ngoRsvjTAzOLGrCWG7ouSro5_AJfDiZQbG52chKDnevX_uyfyW1uaLLc-03lz4vsZ-X5iZgtfaywP7ktm6z2gFZeH9-bGJl2IHQuoHl8kht77fEcDeAicwVQ6TcHhXywKkCaiW7j03WN7R7OyD8urjSuNMnS_l-r2tf34YiVeqPOHir878fpMWSvOAo4dN" />
-                    <div class="absolute top-4 left-4">
-                        <span
-                            class="px-2 py-1 rounded bg-error-container text-on-error-container text-[10px] font-bold uppercase tracking-wider">Riesgo
-                            Crítico</span>
-                    </div>
-                    <div
-                        class="absolute bottom-2 right-2 bg-black/40 backdrop-blur-sm px-2 py-1 rounded text-[10px] text-white/90 font-label">
-                        Foto: BioAgro Research
-                    </div>
-                </div>
-                <div class="p-6 flex-1 flex flex-col">
-                    <span
-                        class="text-[10px] font-label font-bold uppercase tracking-widest text-primary mb-2">Ácaro</span>
-                    <h3 class="text-xl font-headline font-bold text-on-surface mb-1 leading-tight">Araña Roja</h3>
-                    <p class="text-sm italic text-on-surface-variant mb-4">Tetranychus urticae</p>
-                    <p class="text-sm text-on-surface-variant line-clamp-2 leading-relaxed mb-6">
-                        Pequeños arácnidos que tejen telas finas y succionan la savia, provocando clorosis y
-                        defoliación.
-                    </p>
-                    <div class="mt-auto pt-4 border-t border-surface-container flex justify-between items-center">
-                        <button class="text-primary font-bold text-sm flex items-center gap-1 group/btn">
-                            Ver detalle
-                            <span
-                                class="material-symbols-outlined text-sm group-hover/btn:translate-x-1 transition-transform">arrow_forward</span>
-                        </button>
-                    </div>
-                </div>
-            </article>
-            <article
-                class="group bg-surface-container-lowest rounded-xl overflow-hidden editorial-shadow ghost-border flex flex-col hover:translate-y-[-4px] transition-all duration-300">
-                <div class="relative h-56 overflow-hidden">
-                    <img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                        data-alt="Mosaic virus pattern on leaves"
-                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuDFVIYnNpvlElOwOJohrbvHADP0pUo2qHoUGut_7g-uE7IqxVEKXnm3e90pBKuERXwyJbuGyDk3D7GyBtxStSUmPAMjf0hbmIV1m0TluXy1g_mF4Yb4B0UxR0TLDuSp7m9rYu0guCGxr31U1O5G2V0SI2sb9PkV_ySezpFXsOsDykeyn5e17B_230SkddLFOZ40rvRPm4rY03eIWwzUrAQ2GV22PtEYexkZYOUGPI_0L3riAV44U55BUK-DgT-ZCuvgvqvuTIy63-Lf" />
-                    <div class="absolute top-4 left-4">
-                        <span
-                            class="px-2 py-1 rounded bg-primary-container text-on-primary-container text-[10px] font-bold uppercase tracking-wider">Moderado</span>
-                    </div>
-                    <div
-                        class="absolute bottom-2 right-2 bg-black/40 backdrop-blur-sm px-2 py-1 rounded text-[10px] text-white/90 font-label">
-                        Foto: Virología Vegetal
-                    </div>
-                </div>
-                <div class="p-6 flex-1 flex flex-col">
-                    <span
-                        class="text-[10px] font-label font-bold uppercase tracking-widest text-primary mb-2">Virus</span>
-                    <h3 class="text-xl font-headline font-bold text-on-surface mb-1 leading-tight">Mosaico del Tabaco
-                    </h3>
-                    <p class="text-sm italic text-on-surface-variant mb-4">Tobacco mosaic virus</p>
-                    <p class="text-sm text-on-surface-variant line-clamp-2 leading-relaxed mb-6">
-                        Causa patrones moteados de color verde claro y oscuro, además de deformaciones en las hojas de
-                        tabaco y tomate.
-                    </p>
-                    <div class="mt-auto pt-4 border-t border-surface-container flex justify-between items-center">
-                        <button class="text-primary font-bold text-sm flex items-center gap-1 group/btn">
-                            Ver detalle
-                            <span
-                                class="material-symbols-outlined text-sm group-hover/btn:translate-x-1 transition-transform">arrow_forward</span>
-                        </button>
-                    </div>
-                </div>
-            </article>
-            <article
-                class="group bg-surface-container-lowest rounded-xl overflow-hidden editorial-shadow ghost-border flex flex-col hover:translate-y-[-4px] transition-all duration-300 border-2 border-dashed border-primary/20 items-center justify-center p-8">
-                <div class="text-center">
-                    <span class="material-symbols-outlined text-4xl text-primary/40 mb-4">add_circle</span>
-                    <h3 class="text-lg font-headline font-bold text-on-surface mb-2">¿Nueva especie?</h3>
-                    <p class="text-xs text-on-surface-variant leading-relaxed mb-6">Colabora con nuestra red científica
-                        reportando una nueva plaga.</p>
-                    <button
-                        class="px-6 py-2 bg-surface-container-high rounded-full text-xs font-bold text-primary uppercase tracking-wider hover:bg-primary-container transition-colors">Solicitar
-                        registro</button>
-                </div>
-            </article>
+      </div>
+    </div>
+  </header>
+  <!-- Catalog Grid -->
+  <section class="max-w-[1440px] mx-auto px-10">
+    <div
+      class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
+    >
+      <!-- Card 1 -->
+      <article
+        class="group bg-surface-container-lowest rounded-xl overflow-hidden editorial-shadow ghost-border flex flex-col hover:translate-y-[-4px] transition-all duration-300"
+      >
+        <div class="relative h-56 overflow-hidden">
+          <img
+            class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+            data-alt="Microscopic view of agricultural insect pest"
+            src="https://lh3.googleusercontent.com/aida-public/AB6AXuAC7fjMtnPsmtrBBcGa74YxhhOaMx5kse8RnQ9u6TIyo8AWaLbR0me-ZObEOpDmlEyz78gQlSxXblGL0w-TPDhhIBqIKakuc5TLYvcllFVy2vsNi-yl3cQzOCXk2aIlg24X6mqspsXSHyERcr8vZ4galGyF79ucZcbZn7uuQdIDgRgqCQrSlYs0fgBSz3oVow41dB61FuDLR5bI4qJudihQppc30jrSfuz-YLc8H_NRBVa4i4ZgTxthwrDSlOBVncjEA5gxQyNCdEph"
+          />
+          <div class="absolute top-4 left-4">
+            <span
+              class="px-2 py-1 rounded bg-error-container text-on-error-container text-[10px] font-bold uppercase tracking-wider"
+            >Riesgo Crítico</span>
+          </div>
+          <div
+            class="absolute bottom-2 right-2 bg-black/40 backdrop-blur-sm px-2 py-1 rounded text-[10px] text-white/90 font-label"
+          >
+            Foto: Laboratorio Agrosystem
+          </div>
         </div>
-        <!-- Pagination -->
-        <div class="mt-20 flex justify-center">
-            <nav class="flex items-center gap-1 bg-surface-container p-1 rounded-xl">
-                <button
-                    class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-surface-container-highest text-on-surface-variant">
-                    <span class="material-symbols-outlined">chevron_left</span>
-                </button>
-                <button
-                    class="w-10 h-10 flex items-center justify-center rounded-lg bg-primary text-on-primary font-bold text-sm">1</button>
-                <button
-                    class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-surface-container-highest text-on-surface-variant font-bold text-sm">2</button>
-                <button
-                    class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-surface-container-highest text-on-surface-variant font-bold text-sm">3</button>
-                <span class="px-2 text-on-surface-variant">...</span>
-                <button
-                    class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-surface-container-highest text-on-surface-variant font-bold text-sm">12</button>
-                <button
-                    class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-surface-container-highest text-on-surface-variant">
-                    <span class="material-symbols-outlined">chevron_right</span>
-                </button>
-            </nav>
+        <div class="p-6 flex-1 flex flex-col">
+          <span
+            class="text-[10px] font-label font-bold uppercase tracking-widest text-primary mb-2"
+          >Insecto</span>
+          <h3
+            class="text-xl font-headline font-bold text-on-surface mb-1 leading-tight"
+          >Pulgón Verde</h3>
+          <p class="text-sm italic text-on-surface-variant mb-4">Myzus persicae</p>
+          <p
+            class="text-sm text-on-surface-variant line-clamp-2 leading-relaxed mb-6"
+          >
+            Afecta a más de 400 especies vegetales, transmitiendo virus
+            fitopatógenos y debilitando el follaje.
+          </p>
+          <div
+            class="mt-auto pt-4 border-t border-surface-container flex justify-between items-center"
+          >
+            <button
+              class="text-primary font-bold text-sm flex items-center gap-1 group/btn"
+            >
+              Ver detalle
+              <span
+                class="material-symbols-outlined text-sm group-hover/btn:translate-x-1 transition-transform"
+              >arrow_forward</span>
+            </button>
+          </div>
         </div>
-    </section>
+      </article>
+      <!-- Card 2 -->
+      <article
+        class="group bg-surface-container-lowest rounded-xl overflow-hidden editorial-shadow ghost-border flex flex-col hover:translate-y-[-4px] transition-all duration-300"
+      >
+        <div class="relative h-56 overflow-hidden">
+          <img
+            class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+            data-alt="Fungal growth on leaf close up"
+            src="https://lh3.googleusercontent.com/aida-public/AB6AXuCmevnexaLq8gyX1g4_2_RLoXYuI_U0CUMFkXyEqhtk9_hlpisYZh19i4FH4MPpVemuEccVj2jP5piZ6clI00bDfF8rELn3-YDDP_-lr6Tuw-7jF4nfkWEcbnI05LmDzMmBhywug7LzCk_Sz-7oDowwNl4zfPQmkUnsKnfhvWa9Q_NEcViBR2ouWKZjohS-SB6A-tme3yHeq6EBQFnGA4aDR8YqLf5y4U3bVKS9pxcoUUUuz8f1K-6vSPXrF-kEfkOdJSHNWsiQczbb"
+          />
+          <div class="absolute top-4 left-4">
+            <span
+              class="px-2 py-1 rounded bg-primary-container text-on-primary-container text-[10px] font-bold uppercase tracking-wider"
+            >Moderado</span>
+          </div>
+          <div
+            class="absolute bottom-2 right-2 bg-black/40 backdrop-blur-sm px-2 py-1 rounded text-[10px] text-white/90 font-label"
+          >
+            Foto: Fitopatología MX
+          </div>
+        </div>
+        <div class="p-6 flex-1 flex flex-col">
+          <span
+            class="text-[10px] font-label font-bold uppercase tracking-widest text-primary mb-2"
+          >Hongo</span>
+          <h3
+            class="text-xl font-headline font-bold text-on-surface mb-1 leading-tight"
+          >Mildiu Velloso</h3>
+          <p
+            class="text-sm italic text-on-surface-variant mb-4"
+          >Peronosporaceae</p>
+          <p
+            class="text-sm text-on-surface-variant line-clamp-2 leading-relaxed mb-6"
+          >
+            Produce manchas amarillentas en el haz de las hojas y un fieltro
+            grisáceo en el envés bajo alta humedad.
+          </p>
+          <div
+            class="mt-auto pt-4 border-t border-surface-container flex justify-between items-center"
+          >
+            <button
+              class="text-primary font-bold text-sm flex items-center gap-1 group/btn"
+            >
+              Ver detalle
+              <span
+                class="material-symbols-outlined text-sm group-hover/btn:translate-x-1 transition-transform"
+              >arrow_forward</span>
+            </button>
+          </div>
+        </div>
+      </article>
+      <!-- Card 3 -->
+      <article
+        class="group bg-surface-container-lowest rounded-xl overflow-hidden editorial-shadow ghost-border flex flex-col hover:translate-y-[-4px] transition-all duration-300"
+      >
+        <div class="relative h-56 overflow-hidden">
+          <img
+            class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+            data-alt="Wilt disease in commercial agriculture"
+            src="https://lh3.googleusercontent.com/aida-public/AB6AXuBdyBUJCJenpF6rRhotnAknUJFwmQYTkaWim_s5j5qT4rVXba38q7g4nERHsx_DW1iLYNPxO4VzD1mQe292aD0kraYxAPNOg5mA8qZrGNf4JrDvyJGjhl1LHOPkXQA5UeQ9PjbUmVQQV4dsi1U4eee0rL1ClfvTnut6IjKjvdtTz7EkZZbdU6aUPhjdA8ey83w8JbFCYxb_EOoNkB_J7MPf4h84wzvS03j7yPqFXHH1rL5SGXA49hUGxZrZnhtwXxevdLRE9W4cG2A9"
+          />
+          <div class="absolute top-4 left-4">
+            <span
+              class="px-2 py-1 rounded bg-error-container text-on-error-container text-[10px] font-bold uppercase tracking-wider"
+            >Riesgo Crítico</span>
+          </div>
+          <div
+            class="absolute bottom-2 right-2 bg-black/40 backdrop-blur-sm px-2 py-1 rounded text-[10px] text-white/90 font-label"
+          >
+            Foto: Archivo Científico
+          </div>
+        </div>
+        <div class="p-6 flex-1 flex flex-col">
+          <span
+            class="text-[10px] font-label font-bold uppercase tracking-widest text-primary mb-2"
+          >Bacteria</span>
+          <h3
+            class="text-xl font-headline font-bold text-on-surface mb-1 leading-tight"
+          >Marchitez Bacteriana
+          </h3>
+          <p class="text-sm italic text-on-surface-variant mb-4">Ralstonia
+            solanacearum</p>
+          <p
+            class="text-sm text-on-surface-variant line-clamp-2 leading-relaxed mb-6"
+          >
+            Coloniza los vasos del xilema bloqueando el flujo de agua, causando
+            una muerte rápida de la planta.
+          </p>
+          <div
+            class="mt-auto pt-4 border-t border-surface-container flex justify-between items-center"
+          >
+            <button
+              class="text-primary font-bold text-sm flex items-center gap-1 group/btn"
+            >
+              Ver detalle
+              <span
+                class="material-symbols-outlined text-sm group-hover/btn:translate-x-1 transition-transform"
+              >arrow_forward</span>
+            </button>
+          </div>
+        </div>
+      </article>
+      <!-- Card 4 -->
+      <article
+        class="group bg-surface-container-lowest rounded-xl overflow-hidden editorial-shadow ghost-border flex flex-col hover:translate-y-[-4px] transition-all duration-300"
+      >
+        <div class="relative h-56 overflow-hidden">
+          <img
+            class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+            data-alt="Agricultural beetle on green leaf"
+            src="https://lh3.googleusercontent.com/aida-public/AB6AXuAFC04Ho56Uvp1Ly-BTzG4COo9SX-JW4gLjI8toMHd39Vs4JcmGAcE5YvkJE3xpIs2g9pZjxGZ_1ixiJAsKy366d49Y_kkbU0V9TUkrpj9xSAzumrkQ_iwB27RMTS6jIWwV56VGeGASwUHyPvpTckrP7jFhXpVI3UykbfLhMdrVV0bwi4_HvbqwDiDibCktcLY6nuHSWsyjmzlaqZFZdj0bTcDDqs8_DHO4SAbvZlwYWwP6aGcQ0u6gBpdWl3iS3RsgW3rP2vUZKW7s"
+          />
+          <div class="absolute top-4 left-4">
+            <span
+              class="px-2 py-1 rounded bg-surface-container-highest text-on-surface-variant text-[10px] font-bold uppercase tracking-wider"
+            >Bajo</span>
+          </div>
+          <div
+            class="absolute bottom-2 right-2 bg-black/40 backdrop-blur-sm px-2 py-1 rounded text-[10px] text-white/90 font-label"
+          >
+            Foto: Entomología Aplicada
+          </div>
+        </div>
+        <div class="p-6 flex-1 flex flex-col">
+          <span
+            class="text-[10px] font-label font-bold uppercase tracking-widest text-primary mb-2"
+          >Insecto</span>
+          <h3
+            class="text-xl font-headline font-bold text-on-surface mb-1 leading-tight"
+          >Escarabajo de la Patata</h3>
+          <p class="text-sm italic text-on-surface-variant mb-4">Leptinotarsa
+            decemlineata</p>
+          <p
+            class="text-sm text-on-surface-variant line-clamp-2 leading-relaxed mb-6"
+          >
+            Reconocible por sus rayas amarillas y negras, devora rápidamente el
+            follaje de cultivos de solanáceas.
+          </p>
+          <div
+            class="mt-auto pt-4 border-t border-surface-container flex justify-between items-center"
+          >
+            <button
+              class="text-primary font-bold text-sm flex items-center gap-1 group/btn"
+            >
+              Ver detalle
+              <span
+                class="material-symbols-outlined text-sm group-hover/btn:translate-x-1 transition-transform"
+              >arrow_forward</span>
+            </button>
+          </div>
+        </div>
+      </article>
+      <!-- More cards following the pattern -->
+      <article
+        class="group bg-surface-container-lowest rounded-xl overflow-hidden editorial-shadow ghost-border flex flex-col hover:translate-y-[-4px] transition-all duration-300"
+      >
+        <div class="relative h-56 overflow-hidden">
+          <img
+            class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+            data-alt="Microscopic fungi culture"
+            src="https://lh3.googleusercontent.com/aida-public/AB6AXuAYBbBGbyRHpcKJcDl3yZiVxCtP9pcUrQ8d6rx5IfKdz8FEVpfsxSPXt9xdiiirXRuxpFWGIeWbeXcRkgxXg5UW0IuRDo0bZgtBmPATwRfryhBXx_UV5TwNIGPJZArZnb74g_whxDkoZofd0AucVQzbxruoVrRhhPH0xtOwzYFlytU87NMRvTg41cfVfRFpu0zPI3FJK3dGhFsVZsM2j6Q8aex4d4sQpKrAvFdHGvXkrQ-MMzA3xYiZ_50eGYyHxSscfGKi0egXMI2E"
+          />
+          <div class="absolute top-4 left-4">
+            <span
+              class="px-2 py-1 rounded bg-primary-container text-on-primary-container text-[10px] font-bold uppercase tracking-wider"
+            >Moderado</span>
+          </div>
+          <div
+            class="absolute bottom-2 right-2 bg-black/40 backdrop-blur-sm px-2 py-1 rounded text-[10px] text-white/90 font-label"
+          >
+            Foto: INIFAP Archivo
+          </div>
+        </div>
+        <div class="p-6 flex-1 flex flex-col">
+          <span
+            class="text-[10px] font-label font-bold uppercase tracking-widest text-primary mb-2"
+          >Hongo</span>
+          <h3
+            class="text-xl font-headline font-bold text-on-surface mb-1 leading-tight"
+          >Roya del Trigo</h3>
+          <p class="text-sm italic text-on-surface-variant mb-4">Puccinia
+            graminis</p>
+          <p
+            class="text-sm text-on-surface-variant line-clamp-2 leading-relaxed mb-6"
+          >
+            Pústulas de color óxido que absorben nutrientes y agua, reduciendo
+            drásticamente el rendimiento del grano.
+          </p>
+          <div
+            class="mt-auto pt-4 border-t border-surface-container flex justify-between items-center"
+          >
+            <button
+              class="text-primary font-bold text-sm flex items-center gap-1 group/btn"
+            >
+              Ver detalle
+              <span
+                class="material-symbols-outlined text-sm group-hover/btn:translate-x-1 transition-transform"
+              >arrow_forward</span>
+            </button>
+          </div>
+        </div>
+      </article>
+      <!-- More placeholder cards to fill grid -->
+      <article
+        class="group bg-surface-container-lowest rounded-xl overflow-hidden editorial-shadow ghost-border flex flex-col hover:translate-y-[-4px] transition-all duration-300"
+      >
+        <div class="relative h-56 overflow-hidden">
+          <img
+            class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+            data-alt="Spider mite damage on crops"
+            src="https://lh3.googleusercontent.com/aida-public/AB6AXuDhSwps_LNJGo5-PjpWA3i-E_x_ElRihoD3Lp5j1EQcN2QTVDCqKHOOShP6n-GvK2ky9ao7pl7SNTd3F7ngoRsvjTAzOLGrCWG7ouSro5_AJfDiZQbG52chKDnevX_uyfyW1uaLLc-03lz4vsZ-X5iZgtfaywP7ktm6z2gFZeH9-bGJl2IHQuoHl8kht77fEcDeAicwVQ6TcHhXywKkCaiW7j03WN7R7OyD8urjSuNMnS_l-r2tf34YiVeqPOHir878fpMWSvOAo4dN"
+          />
+          <div class="absolute top-4 left-4">
+            <span
+              class="px-2 py-1 rounded bg-error-container text-on-error-container text-[10px] font-bold uppercase tracking-wider"
+            >Riesgo Crítico</span>
+          </div>
+          <div
+            class="absolute bottom-2 right-2 bg-black/40 backdrop-blur-sm px-2 py-1 rounded text-[10px] text-white/90 font-label"
+          >
+            Foto: BioAgro Research
+          </div>
+        </div>
+        <div class="p-6 flex-1 flex flex-col">
+          <span
+            class="text-[10px] font-label font-bold uppercase tracking-widest text-primary mb-2"
+          >Ácaro</span>
+          <h3
+            class="text-xl font-headline font-bold text-on-surface mb-1 leading-tight"
+          >Araña Roja</h3>
+          <p class="text-sm italic text-on-surface-variant mb-4">Tetranychus
+            urticae</p>
+          <p
+            class="text-sm text-on-surface-variant line-clamp-2 leading-relaxed mb-6"
+          >
+            Pequeños arácnidos que tejen telas finas y succionan la savia,
+            provocando clorosis y defoliación.
+          </p>
+          <div
+            class="mt-auto pt-4 border-t border-surface-container flex justify-between items-center"
+          >
+            <button
+              class="text-primary font-bold text-sm flex items-center gap-1 group/btn"
+            >
+              Ver detalle
+              <span
+                class="material-symbols-outlined text-sm group-hover/btn:translate-x-1 transition-transform"
+              >arrow_forward</span>
+            </button>
+          </div>
+        </div>
+      </article>
+      <article
+        class="group bg-surface-container-lowest rounded-xl overflow-hidden editorial-shadow ghost-border flex flex-col hover:translate-y-[-4px] transition-all duration-300"
+      >
+        <div class="relative h-56 overflow-hidden">
+          <img
+            class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+            data-alt="Mosaic virus pattern on leaves"
+            src="https://lh3.googleusercontent.com/aida-public/AB6AXuDFVIYnNpvlElOwOJohrbvHADP0pUo2qHoUGut_7g-uE7IqxVEKXnm3e90pBKuERXwyJbuGyDk3D7GyBtxStSUmPAMjf0hbmIV1m0TluXy1g_mF4Yb4B0UxR0TLDuSp7m9rYu0guCGxr31U1O5G2V0SI2sb9PkV_ySezpFXsOsDykeyn5e17B_230SkddLFOZ40rvRPm4rY03eIWwzUrAQ2GV22PtEYexkZYOUGPI_0L3riAV44U55BUK-DgT-ZCuvgvqvuTIy63-Lf"
+          />
+          <div class="absolute top-4 left-4">
+            <span
+              class="px-2 py-1 rounded bg-primary-container text-on-primary-container text-[10px] font-bold uppercase tracking-wider"
+            >Moderado</span>
+          </div>
+          <div
+            class="absolute bottom-2 right-2 bg-black/40 backdrop-blur-sm px-2 py-1 rounded text-[10px] text-white/90 font-label"
+          >
+            Foto: Virología Vegetal
+          </div>
+        </div>
+        <div class="p-6 flex-1 flex flex-col">
+          <span
+            class="text-[10px] font-label font-bold uppercase tracking-widest text-primary mb-2"
+          >Virus</span>
+          <h3
+            class="text-xl font-headline font-bold text-on-surface mb-1 leading-tight"
+          >Mosaico del Tabaco
+          </h3>
+          <p class="text-sm italic text-on-surface-variant mb-4">Tobacco mosaic
+            virus</p>
+          <p
+            class="text-sm text-on-surface-variant line-clamp-2 leading-relaxed mb-6"
+          >
+            Causa patrones moteados de color verde claro y oscuro, además de
+            deformaciones en las hojas de tabaco y tomate.
+          </p>
+          <div
+            class="mt-auto pt-4 border-t border-surface-container flex justify-between items-center"
+          >
+            <button
+              class="text-primary font-bold text-sm flex items-center gap-1 group/btn"
+            >
+              Ver detalle
+              <span
+                class="material-symbols-outlined text-sm group-hover/btn:translate-x-1 transition-transform"
+              >arrow_forward</span>
+            </button>
+          </div>
+        </div>
+      </article>
+      <article
+        class="group bg-surface-container-lowest rounded-xl overflow-hidden editorial-shadow ghost-border flex flex-col hover:translate-y-[-4px] transition-all duration-300 border-2 border-dashed border-primary/20 items-center justify-center p-8"
+      >
+        <div class="text-center">
+          <span
+            class="material-symbols-outlined text-4xl text-primary/40 mb-4"
+          >add_circle</span>
+          <h3
+            class="text-lg font-headline font-bold text-on-surface mb-2"
+          >¿Nueva especie?</h3>
+          <p
+            class="text-xs text-on-surface-variant leading-relaxed mb-6"
+          >Colabora con nuestra red científica reportando una nueva plaga.</p>
+          <button
+            class="px-6 py-2 bg-surface-container-high rounded-full text-xs font-bold text-primary uppercase tracking-wider hover:bg-primary-container transition-colors"
+          >Solicitar registro</button>
+        </div>
+      </article>
+    </div>
+    <!-- Pagination -->
+    <div class="mt-20 flex justify-center">
+      <nav class="flex items-center gap-1 bg-surface-container p-1 rounded-xl">
+        <button
+          class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-surface-container-highest text-on-surface-variant"
+        >
+          <span class="material-symbols-outlined">chevron_left</span>
+        </button>
+        <button
+          class="w-10 h-10 flex items-center justify-center rounded-lg bg-primary text-on-primary font-bold text-sm"
+        >1</button>
+        <button
+          class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-surface-container-highest text-on-surface-variant font-bold text-sm"
+        >2</button>
+        <button
+          class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-surface-container-highest text-on-surface-variant font-bold text-sm"
+        >3</button>
+        <span class="px-2 text-on-surface-variant">...</span>
+        <button
+          class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-surface-container-highest text-on-surface-variant font-bold text-sm"
+        >12</button>
+        <button
+          class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-surface-container-highest text-on-surface-variant"
+        >
+          <span class="material-symbols-outlined">chevron_right</span>
+        </button>
+      </nav>
+    </div>
+  </section>
 </main>

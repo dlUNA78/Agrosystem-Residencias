@@ -15,6 +15,7 @@ export default (sequelize, DataTypes) => {
   Plague.init(
     {
       name: DataTypes.STRING,
+      scientific_name: DataTypes.STRING,
       category: DataTypes.STRING,
       description: DataTypes.TEXT,
       risk_level: DataTypes.STRING,
