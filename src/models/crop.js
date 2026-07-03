@@ -14,6 +14,7 @@ export default (sequelize, DataTypes) => {
 
   Crop.init({
     name: DataTypes.STRING,
+    scientific_name: DataTypes.STRING,
     category: DataTypes.STRING,
     description: DataTypes.TEXT,
     climate: DataTypes.STRING,

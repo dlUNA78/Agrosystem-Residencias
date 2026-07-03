@@ -5,6 +5,7 @@ export default {
       [
         {
           name: "Maíz",
+          scientific_name: "Zea mays",
           category: "Cereal",
           description: "Cultivo básico utilizado para consumo humano y animal.",
           climate: "Templado",
@@ -16,6 +17,7 @@ export default {
         },
         {
           name: "Frijol",
+          scientific_name: "Phaseolus vulgaris",
           category: "Leguminosa",
           description: "Cultivo rico en proteínas y ampliamente consumido.",
           climate: "Cálido",
@@ -27,6 +29,7 @@ export default {
         },
         {
           name: "Trigo",
+          scientific_name: "Triticum aestivum",
           category: "Cereal",
           description: "Cultivo utilizado para la producción de harina.",
           climate: "Frío",

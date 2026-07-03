@@ -8,7 +8,13 @@ export default (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      // define association here
+      // Un producto puede recomendarse para muchas plagas
+      Product.belongsToMany(models.Plague, {
+        through: "PlagueProducts",
+        foreignKey: "product_id",
+        otherKey: "plague_id",
+        as: "plagues",
+      });
     }
   }
 
