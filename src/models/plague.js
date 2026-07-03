@@ -32,6 +32,8 @@ export default (sequelize, DataTypes) => {
       control_methods: DataTypes.TEXT,
       biological_control: DataTypes.TEXT,
       biological_cycle: DataTypes.JSONB,
+      verified_by: DataTypes.STRING,
+      verified_at: DataTypes.DATE,
       status: DataTypes.BOOLEAN,
     },
     {

@@ -28,6 +28,34 @@ const defaultCycle = [
   { title: "Dispersión",          description: "Formas migratorias o resistentes que permiten la colonización de nuevos hospedantes cuando el recurso actual se agota." },
 ];
 
+// Coordenadas aproximadas de regiones agrícolas de México
+const REGION_COORDS = {
+  "El Bajío":             { lat: 20.9,  lng: -101.0 },
+  "Norte de Tamaulipas":   { lat: 26.2,  lng: -98.5  },
+  "Sur de Tamaulipas":     { lat: 23.0,  lng: -99.0  },
+  "Tamaulipas":            { lat: 24.5,  lng: -99.0  },
+  "Sonora":                { lat: 29.0,  lng: -110.0 },
+  "Sinaloa":               { lat: 24.8,  lng: -107.4 },
+  "Valle del Fuerte":      { lat: 25.8,  lng: -109.0 },
+  "Veracruz":              { lat: 19.2,  lng: -96.1  },
+  "Jalisco":               { lat: 20.7,  lng: -103.4 },
+  "Chiapas":               { lat: 16.0,  lng: -92.0  },
+  "Oaxaca":                { lat: 17.0,  lng: -96.7  },
+  "Tabasco":               { lat: 18.0,  lng: -92.9  },
+  "Baja California":       { lat: 30.0,  lng: -115.0 },
+  "Guanajuato":            { lat: 21.0,  lng: -101.3 },
+  "Michoacán":             { lat: 19.5,  lng: -101.8 },
+  "Hidalgo":               { lat: 20.5,  lng: -98.9  },
+  "Puebla":                { lat: 18.9,  lng: -98.2  },
+  "Guerrero":              { lat: 17.4,  lng: -99.5  },
+  "Colima":                { lat: 19.2,  lng: -103.7 },
+  "Nayarit":               { lat: 21.8,  lng: -104.8 },
+  "Durango":               { lat: 24.0,  lng: -104.7 },
+  "Chihuahua":             { lat: 28.6,  lng: -106.1 },
+  "Coahuila":              { lat: 27.3,  lng: -102.1 },
+  "Nuevo León":            { lat: 25.6,  lng: -99.9  },
+};
+
 // ── GET /plagues ───────────────────────────────────────────────────────────
 export const renderPlaguesPublic = async (req, res) => {
   try {
@@ -127,6 +155,22 @@ export const renderPlagueDetail = async (req, res) => {
       isValidated:      p.validation_status === "Validado",
     }));
 
+    // Regiones de incidencia con coordenadas para el mapa
+    const regionNames = (plague.region || "")
+      .split(",")
+      .map((r) => r.trim())
+      .filter(Boolean);
+
+    const incidenceRegions = regionNames.map((name) => {
+      const coords = REGION_COORDS[name];
+      return {
+        name,
+        lat:       coords ? coords.lat : 23.6345,
+        lng:       coords ? coords.lng : -102.5528,
+        hasCoords: !!coords,
+      };
+    });
+
     res.render("shared/plague-detail", {
       layout: "public",
       pageTitle: plague.name,
@@ -147,9 +191,18 @@ export const renderPlagueDetail = async (req, res) => {
         riskLabel:         risk.label,
         riskBadgeClass:    risk.badgeClass,
         riskGradientClass: risk.gradientClass,
+        riskLevel:         plague.risk_level,
+        verifiedBy:        plague.verified_by || null,
+        verifiedAt:        plague.verified_at
+          ? new Date(plague.verified_at).toLocaleDateString("es-MX", { year: "numeric", month: "long", day: "numeric" })
+          : null,
       },
       carouselImages,
       relatedProducts,
+      incidenceRegions,
+      incidenceRegionsJson: JSON.stringify(incidenceRegions),
+      extraHead: '<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>',
+      extraScripts: '<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>',
     });
   } catch (error) {
     console.error("Error en renderPlagueDetail:", error);
