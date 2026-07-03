@@ -1,0 +1,414 @@
+<div class="pt-24 px-4 md:px-10 pb-12 min-h-screen">
+
+  {{! ── BREADCRUMBS ─────────────────────────────────────────────────────── }}
+  <div class="mb-8">
+    <nav aria-label="Breadcrumb" class="flex mb-4">
+      <ol
+        class="inline-flex items-center space-x-1 md:space-x-3 text-xs font-medium tracking-widest uppercase text-on-surface-variant"
+      >
+        <li class="inline-flex items-center">
+          {{#if isPrivate}}
+            <a
+              class="hover:text-primary transition-colors"
+              href="/dashboard"
+            >Dashboard</a>
+          {{else}}
+            <a class="hover:text-primary transition-colors" href="/">Inicio</a>
+          {{/if}}
+        </li>
+        <li>
+          <div class="flex items-center">
+            <span
+              class="material-symbols-outlined text-sm mx-1"
+            >chevron_right</span>
+            {{#if isPrivate}}
+              <a
+                class="hover:text-primary transition-colors"
+                href="/private/plagues"
+              >Plagas</a>
+            {{else}}
+              <a
+                class="hover:text-primary transition-colors"
+                href="/plagues"
+              >Plagas</a>
+            {{/if}}
+          </div>
+        </li>
+        <li aria-current="page">
+          <div class="flex items-center">
+            <span
+              class="material-symbols-outlined text-sm mx-1"
+            >chevron_right</span>
+            <span class="text-primary font-bold">{{plague.name}}</span>
+          </div>
+        </li>
+      </ol>
+    </nav>
+
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+      <div>
+        <h1
+          class="text-5xl md:text-6xl font-headline font-extrabold text-on-surface tracking-tighter mb-2"
+        >
+          {{plague.name}}
+        </h1>
+        <p class="text-lg text-on-surface-variant font-medium">
+          Análisis fitosanitario avanzado de
+          <span class="italic">{{plague.scientificName}}</span>
+        </p>
+      </div>
+      <div>
+        <button
+          class="flex items-center gap-2 px-6 py-4 bg-surface-container-high text-on-surface font-bold text-sm rounded-lg hover:bg-surface-container-highest transition-all"
+        >
+          <span class="material-symbols-outlined text-xl">add_circle</span>
+          Proponer nuevo registro
+        </button>
+      </div>
+    </div>
+  </div>
+
+  {{! ── HERO IMAGE + RISK BADGE ────────────────────────────────────────── }}
+  <div class="mb-20">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+
+      {{! Imagen principal }}
+      <div class="col-span-1 lg:col-span-8">
+        <div
+          class="overflow-hidden rounded-xl bg-surface-container-low shadow-sm mb-3"
+        >
+          {{#if plague.imageUrl}}
+            <img
+              class="w-full h-[500px] object-cover hover:scale-105 transition-transform duration-700"
+              src="{{plague.imageUrl}}"
+              alt="{{plague.name}}"
+            />
+          {{else}}
+            <div
+              class="w-full h-[500px] bg-surface-container-highest flex items-center justify-center"
+            >
+              <span
+                class="material-symbols-outlined text-6xl text-on-surface-variant"
+              >pest_control</span>
+            </div>
+          {{/if}}
+        </div>
+        <span
+          class="text-[10px] text-on-surface-variant uppercase tracking-widest px-1 font-bold"
+        >
+          Imagen por: Banco de Germoplasma INIFAP
+        </span>
+      </div>
+
+      {{! Panel de riesgo }}
+      <div class="col-span-1 lg:col-span-4 flex flex-col gap-6">
+        <div
+          class="flex-1 p-6 md:p-8 rounded-xl flex flex-col justify-end text-white
+            {{plague.riskGradientClass}}"
+        >
+          <span
+            class="text-white/80 text-xs font-bold uppercase tracking-widest mb-2"
+          >Estado de Riesgo</span>
+          <div class="flex items-center gap-2">
+            <div
+              class="text-4xl font-headline font-extrabold tracking-tighter"
+            >{{plague.riskLabel}}</div>
+            <span
+              class="material-symbols-outlined text-3xl"
+              style="font-variation-settings: 'FILL' 1;"
+            >warning</span>
+          </div>
+          <p
+            class="text-white/90 text-sm mt-4 leading-relaxed"
+          >{{plague.description}}</p>
+        </div>
+        <div
+          class="bg-surface-container-lowest border-l-4 border-primary p-6 md:p-8 rounded-xl shadow-sm"
+        >
+          <span
+            class="text-on-surface-variant text-xs font-bold uppercase tracking-widest mb-2"
+          >Validación Científica</span>
+          <div class="flex items-center gap-4">
+            <div class="text-lg font-headline font-bold text-on-surface">INIFAP
+              Verified</div>
+            <span
+              class="material-symbols-outlined text-primary"
+              style="font-variation-settings: 'FILL' 1;"
+            >verified</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {{! ── FICHA TÉCNICA ────────────────────────────────────────────────────── }}
+  <div class="mb-24">
+    <h2 class="text-2xl font-headline font-extrabold tracking-tight mb-8">Ficha Técnica Completa</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div class="bg-surface-container-low p-6 rounded-xl border border-outline-variant/10">
+        <h3 class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2">Nombre Científico</h3>
+        <p class="text-base font-bold italic text-on-surface leading-tight">{{plague.scientificName}}</p>
+      </div>
+      <div class="bg-surface-container-low p-6 rounded-xl border border-outline-variant/10">
+        <h3 class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2">Clasificación</h3>
+        <p class="text-base font-bold text-on-surface leading-tight">{{plague.category}}</p>
+      </div>
+      <div class="bg-surface-container-low p-6 rounded-xl border border-outline-variant/10">
+        <h3 class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2">Región de Incidencia</h3>
+        <p class="text-base font-bold text-on-surface leading-tight">{{plague.region}}</p>
+      </div>
+      <div class="bg-surface-container-low p-6 rounded-xl border border-outline-variant/10">
+        <h3 class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2">Nivel de Riesgo</h3>
+        <span class="inline-block px-3 py-1 rounded-full text-xs font-bold {{plague.riskBadgeClass}}">
+          {{plague.riskLabel}}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  {{! ── CICLO BIOLÓGICO ────────────────────────────────────────────────── }}
+  <div class="bg-surface-container-low py-16 px-8 rounded-2xl mb-24">
+    <div class="mb-12">
+      <h2 class="text-3xl font-headline font-extrabold tracking-tight mb-4">Ciclo Biológico</h2>
+      <p class="text-on-surface-variant max-w-2xl">Proceso de desarrollo y reproducción de la especie. Conocer las etapas del ciclo permite aplicar los controles en el momento más efectivo.</p>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+      <div class="relative flex flex-col items-center text-center">
+        <div class="w-16 h-16 rounded-full bg-primary text-on-primary flex items-center justify-center text-xl font-headline font-bold mb-6 z-10 shadow-md">1</div>
+        <div class="hidden md:block absolute top-8 left-1/2 w-full h-[2px] bg-primary/20"></div>
+        <h4 class="font-headline font-bold text-lg mb-2">Huevo / Fundación</h4>
+        <p class="text-sm text-on-surface-variant leading-relaxed">Fase inicial de desarrollo. En climas fríos el organismo pasa el invierno en forma de huevo o estructuras de resistencia.</p>
+      </div>
+      <div class="relative flex flex-col items-center text-center">
+        <div class="w-16 h-16 rounded-full bg-primary text-on-primary flex items-center justify-center text-xl font-headline font-bold mb-6 z-10 shadow-md">2</div>
+        <div class="hidden md:block absolute top-8 left-1/2 w-full h-[2px] bg-primary/20"></div>
+        <h4 class="font-headline font-bold text-lg mb-2">Estadio Juvenil</h4>
+        <p class="text-sm text-on-surface-variant leading-relaxed">Crecimiento activo y alimentación intensa. El organismo pasa por múltiples instares o mudas antes de alcanzar la madurez.</p>
+      </div>
+      <div class="relative flex flex-col items-center text-center">
+        <div class="w-16 h-16 rounded-full bg-primary text-on-primary flex items-center justify-center text-xl font-headline font-bold mb-6 z-10 shadow-md">3</div>
+        <div class="hidden md:block absolute top-8 left-1/2 w-full h-[2px] bg-primary/20"></div>
+        <h4 class="font-headline font-bold text-lg mb-2">Adulto Reproductivo</h4>
+        <p class="text-sm text-on-surface-variant leading-relaxed">Etapa de reproducción masiva. En condiciones óptimas la población puede multiplicarse exponencialmente en días.</p>
+      </div>
+      <div class="relative flex flex-col items-center text-center">
+        <div class="w-16 h-16 rounded-full bg-primary text-on-primary flex items-center justify-center text-xl font-headline font-bold mb-6 z-10 shadow-md">4</div>
+        <h4 class="font-headline font-bold text-lg mb-2">Dispersión</h4>
+        <p class="text-sm text-on-surface-variant leading-relaxed">Formas migratorias o resistentes que permiten la colonización de nuevos hospedantes cuando el recurso actual se agota.</p>
+      </div>
+    </div>
+  </div>
+
+  {{! ── SÍNTOMAS Y MÉTODOS DE CONTROL ─────────────────────────────────── }}
+  <div class="mb-24 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
+    <div class="col-span-1 lg:col-span-7">
+      <h2 class="text-3xl font-headline font-extrabold tracking-tight mb-8">Estrategias de Manejo Integrado</h2>
+
+      <div class="space-y-12">
+        {{! Síntomas }}
+        <div class="flex gap-6">
+          <div class="flex-none">
+            <div class="w-12 h-12 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container">
+              <span class="material-symbols-outlined">search</span>
+            </div>
+          </div>
+          <div>
+            <h4 class="font-headline text-xl font-bold mb-3">Síntomas Identificados</h4>
+            <p class="text-on-surface-variant leading-relaxed">{{plague.symptoms}}</p>
+          </div>
+        </div>
+
+        {{! Control biológico }}
+        <div class="flex gap-6">
+          <div class="flex-none">
+            <div class="w-12 h-12 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container">
+              <span class="material-symbols-outlined">biotech</span>
+            </div>
+          </div>
+          <div>
+            <h4 class="font-headline text-xl font-bold mb-3">Control Biológico</h4>
+            <p class="text-on-surface-variant leading-relaxed">Implementación de enemigos naturales y organismos benéficos que actúan como agentes reguladores de la población. Esta estrategia minimiza el impacto ambiental y preserva la biodiversidad del agroecosistema.</p>
+          </div>
+        </div>
+
+        {{! Métodos de control químico }}
+        <div class="flex gap-6">
+          <div class="flex-none">
+            <div class="w-12 h-12 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container">
+              <span class="material-symbols-outlined">opacity</span>
+            </div>
+          </div>
+          <div>
+            <h4 class="font-headline text-xl font-bold mb-3">Control Químico y Métodos Recomendados</h4>
+            <p class="text-on-surface-variant leading-relaxed">{{plague.controlMethods}}</p>
+          </div>
+        </div>
+      </div>
+
+      {{! ── CARRUSEL VISUAL DE DAÑOS ───────────────────────────────────── }}
+      <div class="mt-20 p-8 rounded-2xl bg-surface-container-low border border-outline-variant/10 shadow-sm">
+        <div class="flex items-center justify-between mb-8">
+          <h3 class="text-2xl font-headline font-extrabold tracking-tight text-on-surface">Referencia Visual de Daños</h3>
+          <div class="flex gap-2">
+            <button
+              class="w-10 h-10 rounded-full border border-primary/20 flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all shadow-sm bg-white"
+              onclick="document.getElementById('plague-carousel').scrollBy({left: -350, behavior: 'smooth'})">
+              <span class="material-symbols-outlined">chevron_left</span>
+            </button>
+            <button
+              class="w-10 h-10 rounded-full border border-primary/20 flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all shadow-sm bg-white"
+              onclick="document.getElementById('plague-carousel').scrollBy({left: 350, behavior: 'smooth'})">
+              <span class="material-symbols-outlined">chevron_right</span>
+            </button>
+          </div>
+        </div>
+        <div id="plague-carousel" class="flex gap-6 overflow-x-auto pb-4" style="scrollbar-width:none;-ms-overflow-style:none;scroll-snap-type:x mandatory;">
+          {{#if plague.imageUrl}}
+          <div class="flex-none w-[300px] md:w-[380px]" style="scroll-snap-align:start;">
+            <div class="overflow-hidden rounded-xl bg-surface-container-highest mb-3 relative" style="aspect-ratio:4/3;">
+              <img alt="Vista principal de {{plague.name}}" class="w-full h-full object-cover transition-transform duration-500 hover:scale-110" src="{{plague.imageUrl}}" />
+              <div class="absolute bottom-0 left-0 right-0 p-4 bg-linear-to-t from-black/60 to-transparent">
+                <span class="text-white text-sm font-bold">{{plague.name}} — Vista General</span>
+              </div>
+            </div>
+            <span class="text-[10px] text-on-surface-variant uppercase tracking-widest px-1 font-bold block">Ref: Banco de Germoplasma INIFAP</span>
+          </div>
+          {{/if}}
+          <div class="flex-none w-[300px] md:w-[380px]" style="scroll-snap-align:start;">
+            <div class="overflow-hidden rounded-xl bg-surface-container-highest mb-3 relative flex items-center justify-center" style="aspect-ratio:4/3;">
+              <div class="text-center p-8">
+                <span class="material-symbols-outlined text-5xl text-on-surface-variant/40 mb-4 block">image_search</span>
+                <p class="text-xs text-on-surface-variant font-medium">Síntomas en campo — imagen de referencia</p>
+              </div>
+              <div class="absolute bottom-0 left-0 right-0 p-4 bg-linear-to-t from-black/30 to-transparent">
+                <span class="text-white text-sm font-bold">Síntomas en Cultivo</span>
+              </div>
+            </div>
+            <span class="text-[10px] text-on-surface-variant uppercase tracking-widest px-1 font-bold block">Ref: Centro de Investigación INIFAP</span>
+          </div>
+          <div class="flex-none w-[300px] md:w-[380px]" style="scroll-snap-align:start;">
+            <div class="overflow-hidden rounded-xl bg-surface-container-highest mb-3 relative flex items-center justify-center" style="aspect-ratio:4/3;">
+              <div class="text-center p-8">
+                <span class="material-symbols-outlined text-5xl text-on-surface-variant/40 mb-4 block">photo_camera</span>
+                <p class="text-xs text-on-surface-variant font-medium">Daño foliar avanzado — documentación técnica</p>
+              </div>
+              <div class="absolute bottom-0 left-0 right-0 p-4 bg-linear-to-t from-black/30 to-transparent">
+                <span class="text-white text-sm font-bold">Daño Foliar</span>
+              </div>
+            </div>
+            <span class="text-[10px] text-on-surface-variant uppercase tracking-widest px-1 font-bold block">Ref: Estación Experimental INIFAP</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {{! Sidebar: región e incidencia }}
+    <div class="col-span-1 lg:col-span-5">
+      <div class="bg-surface-container p-6 md:p-8 rounded-xl sticky top-28">
+        <h2 class="text-xl font-headline font-extrabold tracking-tight mb-6">Información de Incidencia</h2>
+
+        {{! Región principal }}
+        <div class="bg-surface-container-low p-6 rounded-xl border border-outline-variant/10 mb-4">
+          <h3 class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-2">Región Principal</h3>
+          <p class="text-base font-bold text-on-surface">{{plague.region}}</p>
+        </div>
+
+        {{! Nivel de riesgo visual }}
+        <div class="bg-surface-container-low p-6 rounded-xl border border-outline-variant/10 mb-4">
+          <h3 class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-3">Nivel de Riesgo Registrado</h3>
+          <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-primary" style="font-variation-settings:'FILL' 1;">warning</span>
+            <span class="px-3 py-1 rounded-full text-xs font-bold {{plague.riskBadgeClass}}">{{plague.riskLabel}}</span>
+          </div>
+        </div>
+
+        {{! Acciones rápidas }}
+        <div class="bg-surface-container-low p-6 rounded-xl border border-outline-variant/10">
+          <h3 class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant mb-4">Acciones Rápidas</h3>
+          <div class="space-y-3">
+            <a href="/plagues" class="flex items-center gap-2 text-sm font-bold text-primary hover:underline">
+              <span class="material-symbols-outlined text-sm">arrow_back</span>
+              Volver al catálogo
+            </a>
+            <a href="/products" class="flex items-center gap-2 text-sm font-bold text-primary hover:underline">
+              <span class="material-symbols-outlined text-sm">science</span>
+              Ver productos recomendados
+            </a>
+            {{#if isPrivate}}
+              <a href="/private/plagues/{{plague.id}}/edit" class="flex items-center gap-2 text-sm font-bold text-primary hover:underline">
+                <span class="material-symbols-outlined text-sm">edit</span>
+                Editar registro
+              </a>
+            {{/if}}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {{! ── PRODUCTOS RECOMENDADOS ──────────────────────────────────────────── }}
+  <div class="mb-24">
+    <h2 class="text-2xl font-headline font-extrabold tracking-tight mb-8">Productos Recomendados Validados por INIFAP</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+      <div class="bg-white p-6 rounded-xl border border-outline-variant/15 shadow-sm hover:shadow-md transition-shadow flex flex-col">
+        <div class="flex justify-between items-start mb-4">
+          <span class="material-symbols-outlined text-primary text-3xl">science</span>
+          <span class="inline-flex items-center gap-1 px-2 py-1 bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-wider rounded">
+            <span class="material-symbols-outlined text-xs" style="font-variation-settings:'FILL' 1;">verified</span>
+            Validado INIFAP
+          </span>
+        </div>
+        <h4 class="text-lg font-headline font-bold text-on-surface mb-1">Control Biológico</h4>
+        <p class="text-sm font-medium text-primary mb-3">Agentes Naturales</p>
+        <p class="text-sm text-on-surface-variant leading-relaxed mb-4 flex-1">Uso de organismos benéficos y depredadores naturales como primera línea de defensa. Estrategia de bajo impacto ambiental validada por INIFAP.</p>
+        <div class="pt-3 border-t border-outline-variant/10">
+          <span class="text-[10px] text-on-surface-variant uppercase tracking-widest font-bold">Tipo de control</span>
+          <p class="text-sm font-semibold text-on-surface">Biológico / Preventivo</p>
+        </div>
+      </div>
+
+      <div class="bg-white p-6 rounded-xl border border-outline-variant/15 shadow-sm hover:shadow-md transition-shadow flex flex-col">
+        <div class="flex justify-between items-start mb-4">
+          <span class="material-symbols-outlined text-primary text-3xl">opacity</span>
+          <span class="inline-flex items-center gap-1 px-2 py-1 bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-wider rounded">
+            <span class="material-symbols-outlined text-xs" style="font-variation-settings:'FILL' 1;">verified</span>
+            Validado INIFAP
+          </span>
+        </div>
+        <h4 class="text-lg font-headline font-bold text-on-surface mb-1">Insecticidas Sistémicos</h4>
+        <p class="text-sm font-medium text-primary mb-3">Aplicación Foliar</p>
+        <p class="text-sm text-on-surface-variant leading-relaxed mb-4 flex-1">Aplicación bajo umbrales de acción establecidos por INIFAP. Rotar ingredientes activos para prevenir resistencia y respetar los períodos de carencia.</p>
+        <div class="pt-3 border-t border-outline-variant/10">
+          <span class="text-[10px] text-on-surface-variant uppercase tracking-widest font-bold">Tipo de control</span>
+          <p class="text-sm font-semibold text-on-surface">Químico / Curativo</p>
+        </div>
+      </div>
+
+      <div class="bg-white p-6 rounded-xl border border-outline-variant/15 shadow-sm hover:shadow-md transition-shadow flex flex-col">
+        <div class="flex justify-between items-start mb-4">
+          <span class="material-symbols-outlined text-primary text-3xl">psychiatry</span>
+          <span class="inline-flex items-center gap-1 px-2 py-1 bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-wider rounded">
+            <span class="material-symbols-outlined text-xs" style="font-variation-settings:'FILL' 1;">verified</span>
+            Validado INIFAP
+          </span>
+        </div>
+        <h4 class="text-lg font-headline font-bold text-on-surface mb-1">Manejo Cultural</h4>
+        <p class="text-sm font-medium text-primary mb-3">Prácticas Agronómicas</p>
+        <p class="text-sm text-on-surface-variant leading-relaxed mb-4 flex-1">Rotación de cultivos, eliminación de residuos, fechas de siembra óptimas y uso de variedades resistentes como estrategia integrada de largo plazo.</p>
+        <div class="pt-3 border-t border-outline-variant/10">
+          <span class="text-[10px] text-on-surface-variant uppercase tracking-widest font-bold">Tipo de control</span>
+          <p class="text-sm font-semibold text-on-surface">Cultural / Preventivo</p>
+        </div>
+      </div>
+
+    </div>
+    <div class="mt-6 text-center">
+      <a href="/products" class="inline-flex items-center gap-2 px-6 py-3 border-2 border-primary text-primary font-bold text-sm rounded-xl hover:bg-primary hover:text-on-primary transition-all">
+        <span class="material-symbols-outlined text-sm">open_in_new</span>
+        Ver todos los productos en el catálogo
+      </a>
+    </div>
+  </div>
+
+</div>

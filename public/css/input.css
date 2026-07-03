@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @source "../../src/views/**/*.hbs";
+@source "../../src/controllers/**/*.js";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
