@@ -1,4 +1,5 @@
 import db from "../../models/index.js";
+import { Op } from "sequelize";
 const { Plague, PlagueImage, Product } = db;
 
 // ── Mapeo de riesgo (compartido entre ambas funciones) ─────────────────────
@@ -56,15 +57,86 @@ const REGION_COORDS = {
   "Nuevo León":            { lat: 25.6,  lng: -99.9  },
 };
 
+// ── GET /api/plagues ───────────────────────────────────────────────────────
+export const getPlaguesData = async (req, res) => {
+  try {
+    const { search, category, region, risk, page = 1 } = req.query;
+    const limit = 8;
+    const offset = (page - 1) * limit;
+
+    const where = { status: true };
+
+    if (search) {
+      where[Op.or] = [
+        { name: { [Op.iLike]: `%${search}%` } },
+        { scientific_name: { [Op.iLike]: `%${search}%` } },
+        { description: { [Op.iLike]: `%${search}%` } },
+      ];
+    }
+    if (category && category !== "Categoría") {
+      where.category = category;
+    }
+    if (region && region !== "Región") {
+      where.region = { [Op.iLike]: `%${region}%` };
+    }
+    if (risk && risk !== "Riesgo") {
+      // Map risk back from UI selection to DB value if needed, or assume exact match
+      // The DB values are Alto, Medio, Bajo. The UI options are Crítico, Moderado, Bajo
+      const riskMapping = {
+        "Crítico": "Alto",
+        "Moderado": "Medio",
+        "Bajo": "Bajo"
+      };
+      if (riskMapping[risk]) {
+        where.risk_level = riskMapping[risk];
+      }
+    }
+
+    const { count, rows } = await Plague.findAndCountAll({
+      where,
+      order: [["createdAt", "DESC"]],
+      limit,
+      offset,
+    });
+
+    const plagues = rows.map((p) => {
+      const riskObj = riskMap[p.risk_level] || defaultRisk;
+      return {
+        id: p.id,
+        name: p.name,
+        scientificName: p.scientific_name,
+        category: p.category,
+        description: p.description,
+        imageUrl: p.image_url,
+        riskLabel: riskObj.label,
+        riskBadgeClass: riskObj.badgeClass,
+      };
+    });
+
+    res.json({
+      plagues,
+      totalCount: count,
+      totalPages: Math.ceil(count / limit),
+      currentPage: parseInt(page),
+    });
+  } catch (error) {
+    console.error("Error en getPlaguesData:", error);
+    res.status(500).json({ error: "Error interno del servidor" });
+  }
+};
+
 // ── GET /plagues ───────────────────────────────────────────────────────────
 export const renderPlaguesPublic = async (req, res) => {
   try {
-    const plaguesRaw = await Plague.findAll({
+    const limit = 8;
+    const { count, rows } = await Plague.findAndCountAll({
       where: { status: true },
       order: [["createdAt", "DESC"]],
+      limit,
+      offset: 0,
     });
 
-    const plagues = plaguesRaw.map((p) => {
+    const plagues = rows.map((p) => {
       const risk = riskMap[p.risk_level] || defaultRisk;
       return {
         id: p.id,
@@ -78,11 +150,16 @@ export const renderPlaguesPublic = async (req, res) => {
       };
     });
 
+    const totalPages = Math.ceil(count / limit);
+
     res.render("public/plagues", {
       pageTitle: "Plagas",
       activePage: "plagues",
       plagues,
-      totalCount: plagues.length,
+      totalCount: count,
+      totalPages,
+      currentPage: 1,
+      extraScripts: '<script src="/js/public/plagues.js"></script>',
     });
   } catch (error) {
     console.error("Error en renderPlaguesPublic:", error);
@@ -91,7 +168,10 @@ export const renderPlaguesPublic = async (req, res) => {
       activePage: "plagues",
       plagues: [],
       totalCount: 0,
+      totalPages: 0,
+      currentPage: 1,
       error: "No se pudieron cargar las plagas en este momento.",
+      extraScripts: '<script src="/js/public/plagues.js"></script>',
     });
   }
 };
