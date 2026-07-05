@@ -1,6 +1,6 @@
 import express from "express";
 import { renderHomeIndex }                        from "../controllers/public/homeController.js";
-import { renderPlaguesPublic, renderPlagueDetail } from "../controllers/public/plagueController.js";
+import { renderPlaguesPublic, renderPlagueDetail, getPlaguesData } from "../controllers/public/plagueController.js";
 import { renderCropsPublic, renderCropDetail }     from "../controllers/public/cropController.js";
 import { renderProductsPublic, renderProductDetail } from "../controllers/public/productController.js";
 import { renderForumPublic }                      from "../controllers/public/forumController.js";
@@ -8,6 +8,7 @@ import { renderForumPublic }                      from "../controllers/public/fo
 const publicRouter = express.Router();
 
 publicRouter.get("/",              renderHomeIndex);
+publicRouter.get("/api/plagues",   getPlaguesData);
 publicRouter.get("/plagues",       renderPlaguesPublic);
 publicRouter.get("/plagues/:id",   renderPlagueDetail);   // ⚠️ después de /plagues
 publicRouter.get("/crops",         renderCropsPublic);

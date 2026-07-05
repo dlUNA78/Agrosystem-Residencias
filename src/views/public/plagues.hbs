@@ -34,13 +34,14 @@
             class="material-symbols-outlined absolute left-4 text-on-surface-variant"
           >search</span>
           <input
+            id="search-input"
             class="w-full bg-surface-container-lowest border-none rounded-xl py-4 pl-12 pr-4 text-on-surface placeholder:text-on-surface-variant/60 focus:ring-2 focus:ring-primary/20 transition-all font-body"
             placeholder="Buscar por nombre, género o síntoma..."
             type="text"
           />
         </div>
         <div class="flex flex-wrap md:flex-nowrap gap-2">
-          <select
+          <select id="category-filter"
             class="bg-surface-container-lowest border-none rounded-xl py-4 px-6 text-sm font-semibold text-on-surface-variant focus:ring-2 focus:ring-primary/20 appearance-none min-w-[140px]"
           >
             <option>Categoría</option>
@@ -49,7 +50,7 @@
             <option>Bacterias</option>
             <option>Virus</option>
           </select>
-          <select
+          <select id="region-filter"
             class="bg-surface-container-lowest border-none rounded-xl py-4 px-6 text-sm font-semibold text-on-surface-variant focus:ring-2 focus:ring-primary/20 appearance-none min-w-[140px]"
           >
             <option>Región</option>
@@ -57,7 +58,7 @@
             <option>Mediterránea</option>
             <option>Templada</option>
           </select>
-          <select
+          <select id="risk-filter"
             class="bg-surface-container-lowest border-none rounded-xl py-4 px-6 text-sm font-semibold text-on-surface-variant focus:ring-2 focus:ring-primary/20 appearance-none min-w-[140px]"
           >
             <option>Riesgo</option>
@@ -65,7 +66,7 @@
             <option>Moderado</option>
             <option>Bajo</option>
           </select>
-          <button
+          <button id="filter-btn" style="display:none;"
             class="bg-primary text-on-primary px-8 py-4 rounded-xl font-bold text-sm hover:bg-primary-dim transition-colors flex items-center gap-2"
           >
             <span class="material-symbols-outlined text-sm">filter_list</span>
@@ -77,7 +78,7 @@
   </header>
   <!-- Catalog Grid -->
   <section class="max-w-[1440px] mx-auto px-10">
-    <div
+    <div id="plagues-grid"
       class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
     >
 
@@ -138,7 +139,7 @@
       {{/each}}
 
       {{! Card CTA fija al final }}
-      <article
+      <article id="cta-new-species"
         class="group bg-surface-container-lowest rounded-xl overflow-hidden editorial-shadow ghost-border flex flex-col hover:translate-y-[-4px] transition-all duration-300 border-2 border-dashed border-primary/20 items-center justify-center p-8"
       >
         <div class="text-center">
@@ -162,25 +163,25 @@
     </div>
 
     {{! Contador dinámico debajo del grid }}
-    <p class="mt-8 text-center text-sm text-on-surface-variant">
+    <p id="total-count-text" class="mt-8 text-center text-sm text-on-surface-variant">
       Mostrando
-      {{totalCount}}
+      <span id="total-count-number">{{totalCount}}</span>
       plagas registradas
     </p>
 
     {{! Paginación — estática por ahora, se dinamiza en la tarea de paginación }}
-    <div class="mt-12 flex justify-center">
+    <div class="mt-12 flex justify-center" id="pagination-container" style="{{#if (eq totalPages 1)}}display:none;{{/if}}">
       <nav class="flex items-center gap-1 bg-surface-container p-1 rounded-xl">
-        <button
-          class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-surface-container-highest text-on-surface-variant"
+        <button id="prev-page-btn" disabled
+          class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-surface-container-highest text-on-surface-variant disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <span class="material-symbols-outlined">chevron_left</span>
         </button>
-        <button
-          class="w-10 h-10 flex items-center justify-center rounded-lg bg-primary text-on-primary font-bold text-sm"
-        >1</button>
-        <button
-          class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-surface-container-highest text-on-surface-variant"
+
+        <span id="current-page-display" class="px-4 text-sm font-bold text-on-surface-variant">Página {{currentPage}} de {{totalPages}}</span>
+
+        <button id="next-page-btn" {{#if (eq currentPage totalPages)}}disabled{{/if}}
+          class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-surface-container-highest text-on-surface-variant disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <span class="material-symbols-outlined">chevron_right</span>
         </button>
