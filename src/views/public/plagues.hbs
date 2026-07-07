@@ -54,9 +54,9 @@
             class="bg-surface-container-lowest border-none rounded-xl py-4 px-6 text-sm font-semibold text-on-surface-variant focus:ring-2 focus:ring-primary/20 appearance-none min-w-[140px]"
           >
             <option>Región</option>
-            <option>Tropical</option>
-            <option>Mediterránea</option>
-            <option>Templada</option>
+            {{#each regions}}
+            <option>{{this}}</option>
+            {{/each}}
           </select>
           <select id="risk-filter"
             class="bg-surface-container-lowest border-none rounded-xl py-4 px-6 text-sm font-semibold text-on-surface-variant focus:ring-2 focus:ring-primary/20 appearance-none min-w-[140px]"
