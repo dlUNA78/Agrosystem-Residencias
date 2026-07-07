@@ -283,7 +283,7 @@ export const renderPlagueDetail = async (req, res) => {
       incidenceRegions,
       incidenceRegionsJson: JSON.stringify(incidenceRegions),
       extraHead: '<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>',
-      extraScripts: '<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>',
+      extraScripts: '<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script><script src="/js/public/plague-detail.js"></script>',
     });
   } catch (error) {
     console.error("Error en renderPlagueDetail:", error);
