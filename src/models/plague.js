@@ -16,6 +16,14 @@ export default (sequelize, DataTypes) => {
         otherKey: "product_id",
         as: "products",
       });
+
+      // Una plaga se relaciona con muchas regiones
+      Plague.belongsToMany(models.Region, {
+        through: "PlagueRegions",
+        foreignKey: "plague_id",
+        otherKey: "region_id",
+        as: "regions"
+      });
     }
   }
 

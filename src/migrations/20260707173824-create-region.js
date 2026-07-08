@@ -1,0 +1,38 @@
+'use strict';
+/** @type {import('sequelize-cli').Migration} */
+export default {
+  async up(queryInterface, Sequelize) {
+    await queryInterface.createTable('Regions', {
+      id: {
+        allowNull: false,
+        autoIncrement: true,
+        primaryKey: true,
+        type: Sequelize.INTEGER
+      },
+      name: {
+        type: Sequelize.STRING,
+        unique: true,
+        allowNull: false
+      },
+      lat: {
+        type: Sequelize.FLOAT,
+        allowNull: false
+      },
+      lng: {
+        type: Sequelize.FLOAT,
+        allowNull: false
+      },
+      createdAt: {
+        allowNull: false,
+        type: Sequelize.DATE
+      },
+      updatedAt: {
+        allowNull: false,
+        type: Sequelize.DATE
+      }
+    });
+  },
+  async down(queryInterface, Sequelize) {
+    await queryInterface.dropTable('Regions');
+  }
+};

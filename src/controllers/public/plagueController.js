@@ -1,6 +1,6 @@
 import db from "../../models/index.js";
 import { Op } from "sequelize";
-const { Plague, PlagueImage, Product } = db;
+const { Plague, PlagueImage, Product, Region } = db;
 
 // ── Mapeo de riesgo (compartido entre ambas funciones) ─────────────────────
 const riskMap = {
@@ -29,34 +29,6 @@ const defaultCycle = [
   { title: "Dispersión",          description: "Formas migratorias o resistentes que permiten la colonización de nuevos hospedantes cuando el recurso actual se agota." },
 ];
 
-// Coordenadas aproximadas de regiones agrícolas de México
-const REGION_COORDS = {
-  "El Bajío":             { lat: 20.9,  lng: -101.0 },
-  "Norte de Tamaulipas":   { lat: 26.2,  lng: -98.5  },
-  "Sur de Tamaulipas":     { lat: 23.0,  lng: -99.0  },
-  "Tamaulipas":            { lat: 24.5,  lng: -99.0  },
-  "Sonora":                { lat: 29.0,  lng: -110.0 },
-  "Sinaloa":               { lat: 24.8,  lng: -107.4 },
-  "Valle del Fuerte":      { lat: 25.8,  lng: -109.0 },
-  "Veracruz":              { lat: 19.2,  lng: -96.1  },
-  "Jalisco":               { lat: 20.7,  lng: -103.4 },
-  "Chiapas":               { lat: 16.0,  lng: -92.0  },
-  "Oaxaca":                { lat: 17.0,  lng: -96.7  },
-  "Tabasco":               { lat: 18.0,  lng: -92.9  },
-  "Baja California":       { lat: 30.0,  lng: -115.0 },
-  "Guanajuato":            { lat: 21.0,  lng: -101.3 },
-  "Michoacán":             { lat: 19.5,  lng: -101.8 },
-  "Hidalgo":               { lat: 20.5,  lng: -98.9  },
-  "Puebla":                { lat: 18.9,  lng: -98.2  },
-  "Guerrero":              { lat: 17.4,  lng: -99.5  },
-  "Colima":                { lat: 19.2,  lng: -103.7 },
-  "Nayarit":               { lat: 21.8,  lng: -104.8 },
-  "Durango":               { lat: 24.0,  lng: -104.7 },
-  "Chihuahua":             { lat: 28.6,  lng: -106.1 },
-  "Coahuila":              { lat: 27.3,  lng: -102.1 },
-  "Nuevo León":            { lat: 25.6,  lng: -99.9  },
-};
-
 // ── GET /api/plagues ───────────────────────────────────────────────────────
 export const getPlaguesData = async (req, res) => {
   try {
@@ -76,9 +48,18 @@ export const getPlaguesData = async (req, res) => {
     if (category && category !== "Categoría") {
       where.category = category;
     }
+
+    let includeModels = [];
+
     if (region && region !== "Región") {
-      where.region = { [Op.iLike]: `%${region}%` };
+      includeModels.push({
+        model: Region,
+        as: "regions",
+        where: { name: region },
+        required: true
+      });
     }
+
     if (risk && risk !== "Riesgo") {
       // Map risk back from UI selection to DB value if needed, or assume exact match
       // The DB values are Alto, Medio, Bajo. The UI options are Crítico, Moderado, Bajo
@@ -94,9 +75,11 @@ export const getPlaguesData = async (req, res) => {
 
     const { count, rows } = await Plague.findAndCountAll({
       where,
+      include: includeModels,
       order: [["createdAt", "DESC"]],
       limit,
       offset,
+      distinct: true
     });
 
     const plagues = rows.map((p) => {
@@ -134,7 +117,11 @@ export const renderPlaguesPublic = async (req, res) => {
       order: [["createdAt", "DESC"]],
       limit,
       offset: 0,
+      distinct: true
     });
+
+    const regionsDB = await Region.findAll({ attributes: ['name'], order: [['name', 'ASC']] });
+    const regionNames = regionsDB.map(r => r.name);
 
     const plagues = rows.map((p) => {
       const risk = riskMap[p.risk_level] || defaultRisk;
@@ -156,6 +143,7 @@ export const renderPlaguesPublic = async (req, res) => {
       pageTitle: "Plagas",
       activePage: "plagues",
       plagues,
+      regions: regionNames,
       totalCount: count,
       totalPages,
       currentPage: 1,
@@ -190,9 +178,14 @@ export const renderPlagueDetail = async (req, res) => {
           model: Product,
           as: "products",
           where: { status: true },
-          required: false, // LEFT JOIN — no falla si no hay productos relacionados
+          required: false, // LEFT JOIN
           attributes: ["id", "name", "active_ingredient", "manufacturer", "image_url", "category", "validation_status"],
         },
+        {
+          model: Region,
+          as: "regions",
+          through: { attributes: ['risk_level'] }
+        }
       ],
     });
 
@@ -235,20 +228,28 @@ export const renderPlagueDetail = async (req, res) => {
       isValidated:      p.validation_status === "Validado",
     }));
 
-    // Regiones de incidencia con coordenadas para el mapa
-    const regionNames = (plague.region || "")
-      .split(",")
-      .map((r) => r.trim())
-      .filter(Boolean);
+    // Regiones de incidencia con coordenadas para el mapa (desde BD)
+    let incidenceRegions = (plague.regions || []).map((region) => {
+      const specificRiskLevel = region.PlagueRegions?.dataValues?.risk_level || region.PlagueRegions?.risk_level || plague.risk_level;
+      const specificRisk = riskMap[specificRiskLevel] || defaultRisk;
 
-    const incidenceRegions = regionNames.map((name) => {
-      const coords = REGION_COORDS[name];
       return {
-        name,
-        lat:       coords ? coords.lat : 23.6345,
-        lng:       coords ? coords.lng : -102.5528,
-        hasCoords: !!coords,
+        name: region.name,
+        lat: region.lat,
+        lng: region.lng,
+        hasCoords: true,
+        riskLevel: specificRiskLevel,
+        riskLabel: specificRisk.label,
+        riskBadgeClass: specificRisk.badgeClass
       };
+    });
+
+    // Ordenamiento: Alto, Medio, Bajo
+    const riskSortOrder = { "Alto": 1, "Medio": 2, "Bajo": 3 };
+    incidenceRegions.sort((a, b) => {
+      const orderA = riskSortOrder[a.riskLevel] || 4;
+      const orderB = riskSortOrder[b.riskLevel] || 4;
+      return orderA - orderB;
     });
 
     res.render("shared/plague-detail", {
@@ -282,7 +283,7 @@ export const renderPlagueDetail = async (req, res) => {
       incidenceRegions,
       incidenceRegionsJson: JSON.stringify(incidenceRegions),
       extraHead: '<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>',
-      extraScripts: '<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>',
+      extraScripts: '<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script><script src="/js/public/plague-detail.js"></script>',
     });
   } catch (error) {
     console.error("Error en renderPlagueDetail:", error);
