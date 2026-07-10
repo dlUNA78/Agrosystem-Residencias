@@ -8,6 +8,19 @@ Este documento está diseñado para ayudarte a entender la arquitectura actual, 
 
 ## 1. Cambios Estructurales y Lógica (Backend)
 
+### Autenticación, Sesiones y Flujo de Ascenso (Upgrade INIFAP)
+Se integró todo un sistema de autenticación utilizando **Passport.js** y **Bcrypt** para el hash de contraseñas. Además, las sesiones se almacenan de manera persistente en PostgreSQL.
+
+- **Vistas y Controladores de Auth**: Se crearon las vistas `login.hbs`, `register.hbs` y `upgrade.hbs`. La lógica vive en `src/controllers/authController.js`.
+- **Niveles de Acceso (RBAC)**: Todos los usuarios nuevos se registran por defecto con el rol de `"agricultor"`.
+- **Middlewares de Protección**: Se implementó `src/middlewares/authMiddleware.js` que cuenta con:
+  - `isAuthenticated`: Bloquea acceso si el usuario no ha iniciado sesión.
+  - `requirePanelAccess`: **Bloqueo estricto**. Solo usuarios con rol `"inifap"` o `"admin"` pueden entrar al panel privado (`/dashboard`).
+- **Flujo de "Upgrade" (Canje de códigos)**:
+  Para que un usuario `"agricultor"` pueda entrar al panel privado, debe canjear un código secreto de uso único en la ruta `/auth/upgrade`. Esto ejecutará una transacción segura en base de datos para:
+  1. Invalidar/Quemar el código.
+  2. Actualizar el rol del usuario a `"inifap"`.
+
 ### Refactorización de Controladores y Rutas Públicas
 Anteriormente, teníamos un único archivo `publicController.js` que manejaba todas las vistas públicas. Esto se dividió en controladores específicos dentro de `src/controllers/public/`:
 - **`homeController.js`**: Maneja la página de inicio (estadísticas, hilos recientes).
@@ -93,6 +106,17 @@ Debido a que hay muchas migraciones, nuevas tablas y seeders, **tu base de datos
    npm run dev:server
    ```
    Revisa en tu navegador `http://localhost:3000/plagues` y entra al detalle de alguna de las plagas (como "Pulgón Verde" o "Gusano Cogollero") para que veas el mapa interactivo y toda la funcionalidad nueva en acción.
+
+5. **Generar un código para el panel privado INIFAP (Upgrade):**
+   Como los nuevos usuarios nacen siendo "agricultores", para probar el panel de administración (`/dashboard`) necesitarás un código. Para generarlo, abre una terminal en la raíz del proyecto y ejecuta el script de administración:
+   ```bash
+   node src/scripts/generateInifapCodes.js --count 1
+   ```
+   Este comando te devolverá un código (ej. `INIFAP-A3K9-7ZP2`). Luego:
+   - Entra a `http://localhost:3000/auth/login` y crea un usuario.
+   - Navega a `http://localhost:3000/auth/upgrade`.
+   - Ingresa el código y el cargo que desees.
+   - ¡Listo! Tu rol cambiará a `"inifap"` y serás redirigido al panel.
 
 ---
 
