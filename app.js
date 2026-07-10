@@ -15,6 +15,7 @@ import db from "./src/models/index.js";
 import publicRoutes from "./src/routes/publicRoutes.js";
 import privateRoutes from "./src/routes/privateRoutes.js";
 import authRoutes from "./src/routes/auth.js";
+import { seedDefaultUsers } from "./src/scripts/seedDefaultUsers.js";
 
 const { User } = db;
 
@@ -150,6 +151,9 @@ try {
   console.log(
     "✅ Conexión a la base de datos PostgreSQL establecida exitosamente.",
   );
+
+  // Crear usuarios por defecto si no existen (admin/inifap y agricultor)
+  await seedDefaultUsers();
 
   app.listen(PORT, () => {
     console.log(
