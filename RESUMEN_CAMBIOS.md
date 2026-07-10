@@ -21,6 +21,14 @@ Se integró todo un sistema de autenticación utilizando **Passport.js** y **Bcr
   1. Invalidar/Quemar el código.
   2. Actualizar el rol del usuario a `"inifap"`.
 
+- **Creación de Usuarios por Defecto (Seed al arrancar)**:
+  Se añadió un nuevo script llamado `src/scripts/seedDefaultUsers.js` que es ejecutado directamente desde `app.js` cada vez que se levanta el servidor HTTP.
+  - **Función**: Verifica de forma idempotente (sin duplicar) si existen dos usuarios base. Si no, los crea.
+  - **Credenciales por defecto**:
+    - Administrador (Rol `inifap`): Email: `admin@agrosystem.com`, Password: `Admin@1234`
+    - Agricultor (Rol `agricultor`): Email: `agricultor@agrosystem.com`, Password: `Farmer@1234`
+  - *Nota*: Puedes sobreescribir estas credenciales por defecto agregando las variables `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `FARMER_EMAIL` y `FARMER_PASSWORD` en tu archivo `.env`.
+
 ### Refactorización de Controladores y Rutas Públicas
 Anteriormente, teníamos un único archivo `publicController.js` que manejaba todas las vistas públicas. Esto se dividió en controladores específicos dentro de `src/controllers/public/`:
 - **`homeController.js`**: Maneja la página de inicio (estadísticas, hilos recientes).
@@ -113,7 +121,7 @@ Debido a que hay muchas migraciones, nuevas tablas y seeders, **tu base de datos
    node src/scripts/generateInifapCodes.js --count 1
    ```
    Este comando te devolverá un código (ej. `INIFAP-A3K9-7ZP2`). Luego:
-   - Entra a `http://localhost:3000/auth/login` y crea un usuario.
+   - Entra a `http://localhost:3000/auth/login` y crea un usuario (o usa los usuarios por defecto creados al levantar el servidor, como explicamos en el paso 1).
    - Navega a `http://localhost:3000/auth/upgrade`.
    - Ingresa el código y el cargo que desees.
    - ¡Listo! Tu rol cambiará a `"inifap"` y serás redirigido al panel.
