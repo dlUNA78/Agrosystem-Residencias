@@ -4,6 +4,7 @@ import {
   getCropDetail,
   getGlyphomaxDetail,
   createProduct,
+  updateProduct,
   deleteProduct,
   getPestDetail,
   dashboard,
@@ -39,6 +40,9 @@ privateRouter.post(
   upload.single("image"),
   createProduct,
 );
+
+privateRouter.post("/private/products/update/:id",upload.single("image"), updateProduct);
+
 privateRouter.get("/private/products/glyphomax-pro-480", getGlyphomaxDetail);
 privateRouter.get("/private/reports", reportsPrivate);
 privateRouter.get("/private/ingredients", ingredientsPrivate);
