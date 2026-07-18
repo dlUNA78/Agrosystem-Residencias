@@ -1,11 +1,14 @@
 import { Router } from "express";
-import { upload } from "../middlewares/upload.js";
+import { upload, uploadPlague } from "../middlewares/upload.js";
 import {
   getCropDetail,
   getGlyphomaxDetail,
   createProduct,
   updateProduct,
   deleteProduct,
+  createPlague,
+  updatePlague,
+  deletePlague,
   getPestDetail,
   dashboard,
   plaguesPrivate,
@@ -35,14 +38,11 @@ privateRouter.get("/private/lands", landsPrivate);
 privateRouter.get("/private/lands/:id/expediente", landDetail);
 privateRouter.get("/private/products", productsPrivate);
 privateRouter.post("/private/products/delete/:id", deleteProduct);
-privateRouter.post(
-  "/private/products/create",
-  upload.single("image"),
-  createProduct,
-);
-
+privateRouter.post("/private/products/create", upload.single("image"), createProduct,);
+privateRouter.post("/private/plagues/create", uploadPlague.single("image"), createPlague);
+privateRouter.post("/private/plagues/update/:id", uploadPlague.single("image"), updatePlague);
+privateRouter.post("/private/plagues/delete/:id", deletePlague);
 privateRouter.post("/private/products/update/:id",upload.single("image"), updateProduct);
-
 privateRouter.get("/private/products/glyphomax-pro-480", getGlyphomaxDetail);
 privateRouter.get("/private/reports", reportsPrivate);
 privateRouter.get("/private/ingredients", ingredientsPrivate);
