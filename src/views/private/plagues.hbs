@@ -731,6 +731,47 @@
         const imageInput = document.getElementById("plague-image");
         const imagePreview = document.getElementById("plague-preview");
 
+        // BUSCADOR EN TIEMPO REAL
+        const searchInput = document.getElementById("plague-search");
+
+        if (searchInput) {
+
+            searchInput.addEventListener("input", () => {
+
+                const search = searchInput.value.toLowerCase().trim();
+
+                // FILAS DE LA TABLA
+                const rows = document.querySelectorAll(
+                    "#plagues-table-view tbody tr"
+                );
+
+                rows.forEach(row => {
+
+                    const text = row.textContent.toLowerCase();
+
+                    row.style.display =
+                        text.includes(search) ? "" : "none";
+
+                });
+
+                // TARJETAS DEL GRID
+                const cards = document.querySelectorAll(
+                    "#plagues-grid-view > div:not(#btn-add-plague-card)"
+                );
+
+                cards.forEach(card => {
+
+                    const text = card.textContent.toLowerCase();
+
+                    card.style.display =
+                        text.includes(search) ? "" : "none";
+
+                });
+
+            });
+
+        }
+
         function openModal() {
 
             form.reset();

@@ -19,7 +19,11 @@ export const dashboard = (req, res) => {
 
 export const plaguesPrivate = async (req, res) => {
     try {
-        const { search = "", category = "", status = "" } = req.query;
+        const {
+            search = "",
+            category = "",
+            status = ""
+        } = req.query;
 
         const { Op } = db.Sequelize;
 
@@ -52,25 +56,28 @@ export const plaguesPrivate = async (req, res) => {
         }
 
         // FILTRO POR ESTATUS
-        if (status.trim()) {
-            where.status = status === "true";
+        if (status === "true") {
+            where.status = true;
         }
 
-        // CONSULTAR PLAGAS DE LA BASE DE DATOS
+        if (status === "false") {
+            where.status = false;
+        }
+
+        // CONSULTAR PLAGAS
         const plagues = await db.Plague.findAll({
             where,
             order: [["createdAt", "DESC"]],
             raw: true
         });
 
+        console.log("FILTRO STATUS:", status);
         console.log("PLAGAS ENCONTRADAS:", plagues);
 
         return res.render("private/plagues", {
             layout: privateLayout,
             pageTitle: "Plagas",
             activePage: "plagues",
-
-            // IMPORTANTE: esto es lo que usará tu vista
             plagues,
 
             searchId: "plague-search",
@@ -92,6 +99,7 @@ export const plaguesPrivate = async (req, res) => {
                     id: "filter-status",
                     label: "Estatus: Todos",
                     options: [
+                        { value: "", text: "Todos" },
                         { value: "true", text: "Activo" },
                         { value: "false", text: "Inactivo" }
                     ]
