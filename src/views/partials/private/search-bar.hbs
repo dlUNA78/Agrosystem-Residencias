@@ -1,13 +1,13 @@
 {{!-- ══════════════════════════════════════════════════════════════
-     PARTIAL: private/search-bar
-     Variables requeridas desde el controlador:
-       searchId          {String}  ID del <input> (ej. 'product-search')
-       searchPlaceholder {String}  Placeholder del input
-       searchFilters     {Array}   [{ id, label, options: [{value,text}] }]
-       ctaLabel          {String}  Texto del botón de acción
-       ctaIcon           {String}  Ícono Material Symbols del botón
-       ctaBtnId          {String}  ID del botón CTA (opcional)
-       showViewToggle    {Boolean} Mostrar toggle tabla/grid (solo Productos)
+PARTIAL: private/search-bar
+Variables requeridas desde el controlador:
+searchId {String} ID del <input> (ej. 'product-search')
+searchPlaceholder {String} Placeholder del input
+searchFilters {Array} [{ id, label, options: [{value,text}] }]
+ctaLabel {String} Texto del botón de acción
+ctaIcon {String} Ícono Material Symbols del botón
+ctaBtnId {String} ID del botón CTA (opcional)
+showViewToggle {Boolean} Mostrar toggle tabla/grid (solo Productos)
 ══════════════════════════════════════════════════════════════ --}}
 <section
     class="bg-surface-container-lowest p-4 rounded-xl shadow-sm border border-outline-variant/10 flex flex-wrap items-center gap-3">
@@ -19,11 +19,9 @@
             search
         </span>
 
-        <input
-            id="{{searchId}}"
+        <input id="{{searchId}}"
             class="w-full pl-11 pr-4 py-3 bg-surface-container-low border-none rounded-lg focus:ring-2 focus:ring-primary/20 text-sm placeholder:text-on-surface-variant/40"
-            placeholder="{{searchPlaceholder}}"
-            type="text" />
+            placeholder="{{searchPlaceholder}}" type="text" />
     </div>
 
     {{!-- FILTROS + BOTONES --}}
@@ -31,10 +29,8 @@
 
         {{!-- FILTROS --}}
         {{#each searchFilters}}
-        <select
-            id="{{this.id}}"
+        <select id="{{this.id}}" data-param="{{this.param}}"
             class="filter-select bg-surface-container-low border-none rounded-lg py-3 px-4 text-sm text-on-surface-variant font-medium focus:ring-primary/20 min-w-[140px]">
-
             <option value="">{{this.label}}</option>
 
             {{#each this.options}}
@@ -46,8 +42,7 @@
 
         {{!-- CTA --}}
         {{#if ctaLabel}}
-        <button
-            id="{{#if ctaBtnId}}{{ctaBtnId}}{{else}}btn-cta-action{{/if}}"
+        <button id="{{#if ctaBtnId}}{{ctaBtnId}}{{else}}btn-cta-action{{/if}}"
             class="bg-[#43655c] text-white px-5 py-3 rounded-lg font-bold text-sm flex items-center gap-2 hover:bg-[#354f47] transition-colors shadow-lg shadow-primary/10">
 
             <span class="material-symbols-outlined text-base">{{ctaIcon}}</span>
@@ -59,8 +54,7 @@
         {{#if showViewToggle}}
         <div class="flex bg-surface-container-low rounded-lg p-1 gap-1">
 
-            <button id="view-table"
-                class="view-btn p-2 rounded-md bg-[#43655c] text-white transition-colors">
+            <button id="view-table" class="view-btn p-2 rounded-md bg-[#43655c] text-white transition-colors">
                 <span class="material-symbols-outlined text-sm">table_rows</span>
             </button>
 
@@ -92,8 +86,11 @@
 
             // FILTROS
             filterSelects.forEach(select => {
+
                 if (select.value !== "") {
-                    params.set(select.id.replace("filter-", ""), select.value);
+
+                    const param = select.dataset.param ||select.id.replace("filter-", "");
+                    params.set( param, select.value);
                 }
             });
 

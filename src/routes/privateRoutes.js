@@ -20,6 +20,9 @@ import {
   reportsPrivate,
   usersPrivate,
   suppliersPrivate,
+  createSupplier,
+  updateSupplier,
+  deleteSupplier,
   auditPrivate,
 } from "../controllers/privateController.js";
 import { isAuthenticated, requirePanelAccess } from "../middlewares/authMiddleware.js";
@@ -48,6 +51,9 @@ privateRouter.get("/private/reports", reportsPrivate);
 privateRouter.get("/private/ingredients", ingredientsPrivate);
 privateRouter.get("/private/users", usersPrivate);
 privateRouter.get("/private/suppliers", suppliersPrivate);
+privateRouter.post("/private/suppliers/create", createSupplier);
+privateRouter.post("/private/suppliers/update/:id", updateSupplier);
+privateRouter.post("/private/suppliers/delete/:id", deleteSupplier);
 privateRouter.get("/private/audit", auditPrivate);
 
 export default privateRouter;
