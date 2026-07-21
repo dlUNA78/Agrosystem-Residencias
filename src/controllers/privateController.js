@@ -777,24 +777,23 @@ export const productsPrivate = async (req, res) => {
             searchPlaceholder: "Buscar por nombre, registro y fabricante....",
             // Mantener valores del filtro
             search, category,
-
-
             searchFilters: [
                 {
                     id: "filter-category",
-
-                    label: "Categoría: Todas",
+                    param: "category",
+                    label: "Categoría:",
 
                     options: [
-                        { value: "herbicida", text: "Herbicidas" },
-                        { value: "insecticida", text: "Insecticidas" },
-                        { value: "fungicida", text: "Fungicidas" },
-                        { value: "fertilizante", text: "Fertilizantes" },
-                        { value: "acaricida", text: "Acaricidas" },
-                        { value: "bactericida", text: "Bactericidas" },
-                        { value: "coadyuvante", text: "Coadyuvantes" },
-                    ],
-                },
+                        { value: "", text: "Todas" },
+                        { value: "Herbicida", text: "Herbicidas" },
+                        { value: "Insecticida", text: "Insecticidas" },
+                        { value: "Fungicida", text: "Fungicidas" },
+                        { value: "Fertilizante", text: "Fertilizantes" },
+                        { value: "Acaricida", text: "Acaricidas" },
+                        { value: "Bactericida", text: "Bactericidas" },
+                        { value: "Coadyuvante", text: "Coadyuvantes" }
+                    ]
+                }
             ],
             ctaLabel: "Añadir Producto", ctaIcon: "add_circle", ctaBtnId: "btn-add-product", showViewToggle: true,
         });
@@ -808,7 +807,7 @@ export const productsPrivate = async (req, res) => {
 
     }
 };
-
+// Detalle de producto
 export const createProduct = async (req, res) => {
     try {
 
@@ -837,7 +836,7 @@ export const createProduct = async (req, res) => {
         return res.status(500).send("Error al crear producto");
     }
 };
-
+// ACTUALIZAR PRODUCTO
 export const updateProduct = async (req, res) => {
     try {
 
@@ -876,7 +875,7 @@ export const updateProduct = async (req, res) => {
         res.status(500).send("Error al actualizar producto");
     }
 };
-
+// ELIMINAR PRODUCTO
 export const deleteProduct = async (req, res) => {
     try {
         const { id } = req.params;
