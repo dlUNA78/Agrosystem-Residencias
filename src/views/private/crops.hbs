@@ -2297,266 +2297,407 @@
     </div>
 
 </div>
+{{!-- ══════════════════════════════════════════════════════════════
+MODAL ELIMINAR CULTIVO
+══════════════════════════════════════════════════════════════ --}}
 
+<div id="modal-delete-crop" class="fixed inset-0 z-[9999] hidden items-center justify-center p-4">
+
+    {{!-- FONDO OSCURO --}}
+    <div id="modal-delete-crop-backdrop" class="absolute inset-0 bg-black/50 backdrop-blur-sm">
+    </div>
+
+
+    {{!-- CONTENIDO DEL MODAL --}}
+    <div class="relative w-full max-w-md
+                bg-surface-container-lowest
+                rounded-2xl
+                shadow-2xl
+                border border-outline-variant/10
+                overflow-hidden">
+
+
+        {{!-- ENCABEZADO --}}
+        <div class="p-6 border-b border-outline-variant/10">
+
+            <div class="flex items-center gap-4">
+
+                <div class="w-12 h-12
+                            rounded-full
+                            bg-red-50
+                            flex
+                            items-center
+                            justify-center">
+
+                    <span class="material-symbols-outlined
+                                 text-2xl
+                                 text-red-600">
+
+                        delete_forever
+
+                    </span>
+
+                </div>
+
+
+                <div>
+
+                    <h3 class="text-lg
+                               font-bold
+                               text-on-surface">
+
+                        Eliminar cultivo
+
+                    </h3>
+
+                    <p class="text-xs
+                              text-on-surface-variant
+                              mt-1">
+
+                        Esta acción no se puede deshacer.
+
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        {{!-- MENSAJE --}}
+        <div class="p-6">
+
+            <p class="text-sm text-on-surface-variant">
+
+                ¿Estás seguro de que deseas eliminar el cultivo:
+
+                <strong id="delete-crop-name" class="text-on-surface font-bold">
+
+                </strong>
+
+                ?
+
+            </p>
+
+        </div>
+
+
+        {{!-- ACCIONES --}}
+        <div class="px-6 py-4
+                    bg-surface-container-low/30
+                    border-t
+                    border-outline-variant/10
+                    flex
+                    justify-end
+                    gap-3">
+
+
+            {{!-- CANCELAR --}}
+            <button type="button" id="modal-delete-crop-cancel" class="px-5
+                       py-2.5
+                       rounded-lg
+                       text-sm
+                       font-bold
+                       text-on-surface-variant
+                       hover:bg-surface-container-highest
+                       transition-colors">
+
+                Cancelar
+
+            </button>
+
+
+            {{!-- FORMULARIO ELIMINAR --}}
+            <form id="delete-crop-form" method="POST">
+
+                <button type="submit" class="px-5
+                           py-2.5
+                           rounded-lg
+                           bg-red-600
+                           text-white
+                           text-sm
+                           font-bold
+                           hover:bg-red-700
+                           transition-colors
+                           flex
+                           items-center
+                           gap-2">
+
+                    <span class="material-symbols-outlined text-sm">
+                        delete
+                    </span>
+
+                    Eliminar
+
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
 <script>
 
-(function () {
+    (function () {
 
-    // =====================================================
-    // ELEMENTOS DEL MODAL
-    // =====================================================
+        // =====================================================
+        // ELEMENTOS DEL MODAL
+        // =====================================================
 
-    const modalCrop =
-        document.getElementById("modal-crop");
+        const modalCrop =
+            document.getElementById("modal-crop");
 
-    const modalTitle =
-        document.getElementById("modal-crop-title");
+        const modalTitle =
+            document.getElementById("modal-crop-title");
 
-    const cropForm =
-        document.getElementById("crop-form");
+        const cropForm =
+            document.getElementById("crop-form");
 
 
-    // BOTONES
+        // BOTONES
 
-    const btnAddCrop =
-        document.getElementById("btn-add-crop");
+        const btnAddCrop =
+            document.getElementById("btn-add-crop");
 
-    const btnAddCropCard =
-        document.getElementById("btn-add-crop-card");
+        const btnAddCropCard =
+            document.getElementById("btn-add-crop-card");
 
-    const btnCloseCrop =
-        document.getElementById("modal-crop-close");
+        const btnCloseCrop =
+            document.getElementById("modal-crop-close");
 
-    const btnCancelCrop =
-        document.getElementById("modal-crop-cancel");
+        const btnCancelCrop =
+            document.getElementById("modal-crop-cancel");
 
-    const backdropCrop =
-        document.getElementById("modal-crop-backdrop");
+        const backdropCrop =
+            document.getElementById("modal-crop-backdrop");
 
 
-    // IMÁGENES
+        // IMÁGENES
 
-    const imageInput =
-        document.getElementById("crop-images");
+        const imageInput =
+            document.getElementById("crop-images");
 
-    const imagePreview =
-        document.getElementById("crop-images-preview");
+        const imagePreview =
+            document.getElementById("crop-images-preview");
 
 
-    // =====================================================
-    // ABRIR MODAL PARA NUEVO CULTIVO
-    // =====================================================
+        // =====================================================
+        // ABRIR MODAL PARA NUEVO CULTIVO
+        // =====================================================
 
-    function openCreateModal() {
+        function openCreateModal() {
 
-        if (!modalCrop) return;
+            if (!modalCrop) return;
 
 
-        // Limpiar formulario
+            // Limpiar formulario
 
-        cropForm.reset();
+            cropForm.reset();
 
 
-        // Restaurar action original
+            // Restaurar action original
 
-        cropForm.action =
-            "/private/crops/create";
+            cropForm.action =
+                "/private/crops/create";
 
 
-        // Cambiar título
+            // Cambiar título
 
-        modalTitle.textContent =
-            "Nuevo Cultivo";
+            modalTitle.textContent =
+                "Nuevo Cultivo";
 
 
-        // Limpiar imágenes
+            // Limpiar imágenes
 
-        if (imagePreview) {
+            if (imagePreview) {
 
-            imagePreview.innerHTML = "";
-
-        }
-
-
-        if (imageInput) {
-
-            imageInput.value = "";
-
-        }
-
-
-        // Abrir modal
-
-        modalCrop.classList.remove("hidden");
-
-        modalCrop.classList.add("flex");
-
-    }
-
-
-    // =====================================================
-    // ABRIR MODAL
-    // =====================================================
-
-    function openModal() {
-
-        if (!modalCrop) return;
-
-
-        modalCrop.classList.remove("hidden");
-
-        modalCrop.classList.add("flex");
-
-    }
-
-
-    // =====================================================
-    // CERRAR MODAL
-    // =====================================================
-
-    function closeModal() {
-
-        if (!modalCrop) return;
-
-
-        modalCrop.classList.remove("flex");
-
-        modalCrop.classList.add("hidden");
-
-    }
-
-
-    // =====================================================
-    // BOTÓN NUEVO CULTIVO
-    // =====================================================
-
-    if (btnAddCrop) {
-
-        btnAddCrop.addEventListener(
-            "click",
-            openCreateModal
-        );
-
-    }
-
-
-    if (btnAddCropCard) {
-
-        btnAddCropCard.addEventListener(
-            "click",
-            openCreateModal
-        );
-
-    }
-
-
-    // =====================================================
-    // CERRAR MODAL
-    // =====================================================
-
-    if (btnCloseCrop) {
-
-        btnCloseCrop.addEventListener(
-            "click",
-            closeModal
-        );
-
-    }
-
-
-    if (btnCancelCrop) {
-
-        btnCancelCrop.addEventListener(
-            "click",
-            closeModal
-        );
-
-    }
-
-
-    if (backdropCrop) {
-
-        backdropCrop.addEventListener(
-            "click",
-            closeModal
-        );
-
-    }
-
-
-    // CERRAR CON ESC
-
-    document.addEventListener(
-        "keydown",
-        function (event) {
-
-            if (
-                event.key === "Escape" &&
-                modalCrop &&
-                !modalCrop.classList.contains("hidden")
-            ) {
-
-                closeModal();
+                imagePreview.innerHTML = "";
 
             }
 
-        }
-    );
+
+            if (imageInput) {
+
+                imageInput.value = "";
+
+            }
 
 
-    // =====================================================
-    // FUNCIÓN PARA ASIGNAR VALORES
-    // =====================================================
+            // Abrir modal
 
-    function setValue(id, value) {
+            modalCrop.classList.remove("hidden");
 
-        const element =
-            document.getElementById(id);
-
-
-        if (!element) return;
-
-
-        element.value =
-            value ?? "";
-
-    }
-
-
-    // =====================================================
-    // CARGAR IMÁGENES EXISTENTES
-    // =====================================================
-
-    function loadExistingImages(images) {
-
-        if (!imagePreview) return;
-
-
-        imagePreview.innerHTML = "";
-
-
-        if (
-            !images ||
-            images.length === 0
-        ) {
-
-            return;
+            modalCrop.classList.add("flex");
 
         }
 
 
-        images.forEach(function (image) {
+        // =====================================================
+        // ABRIR MODAL
+        // =====================================================
+
+        function openModal() {
+
+            if (!modalCrop) return;
 
 
-            const preview =
-                document.createElement("div");
+            modalCrop.classList.remove("hidden");
+
+            modalCrop.classList.add("flex");
+
+        }
 
 
-            preview.className =
-                "relative aspect-square rounded-xl overflow-hidden border border-outline-variant/30 bg-surface-container-low";
+        // =====================================================
+        // CERRAR MODAL
+        // =====================================================
+
+        function closeModal() {
+
+            if (!modalCrop) return;
 
 
-            preview.innerHTML = `
+            modalCrop.classList.remove("flex");
+
+            modalCrop.classList.add("hidden");
+
+        }
+
+
+        // =====================================================
+        // BOTÓN NUEVO CULTIVO
+        // =====================================================
+
+        if (btnAddCrop) {
+
+            btnAddCrop.addEventListener(
+                "click",
+                openCreateModal
+            );
+
+        }
+
+
+        if (btnAddCropCard) {
+
+            btnAddCropCard.addEventListener(
+                "click",
+                openCreateModal
+            );
+
+        }
+
+
+        // =====================================================
+        // CERRAR MODAL
+        // =====================================================
+
+        if (btnCloseCrop) {
+
+            btnCloseCrop.addEventListener(
+                "click",
+                closeModal
+            );
+
+        }
+
+
+        if (btnCancelCrop) {
+
+            btnCancelCrop.addEventListener(
+                "click",
+                closeModal
+            );
+
+        }
+
+
+        if (backdropCrop) {
+
+            backdropCrop.addEventListener(
+                "click",
+                closeModal
+            );
+
+        }
+
+
+        // CERRAR CON ESC
+
+        document.addEventListener(
+            "keydown",
+            function (event) {
+
+                if (
+                    event.key === "Escape" &&
+                    modalCrop &&
+                    !modalCrop.classList.contains("hidden")
+                ) {
+
+                    closeModal();
+
+                }
+
+            }
+        );
+
+
+        // =====================================================
+        // FUNCIÓN PARA ASIGNAR VALORES
+        // =====================================================
+
+        function setValue(id, value) {
+
+            const element =
+                document.getElementById(id);
+
+
+            if (!element) return;
+
+
+            element.value =
+                value ?? "";
+
+        }
+
+
+        // =====================================================
+        // CARGAR IMÁGENES EXISTENTES
+        // =====================================================
+
+        function loadExistingImages(images) {
+
+            if (!imagePreview) return;
+
+
+            imagePreview.innerHTML = "";
+
+
+            if (
+                !images ||
+                images.length === 0
+            ) {
+
+                return;
+
+            }
+
+
+            images.forEach(function (image) {
+
+
+                const preview =
+                    document.createElement("div");
+
+
+                preview.className =
+                    "relative aspect-square rounded-xl overflow-hidden border border-outline-variant/30 bg-surface-container-low";
+
+
+                preview.innerHTML = `
 
                 <img
                     src="/${image.image_url}"
@@ -2573,426 +2714,426 @@
             `;
 
 
-            imagePreview.appendChild(
-                preview
-            );
-
-        });
-
-    }
-
-
-    // =====================================================
-    // EDITAR CULTIVO
-    // =====================================================
-
-    document.addEventListener(
-        "click",
-        async function (event) {
-
-
-            const editButton =
-                event.target.closest(
-                    ".edit-crop-btn"
+                imagePreview.appendChild(
+                    preview
                 );
 
-
-            if (!editButton) return;
-
-
-            const cropId =
-                editButton.dataset.id;
-
-
-            if (!cropId) {
-
-                console.error(
-                    "No se encontró el ID del cultivo"
-                );
-
-                return;
-
-            }
-
-
-            try {
-
-
-                // OBTENER CULTIVO
-
-                const response =
-                    await fetch(
-                        `/private/crops/${cropId}`
-                    );
-
-
-                const data =
-                    await response.json();
-
-
-                if (
-                    !response.ok ||
-                    !data.success
-                ) {
-
-                    throw new Error(
-                        data.message ||
-                        "No se pudo obtener el cultivo"
-                    );
-
-                }
-
-
-                const crop =
-                    data.crop;
-
-
-                console.log(
-                    "CULTIVO PARA EDITAR:",
-                    crop
-                );
-
-
-                // =========================================
-                // CAMBIAR TÍTULO
-                // =========================================
-
-                modalTitle.textContent =
-                    "Editar Cultivo";
-
-
-                // =========================================
-                // CAMBIAR ACTION DEL FORMULARIO
-                // =========================================
-
-                cropForm.action =
-                    `/private/crops/update/${crop.id}`;
-
-
-                // =========================================
-                // IDENTIFICACIÓN
-                // =========================================
-
-                setValue(
-                    "crop-name",
-                    crop.name
-                );
-
-                setValue(
-                    "crop-scientific-name",
-                    crop.scientific_name
-                );
-
-                setValue(
-                    "crop-category",
-                    crop.category
-                );
-
-                setValue(
-                    "crop-family",
-                    crop.family
-                );
-
-                setValue(
-                    "crop-genus",
-                    crop.genus
-                );
-
-                setValue(
-                    "crop-variety",
-                    crop.variety
-                );
-
-
-                // =========================================
-                // REGIÓN
-                // =========================================
-
-                setValue(
-                    "crop-region",
-                    crop.region
-                );
-
-                setValue(
-                    "crop-state",
-                    crop.state
-                );
-
-                setValue(
-                    "crop-min-altitude",
-                    crop.min_altitude
-                );
-
-                setValue(
-                    "crop-max-altitude",
-                    crop.max_altitude
-                );
-
-
-                // =========================================
-                // CLIMA
-                // =========================================
-
-                setValue(
-                    "crop-climate",
-                    crop.climate
-                );
-
-                setValue(
-                    "crop-min-temperature",
-                    crop.min_temperature
-                );
-
-                setValue(
-                    "crop-max-temperature",
-                    crop.max_temperature
-                );
-
-                setValue(
-                    "crop-min-rainfall",
-                    crop.min_rainfall
-                );
-
-                setValue(
-                    "crop-max-rainfall",
-                    crop.max_rainfall
-                );
-
-                setValue(
-                    "crop-humidity",
-                    crop.humidity
-                );
-
-
-                // =========================================
-                // SUELO
-                // =========================================
-
-                setValue(
-                    "crop-soil",
-                    crop.soil_type
-                );
-
-                setValue(
-                    "crop-ph",
-                    crop.ph_range
-                );
-
-                setValue(
-                    "crop-drainage",
-                    crop.drainage
-                );
-
-                setValue(
-                    "crop-organic-matter",
-                    crop.organic_matter
-                );
-
-
-                // =========================================
-                // CICLO Y PRODUCCIÓN
-                // =========================================
-
-                setValue(
-                    "crop-season",
-                    crop.season
-                );
-
-                setValue(
-                    "crop-cycle",
-                    crop.cycle
-                );
-
-                setValue(
-                    "crop-harvest-days",
-                    crop.harvest_days
-                );
-
-                setValue(
-                    "crop-yield",
-                    crop.average_yield
-                );
-
-                setValue(
-                    "crop-density",
-                    crop.planting_density
-                );
-
-                setValue(
-                    "crop-depth",
-                    crop.planting_depth
-                );
-
-
-                // =========================================
-                // REQUERIMIENTOS
-                // =========================================
-
-                setValue(
-                    "crop-water",
-                    crop.water_requirement
-                );
-
-                setValue(
-                    "crop-irrigation",
-                    crop.irrigation_type
-                );
-
-                setValue(
-                    "crop-sun",
-                    crop.sunlight_requirement
-                );
-
-
-                // =========================================
-                // MANEJO
-                // =========================================
-
-                setValue(
-                    "crop-nutrients",
-                    crop.nutrients
-                );
-
-                setValue(
-                    "crop-fertilization",
-                    crop.fertilization
-                );
-
-
-                setValue(
-                    "crop-pruning",
-                    crop.requires_pruning === true
-                        ? "true"
-                        : crop.requires_pruning === false
-                            ? "false"
-                            : ""
-                );
-
-
-                setValue(
-                    "crop-pollination",
-                    crop.pollination_type
-                );
-
-
-                // =========================================
-                // INFORMACIÓN
-                // =========================================
-
-                setValue(
-                    "crop-description",
-                    crop.description
-                );
-
-                setValue(
-                    "crop-observations",
-                    crop.observations
-                );
-
-
-                // =========================================
-                // ESTADO
-                // =========================================
-
-                setValue(
-                    "crop-status",
-                    crop.status
-                );
-
-
-                // =========================================
-                // CARGAR IMÁGENES
-                // =========================================
-
-                loadExistingImages(
-                    crop.images
-                );
-
-
-                // =========================================
-                // ABRIR MODAL
-                // =========================================
-
-                openModal();
-
-
-            } catch (error) {
-
-
-                console.error(
-                    "ERROR AL CARGAR CULTIVO:",
-                    error
-                );
-
-
-                alert(
-                    "No se pudo cargar la información del cultivo"
-                );
-
-            }
+            });
 
         }
-    );
 
 
-    // =====================================================
-    // PREVISUALIZAR NUEVAS IMÁGENES
-    // =====================================================
+        // =====================================================
+        // EDITAR CULTIVO
+        // =====================================================
 
-    if (
-        imageInput &&
-        imagePreview
-    ) {
-
-
-        imageInput.addEventListener(
-            "change",
-            function () {
+        document.addEventListener(
+            "click",
+            async function (event) {
 
 
-                const files =
-                    Array.from(
-                        this.files
+                const editButton =
+                    event.target.closest(
+                        ".edit-crop-btn"
                     );
 
 
-                if (
-                    files.length === 0
-                ) {
+                if (!editButton) return;
+
+
+                const cropId =
+                    editButton.dataset.id;
+
+
+                if (!cropId) {
+
+                    console.error(
+                        "No se encontró el ID del cultivo"
+                    );
 
                     return;
 
                 }
 
 
-                // IMPORTANTE:
-                // No borramos las imágenes existentes.
-                // Las nuevas se agregan debajo.
+                try {
 
 
-                files.forEach(
-                    function (file) {
+                    // OBTENER CULTIVO
+
+                    const response =
+                        await fetch(
+                            `/private/crops/${cropId}`
+                        );
 
 
-                        const reader =
-                            new FileReader();
+                    const data =
+                        await response.json();
 
 
-                        reader.onload =
-                            function (event) {
+                    if (
+                        !response.ok ||
+                        !data.success
+                    ) {
+
+                        throw new Error(
+                            data.message ||
+                            "No se pudo obtener el cultivo"
+                        );
+
+                    }
 
 
-                                const preview =
-                                    document.createElement(
-                                        "div"
-                                    );
+                    const crop =
+                        data.crop;
 
 
-                                preview.className =
-                                    "relative aspect-square rounded-xl overflow-hidden border border-outline-variant/30 bg-surface-container-low";
+                    console.log(
+                        "CULTIVO PARA EDITAR:",
+                        crop
+                    );
 
 
-                                preview.innerHTML = `
+                    // =========================================
+                    // CAMBIAR TÍTULO
+                    // =========================================
+
+                    modalTitle.textContent =
+                        "Editar Cultivo";
+
+
+                    // =========================================
+                    // CAMBIAR ACTION DEL FORMULARIO
+                    // =========================================
+
+                    cropForm.action =
+                        `/private/crops/update/${crop.id}`;
+
+
+                    // =========================================
+                    // IDENTIFICACIÓN
+                    // =========================================
+
+                    setValue(
+                        "crop-name",
+                        crop.name
+                    );
+
+                    setValue(
+                        "crop-scientific-name",
+                        crop.scientific_name
+                    );
+
+                    setValue(
+                        "crop-category",
+                        crop.category
+                    );
+
+                    setValue(
+                        "crop-family",
+                        crop.family
+                    );
+
+                    setValue(
+                        "crop-genus",
+                        crop.genus
+                    );
+
+                    setValue(
+                        "crop-variety",
+                        crop.variety
+                    );
+
+
+                    // =========================================
+                    // REGIÓN
+                    // =========================================
+
+                    setValue(
+                        "crop-region",
+                        crop.region
+                    );
+
+                    setValue(
+                        "crop-state",
+                        crop.state
+                    );
+
+                    setValue(
+                        "crop-min-altitude",
+                        crop.min_altitude
+                    );
+
+                    setValue(
+                        "crop-max-altitude",
+                        crop.max_altitude
+                    );
+
+
+                    // =========================================
+                    // CLIMA
+                    // =========================================
+
+                    setValue(
+                        "crop-climate",
+                        crop.climate
+                    );
+
+                    setValue(
+                        "crop-min-temperature",
+                        crop.min_temperature
+                    );
+
+                    setValue(
+                        "crop-max-temperature",
+                        crop.max_temperature
+                    );
+
+                    setValue(
+                        "crop-min-rainfall",
+                        crop.min_rainfall
+                    );
+
+                    setValue(
+                        "crop-max-rainfall",
+                        crop.max_rainfall
+                    );
+
+                    setValue(
+                        "crop-humidity",
+                        crop.humidity
+                    );
+
+
+                    // =========================================
+                    // SUELO
+                    // =========================================
+
+                    setValue(
+                        "crop-soil",
+                        crop.soil_type
+                    );
+
+                    setValue(
+                        "crop-ph",
+                        crop.ph_range
+                    );
+
+                    setValue(
+                        "crop-drainage",
+                        crop.drainage
+                    );
+
+                    setValue(
+                        "crop-organic-matter",
+                        crop.organic_matter
+                    );
+
+
+                    // =========================================
+                    // CICLO Y PRODUCCIÓN
+                    // =========================================
+
+                    setValue(
+                        "crop-season",
+                        crop.season
+                    );
+
+                    setValue(
+                        "crop-cycle",
+                        crop.cycle
+                    );
+
+                    setValue(
+                        "crop-harvest-days",
+                        crop.harvest_days
+                    );
+
+                    setValue(
+                        "crop-yield",
+                        crop.average_yield
+                    );
+
+                    setValue(
+                        "crop-density",
+                        crop.planting_density
+                    );
+
+                    setValue(
+                        "crop-depth",
+                        crop.planting_depth
+                    );
+
+
+                    // =========================================
+                    // REQUERIMIENTOS
+                    // =========================================
+
+                    setValue(
+                        "crop-water",
+                        crop.water_requirement
+                    );
+
+                    setValue(
+                        "crop-irrigation",
+                        crop.irrigation_type
+                    );
+
+                    setValue(
+                        "crop-sun",
+                        crop.sunlight_requirement
+                    );
+
+
+                    // =========================================
+                    // MANEJO
+                    // =========================================
+
+                    setValue(
+                        "crop-nutrients",
+                        crop.nutrients
+                    );
+
+                    setValue(
+                        "crop-fertilization",
+                        crop.fertilization
+                    );
+
+
+                    setValue(
+                        "crop-pruning",
+                        crop.requires_pruning === true
+                            ? "true"
+                            : crop.requires_pruning === false
+                                ? "false"
+                                : ""
+                    );
+
+
+                    setValue(
+                        "crop-pollination",
+                        crop.pollination_type
+                    );
+
+
+                    // =========================================
+                    // INFORMACIÓN
+                    // =========================================
+
+                    setValue(
+                        "crop-description",
+                        crop.description
+                    );
+
+                    setValue(
+                        "crop-observations",
+                        crop.observations
+                    );
+
+
+                    // =========================================
+                    // ESTADO
+                    // =========================================
+
+                    setValue(
+                        "crop-status",
+                        crop.status
+                    );
+
+
+                    // =========================================
+                    // CARGAR IMÁGENES
+                    // =========================================
+
+                    loadExistingImages(
+                        crop.images
+                    );
+
+
+                    // =========================================
+                    // ABRIR MODAL
+                    // =========================================
+
+                    openModal();
+
+
+                } catch (error) {
+
+
+                    console.error(
+                        "ERROR AL CARGAR CULTIVO:",
+                        error
+                    );
+
+
+                    alert(
+                        "No se pudo cargar la información del cultivo"
+                    );
+
+                }
+
+            }
+        );
+
+
+        // =====================================================
+        // PREVISUALIZAR NUEVAS IMÁGENES
+        // =====================================================
+
+        if (
+            imageInput &&
+            imagePreview
+        ) {
+
+
+            imageInput.addEventListener(
+                "change",
+                function () {
+
+
+                    const files =
+                        Array.from(
+                            this.files
+                        );
+
+
+                    if (
+                        files.length === 0
+                    ) {
+
+                        return;
+
+                    }
+
+
+                    // IMPORTANTE:
+                    // No borramos las imágenes existentes.
+                    // Las nuevas se agregan debajo.
+
+
+                    files.forEach(
+                        function (file) {
+
+
+                            const reader =
+                                new FileReader();
+
+
+                            reader.onload =
+                                function (event) {
+
+
+                                    const preview =
+                                        document.createElement(
+                                            "div"
+                                        );
+
+
+                                    preview.className =
+                                        "relative aspect-square rounded-xl overflow-hidden border border-outline-variant/30 bg-surface-container-low";
+
+
+                                    preview.innerHTML = `
 
                                     <img
                                         src="${event.target.result}"
@@ -3008,165 +3149,218 @@
                                 `;
 
 
-                                imagePreview.appendChild(
-                                    preview
-                                );
+                                    imagePreview.appendChild(
+                                        preview
+                                    );
 
-                            };
-
-
-                        reader.readAsDataURL(
-                            file
-                        );
-
-                    }
-                );
-
-            }
-        );
-
-    }
+                                };
 
 
-    // =====================================================
-    // CAMBIO DE VISTA
-    // =====================================================
+                            reader.readAsDataURL(
+                                file
+                            );
 
-    const tableView =
-        document.getElementById(
-            "crops-table-view"
-        );
+                        }
+                    );
 
-    const gridView =
-        document.getElementById(
-            "crops-grid-view"
-        );
+                }
+            );
 
-    const btnTable =
-        document.getElementById(
-            "view-table"
-        );
-
-    const btnGrid =
-        document.getElementById(
-            "view-grid"
-        );
+        }
 
 
-    if (
-        btnTable &&
-        btnGrid &&
-        tableView &&
-        gridView
-    ) {
+        // =====================================================
+        // CAMBIO DE VISTA
+        // =====================================================
+
+        const tableView =
+            document.getElementById(
+                "crops-table-view"
+            );
+
+        const gridView =
+            document.getElementById(
+                "crops-grid-view"
+            );
+
+        const btnTable =
+            document.getElementById(
+                "view-table"
+            );
+
+        const btnGrid =
+            document.getElementById(
+                "view-grid"
+            );
 
 
-        // GRID POR DEFECTO
-
-        btnGrid.classList.add(
-            "bg-[#43655c]",
-            "text-white"
-        );
-
-
-        btnGrid.classList.remove(
-            "text-on-surface-variant"
-        );
+        if (
+            btnTable &&
+            btnGrid &&
+            tableView &&
+            gridView
+        ) {
 
 
-        btnTable.classList.remove(
-            "bg-[#43655c]",
-            "text-white"
-        );
+            // GRID POR DEFECTO
+
+            btnGrid.classList.add(
+                "bg-[#43655c]",
+                "text-white"
+            );
 
 
-        btnTable.classList.add(
-            "text-on-surface-variant"
-        );
+            btnGrid.classList.remove(
+                "text-on-surface-variant"
+            );
 
 
-        // TABLA
+            btnTable.classList.remove(
+                "bg-[#43655c]",
+                "text-white"
+            );
 
-        btnTable.addEventListener(
+
+            btnTable.classList.add(
+                "text-on-surface-variant"
+            );
+
+
+            // TABLA
+
+            btnTable.addEventListener(
+                "click",
+                function () {
+
+
+                    tableView.style.display =
+                        "";
+
+
+                    gridView.style.display =
+                        "none";
+
+
+                    btnTable.classList.add(
+                        "bg-[#43655c]",
+                        "text-white"
+                    );
+
+
+                    btnTable.classList.remove(
+                        "text-on-surface-variant"
+                    );
+
+
+                    btnGrid.classList.remove(
+                        "bg-[#43655c]",
+                        "text-white"
+                    );
+
+
+                    btnGrid.classList.add(
+                        "text-on-surface-variant"
+                    );
+
+                }
+            );
+
+
+            // GRID
+
+            btnGrid.addEventListener(
+                "click",
+                function () {
+
+
+                    tableView.style.display =
+                        "none";
+
+
+                    gridView.style.display =
+                        "grid";
+
+
+                    btnGrid.classList.add(
+                        "bg-[#43655c]",
+                        "text-white"
+                    );
+
+
+                    btnGrid.classList.remove(
+                        "text-on-surface-variant"
+                    );
+
+
+                    btnTable.classList.remove(
+                        "bg-[#43655c]",
+                        "text-white"
+                    );
+
+
+                    btnTable.classList.add(
+                        "text-on-surface-variant"
+                    );
+
+                }
+            );
+
+        }
+
+        // MODAL ELIMINAR CULTIVO
+        const modalDeleteCrop = document.getElementById("modal-delete-crop");
+        const modalDeleteCropBackdrop = document.getElementById("modal-delete-crop-backdrop");
+        const modalDeleteCropCancel = document.getElementById("modal-delete-crop-cancel");
+        const deleteCropForm = document.getElementById("delete-crop-form");
+        const deleteCropName = document.getElementById("delete-crop-name");
+
+        // ABRIR MODAL DESDE TABLA Y GRID
+        document.querySelectorAll(".delete-crop-btn").forEach(button => {
+            button.addEventListener("click", function () {
+                const cropId = this.dataset.id;
+                const cropName = this.dataset.name;
+
+                // Mostrar nombre del cultivo
+                deleteCropName.textContent = cropName;
+                // Configurar ruta del formulario
+                deleteCropForm.action =`/private/crops/delete/${cropId}`;
+
+                // Mostrar modal
+                modalDeleteCrop.classList.remove("hidden");
+                modalDeleteCrop.classList.add("flex");
+            });
+        });
+
+        // CERRAR MODAL
+        function closeDeleteCropModal() {
+            modalDeleteCrop.classList.add("hidden");
+            modalDeleteCrop.classList.remove("flex");
+        }
+
+        // BOTÓN CANCELAR
+        modalDeleteCropCancel.addEventListener(
             "click",
-            function () {
-
-
-                tableView.style.display =
-                    "";
-
-
-                gridView.style.display =
-                    "none";
-
-
-                btnTable.classList.add(
-                    "bg-[#43655c]",
-                    "text-white"
-                );
-
-
-                btnTable.classList.remove(
-                    "text-on-surface-variant"
-                );
-
-
-                btnGrid.classList.remove(
-                    "bg-[#43655c]",
-                    "text-white"
-                );
-
-
-                btnGrid.classList.add(
-                    "text-on-surface-variant"
-                );
-
-            }
+            closeDeleteCropModal
         );
 
-
-        // GRID
-
-        btnGrid.addEventListener(
+        // CLIC EN EL FONDO
+        modalDeleteCropBackdrop.addEventListener(
             "click",
-            function () {
-
-
-                tableView.style.display =
-                    "none";
-
-
-                gridView.style.display =
-                    "grid";
-
-
-                btnGrid.classList.add(
-                    "bg-[#43655c]",
-                    "text-white"
-                );
-
-
-                btnGrid.classList.remove(
-                    "text-on-surface-variant"
-                );
-
-
-                btnTable.classList.remove(
-                    "bg-[#43655c]",
-                    "text-white"
-                );
-
-
-                btnTable.classList.add(
-                    "text-on-surface-variant"
-                );
-
-            }
+            closeDeleteCropModal
         );
 
-    }
-
-
-})();
+        // TECLA ESC
+        document.addEventListener(
+            "keydown",
+            function (event) {
+                if (
+                    event.key === "Escape" &&
+                    !modalDeleteCrop.classList.contains("hidden")
+                ) {
+                    closeDeleteCropModal();
+                }
+            }
+        );
+    })();
 
 </script>

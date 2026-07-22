@@ -5,6 +5,7 @@ import {
   getGlyphomaxDetail,
   createCrop,
   updateCrop,
+  deleteCrop,
   createProduct,
   updateProduct,
   deleteProduct,
@@ -41,6 +42,7 @@ privateRouter.get("/private/crops", cropsPrivate);
 privateRouter.get("/private/crops/:id", getCropDetail);
 privateRouter.post("/private/crops/create", uploadCrop.array("images", 10), createCrop);
 privateRouter.post("/private/crops/update/:id", uploadCrop.array("images", 10), updateCrop);
+privateRouter.post("/private/crops/delete/:id", deleteCrop);
 privateRouter.get("/private/lands", landsPrivate);
 privateRouter.get("/private/lands/:id/expediente", landDetail);
 privateRouter.get("/private/products", productsPrivate);

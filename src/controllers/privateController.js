@@ -1627,6 +1627,68 @@ export const updateCrop = async (req, res) => {
     }
 
 };
+
+// ELIMINAR CULTIVO
+export const deleteCrop = async (req, res) => {
+    const transaction =
+        await db.sequelize.transaction();
+    try {
+        const { id } = req.params;
+
+        // BUSCAR CULTIVO
+        const crop =
+            await db.Crop.findByPk(id, {
+                transaction
+            });
+
+        // VALIDAR SI EXISTE
+        if (!crop) {
+            await transaction.rollback();
+            return res.redirect(
+                "/private/crops"
+            );
+        }
+        // ELIMINAR IMÁGENES RELACIONADAS
+        await db.CropImage.destroy({
+            where: {
+                crop_id: id
+            },
+            transaction
+        });
+
+        // ELIMINAR CULTIVO
+        await crop.destroy({
+            transaction
+        });
+
+        // CONFIRMAR TRANSACCIÓN
+        await transaction.commit();
+
+        console.log(
+            `CULTIVO ELIMINADO: ${crop.name} (ID: ${id})`
+        );
+
+        return res.redirect(
+            "/private/crops"
+        );
+
+    } catch (error) {
+        // DESHACER CAMBIOS
+        await transaction.rollback();
+
+        console.error(
+            "ERROR AL ELIMINAR CULTIVO:",
+            error
+        );
+        return res.status(500).json({
+            success: false,
+            message:
+                "Error al eliminar el cultivo",
+            error:
+                error.message
+        });
+    }
+};
 export const getCropDetail = async (req, res) => {
 
     try {
