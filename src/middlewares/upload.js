@@ -38,6 +38,22 @@ const plagueStorage = multer.diskStorage({
     },
 });
 
+// CONFIGURACIÓN PARA CULTIVOS
+const cropStorage = multer.diskStorage({
+    destination(req, file, cb) {
+        cb(null, "public/images/crops");
+    },
+
+    filename(req, file, cb) {
+        const extension = path.extname(file.originalname);
+
+        const fileName = `${Date.now()}-${Math.round(
+            Math.random() * 100000
+        )}${extension}`;
+
+        cb(null, fileName);
+    },
+});
 
 // Upload para productos
 export const upload = multer({
@@ -48,4 +64,9 @@ export const upload = multer({
 // Upload para plagas
 export const uploadPlague = multer({
     storage: plagueStorage,
+});
+
+// Upload para cultivos
+export const uploadCrop = multer({
+    storage: cropStorage,
 });

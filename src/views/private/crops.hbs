@@ -22,491 +22,3151 @@
         </div>
 
         <!-- Alert Panel -->
-        <div class="bg-blue-50 border border-blue-100 p-4 rounded-xl flex flex-wrap items-center justify-between gap-3 shadow-sm">
+        <div
+            class="bg-blue-50 border border-blue-100 p-4 rounded-xl flex flex-wrap items-center justify-between gap-3 shadow-sm">
             <div class="flex items-center gap-3">
                 <div class="bg-blue-100 p-2 rounded-full">
                     <span class="material-symbols-outlined text-blue-700" data-icon="info">info</span>
                 </div>
                 <p class="text-blue-900 font-medium text-sm tracking-tight">
-                    Tienes <span class="font-bold">2 solicitudes</span> de nuevos cultivos pendientes de revisión técnica.
+                    Tienes <span class="font-bold">2 solicitudes</span> de nuevos cultivos pendientes de revisión
+                    técnica.
                 </p>
             </div>
-            <button class="bg-white text-blue-800 border border-blue-200 px-5 py-2 rounded-lg text-xs font-bold hover:bg-blue-100 transition-colors">
+            <button
+                class="bg-white text-blue-800 border border-blue-200 px-5 py-2 rounded-lg text-xs font-bold hover:bg-blue-100 transition-colors">
                 Revisar solicitudes
             </button>
         </div>
 
-        <!-- TABLE VIEW -->
-        <div id="crops-table-view" style="display:none" class="bg-surface-container-lowest rounded-2xl shadow-sm overflow-hidden border border-outline-variant/10">
-            <table class="w-full text-left border-collapse">
-                <thead>
-                    <tr class="bg-surface-container-low/50">
-                        <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
-                            Imagen</th>
-                        <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
-                            Detalles del Cultivo</th>
-                        <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
-                            Tipo / Familia</th>
-                        <th
-                            class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant text-center">
-                            Temporada</th>
-                        <th
-                            class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant text-center">
-                            Estatus</th>
-                        <th
-                            class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant text-right">
-                            Acciones</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-surface-container">
-                    <!-- Row 1 -->
-                    <tr class="hover:bg-surface/50 transition-colors">
-                        <td class="px-8 py-6">
-                            <img alt="Maíz Blanco"
-                                class="w-20 h-14 rounded-lg object-cover bg-surface-container shadow-sm"
-                                src="/images/test/maiz_blanco.png" />
-                        </td>
-                        <td class="px-8 py-6">
-                            <p class="font-bold text-on-surface text-sm">Maíz Blanco</p>
-                            <p class="text-xs italic text-on-surface-variant">Zea mays</p>
-                        </td>
-                        <td class="px-8 py-6">
-                            <div class="flex flex-wrap gap-2">
-                                <span
-                                    class="px-3 py-1 bg-primary-container text-on-primary-container rounded-full text-[10px] font-bold uppercase tracking-tight">Cereal</span>
-                                <span
-                                    class="px-3 py-1 bg-surface-container text-on-surface-variant rounded-full text-[10px] font-bold uppercase tracking-tight">Poaceae</span>
-                            </div>
-                        </td>
-                        <td class="px-8 py-6 text-center">
-                            <span
-                                class="px-4 py-1.5 bg-blue-400/10 text-blue-700 rounded-full text-[10px] font-black uppercase">Primavera-Verano</span>
-                        </td>
-                        <td class="px-8 py-6 text-center">
-                            <div
-                                class="flex items-center justify-center gap-1.5 text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100 mx-auto w-fit">
-                                <span class="material-symbols-outlined text-sm" data-icon="check_circle"
-                                    data-weight="fill" style="font-variation-settings: 'FILL' 1;">check_circle</span>
-                                <span class="text-[10px] font-black uppercase">Aprobado</span>
-                            </div>
-                        </td>
-                        <td class="px-8 py-6">
-                            <div class="flex justify-end gap-3 text-on-surface-variant">
-                                <a href="/private/crops/maiz" class="hover:text-primary transition-colors"><span
-                                        class="material-symbols-outlined"
-                                        data-icon="visibility">visibility</span></a>
-                                <button class="hover:text-primary transition-colors"><span
-                                        class="material-symbols-outlined" data-icon="edit">edit</span></button>
-                                <button class="hover:text-error transition-colors"><span
-                                        class="material-symbols-outlined" data-icon="delete">delete</span></button>
-                            </div>
-                        </td>
-                    </tr>
-                    <!-- Row 2 -->
-                    <tr class="hover:bg-surface/50 transition-colors">
-                        <td class="px-8 py-6">
-                            <img alt="Limón Pérsico"
-                                class="w-20 h-14 rounded-lg object-cover bg-surface-container shadow-sm"
-                                src="/images/test/limon_persico.png" />
-                        </td>
-                        <td class="px-8 py-6">
-                            <p class="font-bold text-on-surface text-sm">Limón Pérsico</p>
-                            <p class="text-xs italic text-on-surface-variant">Citrus latifolia</p>
-                        </td>
-                        <td class="px-8 py-6">
-                            <div class="flex flex-wrap gap-2">
-                                <span
-                                    class="px-3 py-1 bg-primary-container text-on-primary-container rounded-full text-[10px] font-bold uppercase tracking-tight">Frutal</span>
-                                <span
-                                    class="px-3 py-1 bg-surface-container text-on-surface-variant rounded-full text-[10px] font-bold uppercase tracking-tight">Rutaceae</span>
-                            </div>
-                        </td>
-                        <td class="px-8 py-6 text-center">
-                            <span
-                                class="px-4 py-1.5 bg-green-400/10 text-green-700 rounded-full text-[10px] font-black uppercase">Todo el año</span>
-                        </td>
-                        <td class="px-8 py-6 text-center">
-                            <div
-                                class="flex items-center justify-center gap-1.5 text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100 mx-auto w-fit">
-                                <span class="material-symbols-outlined text-sm" data-icon="check_circle"
-                                    data-weight="fill" style="font-variation-settings: 'FILL' 1;">check_circle</span>
-                                <span class="text-[10px] font-black uppercase">Aprobado</span>
-                            </div>
-                        </td>
-                        <td class="px-8 py-6">
-                            <div class="flex justify-end gap-3 text-on-surface-variant">
-                                <button class="hover:text-primary transition-colors"><span
-                                        class="material-symbols-outlined"
-                                        data-icon="visibility">visibility</span></button>
-                                <button class="hover:text-primary transition-colors"><span
-                                        class="material-symbols-outlined" data-icon="edit">edit</span></button>
-                                <button class="hover:text-error transition-colors"><span
-                                        class="material-symbols-outlined" data-icon="delete">delete</span></button>
-                            </div>
-                        </td>
-                    </tr>
-                    <!-- Row 3 -->
-                    <tr class="hover:bg-surface/50 transition-colors">
-                        <td class="px-8 py-6">
-                            <img alt="Aguacate Hass"
-                                class="w-20 h-14 rounded-lg object-cover bg-surface-container shadow-sm"
-                                src="/images/test/aguacate_hass.png" />
-                        </td>
-                        <td class="px-8 py-6">
-                            <p class="font-bold text-on-surface text-sm">Aguacate Hass</p>
-                            <p class="text-xs italic text-on-surface-variant">Persea americana</p>
-                        </td>
-                        <td class="px-8 py-6">
-                            <div class="flex flex-wrap gap-2">
-                                <span
-                                    class="px-3 py-1 bg-primary-container text-on-primary-container rounded-full text-[10px] font-bold uppercase tracking-tight">Frutal</span>
-                                <span
-                                    class="px-3 py-1 bg-surface-container text-on-surface-variant rounded-full text-[10px] font-bold uppercase tracking-tight">Lauraceae</span>
-                            </div>
-                        </td>
-                        <td class="px-8 py-6 text-center">
-                            <span
-                                class="px-4 py-1.5 bg-amber-400/10 text-amber-700 rounded-full text-[10px] font-black uppercase">Otoño-Invierno</span>
-                        </td>
-                        <td class="px-8 py-6 text-center">
-                            <div
-                                class="flex items-center justify-center gap-1.5 text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100 mx-auto w-fit">
-                                <span class="material-symbols-outlined text-sm" data-icon="check_circle"
-                                    data-weight="fill" style="font-variation-settings: 'FILL' 1;">check_circle</span>
-                                <span class="text-[10px] font-black uppercase">Aprobado</span>
-                            </div>
-                        </td>
-                        <td class="px-8 py-6">
-                            <div class="flex justify-end gap-3 text-on-surface-variant">
-                                <button class="hover:text-primary transition-colors"><span
-                                        class="material-symbols-outlined"
-                                        data-icon="visibility">visibility</span></button>
-                                <button class="hover:text-primary transition-colors"><span
-                                        class="material-symbols-outlined" data-icon="edit">edit</span></button>
-                                <button class="hover:text-error transition-colors"><span
-                                        class="material-symbols-outlined" data-icon="delete">delete</span></button>
-                            </div>
-                        </td>
-                    </tr>
-                    <!-- Row 4 Pending -->
-                    <tr class="hover:bg-surface/50 transition-colors bg-surface-container-low/20">
-                        <td class="px-8 py-6">
-                            <img alt="Sorgo"
-                                class="w-20 h-14 rounded-lg object-cover bg-surface-container shadow-sm grayscale-[0.5]"
-                                src="/images/test/sorgo_forrajero.png" />
-                        </td>
-                        <td class="px-8 py-6">
-                            <p class="font-bold text-on-surface text-sm">Sorgo Forrajero</p>
-                            <p class="text-xs italic text-on-surface-variant">Sorghum bicolor</p>
-                        </td>
-                        <td class="px-8 py-6">
-                            <div class="flex flex-wrap gap-2">
-                                <span
-                                    class="px-3 py-1 bg-primary-container text-on-primary-container rounded-full text-[10px] font-bold uppercase tracking-tight">Cereal</span>
-                                <span
-                                    class="px-3 py-1 bg-surface-container text-on-surface-variant rounded-full text-[10px] font-bold uppercase tracking-tight">Poaceae</span>
-                            </div>
-                        </td>
-                        <td class="px-8 py-6 text-center">
-                            <span
-                                class="px-4 py-1.5 bg-blue-400/10 text-blue-700 rounded-full text-[10px] font-black uppercase">Primavera-Verano</span>
-                        </td>
-                        <td class="px-8 py-6 text-center">
-                            <div
-                                class="flex items-center justify-center gap-1.5 text-orange-600 bg-orange-50 px-3 py-1.5 rounded-full border border-orange-100 mx-auto w-fit">
-                                <span class="material-symbols-outlined text-sm" data-icon="schedule">schedule</span>
-                                <span class="text-[10px] font-black uppercase">Pendiente</span>
-                            </div>
-                        </td>
-                        <td class="px-8 py-6">
-                            <div class="flex justify-end gap-3 text-on-surface-variant">
-                                <button class="hover:text-primary transition-colors"><span
-                                        class="material-symbols-outlined"
-                                        data-icon="visibility">visibility</span></button>
-                                <button class="hover:text-primary transition-colors"><span
-                                        class="material-symbols-outlined" data-icon="edit">edit</span></button>
-                                <button class="hover:text-error transition-colors"><span
-                                        class="material-symbols-outlined" data-icon="delete">delete</span></button>
-                            </div>
-                        </td>
-                    </tr>
-                    <!-- Row 5 Pending -->
-                    <tr class="hover:bg-surface/50 transition-colors bg-surface-container-low/20">
-                        <td class="px-8 py-6">
-                            <img alt="Mango Ataulfo"
-                                class="w-20 h-14 rounded-lg object-cover bg-surface-container shadow-sm grayscale-[0.5]"
-                                src="/images/test/mango_ataulfo.png" />
-                        </td>
-                        <td class="px-8 py-6">
-                            <p class="font-bold text-on-surface text-sm">Mango Ataulfo</p>
-                            <p class="text-xs italic text-on-surface-variant">Mangifera indica</p>
-                        </td>
-                        <td class="px-8 py-6">
-                            <div class="flex flex-wrap gap-2">
-                                <span
-                                    class="px-3 py-1 bg-primary-container text-on-primary-container rounded-full text-[10px] font-bold uppercase tracking-tight">Frutal</span>
-                                <span
-                                    class="px-3 py-1 bg-surface-container text-on-surface-variant rounded-full text-[10px] font-bold uppercase tracking-tight">Anacardiaceae</span>
-                            </div>
-                        </td>
-                        <td class="px-8 py-6 text-center">
-                            <span
-                                class="px-4 py-1.5 bg-amber-400/10 text-amber-700 rounded-full text-[10px] font-black uppercase">Primavera</span>
-                        </td>
-                        <td class="px-8 py-6 text-center">
-                            <div
-                                class="flex items-center justify-center gap-1.5 text-orange-600 bg-orange-50 px-3 py-1.5 rounded-full border border-orange-100 mx-auto w-fit">
-                                <span class="material-symbols-outlined text-sm" data-icon="schedule">schedule</span>
-                                <span class="text-[10px] font-black uppercase">Pendiente</span>
-                            </div>
-                        </td>
-                        <td class="px-8 py-6">
-                            <div class="flex justify-end gap-3 text-on-surface-variant">
-                                <button class="hover:text-primary transition-colors"><span
-                                        class="material-symbols-outlined"
-                                        data-icon="visibility">visibility</span></button>
-                                <button class="hover:text-primary transition-colors"><span
-                                        class="material-symbols-outlined" data-icon="edit">edit</span></button>
-                                <button class="hover:text-error transition-colors"><span
-                                        class="material-symbols-outlined" data-icon="delete">delete</span></button>
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-            <!-- Pagination -->
-            <div
-                class="px-8 py-6 bg-surface-container-low/30 border-t border-outline-variant/10 flex items-center justify-between">
-                <p class="text-xs font-medium text-on-surface-variant">
-                    Mostrando <span class="font-bold text-on-surface">1 a 10</span> de <span
-                        class="font-bold text-on-surface">87</span> registros
-                </p>
-                <div class="flex gap-2">
-                    <button
-                        class="px-5 py-2 rounded-lg bg-surface-container-highest/50 text-on-surface text-xs font-bold hover:bg-surface-container-highest transition-colors flex items-center gap-2">
-                        <span class="material-symbols-outlined text-sm" data-icon="chevron_left">chevron_left</span>
-                        Anterior
-                    </button>
-                    <button
-                        class="px-5 py-2 rounded-lg bg-[#43655c] text-white text-xs font-bold hover:bg-[#354f47] transition-colors flex items-center gap-2 shadow-sm">
-                        Siguiente
-                        <span class="material-symbols-outlined text-sm" data-icon="chevron_right">chevron_right</span>
-                    </button>
-                </div>
+        {{!-- ══════════════════════════════════════════════════════════════
+        TABLE VIEW
+        ══════════════════════════════════════════════════════════════ --}}
+
+        <div id="crops-table-view" style="display:none"
+            class="bg-surface-container-lowest rounded-2xl shadow-sm overflow-hidden border border-outline-variant/10">
+
+            <div class="overflow-x-auto">
+
+                <table class="w-full text-left border-collapse">
+
+                    {{!-- CABECERA --}}
+                    <thead>
+
+                        <tr class="bg-surface-container-low/50">
+
+                            <th
+                                class="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
+                                Imagen
+                            </th>
+
+                            <th
+                                class="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
+                                Cultivo
+                            </th>
+
+                            <th
+                                class="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
+                                Clasificación
+                            </th>
+
+                            <th
+                                class="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant text-center">
+                                Temporada
+                            </th>
+
+                            <th
+                                class="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant text-center">
+                                Cosecha
+                            </th>
+
+                            <th
+                                class="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant text-center">
+                                Estatus
+                            </th>
+
+                            <th
+                                class="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant text-right">
+                                Acciones
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    {{!-- CUERPO --}}
+                    <tbody class="divide-y divide-outline-variant/10">
+
+                        {{#if crops}}
+
+                        {{#each crops}}
+
+                        <tr class="hover:bg-surface-container-low/30 transition-colors">
+
+
+                            {{!-- ═════════════════════════════════════
+                            IMAGEN
+                            ══════════════════════════════════════ --}}
+
+                            <td class="px-6 py-5">
+
+                                <div class="w-16 h-16 rounded-xl overflow-hidden
+                                            bg-emerald-50
+                                            border border-emerald-100
+                                            shadow-sm">
+
+                                    {{#if image_url}}
+
+                                    <img src="/{{image_url}}" alt="{{name}}" class="w-full h-full object-cover"
+                                        onerror="this.onerror=null; this.src='/images/test/default.png';">
+
+                                    {{else}}
+
+                                    <img src="/images/test/default.png" alt="Sin imagen"
+                                        class="w-full h-full object-cover">
+
+                                    {{/if}}
+
+                                </div>
+
+                            </td>
+
+
+                            {{!-- ═════════════════════════════════════
+                            CULTIVO
+                            ══════════════════════════════════════ --}}
+
+                            <td class="px-6 py-5">
+
+                                <div class="min-w-[210px]">
+
+                                    <p class="font-bold text-on-surface text-sm">
+                                        {{name}}
+                                    </p>
+
+
+                                    {{#if scientific_name}}
+
+                                    <p class="text-xs italic text-on-surface-variant mt-1">
+                                        {{scientific_name}}
+                                    </p>
+
+                                    {{/if}}
+
+
+                                    {{#if variety}}
+
+                                    <p class="text-[11px] text-on-surface-variant mt-2">
+
+                                        <span class="font-semibold">
+                                            Variedad:
+                                        </span>
+
+                                        {{variety}}
+
+                                    </p>
+
+                                    {{/if}}
+
+                                </div>
+
+                            </td>
+
+
+                            {{!-- ═════════════════════════════════════
+                            CLASIFICACIÓN
+                            ══════════════════════════════════════ --}}
+
+                            <td class="px-6 py-5">
+
+                                <div class="space-y-2">
+
+                                    {{#if category}}
+
+                                    <span class="inline-flex
+                                                     px-3 py-1
+                                                     rounded-full
+                                                     bg-emerald-50
+                                                     text-emerald-700
+                                                     text-[10px]
+                                                     font-bold
+                                                     uppercase">
+
+                                        {{category}}
+
+                                    </span>
+
+                                    {{else}}
+
+                                    <span class="text-xs text-on-surface-variant">
+                                        Sin categoría
+                                    </span>
+
+                                    {{/if}}
+
+
+                                    {{#if family}}
+
+                                    <p class="text-xs text-on-surface-variant">
+
+                                        <span class="font-semibold">
+                                            Familia:
+                                        </span>
+
+                                        {{family}}
+
+                                    </p>
+
+                                    {{/if}}
+
+                                </div>
+
+                            </td>
+
+
+                            {{!-- ═════════════════════════════════════
+                            TEMPORADA
+                            ══════════════════════════════════════ --}}
+
+                            <td class="px-6 py-5 text-center">
+
+                                {{#if season}}
+
+                                <div class="inline-flex items-center gap-1">
+
+                                    <span class="material-symbols-outlined text-sm text-emerald-700">
+                                        calendar_month
+                                    </span>
+
+                                    <span class="text-xs font-medium text-on-surface">
+                                        {{season}}
+                                    </span>
+
+                                </div>
+
+                                {{else}}
+
+                                <span class="text-xs text-on-surface-variant">
+                                    No especificada
+                                </span>
+
+                                {{/if}}
+
+                            </td>
+
+
+                            {{!-- ═════════════════════════════════════
+                            DÍAS DE COSECHA
+                            ══════════════════════════════════════ --}}
+
+                            <td class="px-6 py-5 text-center">
+
+                                {{#if harvest_days}}
+
+                                <div class="inline-flex items-center gap-1">
+
+                                    <span class="material-symbols-outlined text-sm text-amber-600">
+                                        schedule
+                                    </span>
+
+                                    <span class="text-xs font-medium text-on-surface">
+                                        {{harvest_days}} días
+                                    </span>
+
+                                </div>
+
+                                {{else}}
+
+                                <span class="text-xs text-on-surface-variant">
+                                    No especificado
+                                </span>
+
+                                {{/if}}
+
+                            </td>
+
+
+                            {{!-- ═════════════════════════════════════
+                            ESTATUS
+                            ══════════════════════════════════════ --}}
+
+                            <td class="px-6 py-5 text-center">
+
+                                {{#if (eq status "aprobado")}}
+
+                                <span class="inline-flex items-center gap-1
+                                                 px-3 py-1
+                                                 rounded-full
+                                                 bg-emerald-50
+                                                 text-emerald-700
+                                                 text-[10px]
+                                                 font-bold
+                                                 uppercase">
+
+                                    <span class="material-symbols-outlined text-xs">
+                                        check_circle
+                                    </span>
+
+                                    Aprobado
+
+                                </span>
+
+
+                                {{else if (eq status "rechazado")}}
+
+                                <span class="inline-flex items-center gap-1
+                                                 px-3 py-1
+                                                 rounded-full
+                                                 bg-red-50
+                                                 text-red-700
+                                                 text-[10px]
+                                                 font-bold
+                                                 uppercase">
+
+                                    <span class="material-symbols-outlined text-xs">
+                                        cancel
+                                    </span>
+
+                                    Rechazado
+
+                                </span>
+
+
+                                {{else}}
+
+                                <span class="inline-flex items-center gap-1
+                                                 px-3 py-1
+                                                 rounded-full
+                                                 bg-amber-50
+                                                 text-amber-700
+                                                 text-[10px]
+                                                 font-bold
+                                                 uppercase">
+
+                                    <span class="material-symbols-outlined text-xs">
+                                        schedule
+                                    </span>
+
+                                    Pendiente
+
+                                </span>
+
+                                {{/if}}
+
+                            </td>
+
+
+                            {{!-- ═════════════════════════════════════
+                            ACCIONES
+                            ══════════════════════════════════════ --}}
+
+                            <td class="px-6 py-5">
+
+                                <div class="flex items-center justify-end gap-2">
+
+
+                                    {{!-- VER --}}
+                                    <button type="button" class="view-crop-btn
+                                               p-2
+                                               rounded-lg
+                                               hover:bg-emerald-50
+                                               text-on-surface-variant
+                                               hover:text-emerald-700
+                                               transition-colors" title="Ver cultivo" data-id="{{id}}">
+
+                                        <span class="material-symbols-outlined text-lg">
+                                            visibility
+                                        </span>
+
+                                    </button>
+
+
+                                    {{!-- EDITAR --}}
+                                    <button type="button"
+                                        class="edit-crop-btn p-2 rounded-lg hover:bg-blue-50 text-on-surface-variant hover:text-blue-700  transition-colors"
+                                        title="Editar cultivo" data-id="{{id}}">
+                                        <span class="material-symbols-outlined text-lg">
+                                            edit
+                                        </span>
+
+                                    </button>
+
+
+                                    {{!-- ELIMINAR --}}
+                                    <button type="button" class="delete-crop-btn
+                                               p-2
+                                               rounded-lg
+                                               hover:bg-red-50
+                                               text-on-surface-variant
+                                               hover:text-red-700
+                                               transition-colors" title="Eliminar cultivo" data-id="{{id}}"
+                                        data-name="{{name}}">
+
+                                        <span class="material-symbols-outlined text-lg">
+                                            delete
+                                        </span>
+
+                                    </button>
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+
+                        {{/each}}
+
+
+                        {{else}}
+
+                        <tr>
+
+                            <td colspan="7" class="px-8 py-20 text-center">
+
+                                <span class="material-symbols-outlined
+                                         text-6xl
+                                         text-on-surface-variant/30">
+
+                                    agriculture
+
+                                </span>
+
+                                <p class="mt-4
+                                      text-sm
+                                      font-bold
+                                      text-on-surface-variant">
+
+                                    No hay cultivos registrados
+
+                                </p>
+
+                                <p class="mt-1
+                                      text-xs
+                                      text-on-surface-variant/70">
+
+                                    Agrega un cultivo para comenzar.
+
+                                </p>
+
+                            </td>
+
+                        </tr>
+
+                        {{/if}}
+
+                    </tbody>
+
+                </table>
+
             </div>
+
+
+            {{!-- PAGINACIÓN --}}
+            <div class="px-8 py-6
+                bg-surface-container-low/30
+                border-t
+                border-outline-variant/10
+                flex
+                items-center
+                justify-between">
+
+                <p class="text-xs font-medium text-on-surface-variant">
+
+                    Mostrando
+
+                    <span class="font-bold text-on-surface">
+                        {{crops.length}}
+                    </span>
+
+                    cultivos
+
+                </p>
+
+
+                <div class="flex gap-2">
+
+                    <button type="button" class="px-5 py-2
+                       rounded-lg
+                       bg-surface-container-highest/50
+                       text-on-surface
+                       text-xs
+                       font-bold
+                       hover:bg-surface-container-highest
+                       transition-colors
+                       flex
+                       items-center
+                       gap-2">
+
+                        <span class="material-symbols-outlined text-sm">
+                            chevron_left
+                        </span>
+
+                        Anterior
+
+                    </button>
+
+
+                    <button type="button" class="px-5 py-2
+                       rounded-lg
+                       bg-[#43655c]
+                       text-white
+                       text-xs
+                       font-bold
+                       hover:bg-[#354f47]
+                       transition-colors
+                       flex
+                       items-center
+                       gap-2
+                       shadow-sm">
+
+                        Siguiente
+
+                        <span class="material-symbols-outlined text-sm">
+                            chevron_right
+                        </span>
+
+                    </button>
+
+                </div>
+
+            </div>
+
         </div>
 
-        <!-- GRID VIEW -->
-        <div id="crops-grid-view" class="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 grid">
 
-            <!-- Card 1 -->
-            <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm overflow-hidden group hover:-translate-y-1 transition-all duration-300">
-                <div class="relative h-40 overflow-hidden">
-                    <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        src="https://images.unsplash.com/photo-1599940824399-b87987ceb72a?w=400&h=300&fit=crop&q=80"
-                        alt="Maíz Blanco" />
-                </div>
-                <div class="p-4">
-                    <span class="text-[9px] font-black uppercase tracking-widest text-primary">Cereal</span>
-                    <h3 class="font-bold text-on-surface text-sm mt-1">Maíz Blanco</h3>
-                    <p class="text-xs italic text-on-surface-variant">Zea mays</p>
-                    <div class="flex items-center gap-1.5 mt-2">
-                        <span class="px-2 py-0.5 bg-surface-container text-on-surface-variant rounded text-[10px] font-bold uppercase tracking-tight">Poaceae</span>
-                    </div>
-                    <div class="mt-3 pt-3 border-t border-surface-container flex justify-between items-center">
-                        <div class="flex items-center gap-1.5 text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full border border-emerald-100">
-                            <span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">check_circle</span>
-                            <span class="text-[9px] font-black uppercase">Aprobado</span>
-                        </div>
-                        <div class="flex gap-2 text-on-surface-variant">
-                            <button class="hover:text-primary transition-colors"><span class="material-symbols-outlined text-base">edit</span></button>
-                            <button class="hover:text-error transition-colors"><span class="material-symbols-outlined text-base">delete</span></button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        {{!-- ══════════════════════════════════════════════════════════════
+        GRID VIEW
+        ══════════════════════════════════════════════════════════════ --}}
 
-            <!-- Card 2 -->
-            <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm overflow-hidden group hover:-translate-y-1 transition-all duration-300">
-                <div class="relative h-40 overflow-hidden">
-                    <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        src="https://images.unsplash.com/photo-1592659762303-90081d34b277?w=400&h=300&fit=crop&q=80"
-                        alt="Tomate Saladette" />
-                </div>
-                <div class="p-4">
-                    <span class="text-[9px] font-black uppercase tracking-widest text-secondary">Hortaliza</span>
-                    <h3 class="font-bold text-on-surface text-sm mt-1">Tomate Saladette</h3>
-                    <p class="text-xs italic text-on-surface-variant">Solanum lycopersicum</p>
-                    <div class="flex items-center gap-1.5 mt-2">
-                        <span class="px-2 py-0.5 bg-surface-container text-on-surface-variant rounded text-[10px] font-bold uppercase tracking-tight">Solanaceae</span>
-                    </div>
-                    <div class="mt-3 pt-3 border-t border-surface-container flex justify-between items-center">
-                        <div class="flex items-center gap-1.5 text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full border border-emerald-100">
-                            <span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">check_circle</span>
-                            <span class="text-[9px] font-black uppercase">Aprobado</span>
-                        </div>
-                        <div class="flex gap-2 text-on-surface-variant">
-                            <button class="hover:text-primary transition-colors"><span class="material-symbols-outlined text-base">edit</span></button>
-                            <button class="hover:text-error transition-colors"><span class="material-symbols-outlined text-base">delete</span></button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <div id="crops-grid-view" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
 
-            <!-- Card 3 -->
-            <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm overflow-hidden group hover:-translate-y-1 transition-all duration-300">
-                <div class="relative h-40 overflow-hidden">
-                    <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        src="https://images.unsplash.com/photo-1601314115161-02604cc11571?w=400&h=300&fit=crop&q=80"
-                        alt="Frijol Peruano" />
-                </div>
-                <div class="p-4">
-                    <span class="text-[9px] font-black uppercase tracking-widest text-primary">Leguminosa</span>
-                    <h3 class="font-bold text-on-surface text-sm mt-1">Frijol Peruano</h3>
-                    <p class="text-xs italic text-on-surface-variant">Phaseolus vulgaris</p>
-                    <div class="flex items-center gap-1.5 mt-2">
-                        <span class="px-2 py-0.5 bg-surface-container text-on-surface-variant rounded text-[10px] font-bold uppercase tracking-tight">Fabaceae</span>
-                    </div>
-                    <div class="mt-3 pt-3 border-t border-surface-container flex justify-between items-center">
-                        <div class="flex items-center gap-1.5 text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full border border-emerald-100">
-                            <span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">check_circle</span>
-                            <span class="text-[9px] font-black uppercase">Aprobado</span>
-                        </div>
-                        <div class="flex gap-2 text-on-surface-variant">
-                            <button class="hover:text-primary transition-colors"><span class="material-symbols-outlined text-base">edit</span></button>
-                            <button class="hover:text-error transition-colors"><span class="material-symbols-outlined text-base">delete</span></button>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Card 4 Pending -->
-            <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm overflow-hidden group hover:-translate-y-1 transition-all duration-300 bg-surface-container-low/20">
-                <div class="relative h-40 overflow-hidden">
-                    <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 grayscale-[0.5]"
-                        src="https://images.unsplash.com/photo-1599940824399-b87987ceb72a?w=400&h=300&fit=crop&q=80"
-                        alt="Sorgo Forrajero" />
-                </div>
-                <div class="p-4">
-                    <span class="text-[9px] font-black uppercase tracking-widest text-primary">Cereal</span>
-                    <h3 class="font-bold text-on-surface text-sm mt-1">Sorgo Forrajero</h3>
-                    <p class="text-xs italic text-on-surface-variant">Sorghum bicolor</p>
-                    <div class="flex items-center gap-1.5 mt-2">
-                        <span class="px-2 py-0.5 bg-surface-container text-on-surface-variant rounded text-[10px] font-bold uppercase tracking-tight">Poaceae</span>
-                    </div>
-                    <div class="mt-3 pt-3 border-t border-surface-container flex justify-between items-center">
-                        <div class="flex items-center gap-1.5 text-orange-600 bg-orange-50 px-2 py-1 rounded-full border border-orange-100">
-                            <span class="material-symbols-outlined text-xs">schedule</span>
-                            <span class="text-[9px] font-black uppercase">Pendiente</span>
-                        </div>
-                        <div class="flex gap-2 text-on-surface-variant">
-                            <button class="hover:text-primary transition-colors"><span class="material-symbols-outlined text-base">edit</span></button>
-                            <button class="hover:text-error transition-colors"><span class="material-symbols-outlined text-base">delete</span></button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            {{!-- AÑADIR CULTIVO --}}
+            <div id="btn-add-crop-card" class="bg-surface-container-lowest
+               rounded-xl
+               border-2
+               border-dashed
+               border-primary/20
+               shadow-sm
+               overflow-hidden
+               group
+               hover:-translate-y-1
+               transition-all
+               duration-300
+               flex
+               items-center
+               justify-center
+               min-h-[220px]
+               cursor-pointer">
 
-            <!-- Card 5 Pending -->
-            <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm overflow-hidden group hover:-translate-y-1 transition-all duration-300 bg-surface-container-low/20">
-                <div class="relative h-40 overflow-hidden">
-                    <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 grayscale-[0.5]"
-                        src="https://images.unsplash.com/photo-1553279768-865429fa0078?w=400&h=300&fit=crop&q=80"
-                        alt="Mango Ataulfo" />
-                </div>
-                <div class="p-4">
-                    <span class="text-[9px] font-black uppercase tracking-widest text-primary">Frutal</span>
-                    <h3 class="font-bold text-on-surface text-sm mt-1">Mango Ataulfo</h3>
-                    <p class="text-xs italic text-on-surface-variant">Mangifera indica</p>
-                    <div class="flex items-center gap-1.5 mt-2">
-                        <span class="px-2 py-0.5 bg-surface-container text-on-surface-variant rounded text-[10px] font-bold uppercase tracking-tight">Anacardiaceae</span>
-                    </div>
-                    <div class="mt-3 pt-3 border-t border-surface-container flex justify-between items-center">
-                        <div class="flex items-center gap-1.5 text-orange-600 bg-orange-50 px-2 py-1 rounded-full border border-orange-100">
-                            <span class="material-symbols-outlined text-xs">schedule</span>
-                            <span class="text-[9px] font-black uppercase">Pendiente</span>
-                        </div>
-                        <div class="flex gap-2 text-on-surface-variant">
-                            <button class="hover:text-primary transition-colors"><span class="material-symbols-outlined text-base">edit</span></button>
-                            <button class="hover:text-error transition-colors"><span class="material-symbols-outlined text-base">delete</span></button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Add New Card -->
-            <div id="btn-add-crop-card" class="bg-surface-container-lowest rounded-xl border-2 border-dashed border-primary/20 shadow-sm overflow-hidden group hover:-translate-y-1 transition-all duration-300 flex items-center justify-center min-h-[220px] cursor-pointer">
                 <div class="text-center p-6">
-                    <span class="material-symbols-outlined text-3xl text-primary/30 mb-2 group-hover:text-primary/50 transition-colors">agriculture</span>
-                    <p class="text-sm font-bold text-on-surface-variant group-hover:text-primary transition-colors">Añadir cultivo</p>
+
+                    <span class="material-symbols-outlined
+                         text-3xl
+                         text-primary/30
+                         mb-2
+                         group-hover:text-primary/50
+                         transition-colors">
+
+                        agriculture
+
+                    </span>
+
+                    <p class="text-sm
+                      font-bold
+                      text-on-surface-variant
+                      group-hover:text-primary
+                      transition-colors">
+
+                        Añadir cultivo
+
+                    </p>
+
                 </div>
+
             </div>
+
+
+            {{#if crops}}
+
+            {{#each crops}}
+
+
+            {{!-- TARJETA --}}
+            <div class="bg-surface-container-lowest
+                        rounded-xl
+                        border
+                        border-outline-variant/10
+                        shadow-sm
+                        overflow-hidden
+                        group
+                        hover:-translate-y-1
+                        transition-all
+                        duration-300">
+
+
+                {{!-- IMAGEN --}}
+                <div class="relative
+                            h-48
+                            bg-emerald-50
+                            overflow-hidden">
+
+                    {{#if image_url}}
+
+                    <img src="/{{image_url}}" alt="{{name}}" class="w-full
+                                   h-full
+                                   object-cover
+                                   group-hover:scale-105
+                                   transition-transform
+                                   duration-500" onerror="this.onerror=null; this.src='/images/test/default.png';">
+
+                    {{else}}
+
+                    <img src="/images/test/default.png" alt="Sin imagen" class="w-full h-full object-cover">
+
+                    {{/if}}
+
+
+                    {{!-- ESTATUS --}}
+                    <div class="absolute top-3 right-3">
+
+                        {{#if (eq status "aprobado")}}
+
+                        <span class="px-2.5
+                                         py-1
+                                         rounded-full
+                                         bg-emerald-600
+                                         text-white
+                                         text-[10px]
+                                         font-bold
+                                         uppercase
+                                         shadow-sm">
+
+                            Aprobado
+
+                        </span>
+
+
+                        {{else if (eq status "rechazado")}}
+
+                        <span class="px-2.5
+                                         py-1
+                                         rounded-full
+                                         bg-red-600
+                                         text-white
+                                         text-[10px]
+                                         font-bold
+                                         uppercase
+                                         shadow-sm">
+
+                            Rechazado
+
+                        </span>
+
+
+                        {{else}}
+
+                        <span class="px-2.5
+                                         py-1
+                                         rounded-full
+                                         bg-amber-500
+                                         text-white
+                                         text-[10px]
+                                         font-bold
+                                         uppercase
+                                         shadow-sm">
+
+                            Pendiente
+
+                        </span>
+
+                        {{/if}}
+
+                    </div>
+
+                </div>
+
+
+                {{!-- INFORMACIÓN --}}
+                <div class="p-5">
+
+
+                    {{!-- NOMBRE --}}
+                    <div class="mb-4">
+
+                        <h3 class="font-bold
+                                   text-on-surface
+                                   text-lg
+                                   truncate">
+
+                            {{name}}
+
+                        </h3>
+
+
+                        {{#if scientific_name}}
+
+                        <p class="text-xs
+                                      italic
+                                      text-on-surface-variant
+                                      mt-1
+                                      truncate">
+
+                            {{scientific_name}}
+
+                        </p>
+
+                        {{/if}}
+
+                    </div>
+
+
+                    {{!-- DATOS PRINCIPALES --}}
+                    <div class="space-y-3 text-xs">
+
+
+                        {{!-- CATEGORÍA --}}
+                        <div class="flex items-center justify-between gap-3">
+
+                            <span class="text-on-surface-variant">
+                                Categoría
+                            </span>
+
+                            <span class="font-bold
+                                         text-on-surface
+                                         text-right
+                                         truncate">
+
+                                {{#if category}}
+
+                                {{category}}
+
+                                {{else}}
+
+                                No especificada
+
+                                {{/if}}
+
+                            </span>
+
+                        </div>
+
+
+                        {{!-- FAMILIA --}}
+                        {{#if family}}
+
+                        <div class="flex items-center justify-between gap-3">
+
+                            <span class="text-on-surface-variant">
+                                Familia
+                            </span>
+
+                            <span class="font-medium
+                                             text-on-surface
+                                             text-right
+                                             truncate">
+
+                                {{family}}
+
+                            </span>
+
+                        </div>
+
+                        {{/if}}
+
+
+                        {{!-- VARIEDAD --}}
+                        {{#if variety}}
+
+                        <div class="flex items-center justify-between gap-3">
+
+                            <span class="text-on-surface-variant">
+                                Variedad
+                            </span>
+
+                            <span class="font-medium
+                                             text-on-surface
+                                             text-right
+                                             truncate">
+
+                                {{variety}}
+
+                            </span>
+
+                        </div>
+
+                        {{/if}}
+
+
+                        {{!-- TEMPORADA --}}
+                        {{#if season}}
+
+                        <div class="flex items-center justify-between gap-3">
+
+                            <span class="text-on-surface-variant">
+                                Temporada
+                            </span>
+
+                            <span class="font-medium
+                                             text-on-surface
+                                             text-right
+                                             truncate">
+
+                                {{season}}
+
+                            </span>
+
+                        </div>
+
+                        {{/if}}
+
+
+                        {{!-- DÍAS DE COSECHA --}}
+                        {{#if harvest_days}}
+
+                        <div class="flex items-center justify-between gap-3">
+
+                            <span class="text-on-surface-variant">
+                                Cosecha
+                            </span>
+
+                            <span class="font-medium
+                                             text-on-surface
+                                             text-right">
+
+                                {{harvest_days}} días
+
+                            </span>
+
+                        </div>
+
+                        {{/if}}
+
+                    </div>
+
+
+                    {{!-- ACCIONES --}}
+                    <div class="flex
+                                items-center
+                                justify-end
+                                gap-2
+                                mt-5
+                                pt-4
+                                border-t
+                                border-outline-variant/10">
+
+
+                        {{!-- VER --}}
+                        <button type="button" class="view-crop-btn
+                                   p-2
+                                   rounded-lg
+                                   hover:bg-emerald-50
+                                   text-on-surface-variant
+                                   hover:text-emerald-700
+                                   transition-colors" title="Ver cultivo" data-id="{{id}}">
+
+                            <span class="material-symbols-outlined text-lg">
+                                visibility
+                            </span>
+
+                        </button>
+
+                        <button type="button"
+                            class="edit-crop-btn p-2 rounded-lg hover:bg-blue-50 text-on-surface-variant hover:text-blue-700transition-colors"
+                            title="Editar cultivo" data-id="{{id}}">
+                            <span class="material-symbols-outlined text-lg">
+                                edit
+                            </span>
+
+                        </button>
+                        {{!-- ELIMINAR --}}
+                        <button type="button" class="delete-crop-btn
+                                   p-2
+                                   rounded-lg
+                                   hover:bg-red-50
+                                   text-on-surface-variant
+                                   hover:text-red-700
+                                   transition-colors" title="Eliminar cultivo" data-id="{{id}}" data-name="{{name}}">
+
+                            <span class="material-symbols-outlined text-lg">
+                                delete
+                            </span>
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            {{/each}}
+
+
+            {{else}}
+
+            <div class="col-span-full
+                    py-16
+                    text-center">
+
+                <span class="material-symbols-outlined
+                         text-5xl
+                         text-on-surface-variant/30">
+
+                    agriculture
+
+                </span>
+
+                <p class="mt-3
+                      text-sm
+                      font-bold
+                      text-on-surface-variant">
+
+                    No hay cultivos registrados
+
+                </p>
+
+            </div>
+
+            {{/if}}
 
         </div>
     </div>
 </main>
 
-<!-- Modal: Añadir/Editar Cultivo (Placeholder) -->
-<div id="modal-crop" class="fixed inset-0 z-100 hidden items-center justify-center p-4">
-    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" id="modal-crop-backdrop"></div>
-    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-6 z-10">
-        <div class="flex items-center justify-between border-b border-surface-container pb-4 mb-4">
-            <h3 class="text-lg font-extrabold text-[#0F2E2E]">Nuevo Cultivo</h3>
-            <button id="modal-crop-close" class="p-2 rounded-lg hover:bg-surface-container-low text-on-surface-variant transition-colors"><span class="material-symbols-outlined">close</span></button>
-        </div>
-        <p class="text-sm text-on-surface-variant">Formulario de cultivo (pendiente de implementación).</p>
-        <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-surface-container">
-            <button id="modal-crop-cancel" class="px-6 py-2.5 rounded-lg bg-surface-container-low text-on-surface-variant text-sm font-bold">Cancelar</button>
-        </div>
+<!-- MODAL: AÑADIR / EDITAR CULTIVO -->
+<div id="modal-crop" class="fixed inset-0 z-[100] hidden items-center justify-center p-4">
+
+    <!-- FONDO -->
+    <div id="modal-crop-backdrop" class="absolute inset-0 bg-black/40 backdrop-blur-sm">
     </div>
+
+
+    <!-- CONTENEDOR -->
+    <div class="relative z-10 w-full max-w-5xl max-h-[92vh] overflow-y-auto bg-white rounded-2xl shadow-2xl">
+
+
+        <!-- HEADER -->
+        <div
+            class="flex items-center justify-between px-6 py-5 border-b border-surface-container sticky top-0 bg-white z-20">
+
+            <div>
+
+                <h3 id="modal-crop-title" class="text-xl font-extrabold text-[#0F2E2E]">
+
+                    Nuevo Cultivo
+
+                </h3>
+
+                <p class="text-xs text-on-surface-variant mt-1">
+
+                    Registra toda la información técnica y agronómica del cultivo
+
+                </p>
+
+            </div>
+
+
+            <button id="modal-crop-close" type="button"
+                class="p-2 rounded-lg hover:bg-surface-container-low text-on-surface-variant transition-colors">
+
+                <span class="material-symbols-outlined">
+                    close
+                </span>
+
+            </button>
+
+        </div>
+
+
+        <!-- FORMULARIO -->
+        <form id="crop-form" method="POST" action="/private/crops/create" enctype="multipart/form-data">
+
+
+            <div class="p-6 space-y-10">
+
+
+                <!-- ================================================= -->
+                <!-- 1. IDENTIFICACIÓN Y CLASIFICACIÓN -->
+                <!-- ================================================= -->
+
+                <section>
+
+                    <div class="flex items-center gap-2 mb-5">
+
+                        <span class="material-symbols-outlined text-primary">
+                            category
+                        </span>
+
+                        <div>
+
+                            <h4 class="font-bold text-[#0F2E2E]">
+                                Identificación y clasificación
+                            </h4>
+
+                            <p class="text-xs text-on-surface-variant">
+                                Información taxonómica y clasificación del cultivo
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+
+                        <!-- Nombre común -->
+                        <div>
+
+                            <label class="block text-xs font-bold text-on-surface-variant mb-2">
+
+                                Nombre común *
+
+                            </label>
+
+                            <input type="text" id="crop-name" name="name" required placeholder="Ej. Maíz Blanco"
+                                class="w-full px-4 py-3 rounded-xl border border-outline-variant/30 bg-surface-container-low/30 focus:outline-none focus:ring-2 focus:ring-primary/30">
+
+                        </div>
+
+
+                        <!-- Nombre científico -->
+                        <div>
+
+                            <label class="block text-xs font-bold text-on-surface-variant mb-2">
+
+                                Nombre científico *
+
+                            </label>
+
+                            <input type="text" id="crop-scientific-name" name="scientific_name" required
+                                placeholder="Ej. Zea mays"
+                                class="w-full px-4 py-3 rounded-xl border border-outline-variant/30 bg-surface-container-low/30 focus:outline-none focus:ring-2 focus:ring-primary/30">
+
+                        </div>
+
+
+                        <!-- Categoría -->
+                        <div>
+
+                            <label class="block text-xs font-bold text-on-surface-variant mb-2">
+
+                                Categoría del cultivo *
+
+                            </label>
+
+                            <select id="crop-category" name="category" required
+                                class="w-full px-4 py-3 rounded-xl border border-outline-variant/30 bg-surface-container-low/30">
+
+                                <option value="">
+                                    Seleccionar categoría
+                                </option>
+
+                                <option value="cereal">
+                                    Cereal
+                                </option>
+
+                                <option value="frutal">
+                                    Frutal
+                                </option>
+
+                                <option value="hortaliza">
+                                    Hortaliza
+                                </option>
+
+                                <option value="leguminosa">
+                                    Leguminosa
+                                </option>
+
+                                <option value="oleaginosa">
+                                    Oleaginosa
+                                </option>
+
+                                <option value="tuberculo">
+                                    Tubérculo
+                                </option>
+
+                                <option value="forrajera">
+                                    Forrajera
+                                </option>
+
+                                <option value="ornamental">
+                                    Ornamental
+                                </option>
+
+                                <option value="industrial">
+                                    Industrial
+                                </option>
+
+                                <option value="otro">
+                                    Otro
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <!-- Familia -->
+                        <div>
+
+                            <label class="block text-xs font-bold text-on-surface-variant mb-2">
+
+                                Familia botánica
+
+                            </label>
+
+                            <input type="text" id="crop-family" name="family" placeholder="Ej. Poaceae"
+                                class="w-full px-4 py-3 rounded-xl border border-outline-variant/30 bg-surface-container-low/30">
+
+                        </div>
+
+
+                        <!-- Género -->
+                        <div>
+
+                            <label class="block text-xs font-bold text-on-surface-variant mb-2">
+
+                                Género
+
+                            </label>
+
+                            <input type="text" id="crop-genus" name="genus" placeholder="Ej. Zea"
+                                class="w-full px-4 py-3 rounded-xl border border-outline-variant/30 bg-surface-container-low/30">
+
+                        </div>
+
+
+                        <!-- Variedad -->
+                        <div>
+
+                            <label class="block text-xs font-bold text-on-surface-variant mb-2">
+
+                                Variedad o cultivar
+
+                            </label>
+
+                            <input type="text" id="crop-variety" name="variety" placeholder="Ej. Maíz Blanco Criollo"
+                                class="w-full px-4 py-3 rounded-xl border border-outline-variant/30 bg-surface-container-low/30">
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- ================================================= -->
+                <!-- 2. REGIÓN Y DISTRIBUCIÓN -->
+                <!-- ================================================= -->
+
+                <section>
+
+                    <div class="flex items-center gap-2 mb-5">
+
+                        <span class="material-symbols-outlined text-primary">
+                            public
+                        </span>
+
+                        <div>
+
+                            <h4 class="font-bold text-[#0F2E2E]">
+                                Región y distribución
+                            </h4>
+
+                            <p class="text-xs text-on-surface-variant">
+                                Zonas donde se cultiva y desarrolla la especie
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+
+                        <!-- Región -->
+                        <div>
+
+                            <label class="block text-xs font-bold text-on-surface-variant mb-2">
+
+                                Región principal *
+
+                            </label>
+
+                            <select id="crop-region" name="region" required
+                                class="w-full px-4 py-3 rounded-xl border border-outline-variant/30 bg-surface-container-low/30">
+
+                                <option value="">
+                                    Seleccionar región
+                                </option>
+
+                                <option value="norte">
+                                    Norte de México
+                                </option>
+
+                                <option value="centro">
+                                    Centro de México
+                                </option>
+
+                                <option value="occidente">
+                                    Occidente de México
+                                </option>
+
+                                <option value="sur">
+                                    Sur de México
+                                </option>
+
+                                <option value="sureste">
+                                    Sureste de México
+                                </option>
+
+                                <option value="todo-mexico">
+                                    Todo México
+                                </option>
+
+                                <option value="internacional">
+                                    Internacional
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <!-- Estado -->
+                        <div>
+
+                            <label class="block text-xs font-bold text-on-surface-variant mb-2">
+
+                                Estado o zona productora
+
+                            </label>
+
+                            <input type="text" id="crop-state" name="state" placeholder="Ej. Colima, Jalisco, Michoacán"
+                                class="w-full px-4 py-3 rounded-xl border border-outline-variant/30 bg-surface-container-low/30">
+
+                        </div>
+
+
+                        <!-- Altitud mínima -->
+                        <div>
+
+                            <label class="block text-xs font-bold text-on-surface-variant mb-2">
+
+                                Altitud mínima (msnm)
+
+                            </label>
+
+                            <input type="number" id="crop-min-altitude" name="min_altitude" min="0" placeholder="Ej. 0"
+                                class="w-full px-4 py-3 rounded-xl border border-outline-variant/30 bg-surface-container-low/30">
+
+                        </div>
+
+
+                        <!-- Altitud máxima -->
+                        <div>
+
+                            <label class="block text-xs font-bold text-on-surface-variant mb-2">
+
+                                Altitud máxima (msnm)
+
+                            </label>
+
+                            <input type="number" id="crop-max-altitude" name="max_altitude" min="0"
+                                placeholder="Ej. 1800"
+                                class="w-full px-4 py-3 rounded-xl border border-outline-variant/30 bg-surface-container-low/30">
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- ================================================= -->
+                <!-- 3. CONDICIONES CLIMÁTICAS -->
+                <!-- ================================================= -->
+
+                <section>
+
+                    <div class="flex items-center gap-2 mb-5">
+
+                        <span class="material-symbols-outlined text-primary">
+                            cloud
+                        </span>
+
+                        <div>
+
+                            <h4 class="font-bold text-[#0F2E2E]">
+                                Condiciones climáticas
+                            </h4>
+
+                            <p class="text-xs text-on-surface-variant">
+                                Condiciones ambientales ideales para el cultivo
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+
+
+                        <!-- Clima -->
+                        <div>
+
+                            <label class="block text-xs font-bold text-on-surface-variant mb-2">
+
+                                Tipo de clima
+
+                            </label>
+
+                            <select id="crop-climate" name="climate"
+                                class="w-full px-4 py-3 rounded-xl border border-outline-variant/30 bg-surface-container-low/30">
+
+                                <option value="">
+                                    Seleccionar clima
+                                </option>
+
+                                <option value="tropical">
+                                    Tropical
+                                </option>
+
+                                <option value="subtropical">
+                                    Subtropical
+                                </option>
+
+                                <option value="templado">
+                                    Templado
+                                </option>
+
+                                <option value="seco">
+                                    Seco
+                                </option>
+
+                                <option value="semiarido">
+                                    Semiárido
+                                </option>
+
+                                <option value="humedo">
+                                    Húmedo
+                                </option>
+
+                                <option value="frio">
+                                    Frío
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <!-- Temperatura mínima -->
+                        <div>
+
+                            <label class="block text-xs font-bold text-on-surface-variant mb-2">
+
+                                Temperatura mínima (°C)
+
+                            </label>
+
+                            <input type="number" id="crop-min-temperature" name="min_temperature" step="0.1"
+                                placeholder="Ej. 18"
+                                class="w-full px-4 py-3 rounded-xl border border-outline-variant/30 bg-surface-container-low/30">
+
+                        </div>
+
+
+                        <!-- Temperatura máxima -->
+                        <div>
+
+                            <label class="block text-xs font-bold text-on-surface-variant mb-2">
+
+                                Temperatura máxima (°C)
+
+                            </label>
+
+                            <input type="number" id="crop-max-temperature" name="max_temperature" step="0.1"
+                                placeholder="Ej. 32"
+                                class="w-full px-4 py-3 rounded-xl border border-outline-variant/30 bg-surface-container-low/30">
+
+                        </div>
+
+
+                        <!-- Precipitación mínima -->
+                        <div>
+
+                            <label class="block text-xs font-bold text-on-surface-variant mb-2">
+
+                                Precipitación mínima (mm/año)
+
+                            </label>
+
+                            <input type="number" id="crop-min-rainfall" name="min_rainfall" min="0"
+                                placeholder="Ej. 600"
+                                class="w-full px-4 py-3 rounded-xl border border-outline-variant/30 bg-surface-container-low/30">
+
+                        </div>
+
+
+                        <!-- Precipitación máxima -->
+                        <div>
+
+                            <label class="block text-xs font-bold text-on-surface-variant mb-2">
+
+                                Precipitación máxima (mm/año)
+
+                            </label>
+
+                            <input type="number" id="crop-max-rainfall" name="max_rainfall" min="0"
+                                placeholder="Ej. 1200"
+                                class="w-full px-4 py-3 rounded-xl border border-outline-variant/30 bg-surface-container-low/30">
+
+                        </div>
+
+
+                        <!-- Humedad -->
+                        <div>
+
+                            <label class="block text-xs font-bold text-on-surface-variant mb-2">
+
+                                Humedad relativa
+
+                            </label>
+
+                            <select id="crop-humidity" name="humidity"
+                                class="w-full px-4 py-3 rounded-xl border border-outline-variant/30 bg-surface-container-low/30">
+
+                                <option value="">
+                                    Seleccionar
+                                </option>
+
+                                <option value="baja">
+                                    Baja
+                                </option>
+
+                                <option value="media">
+                                    Media
+                                </option>
+
+                                <option value="alta">
+                                    Alta
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- ================================================= -->
+                <!-- 4. CARACTERÍSTICAS DEL SUELO -->
+                <!-- ================================================= -->
+
+                <section>
+
+                    <div class="flex items-center gap-2 mb-5">
+
+                        <span class="material-symbols-outlined text-primary">
+                            landscape
+                        </span>
+
+                        <div>
+
+                            <h4 class="font-bold text-[#0F2E2E]">
+                                Características del suelo
+                            </h4>
+
+                            <p class="text-xs text-on-surface-variant">
+                                Requerimientos edafológicos del cultivo
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+
+                        <!-- Tipo de suelo -->
+                        <div>
+
+                            <label class="block text-xs font-bold text-on-surface-variant mb-2">
+
+                                Tipo de suelo
+
+                            </label>
+
+                            <select id="crop-soil" name="soil_type"
+                                class="w-full px-4 py-3 rounded-xl border border-outline-variant/30 bg-surface-container-low/30">
+
+                                <option value="">
+                                    Seleccionar suelo
+                                </option>
+
+                                <option value="arenoso">
+                                    Arenoso
+                                </option>
+
+                                <option value="arcilloso">
+                                    Arcilloso
+                                </option>
+
+                                <option value="franco">
+                                    Franco
+                                </option>
+
+                                <option value="franco-arenoso">
+                                    Franco arenoso
+                                </option>
+
+                                <option value="franco-arcilloso">
+                                    Franco arcilloso
+                                </option>
+
+                                <option value="limoso">
+                                    Limoso
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <!-- pH -->
+                        <div>
+
+                            <label class="block text-xs font-bold text-on-surface-variant mb-2">
+
+                                Rango de pH
+
+                            </label>
+
+                            <input type="text" id="crop-ph" name="ph_range" placeholder="Ej. 5.5 - 7.0"
+                                class="w-full px-4 py-3 rounded-xl border border-outline-variant/30 bg-surface-container-low/30">
+
+                        </div>
+
+
+                        <!-- Drenaje -->
+                        <div>
+
+                            <label class="block text-xs font-bold text-on-surface-variant mb-2">
+
+                                Drenaje requerido
+
+                            </label>
+
+                            <select id="crop-drainage" name="drainage"
+                                class="w-full px-4 py-3 rounded-xl border border-outline-variant/30 bg-surface-container-low/30">
+
+                                <option value="">
+                                    Seleccionar
+                                </option>
+
+                                <option value="bajo">
+                                    Bajo
+                                </option>
+
+                                <option value="medio">
+                                    Medio
+                                </option>
+
+                                <option value="alto">
+                                    Alto
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <!-- Materia orgánica -->
+                        <div>
+
+                            <label class="block text-xs font-bold text-on-surface-variant mb-2">
+
+                                Materia orgánica requerida
+
+                            </label>
+
+                            <select id="crop-organic-matter" name="organic_matter"
+                                class="w-full px-4 py-3 rounded-xl border border-outline-variant/30 bg-surface-container-low/30">
+
+                                <option value="">
+                                    Seleccionar
+                                </option>
+
+                                <option value="baja">
+                                    Baja
+                                </option>
+
+                                <option value="media">
+                                    Media
+                                </option>
+
+                                <option value="alta">
+                                    Alta
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- ================================================= -->
+                <!-- 5. CICLO Y PRODUCCIÓN -->
+                <!-- ================================================= -->
+
+                <section>
+
+                    <div class="flex items-center gap-2 mb-5">
+
+                        <span class="material-symbols-outlined text-primary">
+                            calendar_month
+                        </span>
+
+                        <div>
+
+                            <h4 class="font-bold text-[#0F2E2E]">
+                                Ciclo y producción
+                            </h4>
+
+                            <p class="text-xs text-on-surface-variant">
+                                Información relacionada con el desarrollo y rendimiento
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+
+
+                        <!-- Temporada -->
+                        <div>
+
+                            <label class="block text-xs font-bold text-on-surface-variant mb-2">
+
+                                Temporada de cultivo
+
+                            </label>
+
+                            <select id="crop-season" name="season"
+                                class="w-full px-4 py-3 rounded-xl border border-outline-variant/30 bg-surface-container-low/30">
+
+                                <option value="">
+                                    Seleccionar temporada
+                                </option>
+
+                                <option value="primavera">
+                                    Primavera
+                                </option>
+
+                                <option value="verano">
+                                    Verano
+                                </option>
+
+                                <option value="otoño">
+                                    Otoño
+                                </option>
+
+                                <option value="invierno">
+                                    Invierno
+                                </option>
+
+                                <option value="primavera-verano">
+                                    Primavera-Verano
+                                </option>
+
+                                <option value="otoño-invierno">
+                                    Otoño-Invierno
+                                </option>
+
+                                <option value="todo-el-año">
+                                    Todo el año
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <!-- Ciclo -->
+                        <div>
+
+                            <label class="block text-xs font-bold text-on-surface-variant mb-2">
+
+                                Ciclo del cultivo
+
+                            </label>
+
+                            <select id="crop-cycle" name="cycle"
+                                class="w-full px-4 py-3 rounded-xl border border-outline-variant/30 bg-surface-container-low/30">
+
+                                <option value="">
+                                    Seleccionar ciclo
+                                </option>
+
+                                <option value="corto">
+                                    Ciclo corto
+                                </option>
+
+                                <option value="medio">
+                                    Ciclo medio
+                                </option>
+
+                                <option value="largo">
+                                    Ciclo largo
+                                </option>
+
+                                <option value="perenne">
+                                    Perenne
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <!-- Días para cosecha -->
+                        <div>
+
+                            <label class="block text-xs font-bold text-on-surface-variant mb-2">
+
+                                Días para cosecha
+
+                            </label>
+
+                            <input type="number" id="crop-harvest-days" name="harvest_days" min="1"
+                                placeholder="Ej. 120"
+                                class="w-full px-4 py-3 rounded-xl border border-outline-variant/30 bg-surface-container-low/30">
+
+                        </div>
+
+
+                        <!-- Rendimiento -->
+                        <div>
+
+                            <label class="block text-xs font-bold text-on-surface-variant mb-2">
+
+                                Rendimiento promedio
+
+                            </label>
+
+                            <input type="text" id="crop-yield" name="average_yield" placeholder="Ej. 8 toneladas/ha"
+                                class="w-full px-4 py-3 rounded-xl border border-outline-variant/30 bg-surface-container-low/30">
+
+                        </div>
+
+
+                        <!-- Densidad -->
+                        <div>
+
+                            <label class="block text-xs font-bold text-on-surface-variant mb-2">
+
+                                Densidad de siembra
+
+                            </label>
+
+                            <input type="text" id="crop-density" name="planting_density"
+                                placeholder="Ej. 60,000 plantas/ha"
+                                class="w-full px-4 py-3 rounded-xl border border-outline-variant/30 bg-surface-container-low/30">
+
+                        </div>
+
+
+                        <!-- Profundidad -->
+                        <div>
+
+                            <label class="block text-xs font-bold text-on-surface-variant mb-2">
+
+                                Profundidad de siembra
+
+                            </label>
+
+                            <input type="text" id="crop-depth" name="planting_depth" placeholder="Ej. 5 cm"
+                                class="w-full px-4 py-3 rounded-xl border border-outline-variant/30 bg-surface-container-low/30">
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- ================================================= -->
+                <!-- 6. REQUERIMIENTOS HÍDRICOS Y LUMINOSOS -->
+                <!-- ================================================= -->
+
+                <section>
+
+                    <div class="flex items-center gap-2 mb-5">
+
+                        <span class="material-symbols-outlined text-primary">
+                            water_drop
+                        </span>
+
+                        <div>
+
+                            <h4 class="font-bold text-[#0F2E2E]">
+                                Requerimientos del cultivo
+                            </h4>
+
+                            <p class="text-xs text-on-surface-variant">
+                                Necesidades de agua, luz y manejo
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+
+
+                        <!-- Agua -->
+                        <div>
+
+                            <label class="block text-xs font-bold text-on-surface-variant mb-2">
+
+                                Requerimiento de agua
+
+                            </label>
+
+                            <select id="crop-water" name="water_requirement"
+                                class="w-full px-4 py-3 rounded-xl border border-outline-variant/30 bg-surface-container-low/30">
+
+                                <option value="">
+                                    Seleccionar
+                                </option>
+
+                                <option value="bajo">
+                                    Bajo
+                                </option>
+
+                                <option value="medio">
+                                    Medio
+                                </option>
+
+                                <option value="alto">
+                                    Alto
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <!-- Riego -->
+                        <div>
+
+                            <label class="block text-xs font-bold text-on-surface-variant mb-2">
+
+                                Tipo de riego
+
+                            </label>
+
+                            <select id="crop-irrigation" name="irrigation_type"
+                                class="w-full px-4 py-3 rounded-xl border border-outline-variant/30 bg-surface-container-low/30">
+
+                                <option value="">
+                                    Seleccionar riego
+                                </option>
+
+                                <option value="lluvia">
+                                    Temporal / Lluvia
+                                </option>
+
+                                <option value="goteo">
+                                    Goteo
+                                </option>
+
+                                <option value="aspersion">
+                                    Aspersión
+                                </option>
+
+                                <option value="gravedad">
+                                    Gravedad
+                                </option>
+
+                                <option value="microaspersion">
+                                    Microaspersión
+                                </option>
+
+                                <option value="otro">
+                                    Otro
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <!-- Luz -->
+                        <div>
+
+                            <label class="block text-xs font-bold text-on-surface-variant mb-2">
+
+                                Requerimiento de luz
+
+                            </label>
+
+                            <select id="crop-sun" name="sunlight_requirement"
+                                class="w-full px-4 py-3 rounded-xl border border-outline-variant/30 bg-surface-container-low/30">
+
+                                <option value="">
+                                    Seleccionar
+                                </option>
+
+                                <option value="sombra">
+                                    Sombra
+                                </option>
+
+                                <option value="media-sombra">
+                                    Media sombra
+                                </option>
+
+                                <option value="sol-directo">
+                                    Sol directo
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- ================================================= -->
+                <!-- 7. FERTILIZACIÓN Y MANEJO -->
+                <!-- ================================================= -->
+
+                <section>
+
+                    <div class="flex items-center gap-2 mb-5">
+
+                        <span class="material-symbols-outlined text-primary">
+                            compost
+                        </span>
+
+                        <div>
+
+                            <h4 class="font-bold text-[#0F2E2E]">
+                                Fertilización y manejo
+                            </h4>
+
+                            <p class="text-xs text-on-surface-variant">
+                                Información básica para el manejo agronómico
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+
+                        <!-- Nutrientes -->
+                        <div>
+
+                            <label class="block text-xs font-bold text-on-surface-variant mb-2">
+
+                                Nutrientes principales
+
+                            </label>
+
+                            <input type="text" id="crop-nutrients" name="nutrients"
+                                placeholder="Ej. Nitrógeno, fósforo y potasio"
+                                class="w-full px-4 py-3 rounded-xl border border-outline-variant/30 bg-surface-container-low/30">
+
+                        </div>
+
+
+                        <!-- Fertilización -->
+                        <div>
+
+                            <label class="block text-xs font-bold text-on-surface-variant mb-2">
+
+                                Recomendación de fertilización
+
+                            </label>
+
+                            <input type="text" id="crop-fertilization" name="fertilization"
+                                placeholder="Ej. Fertilización balanceada NPK"
+                                class="w-full px-4 py-3 rounded-xl border border-outline-variant/30 bg-surface-container-low/30">
+
+                        </div>
+
+
+                        <!-- Poda -->
+                        <div>
+
+                            <label class="block text-xs font-bold text-on-surface-variant mb-2">
+
+                                Requiere poda
+
+                            </label>
+
+                            <select id="crop-pruning" name="requires_pruning"
+                                class="w-full px-4 py-3 rounded-xl border border-outline-variant/30 bg-surface-container-low/30">
+
+                                <option value="">
+                                    Seleccionar
+                                </option>
+
+                                <option value="true">
+                                    Sí
+                                </option>
+
+                                <option value="false">
+                                    No
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <!-- Polinización -->
+                        <div>
+
+                            <label class="block text-xs font-bold text-on-surface-variant mb-2">
+
+                                Tipo de polinización
+
+                            </label>
+
+                            <select id="crop-pollination" name="pollination_type"
+                                class="w-full px-4 py-3 rounded-xl border border-outline-variant/30 bg-surface-container-low/30">
+
+                                <option value="">
+                                    Seleccionar
+                                </option>
+
+                                <option value="autopolinización">
+                                    Autopolinización
+                                </option>
+
+                                <option value="cruzada">
+                                    Polinización cruzada
+                                </option>
+
+                                <option value="viento">
+                                    Por viento
+                                </option>
+
+                                <option value="insectos">
+                                    Por insectos
+                                </option>
+
+                                <option value="otro">
+                                    Otro
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- ================================================= -->
+                <!-- 8. INFORMACIÓN ADICIONAL -->
+                <!-- ================================================= -->
+
+                <section>
+
+                    <div class="flex items-center gap-2 mb-5">
+
+                        <span class="material-symbols-outlined text-primary">
+                            description
+                        </span>
+
+                        <h4 class="font-bold text-[#0F2E2E]">
+                            Información adicional
+                        </h4>
+
+                    </div>
+
+
+                    <div class="space-y-5">
+
+
+                        <!-- Descripción -->
+                        <div>
+
+                            <label class="block text-xs font-bold text-on-surface-variant mb-2">
+
+                                Descripción general
+
+                            </label>
+
+                            <textarea id="crop-description" name="description" rows="4"
+                                placeholder="Describe las características principales del cultivo..."
+                                class="w-full px-4 py-3 rounded-xl border border-outline-variant/30 bg-surface-container-low/30 resize-none"></textarea>
+
+                        </div>
+
+
+                        <!-- Observaciones -->
+                        <div>
+
+                            <label class="block text-xs font-bold text-on-surface-variant mb-2">
+
+                                Observaciones técnicas
+
+                            </label>
+
+                            <textarea id="crop-observations" name="observations" rows="4"
+                                placeholder="Agrega recomendaciones, observaciones o información importante..."
+                                class="w-full px-4 py-3 rounded-xl border border-outline-variant/30 bg-surface-container-low/30 resize-none"></textarea>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+                <!-- ================================================= -->
+                <!-- 9. IMÁGENES DEL CULTIVO -->
+                <!-- ================================================= -->
+
+                <section>
+
+                    <div class="flex items-center gap-2 mb-5">
+
+                        <span class="material-symbols-outlined text-primary">
+                            image
+                        </span>
+
+                        <div>
+
+                            <h4 class="font-bold text-[#0F2E2E]">
+                                Imágenes del cultivo
+                            </h4>
+
+                            <p class="text-xs text-on-surface-variant">
+                                Agrega varias imágenes para mostrar las diferentes características del cultivo
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- ÁREA DE CARGA -->
+
+                    <label for="crop-images"
+                        class="group flex flex-col items-center justify-center w-full min-h-[190px] border-2 border-dashed border-primary/30 rounded-2xl bg-primary/5 hover:bg-primary/10 hover:border-primary/60 transition-all cursor-pointer">
+
+                        <span
+                            class="material-symbols-outlined text-5xl text-primary/50 group-hover:text-primary transition-colors">
+
+                            cloud_upload
+
+                        </span>
+
+
+                        <p class="mt-3 text-sm font-bold text-[#0F2E2E]">
+
+                            Seleccionar imágenes del cultivo
+
+                        </p>
+
+
+                        <p class="text-xs text-on-surface-variant mt-1">
+
+                            Puedes seleccionar hasta 10 imágenes
+
+                        </p>
+
+
+                        <p class="text-[10px] text-on-surface-variant mt-2">
+
+                            JPG, JPEG, PNG o WEBP • Máximo 5 MB por imagen
+
+                        </p>
+
+
+                        <!-- INPUT PARA MÚLTIPLES IMÁGENES -->
+
+                        <input type="file" id="crop-images" name="images"
+                            accept="image/jpeg,image/jpg,image/png,image/webp" multiple class="hidden">
+
+                    </label>
+
+
+                    <!-- PREVISUALIZACIÓN DE IMÁGENES -->
+
+                    <div id="crop-images-preview"
+                        class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mt-5">
+
+                    </div>
+
+                </section>
+
+
+                <!-- ================================================= -->
+                <!-- 10. ESTADO -->
+                <!-- ================================================= -->
+
+                <section>
+
+                    <div class="flex items-center gap-2 mb-5">
+
+                        <span class="material-symbols-outlined text-primary">
+                            verified
+                        </span>
+
+                        <h4 class="font-bold text-[#0F2E2E]">
+                            Estado del cultivo
+                        </h4>
+
+                    </div>
+
+
+                    <select id="crop-status" name="status"
+                        class="w-full px-4 py-3 rounded-xl border border-outline-variant/30 bg-surface-container-low/30">
+
+                        <option value="pendiente">
+                            Pendiente de validación
+                        </option>
+
+                        <option value="aprobado">
+                            Aprobado
+                        </option>
+
+                        <option value="rechazado">
+                            Rechazado
+                        </option>
+
+                    </select>
+
+                </section>
+
+            </div>
+
+
+            <!-- FOOTER -->
+            <div
+                class="flex justify-end gap-3 px-6 py-5 border-t border-surface-container bg-surface-container-low/20 sticky bottom-0">
+
+                <button id="modal-crop-cancel" type="button"
+                    class="px-6 py-2.5 rounded-lg bg-surface-container-low text-on-surface-variant text-sm font-bold hover:bg-surface-container transition-colors">
+
+                    Cancelar
+
+                </button>
+
+
+                <button type="submit"
+                    class="px-6 py-2.5 rounded-lg bg-[#43655c] text-white text-sm font-bold hover:bg-[#354f47] transition-colors flex items-center gap-2">
+
+                    <span class="material-symbols-outlined text-sm">
+                        save
+                    </span>
+
+                    Guardar cultivo
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
 </div>
 
 <script>
-    (function () {
-        // Modal logic (basic)
-        const modalCrop = document.getElementById('modal-crop');
-        const btnAddCrop = document.getElementById('btn-add-crop');
-        const btnAddCropCard = document.getElementById('btn-add-crop-card');
-        const btnCloseCrop = document.getElementById('modal-crop-close');
-        const btnCancelCrop = document.getElementById('modal-crop-cancel');
 
-        const openModal = () => modalCrop.classList.replace('hidden', 'flex');
-        const closeModal = () => modalCrop.classList.replace('flex', 'hidden');
+(function () {
 
-        if(btnAddCrop) btnAddCrop.addEventListener('click', openModal);
-        if(btnAddCropCard) btnAddCropCard.addEventListener('click', openModal);
-        if(btnCloseCrop) btnCloseCrop.addEventListener('click', closeModal);
-        if(btnCancelCrop) btnCancelCrop.addEventListener('click', closeModal);
+    // =====================================================
+    // ELEMENTOS DEL MODAL
+    // =====================================================
 
-        // View toggle
-        const tableView = document.getElementById('crops-table-view');
-        const gridView = document.getElementById('crops-grid-view');
-        const btnTable = document.getElementById('view-table');
-        const btnGrid = document.getElementById('view-grid');
+    const modalCrop =
+        document.getElementById("modal-crop");
 
-        if (btnTable && btnGrid) {
-            btnGrid.classList.add('bg-[#43655c]', 'text-white');
-            btnGrid.classList.remove('text-on-surface-variant');
-            btnTable.classList.remove('bg-[#43655c]', 'text-white');
-            btnTable.classList.add('text-on-surface-variant');
+    const modalTitle =
+        document.getElementById("modal-crop-title");
 
-            btnTable.addEventListener('click', function () {
-                tableView.style.display = '';
-                gridView.style.display = 'none';
-                btnTable.classList.add('bg-[#43655c]', 'text-white');
-                btnTable.classList.remove('text-on-surface-variant');
-                btnGrid.classList.remove('bg-[#43655c]', 'text-white');
-                btnGrid.classList.add('text-on-surface-variant');
-            });
+    const cropForm =
+        document.getElementById("crop-form");
 
-            btnGrid.addEventListener('click', function () {
-                tableView.style.display = 'none';
-                gridView.style.display = 'grid';
-                btnGrid.classList.add('bg-[#43655c]', 'text-white');
-                btnGrid.classList.remove('text-on-surface-variant');
-                btnTable.classList.remove('bg-[#43655c]', 'text-white');
-                btnTable.classList.add('text-on-surface-variant');
-            });
+
+    // BOTONES
+
+    const btnAddCrop =
+        document.getElementById("btn-add-crop");
+
+    const btnAddCropCard =
+        document.getElementById("btn-add-crop-card");
+
+    const btnCloseCrop =
+        document.getElementById("modal-crop-close");
+
+    const btnCancelCrop =
+        document.getElementById("modal-crop-cancel");
+
+    const backdropCrop =
+        document.getElementById("modal-crop-backdrop");
+
+
+    // IMÁGENES
+
+    const imageInput =
+        document.getElementById("crop-images");
+
+    const imagePreview =
+        document.getElementById("crop-images-preview");
+
+
+    // =====================================================
+    // ABRIR MODAL PARA NUEVO CULTIVO
+    // =====================================================
+
+    function openCreateModal() {
+
+        if (!modalCrop) return;
+
+
+        // Limpiar formulario
+
+        cropForm.reset();
+
+
+        // Restaurar action original
+
+        cropForm.action =
+            "/private/crops/create";
+
+
+        // Cambiar título
+
+        modalTitle.textContent =
+            "Nuevo Cultivo";
+
+
+        // Limpiar imágenes
+
+        if (imagePreview) {
+
+            imagePreview.innerHTML = "";
+
         }
-    })();
+
+
+        if (imageInput) {
+
+            imageInput.value = "";
+
+        }
+
+
+        // Abrir modal
+
+        modalCrop.classList.remove("hidden");
+
+        modalCrop.classList.add("flex");
+
+    }
+
+
+    // =====================================================
+    // ABRIR MODAL
+    // =====================================================
+
+    function openModal() {
+
+        if (!modalCrop) return;
+
+
+        modalCrop.classList.remove("hidden");
+
+        modalCrop.classList.add("flex");
+
+    }
+
+
+    // =====================================================
+    // CERRAR MODAL
+    // =====================================================
+
+    function closeModal() {
+
+        if (!modalCrop) return;
+
+
+        modalCrop.classList.remove("flex");
+
+        modalCrop.classList.add("hidden");
+
+    }
+
+
+    // =====================================================
+    // BOTÓN NUEVO CULTIVO
+    // =====================================================
+
+    if (btnAddCrop) {
+
+        btnAddCrop.addEventListener(
+            "click",
+            openCreateModal
+        );
+
+    }
+
+
+    if (btnAddCropCard) {
+
+        btnAddCropCard.addEventListener(
+            "click",
+            openCreateModal
+        );
+
+    }
+
+
+    // =====================================================
+    // CERRAR MODAL
+    // =====================================================
+
+    if (btnCloseCrop) {
+
+        btnCloseCrop.addEventListener(
+            "click",
+            closeModal
+        );
+
+    }
+
+
+    if (btnCancelCrop) {
+
+        btnCancelCrop.addEventListener(
+            "click",
+            closeModal
+        );
+
+    }
+
+
+    if (backdropCrop) {
+
+        backdropCrop.addEventListener(
+            "click",
+            closeModal
+        );
+
+    }
+
+
+    // CERRAR CON ESC
+
+    document.addEventListener(
+        "keydown",
+        function (event) {
+
+            if (
+                event.key === "Escape" &&
+                modalCrop &&
+                !modalCrop.classList.contains("hidden")
+            ) {
+
+                closeModal();
+
+            }
+
+        }
+    );
+
+
+    // =====================================================
+    // FUNCIÓN PARA ASIGNAR VALORES
+    // =====================================================
+
+    function setValue(id, value) {
+
+        const element =
+            document.getElementById(id);
+
+
+        if (!element) return;
+
+
+        element.value =
+            value ?? "";
+
+    }
+
+
+    // =====================================================
+    // CARGAR IMÁGENES EXISTENTES
+    // =====================================================
+
+    function loadExistingImages(images) {
+
+        if (!imagePreview) return;
+
+
+        imagePreview.innerHTML = "";
+
+
+        if (
+            !images ||
+            images.length === 0
+        ) {
+
+            return;
+
+        }
+
+
+        images.forEach(function (image) {
+
+
+            const preview =
+                document.createElement("div");
+
+
+            preview.className =
+                "relative aspect-square rounded-xl overflow-hidden border border-outline-variant/30 bg-surface-container-low";
+
+
+            preview.innerHTML = `
+
+                <img
+                    src="/${image.image_url}"
+                    class="w-full h-full object-cover"
+                    alt="${image.original_name || "Imagen del cultivo"}">
+
+                <div
+                    class="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-[10px] px-2 py-1 truncate">
+
+                    ${image.original_name || "Imagen"}
+
+                </div>
+
+            `;
+
+
+            imagePreview.appendChild(
+                preview
+            );
+
+        });
+
+    }
+
+
+    // =====================================================
+    // EDITAR CULTIVO
+    // =====================================================
+
+    document.addEventListener(
+        "click",
+        async function (event) {
+
+
+            const editButton =
+                event.target.closest(
+                    ".edit-crop-btn"
+                );
+
+
+            if (!editButton) return;
+
+
+            const cropId =
+                editButton.dataset.id;
+
+
+            if (!cropId) {
+
+                console.error(
+                    "No se encontró el ID del cultivo"
+                );
+
+                return;
+
+            }
+
+
+            try {
+
+
+                // OBTENER CULTIVO
+
+                const response =
+                    await fetch(
+                        `/private/crops/${cropId}`
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                if (
+                    !response.ok ||
+                    !data.success
+                ) {
+
+                    throw new Error(
+                        data.message ||
+                        "No se pudo obtener el cultivo"
+                    );
+
+                }
+
+
+                const crop =
+                    data.crop;
+
+
+                console.log(
+                    "CULTIVO PARA EDITAR:",
+                    crop
+                );
+
+
+                // =========================================
+                // CAMBIAR TÍTULO
+                // =========================================
+
+                modalTitle.textContent =
+                    "Editar Cultivo";
+
+
+                // =========================================
+                // CAMBIAR ACTION DEL FORMULARIO
+                // =========================================
+
+                cropForm.action =
+                    `/private/crops/update/${crop.id}`;
+
+
+                // =========================================
+                // IDENTIFICACIÓN
+                // =========================================
+
+                setValue(
+                    "crop-name",
+                    crop.name
+                );
+
+                setValue(
+                    "crop-scientific-name",
+                    crop.scientific_name
+                );
+
+                setValue(
+                    "crop-category",
+                    crop.category
+                );
+
+                setValue(
+                    "crop-family",
+                    crop.family
+                );
+
+                setValue(
+                    "crop-genus",
+                    crop.genus
+                );
+
+                setValue(
+                    "crop-variety",
+                    crop.variety
+                );
+
+
+                // =========================================
+                // REGIÓN
+                // =========================================
+
+                setValue(
+                    "crop-region",
+                    crop.region
+                );
+
+                setValue(
+                    "crop-state",
+                    crop.state
+                );
+
+                setValue(
+                    "crop-min-altitude",
+                    crop.min_altitude
+                );
+
+                setValue(
+                    "crop-max-altitude",
+                    crop.max_altitude
+                );
+
+
+                // =========================================
+                // CLIMA
+                // =========================================
+
+                setValue(
+                    "crop-climate",
+                    crop.climate
+                );
+
+                setValue(
+                    "crop-min-temperature",
+                    crop.min_temperature
+                );
+
+                setValue(
+                    "crop-max-temperature",
+                    crop.max_temperature
+                );
+
+                setValue(
+                    "crop-min-rainfall",
+                    crop.min_rainfall
+                );
+
+                setValue(
+                    "crop-max-rainfall",
+                    crop.max_rainfall
+                );
+
+                setValue(
+                    "crop-humidity",
+                    crop.humidity
+                );
+
+
+                // =========================================
+                // SUELO
+                // =========================================
+
+                setValue(
+                    "crop-soil",
+                    crop.soil_type
+                );
+
+                setValue(
+                    "crop-ph",
+                    crop.ph_range
+                );
+
+                setValue(
+                    "crop-drainage",
+                    crop.drainage
+                );
+
+                setValue(
+                    "crop-organic-matter",
+                    crop.organic_matter
+                );
+
+
+                // =========================================
+                // CICLO Y PRODUCCIÓN
+                // =========================================
+
+                setValue(
+                    "crop-season",
+                    crop.season
+                );
+
+                setValue(
+                    "crop-cycle",
+                    crop.cycle
+                );
+
+                setValue(
+                    "crop-harvest-days",
+                    crop.harvest_days
+                );
+
+                setValue(
+                    "crop-yield",
+                    crop.average_yield
+                );
+
+                setValue(
+                    "crop-density",
+                    crop.planting_density
+                );
+
+                setValue(
+                    "crop-depth",
+                    crop.planting_depth
+                );
+
+
+                // =========================================
+                // REQUERIMIENTOS
+                // =========================================
+
+                setValue(
+                    "crop-water",
+                    crop.water_requirement
+                );
+
+                setValue(
+                    "crop-irrigation",
+                    crop.irrigation_type
+                );
+
+                setValue(
+                    "crop-sun",
+                    crop.sunlight_requirement
+                );
+
+
+                // =========================================
+                // MANEJO
+                // =========================================
+
+                setValue(
+                    "crop-nutrients",
+                    crop.nutrients
+                );
+
+                setValue(
+                    "crop-fertilization",
+                    crop.fertilization
+                );
+
+
+                setValue(
+                    "crop-pruning",
+                    crop.requires_pruning === true
+                        ? "true"
+                        : crop.requires_pruning === false
+                            ? "false"
+                            : ""
+                );
+
+
+                setValue(
+                    "crop-pollination",
+                    crop.pollination_type
+                );
+
+
+                // =========================================
+                // INFORMACIÓN
+                // =========================================
+
+                setValue(
+                    "crop-description",
+                    crop.description
+                );
+
+                setValue(
+                    "crop-observations",
+                    crop.observations
+                );
+
+
+                // =========================================
+                // ESTADO
+                // =========================================
+
+                setValue(
+                    "crop-status",
+                    crop.status
+                );
+
+
+                // =========================================
+                // CARGAR IMÁGENES
+                // =========================================
+
+                loadExistingImages(
+                    crop.images
+                );
+
+
+                // =========================================
+                // ABRIR MODAL
+                // =========================================
+
+                openModal();
+
+
+            } catch (error) {
+
+
+                console.error(
+                    "ERROR AL CARGAR CULTIVO:",
+                    error
+                );
+
+
+                alert(
+                    "No se pudo cargar la información del cultivo"
+                );
+
+            }
+
+        }
+    );
+
+
+    // =====================================================
+    // PREVISUALIZAR NUEVAS IMÁGENES
+    // =====================================================
+
+    if (
+        imageInput &&
+        imagePreview
+    ) {
+
+
+        imageInput.addEventListener(
+            "change",
+            function () {
+
+
+                const files =
+                    Array.from(
+                        this.files
+                    );
+
+
+                if (
+                    files.length === 0
+                ) {
+
+                    return;
+
+                }
+
+
+                // IMPORTANTE:
+                // No borramos las imágenes existentes.
+                // Las nuevas se agregan debajo.
+
+
+                files.forEach(
+                    function (file) {
+
+
+                        const reader =
+                            new FileReader();
+
+
+                        reader.onload =
+                            function (event) {
+
+
+                                const preview =
+                                    document.createElement(
+                                        "div"
+                                    );
+
+
+                                preview.className =
+                                    "relative aspect-square rounded-xl overflow-hidden border border-outline-variant/30 bg-surface-container-low";
+
+
+                                preview.innerHTML = `
+
+                                    <img
+                                        src="${event.target.result}"
+                                        class="w-full h-full object-cover">
+
+                                    <div
+                                        class="absolute top-2 right-2 px-2 py-1 rounded-md bg-primary text-white text-[10px]">
+
+                                        Nueva
+
+                                    </div>
+
+                                `;
+
+
+                                imagePreview.appendChild(
+                                    preview
+                                );
+
+                            };
+
+
+                        reader.readAsDataURL(
+                            file
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+    }
+
+
+    // =====================================================
+    // CAMBIO DE VISTA
+    // =====================================================
+
+    const tableView =
+        document.getElementById(
+            "crops-table-view"
+        );
+
+    const gridView =
+        document.getElementById(
+            "crops-grid-view"
+        );
+
+    const btnTable =
+        document.getElementById(
+            "view-table"
+        );
+
+    const btnGrid =
+        document.getElementById(
+            "view-grid"
+        );
+
+
+    if (
+        btnTable &&
+        btnGrid &&
+        tableView &&
+        gridView
+    ) {
+
+
+        // GRID POR DEFECTO
+
+        btnGrid.classList.add(
+            "bg-[#43655c]",
+            "text-white"
+        );
+
+
+        btnGrid.classList.remove(
+            "text-on-surface-variant"
+        );
+
+
+        btnTable.classList.remove(
+            "bg-[#43655c]",
+            "text-white"
+        );
+
+
+        btnTable.classList.add(
+            "text-on-surface-variant"
+        );
+
+
+        // TABLA
+
+        btnTable.addEventListener(
+            "click",
+            function () {
+
+
+                tableView.style.display =
+                    "";
+
+
+                gridView.style.display =
+                    "none";
+
+
+                btnTable.classList.add(
+                    "bg-[#43655c]",
+                    "text-white"
+                );
+
+
+                btnTable.classList.remove(
+                    "text-on-surface-variant"
+                );
+
+
+                btnGrid.classList.remove(
+                    "bg-[#43655c]",
+                    "text-white"
+                );
+
+
+                btnGrid.classList.add(
+                    "text-on-surface-variant"
+                );
+
+            }
+        );
+
+
+        // GRID
+
+        btnGrid.addEventListener(
+            "click",
+            function () {
+
+
+                tableView.style.display =
+                    "none";
+
+
+                gridView.style.display =
+                    "grid";
+
+
+                btnGrid.classList.add(
+                    "bg-[#43655c]",
+                    "text-white"
+                );
+
+
+                btnGrid.classList.remove(
+                    "text-on-surface-variant"
+                );
+
+
+                btnTable.classList.remove(
+                    "bg-[#43655c]",
+                    "text-white"
+                );
+
+
+                btnTable.classList.add(
+                    "text-on-surface-variant"
+                );
+
+            }
+        );
+
+    }
+
+
+})();
+
 </script>
