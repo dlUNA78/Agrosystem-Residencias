@@ -584,75 +584,40 @@ export const auditPrivate = (req, res) => {
 };
 
 export const cropsPrivate = async (req, res) => {
-
     try {
-
         const {
-
             search = "",
-
             category = "",
-
             status = ""
-
         } = req.query;
-
-
         const { Op } = db.Sequelize;
 
-
         const where = {};
-
-
-        // ==========================================
         // BUSCADOR
-        // ==========================================
-
         if (search.trim()) {
-
             where[Op.or] = [
-
                 {
-
                     name: {
-
                         [Op.iLike]:
                             `%${search.trim()}%`
-
                     }
-
                 },
-
                 {
-
                     scientific_name: {
-
                         [Op.iLike]:
                             `%${search.trim()}%`
-
                     }
-
                 },
-
                 {
-
                     category: {
-
                         [Op.iLike]:
                             `%${search.trim()}%`
-
                     }
-
                 }
-
             ];
-
         }
 
-
-        // ==========================================
         // FILTRO POR CATEGORÍA
-        // ==========================================
 
         if (category) {
 
@@ -660,70 +625,39 @@ export const cropsPrivate = async (req, res) => {
 
         }
 
-
-        // ==========================================
         // FILTRO POR ESTATUS
-        // ==========================================
 
         if (status) {
-
             where.status = status;
-
         }
 
-
-        // ==========================================
         // OBTENER CULTIVOS + IMÁGENES
-        // ==========================================
 
         const crops = await db.Crop.findAll({
-
             where,
-
             include: [
-
                 {
-
                     model: db.CropImage,
-
                     as: "images",
-
                     required: false,
-
                     separate: true,
-
                     order: [
-
                         ["is_primary", "DESC"],
-
                         ["display_order", "ASC"]
-
                     ]
-
                 }
-
             ],
-
             order: [
-
                 ["createdAt", "DESC"]
-
             ]
-
         });
 
-
-        // ==========================================
         // PREPARAR DATOS PARA LA VISTA
-        // ==========================================
 
         const cropsFormatted = crops.map(
-
             crop => {
-
                 const cropData =
                     crop.toJSON();
-
 
                 // Buscar imagen principal
                 const primaryImage =
@@ -731,9 +665,7 @@ export const cropsPrivate = async (req, res) => {
 
                         image =>
                             image.is_primary === true
-
                     );
-
 
                 // Si no hay principal,
                 // tomar la primera imagen
@@ -741,21 +673,16 @@ export const cropsPrivate = async (req, res) => {
                     primaryImage ||
                     cropData.images?.[0];
 
-
                 return {
 
                     ...cropData,
-
-
                     // La vista podrá usar:
                     // {{image_url}}
 
                     image_url:
-
                         firstImage
                             ? firstImage.image_url
                             : null,
-
 
                     // Conservamos todas
                     // las imágenes también
@@ -763,188 +690,126 @@ export const cropsPrivate = async (req, res) => {
                         cropData.images || []
 
                 };
-
             }
-
         );
-
 
         console.log(
-
             "CULTIVOS CARGADOS:",
-
             cropsFormatted.map(
-
                 crop => ({
-
                     id:
                         crop.id,
-
                     name:
                         crop.name,
-
                     image_url:
                         crop.image_url,
-
                     images:
                         crop.images
-
                 })
-
             )
-
         );
 
-
-        // ==========================================
         // RENDERIZAR
-        // ==========================================
 
         res.render(
-
             "private/crops",
-
             {
-
                 layout:
                     privateLayout,
-
                 pageTitle:
                     "Cultivos",
-
                 activePage:
                     "crops",
-
                 crops:
                     cropsFormatted,
-
-
-                // ==================================
                 // BARRA DE BÚSQUEDA
-                // ==================================
 
                 searchId:
                     "crop-search",
-
                 searchPlaceholder:
-
                     "Buscar por nombre, especie o tipo de cultivo...",
-
-
                 searchFilters: [
-
                     {
-
                         id:
                             "filter-type",
-
                         param:
                             "category",
-
                         label:
                             "Tipo:",
-
                         options: [
-
                             {
                                 value: "",
                                 text: "Todos"
                             },
-
                             {
                                 value: "cereal",
                                 text: "Cereal"
                             },
-
                             {
                                 value: "frutal",
                                 text: "Frutal"
                             },
-
                             {
                                 value: "hortaliza",
                                 text: "Hortaliza"
                             },
-
                             {
                                 value: "leguminosa",
                                 text: "Leguminosa"
                             },
-
                             {
                                 value: "oleaginosa",
                                 text: "Oleaginosa"
                             },
-
                             {
                                 value: "tuberculo",
                                 text: "Tubérculo"
                             },
-
                             {
                                 value: "forrajera",
                                 text: "Forrajera"
                             },
-
                             {
                                 value: "ornamental",
                                 text: "Ornamental"
                             },
-
                             {
                                 value: "industrial",
                                 text: "Industrial"
                             },
-
                             {
                                 value: "otro",
                                 text: "Otro"
                             }
-
                         ]
-
                     },
-
-
                     {
-
                         id:
                             "filter-status",
-
                         param:
                             "status",
-
                         label:
                             "Estatus:",
-
                         options: [
-
                             {
                                 value: "",
                                 text: "Todos"
                             },
-
                             {
                                 value: "aprobado",
                                 text: "Aprobado"
                             },
-
                             {
                                 value: "pendiente",
                                 text: "Pendiente"
                             },
-
                             {
                                 value: "rechazado",
                                 text: "Rechazado"
                             }
-
                         ]
-
                     }
-
                 ],
-
 
                 ctaLabel:
                     "Añadir Cultivo",
@@ -957,29 +822,17 @@ export const cropsPrivate = async (req, res) => {
 
                 showViewToggle:
                     true
-
             }
-
         );
-
 
     } catch (error) {
-
         console.error(
-
             "Error al cargar los cultivos:",
-
             error
-
         );
-
-
         res.status(500).send(
-
             "Error al cargar los cultivos"
-
         );
-
     }
 
 };
@@ -1282,11 +1135,7 @@ export const updateCrop = async (req, res) => {
 
         const { id } = req.params;
 
-
-        // ==========================================
         // DATOS DEL FORMULARIO
-        // ==========================================
-
         const {
 
             // IDENTIFICACIÓN
@@ -1345,10 +1194,7 @@ export const updateCrop = async (req, res) => {
 
         } = req.body;
 
-
-        // ==========================================
         // BUSCAR CULTIVO
-        // ==========================================
 
         const crop =
             await db.Crop.findByPk(id, {
@@ -1363,13 +1209,9 @@ export const updateCrop = async (req, res) => {
             return res.status(404).send(
                 "Cultivo no encontrado"
             );
-
         }
 
-
-        // ==========================================
         // ACTUALIZAR CULTIVO
-        // ==========================================
 
         await crop.update({
 
@@ -1504,9 +1346,7 @@ export const updateCrop = async (req, res) => {
         );
 
 
-        // ==========================================
         // AGREGAR NUEVAS IMÁGENES
-        // ==========================================
 
         console.log(
             "NUEVAS IMÁGENES:",
@@ -1587,11 +1427,7 @@ export const updateCrop = async (req, res) => {
 
         }
 
-
-        // ==========================================
         // CONFIRMAR
-        // ==========================================
-
         await transaction.commit();
 
 
