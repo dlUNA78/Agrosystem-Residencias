@@ -93,6 +93,7 @@
 
                 <!-- Header -->
                 <div class="flex items-center justify-between p-5 border-b">
+
                     <div>
                         <h2 class="text-xl font-bold text-[#0F2E2E]">
                             Productos próximos a vencer
@@ -106,7 +107,9 @@
                     <button id="close-expiring-modal" class="text-gray-500 hover:text-red-600 text-2xl">
                         &times;
                     </button>
+
                 </div>
+
 
                 <!-- Tabla -->
                 <div class="overflow-y-auto max-h-[500px]">
@@ -125,25 +128,45 @@
 
                         </thead>
 
+
                         <tbody>
 
                             {{#each expiringProducts}}
 
                             <tr class="border-b">
 
-                                <td class="p-3">{{name}}</td>
+                                <td class="p-3">
+                                    {{name}}
+                                </td>
 
-                                <td class="p-3">{{registration_code}}</td>
 
-                                <td class="p-3">{{manufacturer}}</td>
+                                <td class="p-3">
+                                    {{registration_code}}
+                                </td>
 
-                                <td class="p-3">{{expiration_date}}</td>
+
+                                <td class="p-3">
+                                    {{manufacturer}}
+                                </td>
+
+
+                                <td class="p-3">
+                                    {{expiration_date_formatted}}
+                                </td>
+
 
                                 <td class="p-3 text-center">
 
-                                    <button onclick="window.location.href='/private/products/edit/{{id}}'"
-                                        class="text-blue-600 hover:underline mr-4">
+                                    <button type="button" class="btn-edit-product" data-id="{{id}}" data-name="{{name}}"
+                                        data-category="{{category}}" data-manufacturer="{{manufacturer}}"
+                                        data-active="{{active_ingredient}}" data-registration="{{registration_code}}"
+                                        data-validation="{{validation_status}}"
+                                        data-expiration="{{expiration_date_formatted}}" data-crops="{{target_crops}}"
+                                        data-description="{{description}}" data-status="{{status}}"
+                                        data-image="{{image_url}}">
+
                                         ✏️ Editar
+
                                     </button>
 
                                 </td>
@@ -172,9 +195,7 @@
                     <button id="cancel-expiring-modal" class="px-5 py-2 rounded-lg bg-gray-200 hover:bg-gray-300">
                         Cancelar
                     </button>
-
                 </div>
-
             </div>
 
         </div>
@@ -290,9 +311,12 @@
                             </td>
 
                             <td class="px-6 py-4 text-right whitespace-nowrap">
-
-                                <button type="button" onclick="window.location.href='/private/products/edit/{{id}}'"
-                                    class="inline-flex items-center gap-1 text-blue-600 hover:underline">
+                                <button type="button" class="btn-edit-product" data-id="{{id}}" data-name="{{name}}"
+                                    data-category="{{category}}" data-manufacturer="{{manufacturer}}"
+                                    data-active="{{active_ingredient}}" data-registration="{{registration_code}}"
+                                    data-validation="{{validation_status}}" data-expiration="{{expiration_date}}"
+                                    data-crops="{{target_crops}}" data-description="{{description}}"
+                                    data-status="{{status}}" data-image="{{image_url}}">
                                     ✏️ Editar
                                 </button>
                                 <form id="delete-form-{{id}}" action="/private/products/delete/{{id}}" method="POST"
@@ -385,9 +409,12 @@
 
                         <!-- ACTIONS -->
                         <div class="flex gap-3">
-
-                            <button type="button" onclick="window.location.href='/private/products/edit/{{id}}'"
-                                class="text-blue-600 hover:underline">
+                            <button type="button" class="btn-edit-product" data-id="{{id}}" data-name="{{name}}"
+                                data-category="{{category}}" data-manufacturer="{{manufacturer}}"
+                                data-active="{{active_ingredient}}" data-registration="{{registration_code}}"
+                                data-validation="{{validation_status}}" data-expiration="{{expiration_date}}"
+                                data-crops="{{target_crops}}" data-description="{{description}}"
+                                data-status="{{status}}" data-image="{{image_url}}">
                                 ✏️ Editar
                             </button>
 
@@ -431,7 +458,7 @@
     <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto z-10">
         <div class="flex items-center justify-between p-6 border-b border-surface-container">
             <div>
-                <h3 class="text-lg font-extrabold text-[#0F2E2E]">Nuevo Producto Agroquímico</h3>
+                <h3 id="modal-title" class="text-lg font-extrabold text-[#0F2E2E]">Nuevo Producto Agroquímico</h3>
                 <p class="text-xs text-on-surface-variant mt-0.5">Completa la información para registrar el producto en
                     el catálogo INIFAP</p>
             </div>
@@ -440,7 +467,8 @@
                 <span class="material-symbols-outlined">close</span>
             </button>
         </div>
-        <form action="/private/products/create" method="POST" enctype="multipart/form-data" class="p-6 space-y-5">
+        <form id="product-form" action="/private/products/create" method="POST" enctype="multipart/form-data"
+            class="p-6 space-y-5">
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
@@ -450,21 +478,28 @@
                         Nombre Comercial *
                     </label>
 
-                    <input type="text" name="name" required placeholder="Ej. Glyphomax Pro 480"
+                    <input id="name" type="text" name="name" required placeholder="Ej. Glyphomax Pro 480"
                         class="w-full bg-surface-container-low rounded-lg py-3 px-4 text-sm border-none focus:ring-2 focus:ring-primary/20">
                 </div>
 
                 <!-- Imagen -->
                 <div class="sm:col-span-2">
                     <label class="block text-xs font-bold uppercase tracking-widest mb-2">
-                        Imagen del Producto *
+                        Imagen del Producto
                     </label>
 
-                    <input type="file" name="image" accept="image/*" required
+                    <!-- Vista previa -->
+                    <div class="mb-3">
+                        <img id="image-preview" src="/images/test/default.png" alt="Vista previa"
+                            class="w-40 h-40 object-cover rounded-lg border hidden">
+                    </div>
+
+                    <!-- Input -->
+                    <input id="image" type="file" name="image" accept="image/*"
                         class="w-full bg-surface-container-low rounded-lg py-3 px-4 text-sm border-none">
 
                     <p class="text-xs text-gray-500 mt-2">
-                        Formatos permitidos: JPG, PNG, JPEG, WEBP
+                        Si no seleccionas una imagen nueva, se conservará la actual.
                     </p>
                 </div>
 
@@ -474,7 +509,7 @@
                         Categoría *
                     </label>
 
-                    <select name="category" required
+                    <select id="category" name="category" required
                         class="w-full bg-surface-container-low rounded-lg py-3 px-4 text-sm border-none">
 
                         <option value="">Seleccionar...</option>
@@ -495,7 +530,7 @@
                         Fabricante *
                     </label>
 
-                    <input type="text" name="manufacturer" required placeholder="Ej. Bayer"
+                    <input id="manufacturer" type="text" name="manufacturer" required placeholder="Ej. Bayer"
                         class="w-full bg-surface-container-low rounded-lg py-3 px-4 text-sm border-none">
                 </div>
 
@@ -505,7 +540,8 @@
                         Principio Activo *
                     </label>
 
-                    <input type="text" name="active_ingredient" required placeholder="Ej. Glifosato 48%"
+                    <input id="active_ingredient" type="text" name="active_ingredient" required
+                        placeholder="Ej. Glifosato 48%"
                         class="w-full bg-surface-container-low rounded-lg py-3 px-4 text-sm border-none">
                 </div>
 
@@ -515,7 +551,8 @@
                         Registro COFEPRIS *
                     </label>
 
-                    <input type="text" name="registration_code" required placeholder="Ej. RSCO-1234"
+                    <input id="registration_code" type="text" name="registration_code" required
+                        placeholder="Ej. RSCO-1234"
                         class="w-full bg-surface-container-low rounded-lg py-3 px-4 text-sm border-none">
                 </div>
 
@@ -525,7 +562,7 @@
                         Estado de Validación
                     </label>
 
-                    <select name="validation_status"
+                    <select id="validation_status" name="validation_status"
                         class="w-full bg-surface-container-low rounded-lg py-3 px-4 text-sm border-none">
 
                         <option value="pendiente">Pendiente</option>
@@ -541,7 +578,7 @@
                         Fecha de Vencimiento
                     </label>
 
-                    <input type="date" name="expiration_date"
+                    <input id="expiration_date" type="date" name="expiration_date"
                         class="w-full bg-surface-container-low rounded-lg py-3 px-4 text-sm border-none">
                 </div>
 
@@ -551,7 +588,7 @@
                         Cultivos Objetivo
                     </label>
 
-                    <input type="text" name="target_crops" placeholder="Ej. Maíz, Trigo, Sorgo"
+                    <input id="target_crops" type="text" name="target_crops" placeholder="Ej. Maíz, Trigo, Sorgo"
                         class="w-full bg-surface-container-low rounded-lg py-3 px-4 text-sm border-none">
                 </div>
 
@@ -561,7 +598,7 @@
                         Descripción Técnica
                     </label>
 
-                    <textarea name="description" rows="4" placeholder="Descripción del producto..."
+                    <textarea id="description" name="description" rows="4" placeholder="Descripción del producto..."
                         class="w-full bg-surface-container-low rounded-lg py-3 px-4 text-sm border-none resize-none"></textarea>
                 </div>
 
@@ -569,7 +606,7 @@
                 <div class="sm:col-span-2">
                     <label class="flex items-center gap-3">
 
-                        <input type="checkbox" name="status" value="true" checked>
+                        <input id="status" type="checkbox" name="status" value="true" checked>
 
                         <span class="text-sm font-semibold">
                             Producto Activo
@@ -586,7 +623,8 @@
                     class="px-6 py-3 rounded-lg bg-gray-200 hover:bg-gray-300">
                     Cancelar
                 </button>
-                <button type="submit" class="px-6 py-3 rounded-lg bg-[#43655c] hover:bg-[#36514a] text-white font-bold">
+                <button id="btn-save-product" type="submit"
+                    class="px-6 py-3 rounded-lg bg-[#43655c] hover:bg-[#36514a] text-white font-bold">
                     Guardar Producto
                 </button>
 
@@ -804,6 +842,145 @@
 
         btnClose.addEventListener("click", closeModal);
         btnCancel.addEventListener("click", closeModal);
+
+    });
+</script>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const modal = document.getElementById("modal-product");
+        const form = document.getElementById("product-form");
+        const title = document.getElementById("modal-title");
+        const saveBtn = document.getElementById("btn-save-product");
+        const btnAdd = document.getElementById("btn-add-product");
+        const btnAddCard = document.getElementById("btn-add-product-card");
+        const btnClose = document.getElementById("modal-product-close");
+        const btnCancel = document.getElementById("modal-product-cancel");
+        const backdrop = document.getElementById("modal-product-backdrop")
+        const preview = document.getElementById("image-preview");
+        const imageInput = document.getElementById("image");
+        function openModal() {
+            modal.classList.remove("hidden");
+            modal.classList.add("flex");
+        }
+
+        function closeModal() {
+            modal.classList.add("hidden");
+            modal.classList.remove("flex");
+        }
+
+        function resetForm() {
+
+            form.reset();
+
+            form.action = "/private/products/create";
+
+            title.textContent = "Nuevo Producto Agroquímico";
+
+            saveBtn.textContent = "Guardar Producto";
+
+            document.getElementById("status").checked = true;
+
+            // Reiniciar imagen
+            if (preview) {
+                preview.src = "";
+                preview.classList.add("hidden");
+            }
+
+        }
+        // VISTA PREVIA AL AGREGAR
+
+        if (imageInput) {
+
+            imageInput.addEventListener("change", function () {
+
+                const file = this.files[0];
+
+                if (file && preview) {
+
+                    const reader = new FileReader();
+
+                    reader.onload = function (e) {
+
+                        preview.src = e.target.result;
+                        preview.classList.remove("hidden");
+
+                    };
+
+                    reader.readAsDataURL(file);
+
+                }
+
+            });
+
+        }
+        // ABRIR PARA CREAR
+        if (btnAdd) {
+            btnAdd.addEventListener("click", () => { resetForm(); openModal(); });
+        }
+        if (btnAddCard) {
+            btnAddCard.addEventListener("click", () => {
+                resetForm();
+                openModal();
+            });
+        }
+        // CERRAR MODAL
+        if (btnClose) {
+            btnClose.addEventListener("click", () => {
+                resetForm();
+                closeModal();
+
+            });
+        }
+        if (btnCancel) {
+            btnCancel.addEventListener("click", () => {
+                resetForm();
+                closeModal();
+            });
+        }
+        if (backdrop) {
+            backdrop.addEventListener("click", () => {
+                resetForm();
+                closeModal();
+            });
+        }
+        // EDITAR PRODUCTO
+
+        document.querySelectorAll(".btn-edit-product").forEach(btn => {
+
+
+            btn.addEventListener("click", function () {
+                form.action = "/private/products/update/" + this.dataset.id;
+                title.textContent = "Editar Producto";
+                saveBtn.textContent = "Actualizar Producto";
+                document.getElementById("name").value = this.dataset.name || "";
+                document.getElementById("category").value = this.dataset.category || "";
+                document.getElementById("manufacturer").value = this.dataset.manufacturer || "";
+                document.getElementById("active_ingredient").value = this.dataset.active || "";
+                document.getElementById("registration_code").value = this.dataset.registration || "";
+                document.getElementById("validation_status").value = this.dataset.validation || "";
+                document.getElementById("expiration_date").value = this.dataset.expiration ? this.dataset.expiration.substring(0, 10) : "";
+                document.getElementById("target_crops").value = this.dataset.crops || "";
+                document.getElementById("description").value = this.dataset.description || "";
+                document.getElementById("status").checked = this.dataset.status === "true" || this.dataset.status === "1";
+
+                // Mostrar imagen guardada
+
+                if (preview) {
+                    if (this.dataset.image) {
+                        preview.src = "/" + this.dataset.image;
+                        preview.classList.remove("hidden");
+                    } else {
+                        preview.src = "/images/test/default.png";
+
+                        preview.classList.remove("hidden");
+                    }
+
+                }
+                openModal();
+
+            });
+
+        });
 
     });
 </script>

@@ -7,157 +7,418 @@
 
         {{!-- Stats Bar --}}
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <!-- TOTAL PROVEEDORES -->
             <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm p-5 flex items-center gap-4">
                 <div class="w-11 h-11 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                    <span class="material-symbols-outlined text-primary" data-icon="local_shipping">local_shipping</span>
+                    <span class="material-symbols-outlined text-primary" data-icon="local_shipping"> local_shipping </span>
                 </div>
+
                 <div>
-                    <p class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant">Total Proveedores</p>
-                    <p class="text-2xl font-extrabold text-on-surface">15</p>
+                    <p class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant"> Total Proveedores  </p>
+                    <p class="text-2xl font-extrabold text-on-surface">  {{stats.total}} </p>
                 </div>
+
             </div>
-            <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm p-5 flex items-center gap-4">
+            <!-- ACTIVOS -->
+            <div
+                class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm p-5 flex items-center gap-4">
+
                 <div class="w-11 h-11 rounded-full bg-emerald-500/10 flex items-center justify-center shrink-0">
-                    <span class="material-symbols-outlined text-emerald-600" data-icon="verified">verified</span>
+
+                    <span class="material-symbols-outlined text-emerald-600" data-icon="verified">
+                        verified
+                    </span>
+
                 </div>
+
                 <div>
-                    <p class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant">Activos</p>
-                    <p class="text-2xl font-extrabold text-on-surface">12</p>
+
+                    <p class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant">
+                        Activos
+                    </p>
+
+                    <p class="text-2xl font-extrabold text-on-surface">
+                        {{stats.activos}}
+                    </p>
+
                 </div>
+
             </div>
+
+
+            <!-- PENDIENTES -->
             <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm p-5 flex items-center gap-4">
                 <div class="w-11 h-11 rounded-full bg-amber-500/10 flex items-center justify-center shrink-0">
-                    <span class="material-symbols-outlined text-amber-600" data-icon="schedule">schedule</span>
+                    <span class="material-symbols-outlined text-amber-600" data-icon="schedule">
+                        schedule
+                    </span>
                 </div>
+
                 <div>
-                    <p class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant">Pendientes</p>
-                    <p class="text-2xl font-extrabold text-on-surface">2</p>
+
+                    <p class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant">
+                        Pendientes
+                    </p>
+
+                    <p class="text-2xl font-extrabold text-on-surface">
+                        {{stats.pendientes}}
+                    </p>
+
                 </div>
+
             </div>
-            <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm p-5 flex items-center gap-4">
+
+
+            <!-- INACTIVOS -->
+            <div
+                class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm p-5 flex items-center gap-4">
+
                 <div class="w-11 h-11 rounded-full bg-error/10 flex items-center justify-center shrink-0">
-                    <span class="material-symbols-outlined text-error" data-icon="block">block</span>
+
+                    <span class="material-symbols-outlined text-error" data-icon="block">
+                        block
+                    </span>
+
                 </div>
+
                 <div>
-                    <p class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant">Inactivos</p>
-                    <p class="text-2xl font-extrabold text-on-surface">1</p>
+
+                    <p class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant">
+                        Inactivos
+                    </p>
+
+                    <p class="text-2xl font-extrabold text-on-surface">
+                        {{stats.inactivos}}
+                    </p>
+
                 </div>
+
             </div>
+
         </div>
 
         <!-- TABLE VIEW -->
-        <div id="suppliers-table-view" style="display:none" class="bg-surface-container-lowest rounded-2xl shadow-sm overflow-hidden border border-outline-variant/10">
-            <table class="w-full text-left border-collapse">
-                <thead>
-                    <tr class="bg-surface-container-low/50">
-                        <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
-                            Empresa</th>
-                        <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
-                            RFC</th>
-                        <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
-                            Contacto</th>
-                        <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant text-center">
-                            Tipo de Suministro</th>
-                        <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant text-center">
-                            Estatus</th>
-                        <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant text-right">
-                            Acciones</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-surface-container">
+        <div id="suppliers-table-view" style="display:none"
+            class="bg-surface-container-lowest rounded-2xl shadow-sm overflow-hidden border border-outline-variant/10">
+            <div class="overflow-x-auto">
 
-                    <!-- Row 1 -->
-                    <tr class="hover:bg-surface/50 transition-colors">
-                        <td class="px-8 py-5">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-on-primary font-extrabold text-sm shrink-0">
-                                    AS</div>
-                                <div>
-                                    <p class="font-bold text-on-surface text-sm">AgroScience Labs S.A. de C.V.</p>
-                                    <p class="text-xs text-on-surface-variant">Sinaloa, México</p>
+                <table class="w-full min-w-[1500px] text-left border-collapse">
+
+                    <thead>
+
+                        <tr class="bg-surface-container-low/50">
+
+                            <th
+                                class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
+                                Empresa
+                            </th>
+
+                            <th
+                                class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
+                                RFC
+                            </th>
+
+                            <th
+                                class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
+                                Contacto
+                            </th>
+
+                            <th
+                                class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
+                                Ubicación
+                            </th>
+
+                            <th
+                                class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
+                                Suministro
+                            </th>
+
+                            <th
+                                class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
+                                Información comercial
+                            </th>
+
+                            <th
+                                class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant text-center">
+                                Estatus
+                            </th>
+
+                            <th
+                                class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant text-right">
+                                Acciones
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody class="divide-y divide-outline-variant/10">
+
+                        {{#each suppliers}}
+
+                        <tr class="hover:bg-surface-container-low/50 transition-colors">
+                            <!-- EMPRESA -->
+
+                            <td class="px-8 py-5">
+                                <div class="flex items-center gap-3">
+                                    <div
+                                        class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                                        <span class="material-symbols-outlined text-primary">
+                                            business
+                                        </span>
+                                    </div>
+
+                                    <div>
+                                        <p class="text-sm font-bold text-on-surface"> {{name}} </p>
+                                        {{#if commercial_name}}
+                                        <p class="text-xs text-on-surface-variant"> {{commercial_name}} </p>
+                                        {{/if}}
+                                    </div>
+
                                 </div>
-                            </div>
-                        </td>
-                        <td class="px-8 py-5">
-                            <p class="text-sm font-medium text-on-surface">AGL981023XYZ</p>
-                        </td>
-                        <td class="px-8 py-5">
-                            <p class="text-sm text-on-surface">contacto@agroscience.mx</p>
-                            <p class="text-xs text-on-surface-variant mt-0.5">+52 667 123 4567</p>
-                        </td>
-                        <td class="px-8 py-5 text-center">
-                            <span class="px-3 py-1.5 bg-primary/10 text-primary rounded-full text-[10px] font-black uppercase">Agroquímicos</span>
-                        </td>
-                        <td class="px-8 py-5 text-center">
-                            <div class="flex items-center justify-center gap-1.5 text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100 mx-auto w-fit">
-                                <span class="material-symbols-outlined text-sm" data-icon="check_circle"
-                                    data-weight="fill" style="font-variation-settings: 'FILL' 1;">check_circle</span>
-                                <span class="text-[10px] font-black uppercase">Activo</span>
-                            </div>
-                        </td>
-                        <td class="px-8 py-5">
-                            <div class="flex justify-end gap-3 text-on-surface-variant">
-                                <button class="hover:text-primary transition-colors" title="Ver detalle"><span
-                                        class="material-symbols-outlined"
-                                        data-icon="visibility">visibility</span></button>
-                                <button class="hover:text-primary transition-colors" title="Editar"><span
-                                        class="material-symbols-outlined" data-icon="edit">edit</span></button>
-                                <button class="hover:text-error transition-colors" title="Inactivar"><span
-                                        class="material-symbols-outlined" data-icon="block">block</span></button>
-                            </div>
-                        </td>
-                    </tr>
 
-                    <!-- Row 2 -->
-                    <tr class="hover:bg-surface/50 transition-colors">
-                        <td class="px-8 py-5">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-full bg-[#115e59] flex items-center justify-center text-white font-extrabold text-sm shrink-0">
-                                    BS</div>
-                                <div>
-                                    <p class="font-bold text-on-surface text-sm">BioSemillas del Norte</p>
-                                    <p class="text-xs text-on-surface-variant">Sonora, México</p>
+                            </td>
+                            <!-- RFC -->
+
+                            <td class="px-8 py-5">
+                                <p class="text-sm font-medium text-on-surface"> {{rfc}} </p>
+                            </td>
+
+
+                            <!-- CONTACTO -->
+
+                            <td class="px-8 py-5">
+
+                                <p class="text-sm font-bold text-on-surface">
+                                    {{contact_name}}
+                                </p>
+
+                                {{#if contact_position}}
+
+                                <p class="text-xs text-on-surface-variant">
+                                    {{contact_position}}
+                                </p>
+
+                                {{/if}}
+
+                                <p class="text-xs text-on-surface-variant mt-1">
+                                    {{email}}
+                                </p>
+
+                                <p class="text-xs text-on-surface-variant">
+                                    {{phone}}
+                                </p>
+
+                            </td>
+
+
+                            <!-- UBICACIÓN -->
+
+                            <td class="px-8 py-5">
+
+                                <p class="text-sm text-on-surface">
+                                    {{address}}
+                                </p>
+
+                                <p class="text-xs text-on-surface-variant">
+                                    {{city}}, {{state}}
+                                </p>
+
+                                <p class="text-xs text-on-surface-variant">
+                                    C.P. {{postal_code}}, {{country}}
+                                </p>
+
+                            </td>
+
+
+                            <!-- SUMINISTRO -->
+
+                            <td class="px-8 py-5">
+
+                                <span
+                                    class="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase">
+
+                                    {{supply_type}}
+
+                                </span>
+
+                                <p class="text-xs text-on-surface-variant mt-2 max-w-[220px]">
+                                    {{supplied_products}}
+                                </p>
+
+                                {{#if brands}}
+
+                                <p class="text-xs text-on-surface-variant mt-1">
+
+                                    <strong>Marcas:</strong> {{brands}}
+
+                                </p>
+
+                                {{/if}}
+
+                            </td>
+
+
+                            <!-- INFORMACIÓN COMERCIAL -->
+
+                            <td class="px-8 py-5">
+
+                                {{#if delivery_time}}
+
+                                <p class="text-xs text-on-surface-variant">
+                                    <strong>Entrega:</strong> {{delivery_time}}
+                                </p>
+
+                                {{/if}}
+
+
+                                {{#if minimum_order}}
+
+                                <p class="text-xs text-on-surface-variant mt-1">
+                                    <strong>Compra mínima:</strong> ${{minimum_order}}
+                                </p>
+
+                                {{/if}}
+
+
+                                {{#if payment_method}}
+
+                                <p class="text-xs text-on-surface-variant mt-1">
+                                    <strong>Pago:</strong> {{payment_method}}
+                                </p>
+
+                                {{/if}}
+
+                            </td>
+
+
+                            <!-- ESTATUS -->
+
+                            <td class="px-8 py-5 text-center">
+
+                                {{#if (eq status "activo")}}
+
+                                <span
+                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-600 text-[10px] font-black uppercase">
+
+                                    <span class="material-symbols-outlined text-sm">
+                                        check_circle
+                                    </span>
+
+                                    Activo
+
+                                </span>
+
+                                {{else if (eq status "pendiente")}}
+
+                                <span
+                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-50 text-amber-600 text-[10px] font-black uppercase">
+
+                                    <span class="material-symbols-outlined text-sm">
+                                        schedule
+                                    </span>
+
+                                    Pendiente
+
+                                </span>
+
+                                {{else}}
+
+                                <span
+                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-red-50 text-red-600 text-[10px] font-black uppercase">
+
+                                    <span class="material-symbols-outlined text-sm">
+                                        block
+                                    </span>
+
+                                    Inactivo
+
+                                </span>
+
+                                {{/if}}
+
+                            </td>
+
+
+                            <!-- ACCIONES -->
+
+                            <td class="px-8 py-5">
+
+                                <div class="flex items-center justify-end gap-2">
+                                    <button type="button" class="btn-edit-supplier" data-id="{{id}}"
+                                        data-name="{{name}}" data-commercial-name="{{commercial_name}}"
+                                        data-rfc="{{rfc}}" data-supply-type="{{supply_type}}"
+                                        data-contact-name="{{contact_name}}"
+                                        data-contact-position="{{contact_position}}" data-email="{{email}}"
+                                        data-alternative-email="{{alternative_email}}" data-phone="{{phone}}"
+                                        data-alternative-phone="{{alternative_phone}}" data-address="{{address}}"
+                                        data-city="{{city}}" data-state="{{state}}" data-postal-code="{{postal_code}}"
+                                        data-country="{{country}}" data-supplied-products="{{supplied_products}}"
+                                        data-brands="{{brands}}" data-delivery-time="{{delivery_time}}"
+                                        data-minimum-order="{{minimum_order}}" data-payment-method="{{payment_method}}"
+                                        data-status="{{status}}">
+                                        <span class="material-symbols-outlined">
+                                            edit
+                                        </span>
+
+                                    </button>
+                                    <button type="button"
+                                        class="btn-delete-supplier p-2 rounded-lg hover:bg-red-50 hover:text-red-600 transition-colors"
+                                        title="Eliminar proveedor" data-id="{{id}}" data-name="{{name}}">
+
+                                        <span class="material-symbols-outlined text-lg">
+                                            delete
+                                        </span>
+
+                                    </button>
+
                                 </div>
-                            </div>
-                        </td>
-                        <td class="px-8 py-5">
-                            <p class="text-sm font-medium text-on-surface">BSN050412ABC</p>
-                        </td>
-                        <td class="px-8 py-5">
-                            <p class="text-sm text-on-surface">ventas@biosemillas.com</p>
-                            <p class="text-xs text-on-surface-variant mt-0.5">+52 662 987 6543</p>
-                        </td>
-                        <td class="px-8 py-5 text-center">
-                            <span class="px-3 py-1.5 bg-[#f59e0b]/10 text-[#d97706] rounded-full text-[10px] font-black uppercase">Semillas</span>
-                        </td>
-                        <td class="px-8 py-5 text-center">
-                            <div class="flex items-center justify-center gap-1.5 text-amber-600 bg-amber-50 px-3 py-1.5 rounded-full border border-amber-100 mx-auto w-fit">
-                                <span class="material-symbols-outlined text-sm" data-icon="schedule"
-                                    data-weight="fill" style="font-variation-settings: 'FILL' 1;">schedule</span>
-                                <span class="text-[10px] font-black uppercase">Pendiente</span>
-                            </div>
-                        </td>
-                        <td class="px-8 py-5">
-                            <div class="flex justify-end gap-3 text-on-surface-variant">
-                                <button class="hover:text-primary transition-colors" title="Ver detalle"><span
-                                        class="material-symbols-outlined"
-                                        data-icon="visibility">visibility</span></button>
-                                <button class="hover:text-primary transition-colors" title="Editar"><span
-                                        class="material-symbols-outlined" data-icon="edit">edit</span></button>
-                                <button class="hover:text-error transition-colors" title="Inactivar"><span
-                                        class="material-symbols-outlined" data-icon="block">block</span></button>
-                            </div>
-                        </td>
-                    </tr>
 
-                </tbody>
-            </table>
+                            </td>
+
+                        </tr>
+
+
+                        {{else}}
+
+                        <tr>
+
+                            <td colspan="8" class="px-8 py-16 text-center">
+
+                                <span class="material-symbols-outlined text-5xl text-on-surface-variant/30">
+                                    business
+                                </span>
+
+                                <p class="mt-3 text-sm font-bold text-on-surface-variant">
+                                    No hay proveedores registrados
+                                </p>
+
+                            </td>
+
+                        </tr>
+
+                        {{/each}}
+
+                    </tbody>
+
+                </table>
+
+            </div>
 
             <!-- Pagination -->
-            <div class="px-8 py-6 bg-surface-container-low/30 border-t border-outline-variant/10 flex items-center justify-between">
+            <div
+                class="px-8 py-6 bg-surface-container-low/30 border-t border-outline-variant/10 flex items-center justify-between">
                 <p class="text-xs font-medium text-on-surface-variant">
-                    Mostrando <span class="font-bold text-on-surface">1 a 2</span> de <span
-                        class="font-bold text-on-surface">15</span> registros
+                    Mostrando
+                    <span class="font-bold text-on-surface">
+                        1 a {{suppliers.length}}
+                    </span>
+                    de
+                    <span class="font-bold text-on-surface">
+                        {{suppliers.length}}
+                    </span>
+                    registros
                 </p>
                 <div class="flex gap-2">
                     <button
@@ -175,98 +436,278 @@
         </div>
 
         <!-- GRID VIEW -->
+        <!-- GRID VIEW -->
         <div id="suppliers-grid-view" class="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 grid">
 
-            <!-- Card 1 -->
-            <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm overflow-hidden group hover:-translate-y-1 transition-all duration-300">
-                <div class="p-5">
-                    <div class="flex justify-between items-start mb-4">
-                        <div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-extrabold text-base shrink-0 shadow-sm">
-                            AS
-                        </div>
-                        <div class="flex items-center justify-center gap-1.5 text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100">
-                            <span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">check_circle</span>
-                            <span class="text-[9px] font-black uppercase">Activo</span>
-                        </div>
-                    </div>
-                    <span class="text-[9px] font-black uppercase tracking-widest text-primary">Agroquímicos</span>
-                    <h3 class="font-bold text-on-surface text-base mt-1">AgroScience Labs</h3>
-                    <p class="text-xs text-on-surface-variant mt-1">RFC: ASL-980112-X1A</p>
-                    <p class="text-xs text-on-surface-variant truncate mt-1">contacto@agroscience.mx</p>
+            {{#each suppliers}}
 
-                    <div class="mt-4 pt-4 border-t border-surface-container flex justify-between items-center">
-                        <span class="text-[10px] text-on-surface-variant font-bold">★ 4.8/5</span>
-                        <div class="flex gap-2 text-on-surface-variant">
-                            <button class="hover:text-primary transition-colors"><span class="material-symbols-outlined text-base">visibility</span></button>
-                            <button class="hover:text-primary transition-colors"><span class="material-symbols-outlined text-base">edit</span></button>
-                            <button class="hover:text-error transition-colors"><span class="material-symbols-outlined text-base">delete</span></button>
+            <div
+                class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm overflow-hidden hover:-translate-y-1 transition-all duration-300">
+
+                <!-- HEADER DE LA TARJETA -->
+                <div class="p-5 border-b border-outline-variant/10">
+
+                    <div class="flex items-start justify-between gap-3">
+
+                        <div class="flex items-center gap-3">
+
+                            <div class="w-11 h-11 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+
+                                <span class="material-symbols-outlined text-primary">
+                                    business
+                                </span>
+
+                            </div>
+
+                            <div>
+
+                                <h3 class="text-sm font-extrabold text-on-surface">
+                                    {{name}}
+                                </h3>
+
+                                {{#if commercial_name}}
+
+                                <p class="text-xs text-on-surface-variant mt-0.5">
+                                    {{commercial_name}}
+                                </p>
+
+                                {{/if}}
+
+                            </div>
+
                         </div>
+
+                        <!-- ESTATUS -->
+
+                        {{#if (eq status "activo")}}
+
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0" title="Activo">
+                        </span>
+
+                        {{else if (eq status "pendiente")}}
+
+                        <span class="w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0" title="Pendiente">
+                        </span>
+
+                        {{else}}
+
+                        <span class="w-2.5 h-2.5 rounded-full bg-red-500 shrink-0" title="Inactivo">
+                        </span>
+
+                        {{/if}}
+
                     </div>
+
                 </div>
+
+
+                <!-- INFORMACIÓN PRINCIPAL -->
+
+                <div class="p-5 space-y-4">
+
+                    <!-- RFC -->
+
+                    <div class="flex items-start gap-3">
+
+                        <span class="material-symbols-outlined text-base text-on-surface-variant">
+                            badge
+                        </span>
+
+                        <div>
+
+                            <p class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant">
+                                RFC
+                            </p>
+
+                            <p class="text-xs font-bold text-on-surface mt-0.5">
+                                {{rfc}}
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- CONTACTO -->
+
+                    <div class="flex items-start gap-3">
+
+                        <span class="material-symbols-outlined text-base text-on-surface-variant">
+                            contact_phone
+                        </span>
+
+                        <div>
+
+                            <p class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant">
+                                Contacto
+                            </p>
+
+                            <p class="text-xs font-bold text-on-surface mt-0.5">
+                                {{contact_name}}
+                            </p>
+
+                            <p class="text-xs text-on-surface-variant">
+                                {{email}}
+                            </p>
+
+                            <p class="text-xs text-on-surface-variant">
+                                {{phone}}
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- UBICACIÓN -->
+
+                    <div class="flex items-start gap-3">
+
+                        <span class="material-symbols-outlined text-base text-on-surface-variant">
+                            location_on
+                        </span>
+
+                        <div>
+
+                            <p class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant">
+                                Ubicación
+                            </p>
+
+                            <p class="text-xs text-on-surface">
+                                {{city}}, {{state}}
+                            </p>
+
+                            <p class="text-xs text-on-surface-variant">
+                                C.P. {{postal_code}}
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- SUMINISTRO -->
+
+                    <div>
+
+                        <p class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant mb-1.5">
+                            Suministro
+                        </p>
+
+                        <span
+                            class="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase">
+
+                            {{supply_type}}
+
+                        </span>
+
+                        <p class="text-xs text-on-surface-variant mt-2 line-clamp-2">
+                            {{supplied_products}}
+                        </p>
+
+                    </div>
+
+
+                    <!-- INFORMACIÓN COMERCIAL -->
+
+                    <div class="pt-3 border-t border-outline-variant/10 space-y-1">
+
+                        {{#if brands}}
+
+                        <p class="text-xs text-on-surface-variant">
+                            <strong>Marcas:</strong> {{brands}}
+                        </p>
+
+                        {{/if}}
+
+                        {{#if delivery_time}}
+
+                        <p class="text-xs text-on-surface-variant">
+                            <strong>Entrega:</strong> {{delivery_time}}
+                        </p>
+
+                        {{/if}}
+
+                        {{#if payment_method}}
+
+                        <p class="text-xs text-on-surface-variant">
+                            <strong>Pago:</strong> {{payment_method}}
+                        </p>
+
+                        {{/if}}
+
+                    </div>
+
+                </div>
+
+
+                <!-- ACCIONES -->
+
+                <div
+                    class="px-5 py-4 bg-surface-container-low/30 border-t border-outline-variant/10 flex justify-end gap-2">
+
+                    <button type="button" class="btn-edit-supplier" data-id="{{id}}" data-name="{{name}}"
+                        data-commercial-name="{{commercial_name}}" data-rfc="{{rfc}}" data-supply-type="{{supply_type}}"
+                        data-contact-name="{{contact_name}}" data-contact-position="{{contact_position}}"
+                        data-email="{{email}}" data-alternative-email="{{alternative_email}}" data-phone="{{phone}}"
+                        data-alternative-phone="{{alternative_phone}}" data-address="{{address}}" data-city="{{city}}"
+                        data-state="{{state}}" data-postal-code="{{postal_code}}" data-country="{{country}}"
+                        data-supplied-products="{{supplied_products}}" data-brands="{{brands}}"
+                        data-delivery-time="{{delivery_time}}" data-minimum-order="{{minimum_order}}"
+                        data-payment-method="{{payment_method}}" data-status="{{status}}">
+                        <span class="material-symbols-outlined">
+                            edit
+                        </span>
+                    </button>
+                    <button type="button"
+                        class="btn-delete-supplier p-2 rounded-lg hover:bg-red-50 hover:text-red-600 transition-colors"
+                        title="Eliminar proveedor" data-id="{{id}}" data-name="{{name}}">
+
+                        <span class="material-symbols-outlined text-lg">
+                            delete
+                        </span>
+
+                    </button>
+
+                </div>
+
             </div>
 
-            <!-- Card 2 -->
-            <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm overflow-hidden group hover:-translate-y-1 transition-all duration-300">
-                <div class="p-5">
-                    <div class="flex justify-between items-start mb-4">
-                        <div class="w-12 h-12 rounded-lg bg-secondary/10 flex items-center justify-center text-secondary font-extrabold text-base shrink-0 shadow-sm">
-                            BC
-                        </div>
-                        <div class="flex items-center justify-center gap-1.5 text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100">
-                            <span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">check_circle</span>
-                            <span class="text-[9px] font-black uppercase">Activo</span>
-                        </div>
-                    </div>
-                    <span class="text-[9px] font-black uppercase tracking-widest text-secondary">Semillas</span>
-                    <h3 class="font-bold text-on-surface text-base mt-1">BioCrop Solutions</h3>
-                    <p class="text-xs text-on-surface-variant mt-1">RFC: BCS-050415-XYZ</p>
-                    <p class="text-xs text-on-surface-variant truncate mt-1">ventas@biocrop.com.mx</p>
+            {{else}}
 
-                    <div class="mt-4 pt-4 border-t border-surface-container flex justify-between items-center">
-                        <span class="text-[10px] text-on-surface-variant font-bold">★ 4.5/5</span>
-                        <div class="flex gap-2 text-on-surface-variant">
-                            <button class="hover:text-primary transition-colors"><span class="material-symbols-outlined text-base">visibility</span></button>
-                            <button class="hover:text-primary transition-colors"><span class="material-symbols-outlined text-base">edit</span></button>
-                            <button class="hover:text-error transition-colors"><span class="material-symbols-outlined text-base">delete</span></button>
-                        </div>
-                    </div>
-                </div>
+            <div class="col-span-full py-16 text-center">
+
+                <span class="material-symbols-outlined text-5xl text-on-surface-variant/30">
+                    business
+                </span>
+
+                <p class="mt-3 text-sm font-bold text-on-surface-variant">
+                    No hay proveedores registrados
+                </p>
+
             </div>
 
-            <!-- Card 3 Pending -->
-            <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm overflow-hidden group hover:-translate-y-1 transition-all duration-300 bg-surface-container-low/20">
-                <div class="p-5">
-                    <div class="flex justify-between items-start mb-4">
-                        <div class="w-12 h-12 rounded-lg bg-surface-container-high flex items-center justify-center text-on-surface-variant font-extrabold text-base shrink-0 shadow-sm">
-                            TC
-                        </div>
-                        <div class="flex items-center justify-center gap-1.5 text-orange-600 bg-orange-50 px-2.5 py-1 rounded-full border border-orange-100">
-                            <span class="material-symbols-outlined text-xs">schedule</span>
-                            <span class="text-[9px] font-black uppercase">Pendiente</span>
-                        </div>
-                    </div>
-                    <span class="text-[9px] font-black uppercase tracking-widest text-on-surface-variant">Agroquímicos</span>
-                    <h3 class="font-bold text-on-surface text-base mt-1">TerraChem</h3>
-                    <p class="text-xs text-on-surface-variant mt-1">RFC: TCH-110228-ABC</p>
-                    <p class="text-xs text-on-surface-variant truncate mt-1">soporte@terrachem.mx</p>
+            {{/each}}
 
-                    <div class="mt-4 pt-4 border-t border-surface-container flex justify-between items-center">
-                        <span class="text-[10px] text-on-surface-variant font-bold text-orange-600">En revisión</span>
-                        <div class="flex gap-2 text-on-surface-variant">
-                            <button class="hover:text-primary transition-colors"><span class="material-symbols-outlined text-base">visibility</span></button>
-                            <button class="hover:text-primary transition-colors"><span class="material-symbols-outlined text-base">edit</span></button>
-                            <button class="hover:text-error transition-colors"><span class="material-symbols-outlined text-base">delete</span></button>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Add New Card -->
-            <div id="btn-add-supplier-card" class="bg-surface-container-lowest rounded-xl border-2 border-dashed border-primary/20 shadow-sm overflow-hidden group hover:-translate-y-1 transition-all duration-300 flex items-center justify-center min-h-[220px] cursor-pointer">
+            <!-- ADD NEW CARD -->
+
+            <div id="btn-add-supplier-card"
+                class="bg-surface-container-lowest rounded-xl border-2 border-dashed border-primary/20 shadow-sm overflow-hidden group hover:-translate-y-1 transition-all duration-300 flex items-center justify-center min-h-[220px] cursor-pointer">
+
                 <div class="text-center p-6">
-                    <span class="material-symbols-outlined text-3xl text-primary/30 mb-2 group-hover:text-primary/50 transition-colors">add_business</span>
-                    <p class="text-sm font-bold text-on-surface-variant group-hover:text-primary transition-colors">Añadir proveedor</p>
+
+                    <span
+                        class="material-symbols-outlined text-3xl text-primary/30 mb-2 group-hover:text-primary/50 transition-colors">
+                        add_business
+                    </span>
+
+                    <p class="text-sm font-bold text-on-surface-variant group-hover:text-primary transition-colors">
+                        Añadir proveedor
+                    </p>
+
                 </div>
+
             </div>
 
         </div>
@@ -310,99 +751,997 @@
 </script>
 
 {{!-- ═══════════════════════════════════════════════════════════
-     MODAL: Añadir / Editar Proveedor
+MODAL: Añadir / Editar Proveedor
 ════════════════════════════════════════════════════════════ --}}
 <div id="modal-supplier" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-    <div class="bg-surface-container-lowest rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
+
+    <div class="bg-surface-container-lowest rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+
         <!-- Modal Header -->
-        <div class="flex items-center justify-between px-8 py-6 border-b border-outline-variant/10">
+        <div
+            class="sticky top-0 z-10 bg-surface-container-lowest flex items-center justify-between px-8 py-6 border-b border-outline-variant/10">
+
             <div class="flex items-center gap-3">
+
                 <div class="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <span class="material-symbols-outlined text-primary text-xl" data-icon="add_business">add_business</span>
+                    <span class="material-symbols-outlined text-primary text-xl">
+                        add_business
+                    </span>
                 </div>
-                <h2 class="text-base font-extrabold text-on-surface tracking-tight">Nuevo Proveedor</h2>
+
+                <div>
+                    <h2 id="supplier-modal-title" class="text-base font-extrabold text-on-surface tracking-tight">
+                        Nuevo Proveedor
+                    </h2>
+
+                    <p class="text-xs text-on-surface-variant mt-0.5">
+                        Registra la información completa del proveedor
+                    </p>
+                </div>
+
             </div>
-            <button id="btn-close-modal-supplier"
+
+            <button id="btn-close-modal-supplier" type="button"
                 class="p-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-colors">
-                <span class="material-symbols-outlined" data-icon="close">close</span>
+
+                <span class="material-symbols-outlined">
+                    close
+                </span>
+
             </button>
+
         </div>
+
+
         <!-- Modal Body -->
-        <form id="form-supplier" class="px-8 py-6 space-y-4">
-            <div>
-                <label class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">Nombre de la Empresa</label>
-                <input type="text" id="supplier-nombre" placeholder="Razón social o nombre comercial"
-                    class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
-            </div>
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">RFC</label>
-                    <input type="text" id="supplier-rfc" placeholder="ABC123456XYZ"
-                        class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+        <form id="form-supplier" action="/private/suppliers/create" method="POST" class="px-8 py-6 space-y-8">
+
+            <!-- DATOS DE LA EMPRESA -->
+            <!-- ================================================= -->
+
+            <section>
+
+                <div class="flex items-center gap-2 mb-4">
+
+                    <span class="material-symbols-outlined text-primary">
+                        business
+                    </span>
+
+                    <h3 class="text-sm font-extrabold text-on-surface">
+                        Datos de la empresa
+                    </h3>
+
                 </div>
-                <div>
-                    <label class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">Teléfono</label>
-                    <input type="text" id="supplier-telefono" placeholder="Número de contacto"
-                        class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                    <!-- Nombre de la empresa -->
+                    <div class="md:col-span-2">
+
+                        <label
+                            class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">
+
+                            Nombre de la empresa
+
+                        </label>
+
+                        <input type="text" id="supplier-name" name="name" placeholder="Razón social de la empresa"
+                            required
+                            class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+
+                    </div>
+
+
+                    <!-- Nombre comercial -->
+                    <div>
+
+                        <label
+                            class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">
+
+                            Nombre comercial
+
+                        </label>
+
+                        <input type="text" id="supplier-commercial-name" name="commercial_name"
+                            placeholder="Nombre con el que se conoce comercialmente"
+                            class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+
+                    </div>
+
+
+                    <!-- RFC -->
+                    <div>
+
+                        <label
+                            class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">
+
+                            RFC
+
+                        </label>
+
+                        <input type="text" id="supplier-rfc" name="rfc" placeholder="ABC123456XYZ" maxlength="13"
+                            required
+                            class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+
+                    </div>
+
+
+                    <!-- Tipo de suministro -->
+                    <div class="md:col-span-2">
+
+                        <label
+                            class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">
+
+                            Tipo de suministro
+
+                        </label>
+
+                        <select id="supplier-supply-type" name="supply_type" required
+                            class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+
+                            <option value="">
+                                Seleccionar tipo de suministro...
+                            </option>
+
+                            <option value="agroquimicos">
+                                Agroquímicos
+                            </option>
+
+                            <option value="semillas">
+                                Semillas
+                            </option>
+
+                            <option value="equipo">
+                                Equipo agrícola
+                            </option>
+
+                            <option value="fertilizantes">
+                                Fertilizantes
+                            </option>
+
+                            <option value="herramientas">
+                                Herramientas
+                            </option>
+
+                            <option value="servicios">
+                                Servicios
+                            </option>
+
+                            <option value="otros">
+                                Otros
+                            </option>
+
+                        </select>
+
+                    </div>
+
                 </div>
-            </div>
-            <div>
-                <label class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">Correo Electrónico</label>
-                <input type="email" id="supplier-email" placeholder="contacto@empresa.com"
-                    class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
-            </div>
-            <div class="grid grid-cols-2 gap-4">
+
+            </section>
+
+
+            <!-- ================================================= -->
+            <!-- 👤 DATOS DE CONTACTO -->
+            <!-- ================================================= -->
+
+            <section>
+
+                <div class="flex items-center gap-2 mb-4">
+
+                    <span class="material-symbols-outlined text-primary">
+                        contact_phone
+                    </span>
+
+                    <h3 class="text-sm font-extrabold text-on-surface">
+                        Datos de contacto
+                    </h3>
+
+                </div>
+
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                    <!-- Nombre del contacto -->
+                    <div>
+
+                        <label
+                            class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">
+
+                            Nombre del contacto
+
+                        </label>
+
+                        <input type="text" id="supplier-contact-name" name="contact_name" placeholder="Nombre completo"
+                            required
+                            class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+
+                    </div>
+
+
+                    <!-- Puesto del contacto -->
+                    <div>
+
+                        <label
+                            class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">
+
+                            Puesto del contacto
+
+                        </label>
+
+                        <input type="text" id="supplier-contact-position" name="contact_position"
+                            placeholder="Ej. Gerente de ventas"
+                            class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+
+                    </div>
+
+
+                    <!-- Correo -->
+                    <div>
+
+                        <label
+                            class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">
+
+                            Correo electrónico
+
+                        </label>
+
+                        <input type="email" id="supplier-email" name="email" placeholder="contacto@empresa.com" required
+                            class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+
+                    </div>
+
+
+                    <!-- Correo alternativo -->
+                    <div>
+
+                        <label
+                            class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">
+
+                            Correo alternativo
+
+                        </label>
+
+                        <input type="email" id="supplier-alternative-email" name="alternative_email"
+                            placeholder="ventas@empresa.com"
+                            class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+
+                    </div>
+
+
+                    <!-- Teléfono -->
+                    <div>
+
+                        <label
+                            class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">
+
+                            Teléfono
+
+                        </label>
+
+                        <input type="tel" id="supplier-phone" name="phone" placeholder="Número principal" required
+                            class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+
+                    </div>
+
+
+                    <!-- Teléfono alternativo -->
+                    <div>
+
+                        <label
+                            class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">
+
+                            Teléfono alternativo
+
+                        </label>
+
+                        <input type="tel" id="supplier-alternative-phone" name="alternative_phone"
+                            placeholder="Número alternativo"
+                            class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- ================================================= -->
+            <!-- 📍 UBICACIÓN -->
+            <!-- ================================================= -->
+
+            <section>
+
+                <div class="flex items-center gap-2 mb-4">
+
+                    <span class="material-symbols-outlined text-primary">
+                        location_on
+                    </span>
+
+                    <h3 class="text-sm font-extrabold text-on-surface">
+                        Ubicación
+                    </h3>
+
+                </div>
+
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                    <!-- Dirección -->
+                    <div class="md:col-span-2">
+
+                        <label
+                            class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">
+
+                            Dirección
+
+                        </label>
+
+                        <input type="text" id="supplier-address" name="address" placeholder="Calle, número y colonia"
+                            required
+                            class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+
+                    </div>
+
+
+                    <!-- Ciudad -->
+                    <div>
+
+                        <label
+                            class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">
+
+                            Ciudad
+
+                        </label>
+
+                        <input type="text" id="supplier-city" name="city" placeholder="Ciudad" required
+                            class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+
+                    </div>
+
+
+                    <!-- Estado -->
+                    <div>
+
+                        <label
+                            class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">
+
+                            Estado
+
+                        </label>
+
+                        <input type="text" id="supplier-state" name="state" placeholder="Estado" required
+                            class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+
+                    </div>
+
+
+                    <!-- Código postal -->
+                    <div>
+
+                        <label
+                            class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">
+
+                            Código postal
+
+                        </label>
+
+                        <input type="text" id="supplier-postal-code" name="postal_code" placeholder="00000"
+                            maxlength="5" required
+                            class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+
+                    </div>
+
+
+                    <!-- País -->
+                    <div>
+
+                        <label
+                            class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">
+
+                            País
+
+                        </label>
+
+                        <input type="text" id="supplier-country" name="country" value="México" required
+                            class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- ================================================= -->
+            <!-- 📦 INFORMACIÓN DEL SUMINISTRO -->
+            <!-- ================================================= -->
+
+            <section>
+
+                <div class="flex items-center gap-2 mb-4">
+
+                    <span class="material-symbols-outlined text-primary">
+                        inventory_2
+                    </span>
+
+                    <h3 class="text-sm font-extrabold text-on-surface">
+                        Información del suministro
+                    </h3>
+
+                </div>
+
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                    <!-- Productos que suministra -->
+                    <div class="md:col-span-2">
+
+                        <label
+                            class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">
+                            Productos que suministra
+                        </label>
+
+                        <textarea id="supplier-supplied-products" name="supplied_products" rows="3"
+                            placeholder="Ej. Fertilizantes, insecticidas, semillas..." required
+                            class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none resize-none focus:ring-2 focus:ring-primary/20"></textarea>
+
+                    </div>
+
+
+                    <!-- Marcas -->
+                    <div class="md:col-span-2">
+
+                        <label
+                            class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">
+                            Marcas que maneja
+                        </label>
+
+                        <input type="text" id="supplier-brands" name="brands"
+                            placeholder="Ej. Bayer, Syngenta, Corteva..."
+                            class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+
+                    </div>
+
+
+                    <!-- Tiempo de entrega -->
+                    <div>
+
+                        <label
+                            class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">
+                            Tiempo de entrega
+                        </label>
+
+                        <input type="text" id="supplier-delivery-time" name="delivery_time" placeholder="Ej. 3 a 5 días"
+                            class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+
+                    </div>
+
+
+                    <!-- Compra mínima -->
+                    <div>
+
+                        <label
+                            class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">
+
+                            Compra mínima
+
+                        </label>
+
+                        <input type="number" id="supplier-minimum-order" name="minimum_order" placeholder="0.00" min="0"
+                            step="0.01"
+                            class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+
+                    </div>
+
+                </div>
+
+            </section>
+
+            <!--  INFORMACIÓN COMERCIAL -->
+            <section>
+
+                <div class="flex items-center gap-2 mb-4">
+
+                    <span class="material-symbols-outlined text-primary">
+                        payments
+                    </span>
+
+                    <h3 class="text-sm font-extrabold text-on-surface">
+                        Información comercial
+                    </h3>
+
+                </div>
+
+
                 <div>
-                    <label class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">Tipo de Suministro</label>
-                    <select id="supplier-tipo"
+
+                    <label
+                        class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">
+
+                        Forma de pago
+
+                    </label>
+
+                    <select id="supplier-payment-method" name="payment_method"
                         class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
-                        <option value="">Seleccionar...</option>
-                        <option value="agroquimicos">Agroquímicos</option>
-                        <option value="semillas">Semillas</option>
-                        <option value="equipo">Equipo</option>
-                        <option value="servicios">Servicios</option>
+
+                        <option value="">
+                            Seleccionar forma de pago...
+                        </option>
+
+                        <option value="efectivo">
+                            Efectivo
+                        </option>
+
+                        <option value="transferencia">
+                            Transferencia bancaria
+                        </option>
+
+                        <option value="tarjeta">
+                            Tarjeta
+                        </option>
+
+                        <option value="credito">
+                            Crédito
+                        </option>
+
+                        <option value="contado">
+                            Contado
+                        </option>
+
                     </select>
+
                 </div>
+
+            </section>
+
+            <!-- ⚙️ CONTROL -->
+
+            <section>
+
+                <div class="flex items-center gap-2 mb-4">
+
+                    <span class="material-symbols-outlined text-primary">
+                        settings
+                    </span>
+
+                    <h3 class="text-sm font-extrabold text-on-surface">
+                        Control del proveedor
+                    </h3>
+
+                </div>
+
+
                 <div>
-                    <label class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">Estatus</label>
-                    <select id="supplier-estatus"
+
+                    <label
+                        class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">
+
+                        Estatus
+
+                    </label>
+
+                    <select id="supplier-status" name="status" required
                         class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
-                        <option value="activo">Activo</option>
-                        <option value="pendiente">Pendiente</option>
-                        <option value="inactivo">Inactivo</option>
+
+                        <option value="pendiente">
+                            Pendiente
+                        </option>
+
+                        <option value="activo">
+                            Activo
+                        </option>
+
+                        <option value="inactivo">
+                            Inactivo
+                        </option>
+
                     </select>
+
                 </div>
-            </div>
+
+            </section>
+
         </form>
+
+
         <!-- Modal Footer -->
-        <div class="px-8 py-5 bg-surface-container-low/30 border-t border-outline-variant/10 flex justify-end gap-3">
-            <button id="btn-cancel-modal-supplier"
+        <div
+            class="sticky bottom-0 px-8 py-5 bg-surface-container-low/95 backdrop-blur border-t border-outline-variant/10 flex justify-end gap-3">
+
+            <button id="btn-cancel-modal-supplier" type="button"
                 class="px-6 py-2.5 rounded-lg text-on-surface-variant text-sm font-bold hover:bg-surface-container-low transition-colors">
+
                 Cancelar
+
             </button>
+
+
             <button type="submit" form="form-supplier"
                 class="px-6 py-2.5 rounded-lg bg-[#43655c] text-white text-sm font-bold hover:bg-[#354f47] transition-colors shadow-lg shadow-primary/10 flex items-center gap-2">
-                <span class="material-symbols-outlined text-base" data-icon="save">save</span>
+
+                <span class="material-symbols-outlined text-base">
+                    save
+                </span>
+
                 Guardar Proveedor
+
             </button>
+
         </div>
     </div>
+
+</div>
+<!-- MODAL CONFIRMAR ELIMINACIÓN -->
+<div id="modal-delete-supplier"
+    class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+
+    <div class="bg-surface-container-lowest rounded-2xl shadow-2xl w-full max-w-md">
+
+        <!-- Header -->
+
+        <div class="flex items-center justify-between px-6 py-5 border-b border-outline-variant/10">
+
+            <div class="flex items-center gap-3">
+
+                <div class="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center">
+
+                    <span class="material-symbols-outlined text-red-600">
+                        delete
+                    </span>
+
+                </div>
+
+                <div>
+
+                    <h2 class="text-base font-extrabold text-on-surface">
+                        Eliminar proveedor
+                    </h2>
+
+                    <p class="text-xs text-on-surface-variant">
+                        Esta acción no se puede deshacer
+                    </p>
+
+                </div>
+
+            </div>
+
+            <button id="btn-close-delete-supplier" type="button"
+                class="p-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low">
+
+                <span class="material-symbols-outlined">
+                    close
+                </span>
+
+            </button>
+
+        </div>
+
+
+        <!-- Body -->
+
+        <div class="px-6 py-6">
+
+            <p class="text-sm text-on-surface-variant">
+                ¿Estás seguro de que quieres eliminar este proveedor?
+            </p>
+
+            <div class="mt-4 p-4 rounded-xl bg-surface-container-low">
+
+                <p class="text-xs uppercase tracking-widest font-black text-on-surface-variant">
+                    Proveedor
+                </p>
+
+                <p id="delete-supplier-name" class="mt-1 text-base font-bold text-on-surface">
+
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <!-- Footer -->
+
+        <div class="px-6 py-5 bg-surface-container-low/50 border-t border-outline-variant/10 flex justify-end gap-3">
+
+            <button id="btn-cancel-delete-supplier" type="button"
+                class="px-5 py-2.5 rounded-lg text-sm font-bold text-on-surface-variant hover:bg-surface-container-low">
+
+                Cancelar
+
+            </button>
+
+
+            <form id="form-delete-supplier" method="POST">
+
+                <button type="submit"
+                    class="px-5 py-2.5 rounded-lg bg-red-600 text-white text-sm font-bold hover:bg-red-700 transition-colors flex items-center gap-2">
+
+                    <span class="material-symbols-outlined text-base">
+                        delete
+                    </span>
+
+                    Sí, eliminar
+
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
 </div>
 
 <script>
-    // Modal toggle
-    const modalSupplier     = document.getElementById('modal-supplier');
-    const btnAddSupplier    = document.getElementById('btn-add-supplier');
-    const btnAddSupplierCard = document.getElementById('btn-add-supplier-card');
-    const btnCloseSupplier  = document.getElementById('btn-close-modal-supplier');
-    const btnCancelSupplier = document.getElementById('btn-cancel-modal-supplier');
+    document.addEventListener('DOMContentLoaded', () => {
 
-    const openModal  = () => modalSupplier.classList.replace('hidden', 'flex');
-    const closeModal = () => modalSupplier.classList.replace('flex', 'hidden');
+        // =====================================================
+        // VISTAS: TABLA / GRID
+        // =====================================================
 
-    btnAddSupplier?.addEventListener('click', openModal);
-    btnAddSupplierCard?.addEventListener('click', openModal);
-    btnCloseSupplier?.addEventListener('click', closeModal);
-    btnCancelSupplier?.addEventListener('click', closeModal);
-    modalSupplier?.addEventListener('click', (e) => { if (e.target === modalSupplier) closeModal(); });
+        const tableView = document.getElementById('suppliers-table-view');
+        const gridView = document.getElementById('suppliers-grid-view');
+
+        const btnTable = document.getElementById('view-table');
+        const btnGrid = document.getElementById('view-grid');
+
+        if (btnTable && btnGrid && tableView && gridView) {
+
+            gridView.style.display = 'grid';
+            tableView.style.display = 'none';
+
+            btnGrid.classList.add('bg-[#43655c]', 'text-white');
+            btnGrid.classList.remove('text-on-surface-variant');
+
+            btnTable.classList.remove('bg-[#43655c]', 'text-white');
+            btnTable.classList.add('text-on-surface-variant');
+
+
+            btnTable.addEventListener('click', () => {
+
+                tableView.style.display = '';
+                gridView.style.display = 'none';
+
+                btnTable.classList.add('bg-[#43655c]', 'text-white');
+                btnTable.classList.remove('text-on-surface-variant');
+
+                btnGrid.classList.remove('bg-[#43655c]', 'text-white');
+                btnGrid.classList.add('text-on-surface-variant');
+
+            });
+
+
+            btnGrid.addEventListener('click', () => {
+
+                tableView.style.display = 'none';
+                gridView.style.display = 'grid';
+
+                btnGrid.classList.add('bg-[#43655c]', 'text-white');
+                btnGrid.classList.remove('text-on-surface-variant');
+
+                btnTable.classList.remove('bg-[#43655c]', 'text-white');
+                btnTable.classList.add('text-on-surface-variant');
+
+            });
+
+        }
+
+
+        // =====================================================
+        // MODAL: AÑADIR / EDITAR PROVEEDOR
+        // =====================================================
+
+        const modalSupplier =
+            document.getElementById('modal-supplier');
+
+        const formSupplier =
+            document.getElementById('form-supplier');
+
+        const modalTitle =
+            document.getElementById('supplier-modal-title');
+
+        const btnAddSupplier =
+            document.getElementById('btn-add-supplier');
+
+        const btnAddSupplierCard =
+            document.getElementById('btn-add-supplier-card');
+
+        const btnCloseSupplier =
+            document.getElementById('btn-close-modal-supplier');
+
+        const btnCancelSupplier =
+            document.getElementById('btn-cancel-modal-supplier');
+
+
+        // =====================================================
+        // ABRIR MODAL EN MODO NUEVO
+        // =====================================================
+
+        function openNewSupplierModal() {
+
+            if (!modalSupplier || !formSupplier) return;
+
+            // Limpiar todos los campos
+            formSupplier.reset();
+
+            // Restaurar valores por defecto
+            document.getElementById('supplier-country').value = 'México';
+
+            // Título
+            modalTitle.textContent = 'Nuevo Proveedor';
+
+            // Ruta para crear
+            formSupplier.action = '/private/suppliers/create';
+
+            // Mostrar modal
+            modalSupplier.classList.remove('hidden');
+            modalSupplier.classList.add('flex');
+
+        }
+
+
+        // =====================================================
+        // ABRIR MODAL EN MODO EDITAR
+        // =====================================================
+
+        function openEditSupplierModal(button) {
+
+            if (!modalSupplier || !formSupplier) return;
+
+            // Obtener datos del botón
+            const data = button.dataset;
+
+            // Cargar datos en el formulario
+            document.getElementById('supplier-name').value = data.name || '';
+            document.getElementById('supplier-commercial-name').value = data.commercialName || '';
+            document.getElementById('supplier-rfc').value = data.rfc || '';
+            document.getElementById('supplier-supply-type').value = data.supplyType || '';
+            document.getElementById('supplier-contact-name').value = data.contactName || '';
+            document.getElementById('supplier-contact-position').value = data.contactPosition || '';
+            document.getElementById('supplier-email').value = data.email || '';
+            document.getElementById('supplier-alternative-email').value = data.alternativeEmail || '';
+            document.getElementById('supplier-phone').value = data.phone || '';
+            document.getElementById('supplier-alternative-phone').value = data.alternativePhone || '';
+            document.getElementById('supplier-address').value = data.address || '';
+            document.getElementById('supplier-city').value = data.city || '';
+            document.getElementById('supplier-state').value = data.state || '';
+            document.getElementById('supplier-postal-code').value = data.postalCode || '';
+            document.getElementById('supplier-country').value = data.country || 'México';
+            document.getElementById('supplier-supplied-products').value = data.suppliedProducts || '';
+            document.getElementById('supplier-brands').value = data.brands || '';
+            document.getElementById('supplier-delivery-time').value = data.deliveryTime || '';
+            document.getElementById('supplier-minimum-order').value = data.minimumOrder || '';
+            document.getElementById('supplier-payment-method').value =data.paymentMethod || '';
+            document.getElementById('supplier-status').value = data.status || 'pendiente';
+            // Cambiar título
+            modalTitle.textContent = 'Editar Proveedor';
+            // Cambiar ruta del formulario
+            formSupplier.action = `/private/suppliers/update/${data.id}`;
+            // Mostrar modal
+            modalSupplier.classList.remove('hidden');
+            modalSupplier.classList.add('flex');
+
+        }
+        // BOTÓN NUEVO PROVEEDOR
+        btnAddSupplier?.addEventListener('click', openNewSupplierModal );
+        btnAddSupplierCard?.addEventListener( 'click', openNewSupplierModal );
+
+        // =====================================================
+        // BOTONES EDITAR
+        const editButtons = document.querySelectorAll('.btn-edit-supplier');
+        editButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                openEditSupplierModal(button);
+            });
+        });
+
+        // CERRAR MODAL DE PROVEEDOR
+        function closeSupplierModal() {
+            if (!modalSupplier) return;
+            modalSupplier.classList.remove('flex');
+            modalSupplier.classList.add('hidden');
+
+        }
+        btnCloseSupplier?.addEventListener( 'click', closeSupplierModal );
+        btnCancelSupplier?.addEventListener( 'click', closeSupplierModal );
+
+        modalSupplier?.addEventListener('click', (event) => {
+            if (event.target === modalSupplier) {
+                closeSupplierModal();
+            }
+        });
+
+
+        // =====================================================
+        // MODAL: ELIMINAR PROVEEDOR
+        // =====================================================
+
+        const modalDeleteSupplier = document.getElementById('modal-delete-supplier');
+        const deleteSupplierName = document.getElementById('delete-supplier-name');
+        const formDeleteSupplier = document.getElementById('form-delete-supplier');
+        const btnCloseDeleteSupplier = document.getElementById('btn-close-delete-supplier');
+        const btnCancelDeleteSupplier = document.getElementById('btn-cancel-delete-supplier');
+        const deleteButtons = document.querySelectorAll('.btn-delete-supplier');
+
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const supplierId = button.dataset.id;
+                const supplierName = button.dataset.name;
+                if (deleteSupplierName) {
+                    deleteSupplierName.textContent = supplierName;
+                }
+                if (formDeleteSupplier) {
+                    formDeleteSupplier.action = `/private/suppliers/delete/${supplierId}`;
+                }
+                if (modalDeleteSupplier) {
+                    modalDeleteSupplier.classList.remove('hidden');
+                    modalDeleteSupplier.classList.add('flex');
+                }
+            });
+        });
+
+        btnCloseDeleteSupplier?.addEventListener( 'click', closeDeleteSupplierModal );
+        btnCancelDeleteSupplier?.addEventListener('click', closeDeleteSupplierModal );
+
+        modalDeleteSupplier?.addEventListener('click', (event) => {
+            if (event.target === modalDeleteSupplier) {
+                closeDeleteSupplierModal();
+            }
+        });
+
+        function closeDeleteSupplierModal() {
+            if (!modalDeleteSupplier) return;
+            modalDeleteSupplier.classList.remove('flex');
+            modalDeleteSupplier.classList.add('hidden');
+        }
+
+    });
+</script>
+
+<script>
+    (() => {
+
+        // BUSCADOR EN TIEMPO REAL DE PROVEEDORES
+        const searchInput = document.getElementById("supplier-search");
+
+        if (!searchInput) return;
+
+        searchInput.addEventListener("input", () => {
+
+            const search = searchInput.value.toLowerCase().trim();
+
+            // TABLA DE PROVEEDORES
+            const rows = document.querySelectorAll(
+                "#suppliers-table-view tbody tr"
+            );
+
+            rows.forEach(row => {
+
+                const text = row.textContent.toLowerCase();
+
+                row.style.display =
+                    text.includes(search) ? "" : "none";
+
+            });
+
+            // GRID DE PROVEEDORES
+            const cards = document.querySelectorAll(
+                "#suppliers-grid-view > div"
+            );
+
+            cards.forEach(card => {
+
+                const text = card.textContent.toLowerCase();
+
+                card.style.display =
+                    text.includes(search) ? "" : "none";
+
+            });
+
+        });
+
+    })();
 </script>
