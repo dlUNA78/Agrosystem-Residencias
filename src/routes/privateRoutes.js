@@ -1,33 +1,23 @@
 import { Router } from "express";
 import { upload, uploadPlague, uploadCrop } from "../middlewares/upload.js";
 import {
-  getCropDetail,
-  getGlyphomaxDetail,
-  createCrop,
-  updateCrop,
-  deleteCrop,
-  createProduct,
-  updateProduct,
-  deleteProduct,
-  createPlague,
-  updatePlague,
-  deletePlague,
-  getPestDetail,
   dashboard,
-  plaguesPrivate,
-  cropsPrivate,
   landsPrivate,
   landDetail,
-  productsPrivate,
   ingredientsPrivate,
   reportsPrivate,
   usersPrivate,
-  suppliersPrivate,
-  createSupplier,
-  updateSupplier,
-  deleteSupplier,
   auditPrivate,
 } from "../controllers/privateController.js";
+
+import {suppliersPrivate, createSupplier, updateSupplier, deleteSupplier} from "../controllers/private/provedoresController.js";
+
+import {cropsPrivate, getCropDetail, createCrop, updateCrop, deleteCrop} from "../controllers/private/cropController.js";
+
+import {plaguesPrivate, getPestDetail, createPlague, updatePlague, deletePlague, } from "../controllers/private/plagueController.js";
+
+import {productsPrivate, createProduct, updateProduct, deleteProduct, getGlyphomaxDetail} from "../controllers/private/productController.js";
+
 import { isAuthenticated, requirePanelAccess } from "../middlewares/authMiddleware.js";
 
 const privateRouter = Router();
