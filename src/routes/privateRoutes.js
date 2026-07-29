@@ -16,8 +16,6 @@ import {
   dashboard,
   plaguesPrivate,
   cropsPrivate,
-  landsPrivate,
-  landDetail,
   productsPrivate,
   ingredientsPrivate,
   reportsPrivate,
@@ -28,6 +26,10 @@ import {
   deleteSupplier,
   auditPrivate,
 } from "../controllers/privateController.js";
+import {
+  renderLandsPrivate,
+  landDetail,
+} from "../controllers/private/landsController.js";
 import { isAuthenticated, requirePanelAccess } from "../middlewares/authMiddleware.js";
 
 const privateRouter = Router();
@@ -43,7 +45,7 @@ privateRouter.get("/private/crops/:id", getCropDetail);
 privateRouter.post("/private/crops/create", uploadCrop.array("images", 10), createCrop);
 privateRouter.post("/private/crops/update/:id", uploadCrop.array("images", 10), updateCrop);
 privateRouter.post("/private/crops/delete/:id", deleteCrop);
-privateRouter.get("/private/lands", landsPrivate);
+privateRouter.get("/private/lands", renderLandsPrivate);
 privateRouter.get("/private/lands/:id/expediente", landDetail);
 privateRouter.get("/private/products", productsPrivate);
 privateRouter.post("/private/products/delete/:id", deleteProduct);
