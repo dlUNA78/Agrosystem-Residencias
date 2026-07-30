@@ -10,7 +10,7 @@ const __dirname = path.dirname(__filename);
 const privateLayout = path.join(__dirname, "../views/layouts/private");
 
 export const dashboard = (req, res) => {
-  res.render("private/dashboard", {
+  res.render("private/dashboard/index", {
     layout: privateLayout,
     pageTitle: "Dashboard",
     activePage: "dashboard",
@@ -70,7 +70,7 @@ export const plaguesPrivate = async (req, res) => {
     console.log("FILTRO STATUS:", status);
     console.log("PLAGAS ENCONTRADAS:", plagues);
 
-    return res.render("private/plagues", {
+    return res.render("private/catalog/plagues", {
       layout: privateLayout,
       pageTitle: "Plagas",
       activePage: "plagues",
@@ -265,7 +265,7 @@ export const suppliersPrivate = async (req, res) => {
     // RENDERIZAR VISTA
     // =========================================
 
-    res.render("private/suppliers", {
+    res.render("private/admin/suppliers", {
       layout: privateLayout,
 
       pageTitle: "Proveedores",
@@ -489,7 +489,7 @@ export const deleteSupplier = async (req, res) => {
 };
 
 export const auditPrivate = (req, res) => {
-  res.render("private/audit", {
+  res.render("private/admin/audit", {
     layout: privateLayout,
     pageTitle: "Auditoría",
     activePage: "audit",
@@ -622,7 +622,7 @@ export const cropsPrivate = async (req, res) => {
 
     // RENDERIZAR
 
-    res.render("private/crops", {
+    res.render("private/catalog/crops", {
       layout: privateLayout,
       pageTitle: "Cultivos",
       activePage: "crops",
@@ -1326,7 +1326,7 @@ export const productsPrivate = async (req, res) => {
         }),
       };
     });
-    res.render("private/products", {
+    res.render("private/catalog/products", {
       layout: privateLayout,
       pageTitle: "Productos",
       activePage: "products",
@@ -1552,7 +1552,7 @@ export const deletePlague = async (req, res) => {
 };
 
 export const reportsPrivate = (req, res) => {
-  res.render("private/reports", {
+  res.render("private/admin/reports", {
     layout: privateLayout,
     pageTitle: "Reportes y Estadísticas",
     activePage: "reports",
@@ -1560,7 +1560,7 @@ export const reportsPrivate = (req, res) => {
 };
 
 export const ingredientsPrivate = (req, res) => {
-  res.render("private/ingredients", {
+  res.render("private/catalog/ingredients", {
     layout: privateLayout,
     pageTitle: "Ingredientes Activos",
     activePage: "ingredients",
@@ -1608,7 +1608,7 @@ export const ingredientsPrivate = (req, res) => {
 };
 
 export const usersPrivate = (req, res) => {
-  res.render("private/users", {
+  res.render("private/admin/users", {
     layout: privateLayout,
     pageTitle: "Usuarios",
     activePage: "users",
@@ -1643,7 +1643,7 @@ export const usersPrivate = (req, res) => {
 };
 
 export const getPestDetail = (req, res) => {
-  res.render("private/pest-detail", {
+  res.render("private/catalog/pest-detail", {
     layout: privateLayout,
     pageTitle: "Pulgón Verde - Plagas",
     activePage: "plagues",
@@ -1651,7 +1651,7 @@ export const getPestDetail = (req, res) => {
 };
 
 export const getGlyphomaxDetail = (req, res) => {
-  res.render("private/product-detail", {
+  res.render("private/catalog/product-detail", {
     layout: privateLayout,
     pageTitle: "Glyphomax Pro 480 - Productos",
     activePage: "products",

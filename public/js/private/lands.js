@@ -27,9 +27,10 @@ document.addEventListener("DOMContentLoaded", function () {
       5
     );
 
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: "© OpenStreetMap contributors",
-      maxZoom: 18,
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      subdomains: "abcd",
+      maxZoom: 20,
     }).addTo(landsMap);
 
     // Forzar re-cálculo del tamaño por si el sidebar causa un reflow al cargar
@@ -114,11 +115,15 @@ document.addEventListener("DOMContentLoaded", function () {
     // Inicializar el mini-mapa la primera vez que se abre
     if (!farmMap) {
       // Centro por defecto: México (ajustable por el usuario)
-      farmMap = L.map("farm-map").setView([19.432608, -99.133209], 5);
+      farmMap = L.map("farm-map", {
+        zoomControl: true,
+        fadeAnimation: true,
+      }).setView([19.432608, -99.133209], 5);
 
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: "© OpenStreetMap contributors",
-        maxZoom: 19,
+      L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains: "abcd",
+        maxZoom: 20,
       }).addTo(farmMap);
 
       // ── Evento clic: colocar/mover marcador y actualizar inputs ocultos ──
@@ -144,8 +149,10 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     }
 
-    // Forzar re-cálculo del tamaño (necesario si el mapa estaba oculto)
-    setTimeout(() => farmMap.invalidateSize(), 150);
+    // Forzar re-cálculo del tamaño de inmediato para cargar las imágenes sin delay
+    requestAnimationFrame(() => {
+      if (farmMap) farmMap.invalidateSize();
+    });
   }
 
   function closeModal() {
