@@ -1,0 +1,274 @@
+{{!-- ============================================================
+     TERRENOS — Vista Principal: Mis Parcelas
+     NOTA: Esta vista NO contiene lógica JavaScript.
+     Toda la interactividad del mapa Leaflet está en:
+     public/js/private/lands.js
+     ============================================================ --}}
+<main class="min-h-screen flex flex-col">
+    <div class="mt-20 p-6 md:p-10 space-y-8">
+
+        {{!-- ── Cabecera ── --}}
+        <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+                <h1 class="text-2xl font-extrabold text-[#0F2E2E]">Gestión de Terrenos y Parcelas</h1>
+                <p class="text-sm text-on-surface-variant mt-1">
+                    Registra y monitorea tus predios.
+                    {{#if farmsCount}}
+                        <span class="font-bold text-primary">{{farmsCount}} terreno(s) activo(s).</span>
+                    {{else}}
+                        <span class="text-slate-400">Aún no tienes terrenos registrados.</span>
+                    {{/if}}
+                </p>
+            </div>
+            {{!-- Botón para abrir el modal de registro --}}
+            <button id="btn-open-new-land"
+                class="flex items-center gap-2 px-5 py-2.5 bg-[#0F2E2E] text-white rounded-xl text-sm font-bold hover:bg-[#43655c] transition-colors shadow-sm">
+                <span class="material-symbols-outlined text-base">add_location_alt</span>
+                Registrar Predio
+            </button>
+        </div>
+
+        {{!-- ── Mapa de mis terrenos (visualización) ── --}}
+        {{!-- isolation: isolate crea un stacking context propio que impide
+             que los z-index internos de Leaflet (pane z-400+) se filtren
+             por encima del modal u otros elementos de la página --}}
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden" style="isolation: isolate;">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-slate-50">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">map</span>
+                    <span class="font-bold text-[#0F2E2E] text-sm">Mapa de Mis Predios</span>
+                </div>
+                <button id="map-zoom-fit"
+                    class="text-xs font-bold text-on-surface-variant hover:text-primary transition-colors flex items-center gap-1 px-3 py-1.5 rounded-lg hover:bg-surface-container-low">
+                    <span class="material-symbols-outlined text-base">fit_screen</span> Ajustar vista
+                </button>
+            </div>
+            {{!-- position: relative + z-index: 0 fuerza un stacking context en el div del mapa --}}
+            <div id="lands-map" class="w-full" style="height: 380px; position: relative; z-index: 0;"></div>
+        </section>
+
+        {{!-- ── Grid de Tarjetas de Terrenos ── --}}
+        {{#if farms}}
+        <section id="lands-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {{#each farms}}
+            <article class="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all group overflow-hidden"
+                data-lat="{{this.location_lat}}"
+                data-lng="{{this.location_lng}}">
+                <div class="relative h-36 bg-surface-container flex items-center justify-center overflow-hidden">
+                    <span class="material-symbols-outlined text-6xl text-slate-200">landscape</span>
+                    <div class="absolute top-3 right-3 flex items-center gap-1.5 bg-white/90 backdrop-blur px-2.5 py-1 rounded-full shadow-sm">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span class="text-[10px] font-black text-emerald-700 uppercase">Activo</span>
+                    </div>
+                    <div class="absolute top-3 left-3 bg-white/80 backdrop-blur text-[10px] font-bold text-slate-500 px-2 py-0.5 rounded-full">#PRD-{{this.id}}</div>
+                </div>
+                <div class="p-5">
+                    <h2 class="font-extrabold text-[#0F2E2E] text-base leading-tight">{{this.name}}</h2>
+                    <div class="flex items-center gap-1 text-xs text-on-surface-variant mt-1">
+                        <span class="material-symbols-outlined text-sm">location_on</span>
+                        {{#if this.municipality}}{{this.municipality}}{{else}}<em>Sin municipio</em>{{/if}}
+                        {{#if this.region}} — {{this.region.name}}{{/if}}
+                    </div>
+                    <div class="mt-4 grid grid-cols-2 gap-3">
+                        <div class="bg-surface-container-low rounded-xl p-3">
+                            <p class="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider">Tamaño</p>
+                            <p class="font-extrabold text-[#0F2E2E] text-lg mt-0.5">
+                                {{#if this.size_hectares}}{{this.size_hectares}}{{else}}—{{/if}}
+                                <span class="text-sm font-bold text-slate-400">ha</span>
+                            </p>
+                        </div>
+                        <div class="bg-surface-container-low rounded-xl p-3">
+                            <p class="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider">Tipo Agricultura</p>
+                            <p class="font-bold text-[#0F2E2E] text-sm mt-0.5 truncate">
+                                {{#if this.farming_type}}{{this.farming_type}}{{else}}<em class="text-slate-400">No especificado</em>{{/if}}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="px-5 pb-5">
+                    <a href="/private/lands/{{this.id}}/expediente"
+                        class="w-full flex items-center justify-center gap-2 py-2.5 bg-[#0F2E2E] text-white rounded-xl text-sm font-bold hover:bg-[#43655c] transition-colors group-hover:shadow-md">
+                        <span class="material-symbols-outlined text-base">folder_open</span>
+                        Abrir Expediente
+                    </a>
+                </div>
+            </article>
+            {{/each}}
+
+            {{!-- Tarjeta de añadir nuevo terreno --}}
+            <article id="btn-open-new-land-card"
+                class="bg-surface-container-lowest rounded-xl border-2 border-dashed border-primary/20 shadow-sm overflow-hidden group hover:-translate-y-1 transition-all duration-300 flex items-center justify-center min-h-[380px] cursor-pointer">
+                <div class="text-center p-6">
+                    <span class="material-symbols-outlined text-4xl text-primary/30 mb-3 group-hover:text-primary/50 transition-colors">add_location_alt</span>
+                    <p class="text-base font-bold text-on-surface-variant group-hover:text-primary transition-colors">Registrar Nuevo Predio</p>
+                </div>
+            </article>
+        </section>
+        {{else}}
+        {{!-- Estado vacío --}}
+        <section class="flex flex-col items-center justify-center py-24 text-center">
+            <span class="material-symbols-outlined text-7xl text-slate-200 mb-4">terrain</span>
+            <h2 class="text-xl font-extrabold text-[#0F2E2E] mb-2">Sin terrenos registrados</h2>
+            <p class="text-sm text-on-surface-variant max-w-sm">
+                Aún no has registrado ninguna parcela. Haz clic en <strong>"Registrar Predio"</strong> para comenzar.
+            </p>
+        </section>
+        {{/if}}
+
+    </div>
+</main>
+
+
+{{!-- ════════════════════════════════════════════
+     MODAL — Registrar Nuevo Predio
+     Contiene el mapa de selección GPS (farm-map)
+     y los inputs ocultos de lat/lng que
+     public/js/private/lands.js gestiona.
+     ════════════════════════════════════════════ --}}
+<div id="modal-new-land" class="hidden fixed inset-0 z-[200] flex items-center justify-center">
+    {{!-- Backdrop --}}
+    <div id="modal-new-land-backdrop" class="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
+
+    {{!-- Panel --}}
+    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 overflow-hidden">
+        {{!-- Header --}}
+        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary">add_location_alt</span>
+                <h3 class="font-extrabold text-[#0F2E2E] text-base">Registrar Nuevo Predio</h3>
+            </div>
+            <button id="btn-close-new-land" class="text-slate-400 hover:text-slate-600 transition-colors">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+
+        {{!-- Body — Formulario con acción al backend --}}
+        <form id="form-new-land" action="/lands/create" method="POST">
+            <div class="p-6 space-y-5 overflow-y-auto max-h-[75vh]">
+
+                {{!-- Fila 1: Nombre y Hectáreas --}}
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="sm:col-span-2">
+                        <label for="farm-name" class="block text-xs font-bold text-slate-600 mb-1.5">
+                            Nombre del Predio <span class="text-primary">*</span>
+                        </label>
+                        <input
+                            type="text"
+                            id="farm-name"
+                            name="name"
+                            required
+                            placeholder="Ej. Parcela Norte"
+                            class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" />
+                    </div>
+
+                    <div>
+                        <label for="farm-hectares" class="block text-xs font-bold text-slate-600 mb-1.5">
+                            Hectáreas <span class="text-primary">*</span>
+                        </label>
+                        <input
+                            type="number"
+                            id="farm-hectares"
+                            name="size_hectares"
+                            step="0.01"
+                            min="0.01"
+                            required
+                            placeholder="Ej. 5.25"
+                            class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" />
+                    </div>
+
+                    <div>
+                        <label for="farm-municipality" class="block text-xs font-bold text-slate-600 mb-1.5">
+                            Municipio
+                        </label>
+                        <input
+                            type="text"
+                            id="farm-municipality"
+                            name="municipality"
+                            placeholder="Ej. Uruapan"
+                            class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" />
+                    </div>
+                </div>
+
+                {{!-- Fila 2: Tipo de Agricultura y Región --}}
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label for="farm-farming-type" class="block text-xs font-bold text-slate-600 mb-1.5">
+                            Tipo de Agricultura
+                        </label>
+                        <select
+                            id="farm-farming-type"
+                            name="farming_type"
+                            class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-on-surface-variant bg-white">
+                            <option value="">— Seleccionar —</option>
+                            <option value="Temporal">Temporal</option>
+                            <option value="Riego">Riego</option>
+                            <option value="Mixto">Mixto</option>
+                            <option value="Tecnificado">Tecnificado</option>
+                            <option value="Orgánico">Orgánico</option>
+                            <option value="Hidroponía">Hidroponía</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="farm-region" class="block text-xs font-bold text-slate-600 mb-1.5">
+                            Región Agrícola
+                        </label>
+                        <select
+                            id="farm-region"
+                            name="region_id"
+                            class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-on-surface-variant bg-white">
+                            <option value="">— Seleccionar —</option>
+                            {{#each regions}}
+                            <option value="{{this.id}}">{{this.name}}</option>
+                            {{/each}}
+                        </select>
+                    </div>
+                </div>
+
+                {{!-- Mapa de selección GPS --}}
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1.5">
+                        Ubicación GPS
+                        <span class="text-xs font-normal text-slate-400">— Haz clic en el mapa para marcar tu parcela</span>
+                    </label>
+
+                    {{!-- Contenedor del mapa Leaflet — interactividad en public/js/private/lands.js --}}
+                    <div id="farm-map" class="w-full rounded-xl overflow-hidden border border-slate-200 z-0" style="height: 260px;"></div>
+
+                    {{!-- Inputs ocultos que reciben las coordenadas del evento click del mapa --}}
+                    <input type="hidden" id="lat" name="location_lat" />
+                    <input type="hidden" id="lng" name="location_lng" />
+
+                    {{!-- Indicadores visuales de las coordenadas seleccionadas --}}
+                    <div class="grid grid-cols-2 gap-3 mt-2">
+                        <div>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase">Latitud</p>
+                            <p id="lat-display" class="mt-1 px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 text-slate-600 min-h-[38px]">—</p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase">Longitud</p>
+                            <p id="lng-display" class="mt-1 px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 text-slate-600 min-h-[38px]">—</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            {{!-- Footer del modal --}}
+            <div class="flex justify-end gap-3 px-6 py-4 border-t border-slate-100 bg-slate-50">
+                <button
+                    type="button"
+                    id="btn-cancel-new-land"
+                    class="px-5 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-100 transition-colors">
+                    Cancelar
+                </button>
+                <button
+                    type="submit"
+                    id="btn-submit-farm"
+                    class="px-6 py-2.5 rounded-xl bg-[#43655c] text-white text-sm font-bold hover:bg-[#0F2E2E] transition-colors shadow-sm">
+                    Guardar Predio
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

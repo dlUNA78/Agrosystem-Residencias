@@ -1,5 +1,5 @@
 export default {
-  async up(queryInterface, Sequelize) {
+  async up(queryInterface) {
     await queryInterface.bulkInsert(
       "Crops",
       [
@@ -10,8 +10,7 @@ export default {
           description: "Cultivo básico utilizado para consumo humano y animal.",
           climate: "Templado",
           region: "Centro de México",
-          image_url: "https://example.com/maiz.jpg",
-          status: true,
+          status: "activo",
           createdAt: new Date(),
           updatedAt: new Date(),
         },
@@ -22,8 +21,7 @@ export default {
           description: "Cultivo rico en proteínas y ampliamente consumido.",
           climate: "Cálido",
           region: "Sur de México",
-          image_url: "https://example.com/frijol.jpg",
-          status: true,
+          status: "activo",
           createdAt: new Date(),
           updatedAt: new Date(),
         },
@@ -34,8 +32,7 @@ export default {
           description: "Cultivo utilizado para la producción de harina.",
           climate: "Frío",
           region: "Norte de México",
-          image_url: "https://example.com/trigo.jpg",
-          status: true,
+          status: "activo",
           createdAt: new Date(),
           updatedAt: new Date(),
         },
@@ -44,7 +41,7 @@ export default {
     );
   },
 
-  async down(queryInterface, Sequelize) {
+  async down(queryInterface) {
     await queryInterface.bulkDelete("Crops", null, {});
   },
 };
