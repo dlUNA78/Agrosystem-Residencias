@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700&family=Inter:wght@400;500&display=swap');
 @import "tailwindcss";
 @source "../../src/views/**/*.hbs";
 @source "../../src/controllers/**/*.js";
@@ -5,92 +6,201 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  /* ── Colores primarios ── */
-  --color-primary:                   #43655c;
-  --color-on-primary:                #ddfff4;
-  --color-primary-container:         #c5eadf;
-  --color-on-primary-container:      #36584f;
-  --color-primary-fixed:             #c5eadf;
-  --color-primary-fixed-dim:         #b7dcd1;
-  --color-on-primary-fixed:          #24453d;
-  --color-on-primary-fixed-variant:  #406259;
-  --color-primary-dim:               #375950;
-  --color-inverse-primary:           #d9fff2;
-  --color-surface-tint:              #43655c;
-
-  /* ── Colores secundarios ── */
-  --color-secondary:                  #50635f;
-  --color-on-secondary:               #e8fdf8;
-  --color-secondary-container:        #d2e7e2;
-  --color-on-secondary-container:     #435552;
-  --color-secondary-fixed:            #d2e7e2;
-  --color-secondary-fixed-dim:        #c4d9d4;
-  --color-on-secondary-fixed:         #30433f;
-  --color-on-secondary-fixed-variant: #4c5f5b;
-  --color-secondary-dim:              #445753;
-
-  /* ── Colores terciarios ── */
-  --color-tertiary:                   #4a6552;
-  --color-on-tertiary:                #e7ffea;
-  --color-tertiary-container:         #d9f9df;
-  --color-on-tertiary-container:      #45604d;
-  --color-tertiary-fixed:             #d9f9df;
-  --color-tertiary-fixed-dim:         #cbead1;
-  --color-on-tertiary-fixed:          #334e3b;
-  --color-on-tertiary-fixed-variant:  #4f6b57;
-  --color-tertiary-dim:               #3e5946;
-
-  /* ── Error ── */
-  --color-error:             #9f403d;
-  --color-on-error:          #fff7f6;
-  --color-error-container:   #fe8983;
-  --color-on-error-container: #752121;
-  --color-error-dim:         #4e0309;
-
-  /* ── Superficies ── */
-  --color-background:                  #f9f9f9;
-  --color-on-background:               #2d3435;
-  --color-surface:                     #f9f9f9;
-  --color-surface-dim:                 #d3dbdd;
-  --color-surface-bright:              #f9f9f9;
-  --color-surface-variant:             #dde4e5;
-  --color-surface-container-lowest:    #ffffff;
-  --color-surface-container-low:       #f2f4f4;
-  --color-surface-container:           #ebeeef;
-  --color-surface-container-high:      #e4e9ea;
-  --color-surface-container-highest:   #dde4e5;
-  --color-inverse-surface:             #0c0f0f;
-
-  /* Aliases cortos usados en las vistas */
-  --color-surface-low:   #f2f4f4;
-  --color-surface-high:  #e4e9ea;
-
-  /* ── Texto ── */
-  --color-on-surface:          #2d3435;
-  --color-on-surface-variant:  #596061;
-  --color-inverse-on-surface:  #9c9d9d;
-
-  /* ── Contornos ── */
-  --color-outline:         #757c7d;
-  --color-outline-variant: #acb3b4;
-
   /* ── Tipografía ── */
-  --font-display:  'Manrope', sans-serif;   /* headline */
+  --font-display:  'Plus Jakarta Sans', sans-serif;
   --font-body:     'Inter', sans-serif;
 
+  /* ── Escala tipográfica ── */
+  --text-display-size:        2rem;       /* 32px */
+  --text-display-weight:      700;
+  --text-display-line-height: 1.2;
+
+  --text-h2-size:        1.5rem;          /* 24px */
+  --text-h2-weight:      600;
+  --text-h2-line-height: 1.3;
+
+  --text-h3-size:        1.125rem;        /* 18px */
+  --text-h3-weight:      600;
+  --text-h3-line-height: 1.4;
+
+  --text-lead-size:        1rem;          /* 16px */
+  --text-lead-weight:      400;
+  --text-lead-line-height: 1.5;
+
+  --text-base-size:        0.875rem;      /* 14px */
+  --text-base-weight:      400;
+  --text-base-line-height: 1.5;
+
+  --text-medium-size:        0.875rem;    /* 14px */
+  --text-medium-weight:      500;
+  --text-medium-line-height: 1.5;
+
+  --text-caption-size:        0.75rem;    /* 12px */
+  --text-caption-weight:      500;
+  --text-caption-line-height: 1.4;
+
   /* ── Radios ── */
-  --radius-sm:   0.25rem;   /* DEFAULT */
-  --radius-md:   0.5rem;    /* lg */
-  --radius-lg:   0.75rem;   /* xl */
+  --radius-sm:   0.25rem;
+  --radius-md:   0.5rem;
+  --radius-lg:   0.75rem;
   --radius-full: 9999px;
+
+  /* =========================================
+     🎨 COLORES BASE (MODO CLARO)
+     ========================================= */
+
+  /* ── Colores primarios (Verde Agrosystem) ── */
+  --color-primary:                   #16a34a;
+  --color-on-primary:                #ffffff;
+  --color-primary-container:         #dcfce7;
+  --color-on-primary-container:      #064e3b;
+  --color-primary-dim:               #15803d;
+  --color-inverse-primary:           #4ade80;
+
+  /* ── Colores secundarios (Tonos Tierra/Ámbar) ── */
+  --color-secondary:                 #d97706;
+  --color-on-secondary:              #ffffff;
+  --color-secondary-container:       #fef3c7;
+  --color-on-secondary-container:    #78350f;
+  --color-secondary-dim:             #b45309;
+
+  /* ── Colores terciarios (Gris pizarra) ── */
+  --color-tertiary:                  #475569;
+  --color-on-tertiary:               #ffffff;
+  --color-tertiary-container:        #f1f5f9;
+  --color-on-tertiary-container:     #0f172a;
+  --color-tertiary-dim:              #334155;
+
+  /* ── Error ── */
+  --color-error:              #ef4444;
+  --color-on-error:           #ffffff;
+  --color-error-container:    #fee2e2;
+  --color-on-error-container: #7f1d1d;
+  --color-error-dim:          #dc2626;
+
+  /* ── Superficies ── */
+  --color-background:                #f8fafc;
+  --color-on-background:             #0f172a;
+
+  --color-surface:                   #ffffff;
+  --color-surface-dim:               #e2e8f0;
+  --color-surface-bright:            #ffffff;
+  --color-surface-variant:           #f1f5f9;
+
+  --color-surface-container-lowest:  #ffffff;
+  --color-surface-container-low:     #f8fafc;
+  --color-surface-container:         #f1f5f9;
+  --color-surface-container-high:    #e2e8f0;
+  --color-surface-container-highest: #cbd5e1;
+  --color-inverse-surface:           #1e293b;
+
+  /* Aliases cortos */
+  --color-surface-low:   #f8fafc;
+  --color-surface-high:  #e2e8f0;
+
+  /* ── Texto ── */
+  --color-on-surface:         #0f172a;
+  --color-on-surface-variant: #475569;
+  --color-inverse-on-surface: #f8fafc;
+
+  /* ── Contornos ── */
+  --color-outline:         #cbd5e1;
+  --color-outline-variant: #e2e8f0;
 }
 
+/* =========================================
+   🌙 MODO OSCURO
+   ========================================= */
 @layer base {
+  .dark {
+    --color-primary:                   #22c55e;
+    --color-on-primary:                #052e16;
+    --color-primary-container:         #064e3b;
+    --color-on-primary-container:      #dcfce7;
+    --color-primary-dim:               #16a34a;
+
+    --color-background:                #0f172a;
+    --color-on-background:             #f8fafc;
+
+    --color-surface:                   #1e293b;
+    --color-surface-dim:               #0f172a;
+    --color-surface-variant:           #334155;
+
+    --color-surface-container-lowest:  #020617;
+    --color-surface-container-low:     #0f172a;
+    --color-surface-container:         #1e293b;
+    --color-surface-container-high:    #334155;
+    --color-surface-container-highest: #475569;
+
+    --color-inverse-surface:           #f8fafc;
+    --color-surface-low:               #0f172a;
+    --color-surface-high:              #334155;
+
+    --color-on-surface:                #f8fafc;
+    --color-on-surface-variant:        #94a3b8;
+    --color-inverse-on-surface:        #0f172a;
+
+    --color-outline:                   #475569;
+    --color-outline-variant:           #334155;
+  }
+
+  /* ── Fuente base del sistema ── */
   body {
     font-family: var(--font-body);
+    font-size:   var(--text-base-size);
+    font-weight: var(--text-base-weight);
+    line-height: var(--text-base-line-height);
   }
-  h1, h2, h3, .font-headline {
+
+  /* ── Encabezados (Plus Jakarta Sans) ── */
+  h1, .type-display {
     font-family: var(--font-display);
+    font-size:   var(--text-display-size);
+    font-weight: var(--text-display-weight);
+    line-height: var(--text-display-line-height);
+  }
+
+  h2, .type-h2 {
+    font-family: var(--font-display);
+    font-size:   var(--text-h2-size);
+    font-weight: var(--text-h2-weight);
+    line-height: var(--text-h2-line-height);
+  }
+
+  h3, .type-h3 {
+    font-family: var(--font-display);
+    font-size:   var(--text-h3-size);
+    font-weight: var(--text-h3-weight);
+    line-height: var(--text-h3-line-height);
+  }
+
+  /* ── Clases utilitarias de texto (Inter) ── */
+  .type-lead {
+    font-family: var(--font-body);
+    font-size:   var(--text-lead-size);
+    font-weight: var(--text-lead-weight);
+    line-height: var(--text-lead-line-height);
+  }
+
+  .type-base {
+    font-family: var(--font-body);
+    font-size:   var(--text-base-size);
+    font-weight: var(--text-base-weight);
+    line-height: var(--text-base-line-height);
+  }
+
+  .type-medium {
+    font-family: var(--font-body);
+    font-size:   var(--text-medium-size);
+    font-weight: var(--text-medium-weight);
+    line-height: var(--text-medium-line-height);
+  }
+
+  .type-caption {
+    font-family: var(--font-body);
+    font-size:   var(--text-caption-size);
+    font-weight: var(--text-caption-weight);
+    line-height: var(--text-caption-line-height);
   }
 }
 

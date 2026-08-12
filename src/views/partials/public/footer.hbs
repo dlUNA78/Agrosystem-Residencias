@@ -1,19 +1,88 @@
-<footer class="w-full py-12 px-10 bg-[#f9f9f9] border-t border-outline-variant[#acb3b4]/15">
-    <div class="flex flex-col md:flex-row justify-between items-center gap-8 w-full max-w-7xl mx-auto">
-        <div class="text-[#43655c] font-['Inter'] text-xs uppercase tracking-widest font-medium" style="">
-            © 2026 Agrosystem. El Laboratorio Digital para la Agricultura Moderna.
-        </div>
-        <div class="flex flex-wrap justify-center gap-6">
-            <a class="te        xt-on-surface-variant hover:text-[#43655c] font-['Inter'] text-xs uppercase tracking-widest font-medium underline decoration-[#43655c]/30 underline-offset-4 transition-all duration-200"
-                href="#" style="">Privacidad</a>
-            <a class="text-on-surface-variant hover:text-[#43655c] font-['Inter'] text-xs uppercase tracking-widest font-medium underline decoration-[#43655c]/30 underline-offset-4 transition-all duration-200"
-                href="#" style="">Términos de Uso</a>
-            <a class="text-on-surface-variant hover:text-[#43655c] font-['Inter'] text-xs uppercase tracking-widest font-medium underline decoration-[#43655c]/30 underline-offset-4 transition-all duration-200"
-                href="#" style="">Contacto</a>
-            <a class="text-on-surface-variant hover:text-[#43655c] font-['Inter'] text-xs uppercase tracking-widest font-medium underline decoration-[#43655c]/30 underline-offset-4 transition-all duration-200"
-                href="#" style="">Soporte Técnico</a>
-            <a class="text-on-surface-variant hover:text-[#43655c] font-['Inter'] text-xs uppercase tracking-widest font-medium underline decoration-[#43655c]/30 underline-offset-4 transition-all duration-200"
-                href="#" style="">Documentación</a>
-        </div>
+{{!-- ══════════════════════════════════════════════════════
+     FOOTER PÚBLICO — Layout tipo Nexiron
+     [Logo + Descripción] | [Plataforma] [Recursos] [Institución]
+     [Barra inferior: Copyright + Legal links]
+     ══════════════════════════════════════════════════════ --}}
+<footer class="bg-surface border-t border-outline-variant/30">
+
+  {{!-- ── Cuerpo principal ── --}}
+  <div class="max-w-7xl mx-auto px-6 md:px-12 py-14 md:py-16">
+    <div class="grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr_1fr] gap-12">
+
+      {{!-- Columna 1: Logo + descripción --}}
+      <div class="space-y-4 max-w-xs">
+        <a href="/" class="flex items-center gap-2 group w-fit">
+          <span class="material-symbols-outlined text-primary text-2xl
+                       transition-transform duration-300 group-hover:rotate-12">
+            eco
+          </span>
+          <span class="font-display font-bold text-lg text-on-surface leading-none">
+            Agrosystem
+          </span>
+        </a>
+        <p class="type-base text-on-surface-variant leading-relaxed">
+          Agrosystem centraliza el conocimiento fitosanitario y agronómico del INIFAP para
+          apoyar a productores, investigadores y técnicos del campo mexicano.
+        </p>
+      </div>
+
+      {{!-- Columna 2: Plataforma --}}
+      <div>
+        <p class="type-medium text-on-surface font-semibold mb-4">Plataforma</p>
+        <ul class="space-y-3">
+          <li><a href="/plagues"  class="type-base text-on-surface-variant hover:text-primary transition-colors duration-200">Plagas</a></li>
+          <li><a href="/crops"    class="type-base text-on-surface-variant hover:text-primary transition-colors duration-200">Cultivos</a></li>
+          <li><a href="/products" class="type-base text-on-surface-variant hover:text-primary transition-colors duration-200">Productos</a></li>
+          <li><a href="/forum"    class="type-base text-on-surface-variant hover:text-primary transition-colors duration-200">Foro</a></li>
+        </ul>
+      </div>
+
+      {{!-- Columna 3: Recursos --}}
+      <div>
+        <p class="type-medium text-on-surface font-semibold mb-4">Recursos</p>
+        <ul class="space-y-3">
+          <li><a href="#" class="type-base text-on-surface-variant hover:text-primary transition-colors duration-200">Documentación</a></li>
+          <li><a href="#" class="type-base text-on-surface-variant hover:text-primary transition-colors duration-200">Guías técnicas</a></li>
+          <li><a href="#" class="type-base text-on-surface-variant hover:text-primary transition-colors duration-200">Blog</a></li>
+          <li><a href="#" class="type-base text-on-surface-variant hover:text-primary transition-colors duration-200">Soporte</a></li>
+        </ul>
+      </div>
+
+      {{!-- Columna 4: Institución --}}
+      <div>
+        <p class="type-medium text-on-surface font-semibold mb-4">Institución</p>
+        <ul class="space-y-3">
+          <li><a href="/about" class="type-base text-on-surface-variant hover:text-primary transition-colors duration-200">Acerca de</a></li>
+          <li><a href="https://www.inifap.gob.mx" target="_blank" rel="noopener"
+                 class="type-base text-on-surface-variant hover:text-primary transition-colors duration-200">
+            INIFAP oficial
+          </a></li>
+          <li><a href="#" class="type-base text-on-surface-variant hover:text-primary transition-colors duration-200">Contacto</a></li>
+          <li><a href="#" class="type-base text-on-surface-variant hover:text-primary transition-colors duration-200">Asociados</a></li>
+        </ul>
+      </div>
+
     </div>
+  </div>
+
+  {{!-- ── Barra inferior ── --}}
+  <div class="border-t border-outline-variant/30">
+    <div class="max-w-7xl mx-auto px-6 md:px-12 py-5
+                flex flex-col sm:flex-row justify-between items-center gap-3">
+      <p class="type-caption text-on-surface-variant">
+        © 2026 Agrosystem · INIFAP. Todos los derechos reservados.
+      </p>
+      <div class="flex items-center gap-5">
+        <a href="#"
+           class="type-caption text-on-surface-variant hover:text-primary transition-colors duration-200">
+          Términos de Servicio
+        </a>
+        <a href="#"
+           class="type-caption text-on-surface-variant hover:text-primary transition-colors duration-200">
+          Política de Privacidad
+        </a>
+      </div>
+    </div>
+  </div>
+
 </footer>

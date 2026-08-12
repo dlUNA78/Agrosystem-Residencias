@@ -1,71 +1,260 @@
-<nav class="bg-white/80 backdrop-blur-md fixed top-0 w-full z-50 shadow-[0_20px_40px_rgba(45,52,53,0.06)]">
-    <div
-        class="flex justify-between items-center px-6 md:px-10 py-4 max-w-[1440px] mx-auto font-['Manrope'] tracking-tight antialiased">
-        <div class="flex items-center gap-12">
-            <span class="text-xl font-bold text-[#43655c] tracking-tighter">Agrosystem INIFAP</span>
+{{!-- ══════════════════════════════════════════
+     NAVBAR PÚBLICO — Liquid Glass + Responsive
+     Desktop: [Links izq] | [Logo centro] | [Auth der]
+     Móvil:   [Logo izq] | [Hamburguesa der]
+     ══════════════════════════════════════════ --}}
+<nav id="public-navbar"
+     class="fixed top-0 w-full z-50 transition-all duration-500"
+     style="
+       background: rgba(10, 20, 15, 0.35);
+       backdrop-filter: blur(20px) saturate(180%);
+       -webkit-backdrop-filter: blur(20px) saturate(180%);
+       border-bottom: 1px solid rgba(255,255,255,0.08);
+       box-shadow: 0 8px 32px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.06);
+     ">
 
-            <div class="hidden md:flex items-center gap-8">
-                <a class="font-['Inter'] text-xs uppercase tracking-widest font-bold transition-all duration-200 pb-1 {{#if (eq activePage 'home')}}text-[#43655c] border-b-2 border-[#43655c]{{else}}text-on-surface-variant hover:text-[#43655c] border-b-2 border-transparent hover:border-[#43655c]/40{{/if}}"
-                    href="/">Inicio</a>
-                <a class="font-['Inter'] text-xs uppercase tracking-widest font-bold transition-all duration-200 pb-1 {{#if (eq activePage 'plagues')}}text-[#43655c] border-b-2 border-[#43655c]{{else}}text-on-surface-variant hover:text-[#43655c] border-b-2 border-transparent hover:border-[#43655c]/40{{/if}}"
-                    href="/plagues">Plagas</a>
-                <a class="font-['Inter'] text-xs uppercase tracking-widest font-bold transition-all duration-200 pb-1 {{#if (eq activePage 'crops')}}text-[#43655c] border-b-2 border-[#43655c]{{else}}text-on-surface-variant hover:text-[#43655c] border-b-2 border-transparent hover:border-[#43655c]/40{{/if}}"
-                    href="/crops">Cultivos</a>
-                <a class="font-['Inter'] text-xs uppercase tracking-widest font-bold transition-all duration-200 pb-1 {{#if (eq activePage 'products')}}text-[#43655c] border-b-2 border-[#43655c]{{else}}text-on-surface-variant hover:text-[#43655c] border-b-2 border-transparent hover:border-[#43655c]/40{{/if}}"
-                    href="/products">Productos</a>
-                <a class="font-['Inter'] text-xs uppercase tracking-widest font-bold transition-all duration-200 pb-1 {{#if (eq activePage 'forum')}}text-[#43655c] border-b-2 border-[#43655c]{{else}}text-on-surface-variant hover:text-[#43655c] border-b-2 border-transparent hover:border-[#43655c]/40{{/if}}"
-                    href="/forum">Foro</a>
-               
+  {{!-- ════════════════════════════════════════════
+       BARRA PRINCIPAL
+       ════════════════════════════════════════════ --}}
+  <div class="relative flex items-center h-16 px-5 md:px-10 max-w-360 mx-auto w-full">
 
+    {{!-- ── IZQUIERDA: Links (solo desktop) ── --}}
+    <div class="hidden md:flex items-center gap-1 shrink-0">
+      <a class="type-medium px-3 py-1.5 rounded-md transition-all duration-200
+         {{#if (eq activePage 'plagues')}}text-white bg-white/10{{else}}text-white/70 hover:text-white hover:bg-white/8{{/if}}"
+         href="/plagues">Plagas</a>
 
-                {{#if user}}
-                {{#if (eq user.role 'inifap')}}
-                <a class="font-['Inter'] text-xs uppercase tracking-widest font-bold transition-all duration-200 pb-1 text-[#43655c] hover:text-[#2d443e]"
-                    href="/dashboard">Ir al Panel INIFAP</a>
-                {{/if}}
-                {{#if (eq user.role 'admin')}}
-                <a class="font-['Inter'] text-xs uppercase tracking-widest font-bold transition-all duration-200 pb-1 text-[#43655c] hover:text-[#2d443e]"
-                    href="/dashboard">Ir al Panel INIFAP</a>
-                {{/if}}
-                {{/if}}
-            </div>
-        </div>
+      <a class="type-medium px-3 py-1.5 rounded-md transition-all duration-200
+         {{#if (eq activePage 'crops')}}text-white bg-white/10{{else}}text-white/70 hover:text-white hover:bg-white/8{{/if}}"
+         href="/crops">Cultivos</a>
 
-        <div class="flex items-center gap-2 md:gap-4">
-            {{#if user}}
-            <button class="p-2 text-on-surface-variant hover:bg-surface-container-low rounded-full transition-all">
-                <span class="material-symbols-outlined">notifications</span>
-            </button>
-            <div class="h-8 w-8 rounded-full bg-outline-variant/30 mx-1 hidden sm:block"></div>
-            <div class="hidden sm:flex items-center gap-3 pl-2">
-                <div class="text-right hidden sm:block">
-                    <p class="text-xs font-bold text-on-surface leading-none">{{user.full_name}}</p>
-                    <p class="text-[10px] text-on-surface-variant capitalize">{{user.role}}</p>
-                </div>
-                {{#if user.photo_url}}
-                <img alt="User avatar" class="w-10 h-10 rounded-full object-cover ring-2 ring-primary-container"
-                    src="{{user.photo_url}}" />
-                {{else}}
-                <div class="w-10 h-10 rounded-full bg-[#43655c] text-white flex items-center justify-center font-bold">
-                    {{!-- Letra inicial dummy hasta que hagamos la extracción JS --}} U
-                </div>
-                {{/if}}
-            </div>
-            {{else}}
-            <div class="hidden sm:flex gap-3">
-                <a href="/auth/login"
-                    class="text-sm font-bold text-on-surface-variant hover:text-[#43655c] transition-colors px-3 py-2">Ingresar</a>
-                <a href="/auth/register"
-                    class="text-sm font-bold text-white bg-[#43655c] hover:bg-[#2d443e] rounded-lg px-4 py-2 transition-all shadow-sm">Registrarse</a>
-            </div>
-            {{/if}}
+      <a class="type-medium px-3 py-1.5 rounded-md transition-all duration-200
+         {{#if (eq activePage 'products')}}text-white bg-white/10{{else}}text-white/70 hover:text-white hover:bg-white/8{{/if}}"
+         href="/products">Productos</a>
 
-            <button id="public-nav-toggle"
-                class="md:hidden p-2 text-[#43655c] hover:bg-[#43655c]/10 rounded-lg transition-all duration-200"
-                aria-label="Abrir menú de navegación" aria-expanded="false">
-                <span class="material-symbols-outlined" id="public-nav-icon">menu</span>
-            </button>
-        </div>
+      <a class="type-medium px-3 py-1.5 rounded-md transition-all duration-200
+         {{#if (eq activePage 'forum')}}text-white bg-white/10{{else}}text-white/70 hover:text-white hover:bg-white/8{{/if}}"
+         href="/forum">Foro</a>
+
+      <a class="type-medium px-3 py-1.5 rounded-md text-white/70 hover:text-white hover:bg-white/8 transition-all duration-200"
+         href="/about">About us</a>
+
+      {{#if user}}
+        {{#if (eq user.role 'inifap')}}
+          <span class="h-4 w-px bg-white/15 mx-1"></span>
+          <a class="type-medium px-3 py-1.5 rounded-md text-inverse-primary hover:text-white hover:bg-white/8 transition-all duration-200"
+             href="/dashboard">Panel INIFAP</a>
+        {{/if}}
+        {{#if (eq user.role 'admin')}}
+          <span class="h-4 w-px bg-white/15 mx-1"></span>
+          <a class="type-medium px-3 py-1.5 rounded-md text-inverse-primary hover:text-white hover:bg-white/8 transition-all duration-200"
+             href="/dashboard">Panel INIFAP</a>
+        {{/if}}
+      {{/if}}
     </div>
 
+    {{!-- ── CENTRO: Logo (absoluto en desktop, izquierda en móvil) ── --}}
+    <a href="/"
+       class="md:absolute md:left-1/2 md:-translate-x-1/2 flex items-center gap-2 group shrink-0 z-10">
+      <span class="material-symbols-outlined text-inverse-primary text-2xl
+                   transition-transform duration-300 group-hover:rotate-12">
+        eco
+      </span>
+      <span class="font-['Plus_Jakarta_Sans'] text-xl font-bold text-white tracking-tight leading-none">
+        INIFAP
+      </span>
+    </a>
+
+    {{!-- ── DERECHA: Auth (desktop) + Hamburguesa (móvil) ── --}}
+    <div class="ml-auto flex items-center gap-1 shrink-0">
+
+      {{!-- Búsqueda — visible siempre --}}
+      <button class="p-2 rounded-lg text-white/60 hover:text-white hover:bg-white/10 transition-all duration-200"
+              aria-label="Buscar">
+        <span class="material-symbols-outlined text-xl">search</span>
+      </button>
+
+      {{!-- Auth zona — solo desktop --}}
+      {{#if user}}
+        {{!-- Logueado --}}
+        <button class="hidden md:flex p-2 rounded-lg text-white/60 hover:text-white hover:bg-white/10 transition-all duration-200"
+                aria-label="Notificaciones">
+          <span class="material-symbols-outlined text-xl">notifications</span>
+        </button>
+
+        <div class="hidden md:flex items-center gap-2.5 pl-2 ml-1"
+             style="border-left: 1px solid rgba(255,255,255,0.10);">
+          <div class="text-right hidden lg:block">
+            <p class="type-medium text-white leading-none">{{user.full_name}}</p>
+            <p class="type-caption text-white/50 capitalize">{{user.role}}</p>
+          </div>
+          {{#if user.photo_url}}
+            <img alt="Avatar de {{user.full_name}}"
+                 class="w-8 h-8 rounded-full object-cover ring-2 ring-inverse-primary/40"
+                 src="{{user.photo_url}}" />
+          {{else}}
+            <div class="w-8 h-8 rounded-full bg-primary text-on-primary
+                        flex items-center justify-center font-bold text-sm shrink-0">U</div>
+          {{/if}}
+        </div>
+
+      {{else}}
+        {{!-- Visitante --}}
+        <div class="hidden md:flex items-center gap-2">
+          <span class="h-4 w-px bg-white/15 mx-1"></span>
+          <a href="/auth/login"
+             class="type-medium px-4 py-1.5 rounded-lg text-white/80
+                    hover:text-white hover:bg-white/10 transition-all duration-200">
+            Ingresar
+          </a>
+          <a href="/auth/register"
+             class="type-medium px-4 py-1.5 rounded-lg text-white font-semibold
+                    transition-all duration-200 active:scale-95"
+             style="
+               background: rgba(22,163,74,0.85);
+               border: 1px solid rgba(74,222,128,0.30);
+               box-shadow: 0 0 12px rgba(22,163,74,0.25), inset 0 1px 0 rgba(255,255,255,0.15);
+             "
+             onmouseover="this.style.background='rgba(22,163,74,1)'"
+             onmouseout="this.style.background='rgba(22,163,74,0.85)'">
+            Registrarse
+          </a>
+        </div>
+      {{/if}}
+
+      {{!-- ── Botón hamburguesa — SOLO MÓVIL ── --}}
+      <button id="public-nav-toggle"
+              class="md:hidden p-2 ml-1 rounded-lg text-white/70
+                     hover:text-white hover:bg-white/10 transition-all duration-200"
+              aria-label="Abrir menú" aria-expanded="false"
+              aria-controls="public-mobile-menu">
+        <span class="material-symbols-outlined text-2xl" id="public-nav-icon">menu</span>
+      </button>
+    </div>
+  </div>
+
+  {{!-- ════════════════════════════════════════════
+       MENÚ MÓVIL — slide-down colapsable
+       Visible solo en < md, oculto por defecto
+       ════════════════════════════════════════════ --}}
+  <div id="public-mobile-menu"
+       class="md:hidden"
+       style="display: none; border-top: 1px solid rgba(255,255,255,0.07);">
+
+    <div class="px-4 py-4 flex flex-col gap-1">
+
+      {{!-- Links principales --}}
+      <a class="type-medium px-4 py-3 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all
+         {{#if (eq activePage 'plagues')}}bg-white/10 text-white{{/if}}"
+         href="/plagues">Plagas</a>
+
+      <a class="type-medium px-4 py-3 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all
+         {{#if (eq activePage 'crops')}}bg-white/10 text-white{{/if}}"
+         href="/crops">Cultivos</a>
+
+      <a class="type-medium px-4 py-3 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all
+         {{#if (eq activePage 'products')}}bg-white/10 text-white{{/if}}"
+         href="/products">Productos</a>
+
+      <a class="type-medium px-4 py-3 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all
+         {{#if (eq activePage 'forum')}}bg-white/10 text-white{{/if}}"
+         href="/forum">Foro</a>
+
+      <a class="type-medium px-4 py-3 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all"
+         href="/about">About us</a>
+
+      {{#if user}}
+        {{#if (eq user.role 'inifap')}}
+          <a class="type-medium px-4 py-3 rounded-xl text-inverse-primary hover:text-white hover:bg-white/10 transition-all"
+             href="/dashboard">Panel INIFAP</a>
+        {{/if}}
+        {{#if (eq user.role 'admin')}}
+          <a class="type-medium px-4 py-3 rounded-xl text-inverse-primary hover:text-white hover:bg-white/10 transition-all"
+             href="/dashboard">Panel INIFAP</a>
+        {{/if}}
+      {{/if}}
+
+      {{!-- Separador --}}
+      <div class="my-2" style="height:1px; background: rgba(255,255,255,0.08);"></div>
+
+      {{#if user}}
+        {{!-- Perfil móvil --}}
+        <div class="flex items-center gap-3 px-4 py-3">
+          {{#if user.photo_url}}
+            <img alt="Avatar" class="w-10 h-10 rounded-full object-cover ring-2 ring-inverse-primary/40"
+                 src="{{user.photo_url}}" />
+          {{else}}
+            <div class="w-10 h-10 rounded-full bg-primary text-on-primary
+                        flex items-center justify-center font-bold shrink-0">U</div>
+          {{/if}}
+          <div>
+            <p class="type-medium text-white">{{user.full_name}}</p>
+            <p class="type-caption text-white/50 capitalize">{{user.role}}</p>
+          </div>
+        </div>
+      {{else}}
+        {{!-- Auth móvil --}}
+        <a href="/auth/login"
+           class="type-medium px-4 py-3 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition-all">
+          Ingresar
+        </a>
+        <a href="/auth/register"
+           class="type-medium px-4 py-3 rounded-xl text-white bg-primary hover:bg-primary-dim transition-all text-center">
+          Registrarse
+        </a>
+      {{/if}}
+    </div>
+  </div>
+
 </nav>
+
+{{!-- ═══════════════════════════════════
+     Script: toggle hamburguesa animado
+     ═══════════════════════════════════ --}}
+<script>
+  (function () {
+    var toggle = document.getElementById('public-nav-toggle');
+    var menu   = document.getElementById('public-mobile-menu');
+    var icon   = document.getElementById('public-nav-icon');
+
+    if (!toggle || !menu || !icon) return;
+
+    var isOpen = false;
+
+    toggle.addEventListener('click', function () {
+      isOpen = !isOpen;
+
+      if (isOpen) {
+        // Abrir: mostrar con animación
+        menu.style.display = 'block';
+        menu.style.overflow = 'hidden';
+        menu.style.maxHeight = '0px';
+        menu.style.opacity   = '0';
+        menu.style.transition = 'max-height 0.3s ease, opacity 0.25s ease';
+        // Necesitamos el scrollHeight real — lo forzamos en el siguiente frame
+        requestAnimationFrame(function () {
+          menu.style.maxHeight = menu.scrollHeight + 'px';
+          menu.style.opacity   = '1';
+        });
+        icon.textContent = 'close';
+        toggle.setAttribute('aria-expanded', 'true');
+      } else {
+        // Cerrar
+        menu.style.maxHeight = '0px';
+        menu.style.opacity   = '0';
+        icon.textContent = 'menu';
+        toggle.setAttribute('aria-expanded', 'false');
+        setTimeout(function () {
+          menu.style.display = 'none';
+        }, 300);
+      }
+    });
+
+    // Cerrar el menú si se hace click fuera
+    document.addEventListener('click', function (e) {
+      if (isOpen && !toggle.contains(e.target) && !menu.contains(e.target)) {
+        toggle.click();
+      }
+    });
+  })();
+</script>
