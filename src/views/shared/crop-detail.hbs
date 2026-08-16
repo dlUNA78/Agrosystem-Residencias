@@ -248,55 +248,55 @@
       {{/if}}
     </div>
 
-    {{! 🚜 2. PREDIOS ACTIVOS }}
-    <div>
-      <div class="flex items-center justify-between mb-6">
-        <div>
-          <h3 class="text-2xl font-headline font-extrabold text-on-surface flex items-center gap-2">
-            <span class="material-symbols-outlined text-emerald-500">landscape</span> Predios y Terrenos Activos
-          </h3>
-          <p class="text-xs text-on-surface-variant">Parcelas monitoreadas donde actualmente se produce este cultivo.</p>
+    {{! 🚜 2. PREDIOS ACTIVOS (Solo visible para personal autorizado / INIFAP logueado) }}
+    {{#if isPrivate}}
+      <div>
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <h3 class="text-2xl font-headline font-extrabold text-on-surface flex items-center gap-2">
+              <span class="material-symbols-outlined text-emerald-500">landscape</span> Predios y Terrenos Activos
+            </h3>
+            <p class="text-xs text-on-surface-variant">Parcelas monitoreadas donde actualmente se produce este cultivo.</p>
+          </div>
+          {{#if crop.farms}}
+            <span class="px-3 py-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold rounded-full">
+              {{crop.farms.length}} Predios Registrados
+            </span>
+          {{/if}}
         </div>
-        {{#if crop.farms}}
-          <span class="px-3 py-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold rounded-full">
-            {{crop.farms.length}} Predios Registrados
-          </span>
-        {{/if}}
-      </div>
 
-      {{#if crop.farms.length}}
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {{#each crop.farms}}
-            <div class="bg-surface-container-low p-6 rounded-2xl border border-outline-variant/10 hover:shadow-md transition-all flex flex-col justify-between">
-              <div>
-                <div class="flex items-center justify-between mb-3">
-                  <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-                    {{#if this.farming_type}}{{this.farming_type}}{{else}}Agrícola{{/if}}
-                  </span>
-                  <span class="text-[10px] font-bold text-on-surface-variant">{{this.size_hectares}} Ha</span>
+        {{#if crop.farms.length}}
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {{#each crop.farms}}
+              <div class="bg-surface-container-low p-6 rounded-2xl border border-outline-variant/10 hover:shadow-md transition-all flex flex-col justify-between">
+                <div>
+                  <div class="flex items-center justify-between mb-3">
+                    <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                      {{#if this.farming_type}}{{this.farming_type}}{{else}}Agrícola{{/if}}
+                    </span>
+                    <span class="text-[10px] font-bold text-on-surface-variant">{{this.size_hectares}} Ha</span>
+                  </div>
+                  <h4 class="text-lg font-headline font-bold text-on-surface mb-1">{{this.name}}</h4>
+                  <p class="text-xs text-on-surface-variant flex items-center gap-1 mb-3">
+                    <span class="material-symbols-outlined text-xs">location_on</span> {{this.municipality}}
+                  </p>
                 </div>
-                <h4 class="text-lg font-headline font-bold text-on-surface mb-1">{{this.name}}</h4>
-                <p class="text-xs text-on-surface-variant flex items-center gap-1 mb-3">
-                  <span class="material-symbols-outlined text-xs">location_on</span> {{this.municipality}}
-                </p>
-              </div>
 
-              {{#if ../isPrivate}}
                 <a href="/lands" class="mt-4 inline-flex items-center justify-center gap-2 w-full py-2 bg-surface-container hover:bg-surface-container-highest text-on-surface font-bold text-xs rounded-xl transition-colors">
                   Ver Mapa de Predios <span class="material-symbols-outlined text-xs">map</span>
                 </a>
-              {{/if}}
-            </div>
-          {{/each}}
-        </div>
-      {{else}}
-        <div class="p-8 bg-surface-container-low rounded-2xl border border-outline-variant/10 text-center">
-          <span class="material-symbols-outlined text-4xl text-on-surface-variant/40 mb-2">map</span>
-          <p class="text-sm font-bold text-on-surface mb-1">Sin Predios Activos Asignados</p>
-          <p class="text-xs text-on-surface-variant">Este cultivo aún no ha sido vinculado a ningún terreno registrado en el módulo de predios.</p>
-        </div>
-      {{/if}}
-    </div>
+              </div>
+            {{/each}}
+          </div>
+        {{else}}
+          <div class="p-8 bg-surface-container-low rounded-2xl border border-outline-variant/10 text-center">
+            <span class="material-symbols-outlined text-4xl text-on-surface-variant/40 mb-2">map</span>
+            <p class="text-sm font-bold text-on-surface mb-1">Sin Predios Activos Asignados</p>
+            <p class="text-xs text-on-surface-variant">Este cultivo aún no ha sido vinculado a ningún terreno registrado en el módulo de predios.</p>
+          </div>
+        {{/if}}
+      </div>
+    {{/if}}
 
     {{! 🧪 3. AGROQUÍMICOS COMPATIBLES }}
     <div>
