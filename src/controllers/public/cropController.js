@@ -102,10 +102,22 @@ export const renderCropDetail = async (req, res) => {
         {
           model: CropImage,
           as: "images",
-          order: [
-            ["is_primary", "DESC"],
-            ["display_order", "ASC"],
-          ],
+          required: false,
+        },
+        {
+          model: db.Plague,
+          as: "plagues",
+          required: false,
+        },
+        {
+          model: db.Farm,
+          as: "farms",
+          required: false,
+        },
+        {
+          model: db.Product,
+          as: "products",
+          required: false,
         },
       ],
     });

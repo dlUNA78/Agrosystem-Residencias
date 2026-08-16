@@ -126,10 +126,22 @@ export const getCropDetail = async (req, res) => {
           model: db.CropImage,
           as: "images",
           attributes: ["id", "image_url", "original_name", "is_primary", "display_order"],
-          order: [
-            ["is_primary", "DESC"],
-            ["display_order", "ASC"],
-          ],
+          required: false,
+        },
+        {
+          model: db.Plague,
+          as: "plagues",
+          required: false,
+        },
+        {
+          model: db.Farm,
+          as: "farms",
+          required: false,
+        },
+        {
+          model: db.Product,
+          as: "products",
+          required: false,
         },
       ],
     });
