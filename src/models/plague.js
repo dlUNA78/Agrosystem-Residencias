@@ -24,6 +24,14 @@ export default (sequelize, DataTypes) => {
         otherKey: "region_id",
         as: "regions"
       });
+
+      // Una plaga ataca a muchos cultivos (tabla pivote CropPlagues)
+      Plague.belongsToMany(models.Crop, {
+        through: "CropPlagues",
+        foreignKey: "plague_id",
+        otherKey: "crop_id",
+        as: "crops",
+      });
     }
   }
 

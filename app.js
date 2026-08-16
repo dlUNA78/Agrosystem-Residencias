@@ -84,8 +84,14 @@ app.set("views", path.join(__dirname, "src/views"));
 
 // Registrar helpers explícitamente (express-hbs ignora la opción helpers en express4)
 hbs.registerHelper("eq", (a, b) => a === b);
+hbs.registerHelper("ne", (a, b) => a !== b);
+hbs.registerHelper("gt", (a, b) => Number(a) > Number(b));
+hbs.registerHelper("lt", (a, b) => Number(a) < Number(b));
+hbs.registerHelper("gte", (a, b) => Number(a) >= Number(b));
+hbs.registerHelper("lte", (a, b) => Number(a) <= Number(b));
+hbs.registerHelper("add", (a, b) => Number(a) + Number(b));
+hbs.registerHelper("sub", (a, b) => Number(a) - Number(b));
 hbs.registerHelper("urlEncode", (str) => encodeURIComponent(str));
-hbs.registerHelper("add", (a, b) => a + b);
 
 // Archivos estáticos y Middlewares base
 app.use(express.static(path.join(__dirname, "public")));

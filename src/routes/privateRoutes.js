@@ -9,11 +9,6 @@ import { upload, uploadPlague, uploadCrop } from "../middlewares/upload.js";
 // ─── Controladores del módulo principal (privateController) ───────────────────
 // Contiene todos los handlers que aún no han sido extraídos a sub-controladores
 import {
-  // Cultivos
-  getCropDetail,
-  createCrop,
-  updateCrop,
-  deleteCrop,
   // Productos agroquímicos
   getGlyphomaxDetail,
   createProduct,
@@ -27,7 +22,6 @@ import {
   // Vistas de panel
   dashboard,
   plaguesPrivate,
-  cropsPrivate,
   productsPrivate,
   ingredientsPrivate,
   reportsPrivate,
@@ -40,6 +34,15 @@ import {
   // Auditoría
   auditPrivate,
 } from "../controllers/privateController.js";
+
+// ─── Controladores del módulo de cultivos (sub-controlador modular) ────────────
+import {
+  cropsPrivate,
+  getCropDetail,
+  createCrop,
+  updateCrop,
+  deleteCrop,
+} from "../controllers/private/cropsController.js";
 
 // ─── Controladores del módulo de parcelas (sub-controlador modular) ────────────
 import {
