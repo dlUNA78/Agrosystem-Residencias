@@ -137,9 +137,10 @@ export const renderCropDetail = async (req, res) => {
     const crop = cropRecord.toJSON();
     const primaryImg = crop.images?.find((i) => i.is_primary) || crop.images?.[0];
 
-    res.render("public/crop-detail", {
+    res.render("shared/crop-detail", {
       pageTitle: crop.name,
       activePage: "crops",
+      isPrivate: false,
       crop,
       primaryImage: primaryImg ? primaryImg.image_url : null,
       carouselImages: crop.images || [],

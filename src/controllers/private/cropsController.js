@@ -160,8 +160,9 @@ export const getCropDetail = async (req, res) => {
     const cropData = crop.toJSON();
     const primaryImage = cropData.images?.find((img) => img.is_primary) || cropData.images?.[0];
 
-    return res.render("private/catalog/crop-detail", {
+    return res.render("shared/crop-detail", {
       layout: privateLayout,
+      isPrivate: true,
       pageTitle: cropData.name,
       activePage: "crops",
       crop: cropData,
