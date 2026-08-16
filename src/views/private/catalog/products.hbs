@@ -370,9 +370,9 @@
                 data-registration="{{registration_code}}" data-status="{{validation_status}}">
 
                 <!-- IMAGE -->
-                <div class="relative h-40 overflow-hidden">
+                <a href="/private/products/{{id}}" class="relative h-40 overflow-hidden block">
                     <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        src="/{{image_url}}" alt="{{name}}" onerror="this.src='/images/test/default.png'" />
+                        src="{{image_url}}" alt="{{name}}" onerror="this.src='https://picsum.photos/seed/agrochemical/800/600'" />
 
                     <div class="absolute top-2 left-2">
                         <span
@@ -382,19 +382,19 @@
                             {{validation_status}}
                         </span>
                     </div>
-                </div>
+                </a>
 
                 <!-- CONTENT -->
                 <div class="p-4">
 
-                    <span class="text-[9px] font-black uppercase tracking-widest
-                {{#if (eq category " Insecticida")}}text-orange-600{{/if}} {{#if (eq category "Fungicida"
-                        )}}text-green-600{{/if}} {{#if (eq category "Herbicida" )}}text-blue-600{{/if}}">
+                    <span class="text-[9px] font-black uppercase tracking-widest text-primary block mb-1">
                         {{category}}
                     </span>
 
                     <h3 class="font-bold text-on-surface text-sm mt-1">
-                        {{name}}
+                        <a href="/private/products/{{id}}" class="hover:text-primary transition-colors">
+                            {{name}}
+                        </a>
                     </h3>
 
                     <p class="text-xs italic text-on-surface-variant">
