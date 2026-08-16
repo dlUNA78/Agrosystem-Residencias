@@ -112,11 +112,11 @@
         </div>
 
         <!-- Pagination -->
-        {{#if (gt totalPages 1)}}
+        {{#if hasMultiplePages}}
         <div class="mt-20 flex justify-center">
             <nav class="flex items-center gap-1 bg-surface-container p-1 rounded-xl">
-                {{#if (gt currentPage 1)}}
-                <a href="/crops?page={{sub currentPage 1}}&search={{search}}&category={{selectedCategory}}"
+                {{#if hasPrevPage}}
+                <a href="/crops?page={{prevPage}}&search={{search}}&category={{selectedCategory}}"
                     class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-surface-container-highest text-on-surface-variant">
                     <span class="material-symbols-outlined">chevron_left</span>
                 </a>
@@ -124,8 +124,8 @@
 
                 <span class="px-4 text-xs font-bold text-on-surface">Página {{currentPage}} de {{totalPages}}</span>
 
-                {{#if (lt currentPage totalPages)}}
-                <a href="/crops?page={{add currentPage 1}}&search={{search}}&category={{selectedCategory}}"
+                {{#if hasNextPage}}
+                <a href="/crops?page={{nextPage}}&search={{search}}&category={{selectedCategory}}"
                     class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-surface-container-highest text-on-surface-variant">
                     <span class="material-symbols-outlined">chevron_right</span>
                 </a>

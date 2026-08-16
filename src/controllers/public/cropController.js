@@ -70,6 +70,11 @@ export const renderCropsPublic = async (req, res) => {
       totalCount: count,
       totalPages,
       currentPage,
+      hasMultiplePages: totalPages > 1,
+      hasPrevPage: currentPage > 1,
+      hasNextPage: currentPage < totalPages,
+      prevPage: currentPage - 1,
+      nextPage: currentPage + 1,
       search: search || "",
       selectedCategory: category || "",
     });
