@@ -1,18 +1,34 @@
 import db from "../../models/index.js";
 const { Product, Plague, Crop } = db;
+const { Op } = db.Sequelize;
 
 export const renderProductsPublic = async (req, res) => {
   try {
+    const { search = "" } = req.query;
+
+    const where = { status: true };
+
+    if (search.trim()) {
+      where[Op.or] = [
+        { name: { [Op.iLike]: `%${search.trim()}%` } },
+        { active_ingredient: { [Op.iLike]: `%${search.trim()}%` } },
+        { manufacturer: { [Op.iLike]: `%${search.trim()}%` } },
+      ];
+    }
+
     const products = await Product.findAll({
-      where: { status: true },
+      where,
       order: [["name", "ASC"]],
     });
+
+    const plainProducts = products.map((p) => p.toJSON());
 
     res.render("public/products", {
       pageTitle: "Catálogo de Agroquímicos y Productos",
       activePage: "products",
-      products,
-      totalCount: products.length,
+      products: plainProducts,
+      totalCount: plainProducts.length,
+      search: search.trim(),
     });
   } catch (error) {
     console.error("Error al renderizar productos públicos:", error);
@@ -37,7 +53,7 @@ export const renderProductDetail = async (req, res) => {
     });
 
     if (!product) {
-      return res.status(404).render("shared/crop-detail", {
+      return res.status(404).render("shared/product-detail", {
         pageTitle: "Producto no encontrado",
         error: "El producto solicitado no existe o fue deshabilitado.",
       });
