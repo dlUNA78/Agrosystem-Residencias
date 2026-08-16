@@ -75,7 +75,7 @@
   --color-outline-variant: #acb3b4;
 
   /* ── Tipografía ── */
-  --font-display:  'Manrope', sans-serif;   /* headline */
+  --font-display:  'Oswald', 'Anton', sans-serif;   /* headline */
   --font-body:     'Inter', sans-serif;
 
   /* ── Radios ── */
