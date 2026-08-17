@@ -9,11 +9,6 @@ import { upload, uploadPlague, uploadCrop } from "../middlewares/upload.js";
 // ─── Controladores del módulo principal (privateController) ───────────────────
 // Contiene todos los handlers que aún no han sido extraídos a sub-controladores
 import {
-  // Productos agroquímicos
-  getGlyphomaxDetail,
-  createProduct,
-  updateProduct,
-  deleteProduct,
   // Plagas
   createPlague,
   updatePlague,
@@ -22,7 +17,6 @@ import {
   // Vistas de panel
   dashboard,
   plaguesPrivate,
-  productsPrivate,
   ingredientsPrivate,
   reportsPrivate,
   usersPrivate,
@@ -43,6 +37,15 @@ import {
   updateCrop,
   deleteCrop,
 } from "../controllers/private/cropsController.js";
+
+// ─── Controladores del módulo de productos (sub-controlador modular) ────────────
+import {
+  productsPrivate,
+  getProductDetail,
+  createProduct,
+  updateProduct,
+  deleteProduct,
+} from "../controllers/private/productsController.js";
 
 // ─── Controladores del módulo de parcelas (sub-controlador modular) ────────────
 import {
@@ -99,7 +102,7 @@ privateRouter.post("/private/plagues/delete/:id", deletePlague);                
 // MÓDULO: PRODUCTOS AGROQUÍMICOS
 // ══════════════════════════════════════════════════════════════════════════════
 privateRouter.get("/private/products", productsPrivate);                                         // Lista todos los productos
-privateRouter.get("/private/products/glyphomax-pro-480", getGlyphomaxDetail);                   // Detalle hardcoded de producto (Glyphomax)
+privateRouter.get("/private/products/:id", getProductDetail);                                   // Detalle de producto por ID
 privateRouter.post("/private/products/create", upload.single("image"), createProduct);           // Crear producto (1 imagen genérica)
 privateRouter.post("/private/products/update/:id", upload.single("image"), updateProduct);      // Actualizar producto
 privateRouter.post("/private/products/delete/:id", deleteProduct);                              // Eliminar producto
