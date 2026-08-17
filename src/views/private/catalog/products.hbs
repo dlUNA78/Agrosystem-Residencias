@@ -414,7 +414,10 @@
                                 data-active="{{active_ingredient}}" data-registration="{{registration_code}}"
                                 data-validation="{{validation_status}}" data-expiration="{{expiration_date}}"
                                 data-crops="{{target_crops}}" data-description="{{description}}"
-                                data-status="{{status}}" data-image="{{image_url}}">
+                                data-status="{{status}}" data-image="{{image_url}}"
+                                data-mode="{{mode_of_action}}" data-hazard="{{hazard_category}}"
+                                data-dosage="{{suggested_dosage}}" data-interval="{{safety_interval_days}}"
+                                data-formulation="{{formulation_type}}" data-safetysheet="{{safety_sheet_url}}">
                                 ✏️ Editar
                             </button>
 
@@ -589,6 +592,66 @@
                     </label>
 
                     <input id="target_crops" type="text" name="target_crops" placeholder="Ej. Maíz, Trigo, Sorgo"
+                        class="w-full bg-surface-container-low rounded-lg py-3 px-4 text-sm border-none">
+                </div>
+
+                <!-- Mecanismo de Acción -->
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-widest mb-2">
+                        Mecanismo de Acción
+                    </label>
+                    <input id="mode_of_action" type="text" name="mode_of_action" placeholder="Ej. Sistémico e Ingestión"
+                        class="w-full bg-surface-container-low rounded-lg py-3 px-4 text-sm border-none">
+                </div>
+
+                <!-- Clasificación Toxicológica -->
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-widest mb-2">
+                        Categoría Toxicológica
+                    </label>
+                    <select id="hazard_category" name="hazard_category"
+                        class="w-full bg-surface-container-low rounded-lg py-3 px-4 text-sm border-none">
+                        <option value="">Seleccionar...</option>
+                        <option value="Categoría IV — Precaución (Banda Verde)">Categoría IV — Banda Verde (Precaución)</option>
+                        <option value="Categoría III — Ligeramente Peligroso (Banda Azul)">Categoría III — Banda Azul (Ligeramente Peligroso)</option>
+                        <option value="Categoría II — Moderadamente Peligroso (Banda Amarilla)">Categoría II — Banda Amarilla (Moderadamente Peligroso)</option>
+                        <option value="Categoría I — Altamente Peligroso (Banda Roja)">Categoría I — Banda Roja (Altamente Peligroso)</option>
+                    </select>
+                </div>
+
+                <!-- Dosis Sugerida -->
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-widest mb-2">
+                        Dosis Sugerida
+                    </label>
+                    <input id="suggested_dosage" type="text" name="suggested_dosage" placeholder="Ej. 350 - 500 ml / ha"
+                        class="w-full bg-surface-container-low rounded-lg py-3 px-4 text-sm border-none">
+                </div>
+
+                <!-- Días de Carencia -->
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-widest mb-2">
+                        Días de Carencia (Pre-cosecha)
+                    </label>
+                    <input id="safety_interval_days" type="number" name="safety_interval_days" placeholder="Ej. 14"
+                        class="w-full bg-surface-container-low rounded-lg py-3 px-4 text-sm border-none">
+                </div>
+
+                <!-- Formulación -->
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-widest mb-2">
+                        Tipo de Formulación
+                    </label>
+                    <input id="formulation_type" type="text" name="formulation_type" placeholder="Ej. Suspensión Concentrada (SC)"
+                        class="w-full bg-surface-container-low rounded-lg py-3 px-4 text-sm border-none">
+                </div>
+
+                <!-- Ficha de Seguridad (PDF URL) -->
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-widest mb-2">
+                        Enlace a Ficha Técnica / PDF
+                    </label>
+                    <input id="safety_sheet_url" type="url" name="safety_sheet_url" placeholder="https://..."
                         class="w-full bg-surface-container-low rounded-lg py-3 px-4 text-sm border-none">
                 </div>
 
@@ -960,6 +1023,12 @@
                 document.getElementById("validation_status").value = this.dataset.validation || "";
                 document.getElementById("expiration_date").value = this.dataset.expiration ? this.dataset.expiration.substring(0, 10) : "";
                 document.getElementById("target_crops").value = this.dataset.crops || "";
+                document.getElementById("mode_of_action").value = this.dataset.mode || "";
+                document.getElementById("hazard_category").value = this.dataset.hazard || "";
+                document.getElementById("suggested_dosage").value = this.dataset.dosage || "";
+                document.getElementById("safety_interval_days").value = this.dataset.interval || "";
+                document.getElementById("formulation_type").value = this.dataset.formulation || "";
+                document.getElementById("safety_sheet_url").value = this.dataset.safetysheet || "";
                 document.getElementById("description").value = this.dataset.description || "";
                 document.getElementById("status").checked = this.dataset.status === "true" || this.dataset.status === "1";
 
