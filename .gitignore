@@ -24,3 +24,9 @@ out/
 
 # Archivos de estilos de tailwind
 public/css/style.css
+
+# QA y Reportes de Pruebas
+coverage/
+.stryker-tmp/
+reports/
+
