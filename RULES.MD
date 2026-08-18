@@ -1,4 +1,3 @@
-
 ## 1. Arquitectura y Organización de Código (MVC)
 
 - **Estricto patrón MVC:** El proyecto debe respetar la separación entre Modelos, Vistas y Controladores.
@@ -69,3 +68,32 @@ Todos los mensajes de commit deben usar prefijos estandarizados:
 
 - **Límite de peso en Backend:** Al configurar cargas de archivos (con `multer` o similares), se establecerá un peso máximo (ej. máximo 2MB a 5MB por imagen).
 - **Consistencia de interfaz:** En las plantillas `.hbs`, todas las imágenes cargadas dinámicamente deberán incluir clases de Tailwind como `object-cover` y proporciones definidas (`aspect-square`, `w-full`) para evitar romper el diseño visual.
+
+
+### 🛡️ PROTOCOLO ESTRICTO DE MODIFICACIÓN DE CÓDIGO (Reglas para el Agente)
+
+CADA VEZ que modifiques, crees o elimines código en este repositorio, ESTÁS OBLIGADO a seguir este flujo secuencial. Está estrictamente prohibido dar por terminada una tarea sin antes completar todos estos pasos con éxito.
+
+**PASO 1: Escribir o Actualizar Pruebas Primero (TDD)**
+
+- Antes de modificar o crear lógica de negocio (controladores, modelos de Sequelize, rutas), debes crear o actualizar la prueba unitaria en la carpeta `/tests` utilizando Jest.
+
+**PASO 2: Desarrollo del Código Fuente**
+
+- Escribe el código necesario en el sistema para cumplir con los requerimientos, enfocado en hacer que la prueba del Paso 1 sea exitosa.
+
+**PASO 3: Bucle de Ejecución y Auto-Sanación (Crítico)**
+
+- Abre la terminal integrada y ejecuta obligatoriamente: `pnpm run test`
+- **SI HAY ERRORES:** Lee el log de error en la terminal (`stderr`), analiza la falla, corrige tu propio código fuente y vuelve a ejecutar `pnpm run test`.
+- **PROHIBICIÓN:** No te detengas, no dejes código roto y no pidas intervención humana si una prueba falla. Quedarás en este bucle hasta que la consola devuelva un resultado exitoso (verde).
+
+**PASO 4: Calidad y Formato (Linting)**
+
+- Una vez que las pruebas pasen, ejecuta en la terminal: `pnpm run format`
+- Luego, ejecuta: `pnpm run lint`
+- Si ESLint arroja advertencias o errores (por ejemplo, complejidad ciclomática mayor a 10, o variables no utilizadas), debes reestructurar tu código para solucionarlos.
+
+**PASO 5: Cierre de la Tarea**
+
+- Solo cuando los comandos `pnpm run test` y `pnpm run lint` se ejecuten limpiamente y sin errores, puedes detenerte y notificar que la modificación ha sido completada de manera segura.
