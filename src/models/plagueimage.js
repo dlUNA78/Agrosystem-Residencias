@@ -1,11 +1,11 @@
-import { Model } from "sequelize";
+import { Model } from 'sequelize';
 
 export default (sequelize, DataTypes) => {
   class PlagueImage extends Model {
     static associate(models) {
       PlagueImage.belongsTo(models.Plague, {
-        foreignKey: "plague_id",
-        as: "plague",
+        foreignKey: 'plague_id',
+        as: 'plague',
       });
     }
   }
@@ -29,9 +29,9 @@ export default (sequelize, DataTypes) => {
     },
     {
       sequelize,
-      modelName: "PlagueImage",
-      tableName: "PlagueImages",
-    }
+      modelName: 'PlagueImage',
+      tableName: 'PlagueImages',
+    },
   );
 
   return PlagueImage;

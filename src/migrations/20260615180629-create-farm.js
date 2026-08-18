@@ -5,41 +5,41 @@ export default {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
-        type: Sequelize.INTEGER
+        type: Sequelize.INTEGER,
       },
       name: {
         type: Sequelize.STRING,
-        allowNull: false
+        allowNull: false,
       },
       location_lat: {
-        type: Sequelize.DECIMAL
+        type: Sequelize.DECIMAL,
       },
       location_lng: {
-        type: Sequelize.DECIMAL
+        type: Sequelize.DECIMAL,
       },
       size_hectares: {
-        type: Sequelize.DECIMAL
+        type: Sequelize.DECIMAL,
       },
       user_id: {
         type: Sequelize.INTEGER,
         references: {
           model: 'Users',
-          key: 'id'
+          key: 'id',
         },
         onUpdate: 'CASCADE',
-        onDelete: 'SET NULL'
+        onDelete: 'SET NULL',
       },
       createdAt: {
         allowNull: false,
-        type: Sequelize.DATE
+        type: Sequelize.DATE,
       },
       updatedAt: {
         allowNull: false,
-        type: Sequelize.DATE
-      }
+        type: Sequelize.DATE,
+      },
     });
   },
   async down(queryInterface, Sequelize) {
     await queryInterface.dropTable('Farms');
-  }
+  },
 };

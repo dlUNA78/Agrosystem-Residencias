@@ -1,4 +1,4 @@
-import { Model } from "sequelize";
+import { Model } from 'sequelize';
 
 export default (sequelize, DataTypes) => {
   class Farm extends Model {
@@ -10,14 +10,14 @@ export default (sequelize, DataTypes) => {
     static associate(models) {
       // Relación con el dueño del terreno
       Farm.belongsTo(models.User, {
-        foreignKey: "user_id",
-        as: "user",
+        foreignKey: 'user_id',
+        as: 'user',
       });
 
       // Relación con la región agrícola
       Farm.belongsTo(models.Region, {
-        foreignKey: "region_id",
-        as: "region",
+        foreignKey: 'region_id',
+        as: 'region',
       });
     }
   }
@@ -50,13 +50,13 @@ export default (sequelize, DataTypes) => {
       farming_type: {
         type: DataTypes.STRING,
         allowNull: true,
-        comment: "Ej: Temporal, Riego, Mixto",
+        comment: 'Ej: Temporal, Riego, Mixto',
       },
 
       municipality: {
         type: DataTypes.STRING,
         allowNull: true,
-        comment: "Ej: Uruapan, Peribán",
+        comment: 'Ej: Uruapan, Peribán',
       },
 
       // ── Control ──
@@ -64,7 +64,7 @@ export default (sequelize, DataTypes) => {
         type: DataTypes.BOOLEAN,
         allowNull: false,
         defaultValue: true,
-        comment: "true = activo | false = borrado lógico",
+        comment: 'true = activo | false = borrado lógico',
       },
 
       // ── Llaves foráneas ──
@@ -79,8 +79,8 @@ export default (sequelize, DataTypes) => {
     },
     {
       sequelize,
-      modelName: "Farm",
-    }
+      modelName: 'Farm',
+    },
   );
 
   return Farm;

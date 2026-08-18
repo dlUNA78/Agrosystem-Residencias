@@ -5,56 +5,56 @@ export default {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
-        type: Sequelize.INTEGER
+        type: Sequelize.INTEGER,
       },
       code: {
         type: Sequelize.STRING,
-        unique: true
+        unique: true,
       },
       full_name: {
         type: Sequelize.STRING,
-        allowNull: false
+        allowNull: false,
       },
       email: {
         type: Sequelize.STRING,
         allowNull: false,
-        unique: true
+        unique: true,
       },
       password_hash: {
         type: Sequelize.STRING,
-        allowNull: true // Se permite nulo para quienes inicien sesión con Google
+        allowNull: true, // Se permite nulo para quienes inicien sesión con Google
       },
       role: {
         type: Sequelize.STRING,
         defaultValue: 'agricultor',
-        allowNull: false
+        allowNull: false,
       },
       phone: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
       },
       address: {
-        type: Sequelize.TEXT
+        type: Sequelize.TEXT,
       },
       job_title: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
       },
       shift: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
       },
       photo_url: {
-        type: Sequelize.TEXT
+        type: Sequelize.TEXT,
       },
       createdAt: {
         allowNull: false,
-        type: Sequelize.DATE
+        type: Sequelize.DATE,
       },
       updatedAt: {
         allowNull: false,
-        type: Sequelize.DATE
-      }
+        type: Sequelize.DATE,
+      },
     });
   },
   async down(queryInterface, Sequelize) {
     await queryInterface.dropTable('Users');
-  }
+  },
 };

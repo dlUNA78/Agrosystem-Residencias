@@ -1,4 +1,4 @@
-import { Model } from "sequelize";
+import { Model } from 'sequelize';
 
 export default (sequelize, DataTypes) => {
   class Forum extends Model {
@@ -12,16 +12,19 @@ export default (sequelize, DataTypes) => {
     }
   }
 
-  Forum.init({
-    title: DataTypes.STRING,
-    content: DataTypes.TEXT,
-    category: DataTypes.STRING,
-    image_url: DataTypes.STRING,
-    user_id: DataTypes.INTEGER
-  }, {
-    sequelize,
-    modelName: 'Forum',
-  });
+  Forum.init(
+    {
+      title: DataTypes.STRING,
+      content: DataTypes.TEXT,
+      category: DataTypes.STRING,
+      image_url: DataTypes.STRING,
+      user_id: DataTypes.INTEGER,
+    },
+    {
+      sequelize,
+      modelName: 'Forum',
+    },
+  );
 
   return Forum;
 };

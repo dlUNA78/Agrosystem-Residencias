@@ -4,17 +4,16 @@ Una plataforma web Full-Stack desarrollada para digitalizar y centralizar proces
 
 ## 🚀 Características Principales
 
-*   **Administración de Parcelas:** Módulo dedicado para el registro y monitoreo detallado de zonas de cultivo[cite: 1, 2, 3].
-*   **Control de Plagas:** Sistema de seguimiento para registrar incidencias y tratamientos[cite: 1, 2, 3].
-*   **Gestión de Inventario:** Control automatizado del flujo de productos agrícolas[cite: 1, 2, 3].
-*   **Integridad de Datos:** Arquitectura diseñada para garantizar alta disponibilidad en los datos de investigación[cite: 1, 2, 3].
+- **Administración de Parcelas:** Módulo dedicado para el registro y monitoreo detallado de zonas de cultivo[cite: 1, 2, 3].
+- **Control de Plagas:** Sistema de seguimiento para registrar incidencias y tratamientos[cite: 1, 2, 3].
+- **Gestión de Inventario:** Control automatizado del flujo de productos agrícolas[cite: 1, 2, 3].
+- **Integridad de Datos:** Arquitectura diseñada para garantizar alta disponibilidad en los datos de investigación[cite: 1, 2, 3].
 
 ## 🛠️ Tecnologías Utilizadas
 
-*   **Backend:** Node.js, Express
-*   **Frontend:** Express-Handlebars, HTML, TailwindCSS
-*   **Base de Datos:** PostgreSQL implementado mediante ORM
-
+- **Backend:** Node.js, Express
+- **Frontend:** Express-Handlebars, HTML, TailwindCSS
+- **Base de Datos:** PostgreSQL implementado mediante ORM
 
 ## ⚙️ Instalación y Uso Local
 

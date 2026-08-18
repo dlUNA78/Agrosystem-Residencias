@@ -1,7 +1,5 @@
 export default {
-
   async up(queryInterface, Sequelize) {
-
     await queryInterface.createTable('Crops', {
       id: {
         type: Sequelize.INTEGER,
@@ -199,16 +197,10 @@ export default {
         type: Sequelize.DATE,
         allowNull: false,
       },
-
     });
-
   },
-
 
   async down(queryInterface) {
-
     await queryInterface.dropTable('Crops');
-
   },
-
 };

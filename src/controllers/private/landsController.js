@@ -1,49 +1,49 @@
-import path from "path";
-import { fileURLToPath } from "url";
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-import db from "../../models/index.js";
+import db from '../../models/index.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Ruta absoluta al layout privado
-const privateLayout = path.join(__dirname, "../../views/layouts/private");
+const privateLayout = path.join(__dirname, '../../views/layouts/private');
 
 // ============================================================
 // LANDS — Mapa de datos demo por ID (reemplazar con DB real)
 // ============================================================
 const DEMO_LANDS = {
   1: {
-    landName: "La Esperanza",
-    landLocation: "Culiacán, Sinaloa",
-    landLat: "24.7994",
-    landLng: "-107.3877",
-    landHectares: "142",
-    landId: "#PRD-0041",
+    landName: 'La Esperanza',
+    landLocation: 'Culiacán, Sinaloa',
+    landLat: '24.7994',
+    landLng: '-107.3877',
+    landHectares: '142',
+    landId: '#PRD-0041',
   },
   2: {
-    landName: "El Progreso",
-    landLocation: "Navolato, Sinaloa",
-    landLat: "24.7608",
-    landLng: "-107.6988",
-    landHectares: "280",
-    landId: "#PRD-0038",
+    landName: 'El Progreso',
+    landLocation: 'Navolato, Sinaloa',
+    landLat: '24.7608',
+    landLng: '-107.6988',
+    landHectares: '280',
+    landId: '#PRD-0038',
   },
   3: {
-    landName: "Rancho San Miguel",
-    landLocation: "Mocorito, Sinaloa",
-    landLat: "25.4847",
-    landLng: "-107.9606",
-    landHectares: "95",
-    landId: "#PRD-0035",
+    landName: 'Rancho San Miguel',
+    landLocation: 'Mocorito, Sinaloa',
+    landLat: '25.4847',
+    landLng: '-107.9606',
+    landHectares: '95',
+    landId: '#PRD-0035',
   },
   4: {
-    landName: "Los Álamos",
-    landLocation: "Guasave, Sinaloa",
-    landLat: "25.5666",
-    landLng: "-108.4697",
-    landHectares: "210",
-    landId: "#PRD-0049",
+    landName: 'Los Álamos',
+    landLocation: 'Guasave, Sinaloa',
+    landLat: '25.5666',
+    landLng: '-108.4697',
+    landHectares: '210',
+    landId: '#PRD-0049',
   },
 };
 
@@ -55,8 +55,8 @@ export const renderLandsPrivate = async (req, res) => {
   try {
     // Obtener todas las regiones para poblar el select del formulario
     const regions = await db.Region.findAll({
-      attributes: ["id", "name"],
-      order: [["name", "ASC"]],
+      attributes: ['id', 'name'],
+      order: [['name', 'ASC']],
       raw: true,
     });
 
@@ -69,21 +69,21 @@ export const renderLandsPrivate = async (req, res) => {
       include: [
         {
           model: db.Region,
-          as: "region",
-          attributes: ["id", "name"],
+          as: 'region',
+          attributes: ['id', 'name'],
           required: false,
         },
       ],
-      order: [["createdAt", "DESC"]],
+      order: [['createdAt', 'DESC']],
     });
 
     // Serializar para pasar a la vista de forma segura
     const farmsData = farms.map((f) => f.toJSON());
 
-    return res.render("private/lands/list", {
+    return res.render('private/lands/list', {
       layout: privateLayout,
-      pageTitle: "Mis Terrenos",
-      activePage: "lands",
+      pageTitle: 'Mis Terrenos',
+      activePage: 'lands',
 
       // Datos
       farms: farmsData,
@@ -101,8 +101,8 @@ export const renderLandsPrivate = async (req, res) => {
       `,
     });
   } catch (error) {
-    console.error("Error al cargar los terrenos:", error);
-    return res.status(500).send("Error al cargar los terrenos");
+    console.error('Error al cargar los terrenos:', error);
+    return res.status(500).send('Error al cargar los terrenos');
   }
 };
 
@@ -112,7 +112,15 @@ export const renderLandsPrivate = async (req, res) => {
 // ============================================================
 export const createFarmPrivate = async (req, res) => {
   try {
-    const { name, size_hectares, farming_type, municipality, region_id, location_lat, location_lng } = req.body;
+    const {
+      name,
+      size_hectares,
+      farming_type,
+      municipality,
+      region_id,
+      location_lat,
+      location_lng,
+    } = req.body;
 
     await db.Farm.create({
       name,
@@ -126,10 +134,10 @@ export const createFarmPrivate = async (req, res) => {
       status: true,
     });
 
-    return res.redirect("/lands");
+    return res.redirect('/lands');
   } catch (error) {
-    console.error("Error al crear el terreno:", error);
-    return res.status(500).send("Error al crear el terreno");
+    console.error('Error al crear el terreno:', error);
+    return res.status(500).send('Error al crear el terreno');
   }
 };
 
@@ -151,8 +159,8 @@ export const landDetail = async (req, res) => {
       include: [
         {
           model: db.Region,
-          as: "region",
-          attributes: ["id", "name"],
+          as: 'region',
+          attributes: ['id', 'name'],
           required: false,
         },
       ],
@@ -160,35 +168,37 @@ export const landDetail = async (req, res) => {
 
     if (farm) {
       const landData = farm.toJSON();
-      return res.render("private/lands/detail", {
+      return res.render('private/lands/detail', {
         layout: privateLayout,
         pageTitle: `Expediente — ${landData.name}`,
-        activePage: "lands",
+        activePage: 'lands',
         extraScripts: '<script src="/js/private/land-detail.js"></script>',
         landName: landData.name,
-        landLocation: `${landData.municipality || "Sin municipio"}${landData.region ? " — " + landData.region.name : ""}`,
-        landLat: landData.location_lat ? String(landData.location_lat) : "N/A",
-        landLng: landData.location_lng ? String(landData.location_lng) : "N/A",
-        landHectares: landData.size_hectares ? String(landData.size_hectares) : "0",
-        landId: `#PRD-${String(landData.id).padStart(4, "0")}`,
+        landLocation: `${landData.municipality || 'Sin municipio'}${landData.region ? ' — ' + landData.region.name : ''}`,
+        landLat: landData.location_lat ? String(landData.location_lat) : 'N/A',
+        landLng: landData.location_lng ? String(landData.location_lng) : 'N/A',
+        landHectares: landData.size_hectares
+          ? String(landData.size_hectares)
+          : '0',
+        landId: `#PRD-${String(landData.id).padStart(4, '0')}`,
       });
     }
 
     // Fallback para predios de demostración / maqueta
     const demoLand = DEMO_LANDS[id];
     if (demoLand) {
-      return res.render("private/lands/detail", {
+      return res.render('private/lands/detail', {
         layout: privateLayout,
         pageTitle: `Expediente — ${demoLand.landName}`,
-        activePage: "lands",
+        activePage: 'lands',
         extraScripts: '<script src="/js/private/land-detail.js"></script>',
         ...demoLand,
       });
     }
 
-    return res.status(404).send("Predio no encontrado");
+    return res.status(404).send('Predio no encontrado');
   } catch (error) {
-    console.error("Error al obtener el expediente del terreno:", error);
-    return res.status(500).send("Error al obtener el expediente del terreno");
+    console.error('Error al obtener el expediente del terreno:', error);
+    return res.status(500).send('Error al obtener el expediente del terreno');
   }
 };

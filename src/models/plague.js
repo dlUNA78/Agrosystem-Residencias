@@ -1,36 +1,36 @@
-import { Model } from "sequelize";
+import { Model } from 'sequelize';
 
 export default (sequelize, DataTypes) => {
   class Plague extends Model {
     static associate(models) {
       // Una plaga tiene muchas imágenes de referencia (carrusel)
       Plague.hasMany(models.PlagueImage, {
-        foreignKey: "plague_id",
-        as: "images",
+        foreignKey: 'plague_id',
+        as: 'images',
       });
 
       // Una plaga se relaciona con muchos productos (tabla pivote)
       Plague.belongsToMany(models.Product, {
-        through: "PlagueProducts",
-        foreignKey: "plague_id",
-        otherKey: "product_id",
-        as: "products",
+        through: 'PlagueProducts',
+        foreignKey: 'plague_id',
+        otherKey: 'product_id',
+        as: 'products',
       });
 
       // Una plaga se relaciona con muchas regiones
       Plague.belongsToMany(models.Region, {
-        through: "PlagueRegions",
-        foreignKey: "plague_id",
-        otherKey: "region_id",
-        as: "regions"
+        through: 'PlagueRegions',
+        foreignKey: 'plague_id',
+        otherKey: 'region_id',
+        as: 'regions',
       });
 
       // Una plaga ataca a muchos cultivos (tabla pivote CropPlagues)
       Plague.belongsToMany(models.Crop, {
-        through: "CropPlagues",
-        foreignKey: "plague_id",
-        otherKey: "crop_id",
-        as: "crops",
+        through: 'CropPlagues',
+        foreignKey: 'plague_id',
+        otherKey: 'crop_id',
+        as: 'crops',
       });
     }
   }
@@ -54,8 +54,8 @@ export default (sequelize, DataTypes) => {
     },
     {
       sequelize,
-      modelName: "Plague",
-    }
+      modelName: 'Plague',
+    },
   );
 
   return Plague;

@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener('DOMContentLoaded', () => {
   // Carousel Initialization
   (function () {
     const slides = document.getElementById('hero-slides');
@@ -15,9 +15,11 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    const sources = Array.from(items).map(el => {
+    const sources = Array.from(items).map((el) => {
       const caption = el.querySelector('p');
-      return caption ? caption.textContent.trim() : 'Banco de Germoplasma INIFAP';
+      return caption
+        ? caption.textContent.trim()
+        : 'Banco de Germoplasma INIFAP';
     });
 
     let current = 0;
@@ -25,7 +27,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     for (let i = 0; i < total; i++) {
       const dot = document.createElement('button');
-      dot.className = 'w-2 h-2 rounded-full transition-all ' + (i === 0 ? 'bg-white w-5' : 'bg-white/40');
+      dot.className =
+        'w-2 h-2 rounded-full transition-all ' +
+        (i === 0 ? 'bg-white w-5' : 'bg-white/40');
       dot.setAttribute('aria-label', 'Slide ' + (i + 1));
       dot.addEventListener('click', () => goTo(i));
       if (dotsWrap) dotsWrap.appendChild(dot);
@@ -33,10 +37,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function goTo(n) {
       current = (n + total) % total;
-      if (slides) slides.style.transform = 'translateX(-' + (current * 100) + '%)';
+      if (slides)
+        slides.style.transform = 'translateX(-' + current * 100 + '%)';
       if (dotsWrap) {
         Array.from(dotsWrap.children).forEach((d, i) => {
-          d.className = 'h-2 rounded-full transition-all ' + (i === current ? 'bg-white w-5' : 'bg-white/40 w-2');
+          d.className =
+            'h-2 rounded-full transition-all ' +
+            (i === current ? 'bg-white w-5' : 'bg-white/40 w-2');
         });
       }
       if (srcLabel) srcLabel.textContent = 'Imagen por: ' + sources[current];
@@ -66,14 +73,14 @@ window.addEventListener('load', function () {
   try {
     regions = JSON.parse(datasetRegions);
   } catch (e) {
-    console.error("Failed to parse incidence regions:", e);
+    console.error('Failed to parse incidence regions:', e);
     return;
   }
 
   const riskColors = {
-    'Alto':  '#9f403d',
-    'Medio': '#43655c',
-    'Bajo':  '#50635f',
+    Alto: '#9f403d',
+    Medio: '#43655c',
+    Bajo: '#50635f',
   };
 
   const map = L.map('incidence-map', {
@@ -86,7 +93,7 @@ window.addEventListener('load', function () {
 
   L.tileLayer(
     'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-    { maxZoom: 19, subdomains: 'abcd' }
+    { maxZoom: 19, subdomains: 'abcd' },
   ).addTo(map);
 
   const bounds = [];
@@ -95,21 +102,27 @@ window.addEventListener('load', function () {
     const markerColor = riskColors[riskLevel] || riskColors['Medio'];
 
     const circle = L.circleMarker([r.lat, r.lng], {
-      radius:      10,
-      fillColor:   markerColor,
-      color:       markerColor,
-      weight:      2,
-      opacity:     0.9,
+      radius: 10,
+      fillColor: markerColor,
+      color: markerColor,
+      weight: 2,
+      opacity: 0.9,
       fillOpacity: 0.35,
     }).addTo(map);
 
     circle.bindPopup(
-      '<div style="font-family: Inter, sans-serif; min-width: 140px;">'
-      + '<p style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#596061;margin:0 0 4px;">Zona de Incidencia</p>'
-      + '<p style="font-weight:700;font-size:14px;margin:0;color:#2d3435;">' + r.name + '</p>'
-      + '<p style="font-size:11px;font-weight:600;margin:4px 0 0;color:'+markerColor+';">Riesgo ' + riskLevel + '</p>'
-      + '</div>',
-      { closeButton: false }
+      '<div style="font-family: Inter, sans-serif; min-width: 140px;">' +
+        '<p style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#596061;margin:0 0 4px;">Zona de Incidencia</p>' +
+        '<p style="font-weight:700;font-size:14px;margin:0;color:#2d3435;">' +
+        r.name +
+        '</p>' +
+        '<p style="font-size:11px;font-weight:600;margin:4px 0 0;color:' +
+        markerColor +
+        ';">Riesgo ' +
+        riskLevel +
+        '</p>' +
+        '</div>',
+      { closeButton: false },
     );
 
     if (r.hasCoords) bounds.push([r.lat, r.lng]);

@@ -17,12 +17,17 @@ let sequelize;
 if (config.use_env_variable) {
   sequelize = new Sequelize(process.env[config.use_env_variable], config);
 } else {
-  sequelize = new Sequelize(config.database, config.username, config.password, config);
+  sequelize = new Sequelize(
+    config.database,
+    config.username,
+    config.password,
+    config,
+  );
 }
 
 // Leer todos los modelos de forma asíncrona y moderna
 const files = await fs.readdir(__dirname);
-const modelFiles = files.filter(file => {
+const modelFiles = files.filter((file) => {
   return (
     file.indexOf('.') !== 0 &&
     file !== basename &&
@@ -40,7 +45,7 @@ for (const file of modelFiles) {
 }
 
 // Ejecutar las asociaciones (relaciones) de cada modelo
-Object.keys(db).forEach(modelName => {
+Object.keys(db).forEach((modelName) => {
   if (db[modelName].associate) {
     db[modelName].associate(db);
   }

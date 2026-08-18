@@ -5,50 +5,50 @@ export default {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
-        type: Sequelize.INTEGER
+        type: Sequelize.INTEGER,
       },
       farm_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
           model: 'Farms',
-          key: 'id'
+          key: 'id',
         },
         onUpdate: 'CASCADE',
-        onDelete: 'CASCADE'
+        onDelete: 'CASCADE',
       },
       crop_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
-          model: 'Crops', 
-          key: 'id'
+          model: 'Crops',
+          key: 'id',
         },
         onUpdate: 'CASCADE',
-        onDelete: 'CASCADE'
+        onDelete: 'CASCADE',
       },
       planting_date: {
-        type: Sequelize.DATE
+        type: Sequelize.DATE,
       },
       is_active: {
         type: Sequelize.BOOLEAN,
-        defaultValue: true
+        defaultValue: true,
       },
       status: {
         type: Sequelize.STRING,
-        defaultValue: 'En Crecimiento'
+        defaultValue: 'En Crecimiento',
       },
       createdAt: {
         allowNull: false,
-        type: Sequelize.DATE
+        type: Sequelize.DATE,
       },
       updatedAt: {
         allowNull: false,
-        type: Sequelize.DATE
-      }
+        type: Sequelize.DATE,
+      },
     });
   },
   async down(queryInterface, Sequelize) {
     await queryInterface.dropTable('FarmCrops');
-  }
+  },
 };

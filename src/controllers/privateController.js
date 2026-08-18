@@ -1,25 +1,25 @@
-import path from "path";
-import { fileURLToPath } from "url";
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-import db from "../models/index.js";
+import db from '../models/index.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Ruta absoluta al layout privado (express-hbs lo requiere cuando no es el defaultLayout)
-const privateLayout = path.join(__dirname, "../views/layouts/private");
+const privateLayout = path.join(__dirname, '../views/layouts/private');
 
 export const dashboard = (req, res) => {
-  res.render("private/dashboard/index", {
+  res.render('private/dashboard/index', {
     layout: privateLayout,
-    pageTitle: "Dashboard",
-    activePage: "dashboard",
+    pageTitle: 'Dashboard',
+    activePage: 'dashboard',
   });
 };
 
 export const plaguesPrivate = async (req, res) => {
   try {
-    const { search = "", category = "", status = "" } = req.query;
+    const { search = '', category = '', status = '' } = req.query;
 
     const { Op } = db.Sequelize;
 
@@ -52,64 +52,64 @@ export const plaguesPrivate = async (req, res) => {
     }
 
     // FILTRO POR ESTATUS
-    if (status === "true") {
+    if (status === 'true') {
       where.status = true;
     }
 
-    if (status === "false") {
+    if (status === 'false') {
       where.status = false;
     }
 
     // CONSULTAR PLAGAS
     const plagues = await db.Plague.findAll({
       where,
-      order: [["createdAt", "DESC"]],
+      order: [['createdAt', 'DESC']],
       raw: true,
     });
 
-    console.log("FILTRO STATUS:", status);
-    console.log("PLAGAS ENCONTRADAS:", plagues);
+    console.log('FILTRO STATUS:', status);
+    console.log('PLAGAS ENCONTRADAS:', plagues);
 
-    return res.render("private/catalog/plagues", {
+    return res.render('private/catalog/plagues', {
       layout: privateLayout,
-      pageTitle: "Plagas",
-      activePage: "plagues",
+      pageTitle: 'Plagas',
+      activePage: 'plagues',
       plagues,
 
-      searchId: "plague-search",
-      searchPlaceholder: "Buscar por nombre, especie o cultivo afectado...",
+      searchId: 'plague-search',
+      searchPlaceholder: 'Buscar por nombre, especie o cultivo afectado...',
 
       searchFilters: [
         {
-          id: "filter-crop",
-          label: "Cultivo:",
+          id: 'filter-crop',
+          label: 'Cultivo:',
           options: [
-            { value: "maiz", text: "Maíz" },
-            { value: "sorgo", text: "Sorgo" },
-            { value: "mango", text: "Mango" },
-            { value: "limon", text: "Limón" },
+            { value: 'maiz', text: 'Maíz' },
+            { value: 'sorgo', text: 'Sorgo' },
+            { value: 'mango', text: 'Mango' },
+            { value: 'limon', text: 'Limón' },
           ],
         },
         {
-          id: "filter-status",
-          label: "Estatus:",
+          id: 'filter-status',
+          label: 'Estatus:',
           options: [
-            { value: "", text: "Todos" },
-            { value: "true", text: "Activo" },
-            { value: "false", text: "Inactivo" },
+            { value: '', text: 'Todos' },
+            { value: 'true', text: 'Activo' },
+            { value: 'false', text: 'Inactivo' },
           ],
         },
       ],
 
-      ctaLabel: "Añadir Plaga",
-      ctaIcon: "bug_report",
-      ctaBtnId: "btn-add-plague",
+      ctaLabel: 'Añadir Plaga',
+      ctaIcon: 'bug_report',
+      ctaBtnId: 'btn-add-plague',
       showViewToggle: true,
     });
   } catch (error) {
-    console.error("Error al cargar las plagas:", error);
+    console.error('Error al cargar las plagas:', error);
 
-    return res.status(500).send("Error al cargar las plagas");
+    return res.status(500).send('Error al cargar las plagas');
   }
 };
 
@@ -119,7 +119,7 @@ export const suppliersPrivate = async (req, res) => {
     // OBTENER FILTROS
     // =========================================
 
-    const { search = "", supply_type = "", status = "" } = req.query;
+    const { search = '', supply_type = '', status = '' } = req.query;
 
     const { Op } = db.Sequelize;
 
@@ -241,7 +241,7 @@ export const suppliersPrivate = async (req, res) => {
     const suppliers = await db.Supplier.findAll({
       where,
 
-      order: [["createdAt", "DESC"]],
+      order: [['createdAt', 'DESC']],
 
       raw: true,
     });
@@ -252,25 +252,25 @@ export const suppliersPrivate = async (req, res) => {
 
     const total = suppliers.length;
     const activos = suppliers.filter(
-      (supplier) => supplier.status?.toLowerCase() === "activo",
+      (supplier) => supplier.status?.toLowerCase() === 'activo',
     ).length;
     const pendientes = suppliers.filter(
-      (supplier) => supplier.status?.toLowerCase() === "pendiente",
+      (supplier) => supplier.status?.toLowerCase() === 'pendiente',
     ).length;
     const inactivos = suppliers.filter(
-      (supplier) => supplier.status?.toLowerCase() === "inactivo",
+      (supplier) => supplier.status?.toLowerCase() === 'inactivo',
     ).length;
 
     // =========================================
     // RENDERIZAR VISTA
     // =========================================
 
-    res.render("private/admin/suppliers", {
+    res.render('private/admin/suppliers', {
       layout: privateLayout,
 
-      pageTitle: "Proveedores",
+      pageTitle: 'Proveedores',
 
-      activePage: "suppliers",
+      activePage: 'suppliers',
 
       suppliers,
 
@@ -283,84 +283,84 @@ export const suppliersPrivate = async (req, res) => {
       status,
 
       // BARRA DE BÚSQUEDA
-      searchId: "supplier-search",
-      searchPlaceholder: "Buscar por empresa, contacto o RFC...",
+      searchId: 'supplier-search',
+      searchPlaceholder: 'Buscar por empresa, contacto o RFC...',
       searchFilters: [
         // FILTRO POR TIPO
         {
-          id: "filter-type",
-          param: "supply_type",
-          label: "Tipo:",
+          id: 'filter-type',
+          param: 'supply_type',
+          label: 'Tipo:',
           options: [
             {
-              value: "",
-              text: "Todos",
+              value: '',
+              text: 'Todos',
             },
             {
-              value: "agroquimicos",
-              text: "Agroquímicos",
+              value: 'agroquimicos',
+              text: 'Agroquímicos',
             },
             {
-              value: "semillas",
-              text: "Semillas",
+              value: 'semillas',
+              text: 'Semillas',
             },
             {
-              value: "equipo",
-              text: "Equipo agrícola",
+              value: 'equipo',
+              text: 'Equipo agrícola',
             },
             {
-              value: "fertilizantes",
-              text: "Fertilizantes",
+              value: 'fertilizantes',
+              text: 'Fertilizantes',
             },
             {
-              value: "herramientas",
-              text: "Herramientas",
+              value: 'herramientas',
+              text: 'Herramientas',
             },
             {
-              value: "servicios",
-              text: "Servicios",
+              value: 'servicios',
+              text: 'Servicios',
             },
             {
-              value: "otros",
-              text: "Otros",
+              value: 'otros',
+              text: 'Otros',
             },
           ],
         },
         // FILTRO POR ESTATUS
         {
-          id: "filter-status",
-          param: "status",
-          label: "Estatus:",
+          id: 'filter-status',
+          param: 'status',
+          label: 'Estatus:',
           options: [
             {
-              value: "",
-              text: "Todos",
+              value: '',
+              text: 'Todos',
             },
             {
-              value: "activo",
-              text: "Activo",
+              value: 'activo',
+              text: 'Activo',
             },
             {
-              value: "inactivo",
-              text: "Inactivo",
+              value: 'inactivo',
+              text: 'Inactivo',
             },
             {
-              value: "pendiente",
-              text: "Pendiente",
+              value: 'pendiente',
+              text: 'Pendiente',
             },
           ],
         },
       ],
       // BOTÓN PRINCIPAL
-      ctaLabel: "Añadir Proveedor",
-      ctaIcon: "add_business",
-      ctaBtnId: "btn-add-supplier",
+      ctaLabel: 'Añadir Proveedor',
+      ctaIcon: 'add_business',
+      ctaBtnId: 'btn-add-supplier',
       showViewToggle: true,
     });
   } catch (error) {
-    console.error("Error al cargar proveedores:", error);
+    console.error('Error al cargar proveedores:', error);
 
-    res.status(500).send("Error al cargar proveedores");
+    res.status(500).send('Error al cargar proveedores');
   }
 };
 
@@ -387,7 +387,7 @@ export const createSupplier = async (req, res) => {
       city: req.body.city?.trim(),
       state: req.body.state?.trim(),
       postal_code: req.body.postal_code?.trim(),
-      country: req.body.country?.trim() || "México",
+      country: req.body.country?.trim() || 'México',
 
       // INFORMACIÓN DEL SUMINISTRO
       supplied_products: req.body.supplied_products?.trim(),
@@ -399,14 +399,14 @@ export const createSupplier = async (req, res) => {
       payment_method: req.body.payment_method || null,
 
       // CONTROL
-      status: req.body.status || "pendiente",
+      status: req.body.status || 'pendiente',
     });
 
-    return res.redirect("/private/suppliers");
+    return res.redirect('/private/suppliers');
   } catch (error) {
-    console.error("Error al crear el proveedor:", error);
+    console.error('Error al crear el proveedor:', error);
 
-    return res.status(500).send("Error al crear el proveedor");
+    return res.status(500).send('Error al crear el proveedor');
   }
 };
 
@@ -418,7 +418,7 @@ export const updateSupplier = async (req, res) => {
     const supplier = await db.Supplier.findByPk(id);
 
     if (!supplier) {
-      return res.status(404).send("Proveedor no encontrado");
+      return res.status(404).send('Proveedor no encontrado');
     }
 
     await supplier.update({
@@ -441,7 +441,7 @@ export const updateSupplier = async (req, res) => {
       city: req.body.city?.trim(),
       state: req.body.state?.trim(),
       postal_code: req.body.postal_code?.trim(),
-      country: req.body.country?.trim() || "México",
+      country: req.body.country?.trim() || 'México',
 
       // INFORMACIÓN DEL SUMINISTRO
       supplied_products: req.body.supplied_products?.trim(),
@@ -456,14 +456,14 @@ export const updateSupplier = async (req, res) => {
       payment_method: req.body.payment_method || null,
 
       // CONTROL
-      status: req.body.status || "pendiente",
+      status: req.body.status || 'pendiente',
     });
 
-    return res.redirect("/private/suppliers");
+    return res.redirect('/private/suppliers');
   } catch (error) {
-    console.error("Error al actualizar el proveedor:", error);
+    console.error('Error al actualizar el proveedor:', error);
 
-    return res.status(500).send("Error al actualizar el proveedor");
+    return res.status(500).send('Error al actualizar el proveedor');
   }
 };
 
@@ -475,59 +475,59 @@ export const deleteSupplier = async (req, res) => {
     const supplier = await db.Supplier.findByPk(id);
 
     if (!supplier) {
-      return res.status(404).send("Proveedor no encontrado");
+      return res.status(404).send('Proveedor no encontrado');
     }
 
     await supplier.destroy();
 
-    return res.redirect("/private/suppliers");
+    return res.redirect('/private/suppliers');
   } catch (error) {
-    console.error("Error al eliminar el proveedor:", error);
+    console.error('Error al eliminar el proveedor:', error);
 
-    return res.status(500).send("Error al eliminar el proveedor");
+    return res.status(500).send('Error al eliminar el proveedor');
   }
 };
 
 export const auditPrivate = (req, res) => {
-  res.render("private/admin/audit", {
+  res.render('private/admin/audit', {
     layout: privateLayout,
-    pageTitle: "Auditoría",
-    activePage: "audit",
-    searchId: "audit-search",
-    searchPlaceholder: "Buscar por usuario, acción o detalles...",
+    pageTitle: 'Auditoría',
+    activePage: 'audit',
+    searchId: 'audit-search',
+    searchPlaceholder: 'Buscar por usuario, acción o detalles...',
     searchFilters: [
       {
-        id: "filter-module",
-        label: "Módulo: Todos",
+        id: 'filter-module',
+        label: 'Módulo: Todos',
         options: [
-          { value: "plagas", text: "Plagas" },
-          { value: "cultivos", text: "Cultivos" },
-          { value: "productos", text: "Productos" },
-          { value: "usuarios", text: "Usuarios" },
-          { value: "proveedores", text: "Proveedores" },
+          { value: 'plagas', text: 'Plagas' },
+          { value: 'cultivos', text: 'Cultivos' },
+          { value: 'productos', text: 'Productos' },
+          { value: 'usuarios', text: 'Usuarios' },
+          { value: 'proveedores', text: 'Proveedores' },
         ],
       },
       {
-        id: "filter-action",
-        label: "Acción: Todas",
+        id: 'filter-action',
+        label: 'Acción: Todas',
         options: [
-          { value: "crear", text: "Creación" },
-          { value: "editar", text: "Edición" },
-          { value: "eliminar", text: "Eliminación" },
-          { value: "aprobar", text: "Aprobación" },
+          { value: 'crear', text: 'Creación' },
+          { value: 'editar', text: 'Edición' },
+          { value: 'eliminar', text: 'Eliminación' },
+          { value: 'aprobar', text: 'Aprobación' },
         ],
       },
     ],
-    ctaLabel: "Exportar Log",
-    ctaIcon: "download",
-    ctaBtnId: "btn-export-audit",
+    ctaLabel: 'Exportar Log',
+    ctaIcon: 'download',
+    ctaBtnId: 'btn-export-audit',
     showViewToggle: true,
   });
 };
 
 export const cropsPrivate = async (req, res) => {
   try {
-    const { search = "", category = "", status = "" } = req.query;
+    const { search = '', category = '', status = '' } = req.query;
     const { Op } = db.Sequelize;
 
     const where = {};
@@ -571,16 +571,16 @@ export const cropsPrivate = async (req, res) => {
       include: [
         {
           model: db.CropImage,
-          as: "images",
+          as: 'images',
           required: false,
           separate: true,
           order: [
-            ["is_primary", "DESC"],
-            ["display_order", "ASC"],
+            ['is_primary', 'DESC'],
+            ['display_order', 'ASC'],
           ],
         },
       ],
-      order: [["createdAt", "DESC"]],
+      order: [['createdAt', 'DESC']],
     });
 
     // PREPARAR DATOS PARA LA VISTA
@@ -611,7 +611,7 @@ export const cropsPrivate = async (req, res) => {
     });
 
     console.log(
-      "CULTIVOS CARGADOS:",
+      'CULTIVOS CARGADOS:',
       cropsFormatted.map((crop) => ({
         id: crop.id,
         name: crop.name,
@@ -622,103 +622,103 @@ export const cropsPrivate = async (req, res) => {
 
     // RENDERIZAR
 
-    res.render("private/catalog/crops", {
+    res.render('private/catalog/crops', {
       layout: privateLayout,
-      pageTitle: "Cultivos",
-      activePage: "crops",
+      pageTitle: 'Cultivos',
+      activePage: 'crops',
       crops: cropsFormatted,
       // BARRA DE BÚSQUEDA
 
-      searchId: "crop-search",
-      searchPlaceholder: "Buscar por nombre, especie o tipo de cultivo...",
+      searchId: 'crop-search',
+      searchPlaceholder: 'Buscar por nombre, especie o tipo de cultivo...',
       searchFilters: [
         {
-          id: "filter-type",
-          param: "category",
-          label: "Tipo:",
+          id: 'filter-type',
+          param: 'category',
+          label: 'Tipo:',
           options: [
             {
-              value: "",
-              text: "Todos",
+              value: '',
+              text: 'Todos',
             },
             {
-              value: "cereal",
-              text: "Cereal",
+              value: 'cereal',
+              text: 'Cereal',
             },
             {
-              value: "frutal",
-              text: "Frutal",
+              value: 'frutal',
+              text: 'Frutal',
             },
             {
-              value: "hortaliza",
-              text: "Hortaliza",
+              value: 'hortaliza',
+              text: 'Hortaliza',
             },
             {
-              value: "leguminosa",
-              text: "Leguminosa",
+              value: 'leguminosa',
+              text: 'Leguminosa',
             },
             {
-              value: "oleaginosa",
-              text: "Oleaginosa",
+              value: 'oleaginosa',
+              text: 'Oleaginosa',
             },
             {
-              value: "tuberculo",
-              text: "Tubérculo",
+              value: 'tuberculo',
+              text: 'Tubérculo',
             },
             {
-              value: "forrajera",
-              text: "Forrajera",
+              value: 'forrajera',
+              text: 'Forrajera',
             },
             {
-              value: "ornamental",
-              text: "Ornamental",
+              value: 'ornamental',
+              text: 'Ornamental',
             },
             {
-              value: "industrial",
-              text: "Industrial",
+              value: 'industrial',
+              text: 'Industrial',
             },
             {
-              value: "otro",
-              text: "Otro",
+              value: 'otro',
+              text: 'Otro',
             },
           ],
         },
         {
-          id: "filter-status",
-          param: "status",
-          label: "Estatus:",
+          id: 'filter-status',
+          param: 'status',
+          label: 'Estatus:',
           options: [
             {
-              value: "",
-              text: "Todos",
+              value: '',
+              text: 'Todos',
             },
             {
-              value: "aprobado",
-              text: "Aprobado",
+              value: 'aprobado',
+              text: 'Aprobado',
             },
             {
-              value: "pendiente",
-              text: "Pendiente",
+              value: 'pendiente',
+              text: 'Pendiente',
             },
             {
-              value: "rechazado",
-              text: "Rechazado",
+              value: 'rechazado',
+              text: 'Rechazado',
             },
           ],
         },
       ],
 
-      ctaLabel: "Añadir Cultivo",
+      ctaLabel: 'Añadir Cultivo',
 
-      ctaIcon: "agriculture",
+      ctaIcon: 'agriculture',
 
-      ctaBtnId: "btn-add-crop",
+      ctaBtnId: 'btn-add-crop',
 
       showViewToggle: true,
     });
   } catch (error) {
-    console.error("Error al cargar los cultivos:", error);
-    res.status(500).send("Error al cargar los cultivos");
+    console.error('Error al cargar los cultivos:', error);
+    res.status(500).send('Error al cargar los cultivos');
   }
 };
 
@@ -844,9 +844,9 @@ export const createCrop = async (req, res) => {
         fertilization: fertilization || null,
 
         requires_pruning:
-          requires_pruning === "true"
+          requires_pruning === 'true'
             ? true
-            : requires_pruning === "false"
+            : requires_pruning === 'false'
               ? false
               : null,
 
@@ -858,18 +858,18 @@ export const createCrop = async (req, res) => {
         observations: observations || null,
 
         // ESTADO
-        status: status || "pendiente",
+        status: status || 'pendiente',
       },
       {
         transaction,
       },
     );
 
-    console.log("CULTIVO CREADO:", crop.id);
+    console.log('CULTIVO CREADO:', crop.id);
 
     // GUARDAR IMÁGENES
 
-    console.log("ARCHIVOS RECIBIDOS:", req.files);
+    console.log('ARCHIVOS RECIBIDOS:', req.files);
 
     if (req.files && req.files.length > 0) {
       const images = req.files.map((file, index) => ({
@@ -892,22 +892,22 @@ export const createCrop = async (req, res) => {
         transaction,
       });
 
-      console.log("IMÁGENES GUARDADAS:", images.length);
+      console.log('IMÁGENES GUARDADAS:', images.length);
     }
 
     // CONFIRMAR
 
     await transaction.commit();
-    return res.redirect("/private/crops");
+    return res.redirect('/private/crops');
   } catch (error) {
     await transaction.rollback();
 
-    console.error("ERROR AL CREAR CULTIVO:", error);
+    console.error('ERROR AL CREAR CULTIVO:', error);
 
     return res.status(500).json({
       success: false,
 
-      message: "Error al crear el cultivo",
+      message: 'Error al crear el cultivo',
 
       error: error.message,
     });
@@ -986,7 +986,7 @@ export const updateCrop = async (req, res) => {
     if (!crop) {
       await transaction.rollback();
 
-      return res.status(404).send("Cultivo no encontrado");
+      return res.status(404).send('Cultivo no encontrado');
     }
 
     // ACTUALIZAR CULTIVO
@@ -1053,9 +1053,9 @@ export const updateCrop = async (req, res) => {
         fertilization: fertilization || null,
 
         requires_pruning:
-          requires_pruning === "true"
+          requires_pruning === 'true'
             ? true
-            : requires_pruning === "false"
+            : requires_pruning === 'false'
               ? false
               : null,
 
@@ -1067,18 +1067,18 @@ export const updateCrop = async (req, res) => {
         observations: observations || null,
 
         // ESTADO
-        status: status || "pendiente",
+        status: status || 'pendiente',
       },
       {
         transaction,
       },
     );
 
-    console.log("CULTIVO ACTUALIZADO:", crop.id);
+    console.log('CULTIVO ACTUALIZADO:', crop.id);
 
     // AGREGAR NUEVAS IMÁGENES
 
-    console.log("NUEVAS IMÁGENES:", req.files);
+    console.log('NUEVAS IMÁGENES:', req.files);
 
     if (req.files && req.files.length > 0) {
       // Buscar si ya existe una imagen principal
@@ -1116,22 +1116,22 @@ export const updateCrop = async (req, res) => {
         },
       );
 
-      console.log("NUEVAS IMÁGENES GUARDADAS:", images.length);
+      console.log('NUEVAS IMÁGENES GUARDADAS:', images.length);
     }
 
     // CONFIRMAR
     await transaction.commit();
 
-    return res.redirect("/private/crops");
+    return res.redirect('/private/crops');
   } catch (error) {
     await transaction.rollback();
 
-    console.error("ERROR AL ACTUALIZAR CULTIVO:", error);
+    console.error('ERROR AL ACTUALIZAR CULTIVO:', error);
 
     return res.status(500).json({
       success: false,
 
-      message: "Error al actualizar el cultivo",
+      message: 'Error al actualizar el cultivo',
 
       error: error.message,
     });
@@ -1152,7 +1152,7 @@ export const deleteCrop = async (req, res) => {
     // VALIDAR SI EXISTE
     if (!crop) {
       await transaction.rollback();
-      return res.redirect("/private/crops");
+      return res.redirect('/private/crops');
     }
     // ELIMINAR IMÁGENES RELACIONADAS
     await db.CropImage.destroy({
@@ -1172,15 +1172,15 @@ export const deleteCrop = async (req, res) => {
 
     console.log(`CULTIVO ELIMINADO: ${crop.name} (ID: ${id})`);
 
-    return res.redirect("/private/crops");
+    return res.redirect('/private/crops');
   } catch (error) {
     // DESHACER CAMBIOS
     await transaction.rollback();
 
-    console.error("ERROR AL ELIMINAR CULTIVO:", error);
+    console.error('ERROR AL ELIMINAR CULTIVO:', error);
     return res.status(500).json({
       success: false,
-      message: "Error al eliminar el cultivo",
+      message: 'Error al eliminar el cultivo',
       error: error.message,
     });
   }
@@ -1194,20 +1194,20 @@ export const getCropDetail = async (req, res) => {
         {
           model: db.CropImage,
 
-          as: "images",
+          as: 'images',
 
           attributes: [
-            "id",
-            "image_url",
-            "original_name",
-            "is_primary",
-            "display_order",
+            'id',
+            'image_url',
+            'original_name',
+            'is_primary',
+            'display_order',
           ],
 
           order: [
-            ["is_primary", "DESC"],
+            ['is_primary', 'DESC'],
 
-            ["display_order", "ASC"],
+            ['display_order', 'ASC'],
           ],
         },
       ],
@@ -1217,7 +1217,7 @@ export const getCropDetail = async (req, res) => {
       return res.status(404).json({
         success: false,
 
-        message: "Cultivo no encontrado",
+        message: 'Cultivo no encontrado',
       });
     }
 
@@ -1228,7 +1228,7 @@ export const getCropDetail = async (req, res) => {
     });
   } catch (error) {
     console.error(
-      "ERROR AL OBTENER CULTIVO:",
+      'ERROR AL OBTENER CULTIVO:',
 
       error,
     );
@@ -1236,7 +1236,7 @@ export const getCropDetail = async (req, res) => {
     return res.status(500).json({
       success: false,
 
-      message: "Error al obtener el cultivo",
+      message: 'Error al obtener el cultivo',
     });
   }
 };
@@ -1244,7 +1244,7 @@ export const getCropDetail = async (req, res) => {
 
 export const productsPrivate = async (req, res) => {
   try {
-    const { search = "", category = "" } = req.query;
+    const { search = '', category = '' } = req.query;
 
     const Op = db.Sequelize.Op;
 
@@ -1279,18 +1279,18 @@ export const productsPrivate = async (req, res) => {
       where,
       raw: true,
     });
-    const norm = (v) => (v || "").toString().trim().toLowerCase();
+    const norm = (v) => (v || '').toString().trim().toLowerCase();
 
     const total = products.length;
 
     const aprobados = products.filter(
-      (p) => norm(p.validation_status) === "validado",
+      (p) => norm(p.validation_status) === 'validado',
     ).length;
     const pendientes = products.filter(
-      (p) => norm(p.validation_status) === "en revisión",
+      (p) => norm(p.validation_status) === 'en revisión',
     ).length;
     const restringidos = products.filter(
-      (p) => norm(p.validation_status) === "restringido",
+      (p) => norm(p.validation_status) === 'restringido',
     ).length;
     // Productos que vencen en los próximos 60 días
     const today = new Date();
@@ -1302,7 +1302,7 @@ export const productsPrivate = async (req, res) => {
     const expiringProducts = products.filter((product) => {
       if (!product.expiration_date) return false;
 
-      const expDate = new Date(product.expiration_date + "T00:00:00");
+      const expDate = new Date(product.expiration_date + 'T00:00:00');
 
       if (isNaN(expDate)) return false;
 
@@ -1318,18 +1318,18 @@ export const productsPrivate = async (req, res) => {
         ...product,
 
         expiration_date_formatted: new Date(
-          product.expiration_date + "T00:00:00",
-        ).toLocaleDateString("es-MX", {
-          day: "2-digit",
-          month: "2-digit",
-          year: "numeric",
+          product.expiration_date + 'T00:00:00',
+        ).toLocaleDateString('es-MX', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
         }),
       };
     });
-    res.render("private/catalog/products", {
+    res.render('private/catalog/products', {
       layout: privateLayout,
-      pageTitle: "Productos",
-      activePage: "products",
+      pageTitle: 'Productos',
+      activePage: 'products',
       // Productos filtrados
       products,
 
@@ -1345,39 +1345,39 @@ export const productsPrivate = async (req, res) => {
         restringidos,
       },
 
-      searchId: "product-search",
+      searchId: 'product-search',
 
-      searchPlaceholder: "Buscar por nombre, registro y fabricante....",
+      searchPlaceholder: 'Buscar por nombre, registro y fabricante....',
       // Mantener valores del filtro
       search,
       category,
       searchFilters: [
         {
-          id: "filter-category",
-          param: "category",
-          label: "Categoría:",
+          id: 'filter-category',
+          param: 'category',
+          label: 'Categoría:',
 
           options: [
-            { value: "", text: "Todas" },
-            { value: "Herbicida", text: "Herbicidas" },
-            { value: "Insecticida", text: "Insecticidas" },
-            { value: "Fungicida", text: "Fungicidas" },
-            { value: "Fertilizante", text: "Fertilizantes" },
-            { value: "Acaricida", text: "Acaricidas" },
-            { value: "Bactericida", text: "Bactericidas" },
-            { value: "Coadyuvante", text: "Coadyuvantes" },
+            { value: '', text: 'Todas' },
+            { value: 'Herbicida', text: 'Herbicidas' },
+            { value: 'Insecticida', text: 'Insecticidas' },
+            { value: 'Fungicida', text: 'Fungicidas' },
+            { value: 'Fertilizante', text: 'Fertilizantes' },
+            { value: 'Acaricida', text: 'Acaricidas' },
+            { value: 'Bactericida', text: 'Bactericidas' },
+            { value: 'Coadyuvante', text: 'Coadyuvantes' },
           ],
         },
       ],
-      ctaLabel: "Añadir Producto",
-      ctaIcon: "add_circle",
-      ctaBtnId: "btn-add-product",
+      ctaLabel: 'Añadir Producto',
+      ctaIcon: 'add_circle',
+      ctaBtnId: 'btn-add-product',
       showViewToggle: true,
     });
   } catch (error) {
     console.error(error);
 
-    res.status(500).send("Error al obtener los productos");
+    res.status(500).send('Error al obtener los productos');
   }
 };
 // Detalle de producto
@@ -1396,13 +1396,13 @@ export const createProduct = async (req, res) => {
       target_crops: req.body.target_crops,
       description: req.body.description,
       image_url,
-      status: req.body.status === "true" || req.body.status === "on",
+      status: req.body.status === 'true' || req.body.status === 'on',
     });
 
-    return res.redirect("/private/products");
+    return res.redirect('/private/products');
   } catch (error) {
     console.error(error);
-    return res.status(500).send("Error al crear producto");
+    return res.status(500).send('Error al crear producto');
   }
 };
 // ACTUALIZAR PRODUCTO
@@ -1413,7 +1413,7 @@ export const updateProduct = async (req, res) => {
     const product = await db.Product.findByPk(id);
 
     if (!product) {
-      return res.status(404).send("Producto no encontrado");
+      return res.status(404).send('Producto no encontrado');
     }
 
     let image_url = product.image_url;
@@ -1433,13 +1433,13 @@ export const updateProduct = async (req, res) => {
       target_crops: req.body.target_crops,
       description: req.body.description,
       image_url,
-      status: req.body.status === "true" || req.body.status === "on",
+      status: req.body.status === 'true' || req.body.status === 'on',
     });
 
-    res.redirect("/private/products");
+    res.redirect('/private/products');
   } catch (error) {
     console.error(error);
-    res.status(500).send("Error al actualizar producto");
+    res.status(500).send('Error al actualizar producto');
   }
 };
 // ELIMINAR PRODUCTO
@@ -1451,10 +1451,10 @@ export const deleteProduct = async (req, res) => {
       where: { id },
     });
 
-    return res.redirect("/private/products");
+    return res.redirect('/private/products');
   } catch (error) {
     console.error(error);
-    return res.status(500).send("Error al eliminar producto");
+    return res.status(500).send('Error al eliminar producto');
   }
 };
 
@@ -1477,15 +1477,15 @@ export const createPlague = async (req, res) => {
 
       // Si el checkbox está marcado, será true
       status:
-        req.body.status === "true" ||
-        req.body.status === "on" ||
+        req.body.status === 'true' ||
+        req.body.status === 'on' ||
         req.body.status === true,
     });
 
-    return res.redirect("/private/plagues");
+    return res.redirect('/private/plagues');
   } catch (error) {
-    console.error("Error al crear la plaga:", error);
-    return res.status(500).send("Error al crear la plaga");
+    console.error('Error al crear la plaga:', error);
+    return res.status(500).send('Error al crear la plaga');
   }
 };
 
@@ -1497,7 +1497,7 @@ export const updatePlague = async (req, res) => {
     const plague = await db.Plague.findByPk(id);
 
     if (!plague) {
-      return res.status(404).send("Plaga no encontrada");
+      return res.status(404).send('Plaga no encontrada');
     }
 
     const data = {
@@ -1512,8 +1512,8 @@ export const updatePlague = async (req, res) => {
       biological_control: req.body.biological_control,
 
       status:
-        req.body.status === "true" ||
-        req.body.status === "on" ||
+        req.body.status === 'true' ||
+        req.body.status === 'on' ||
         req.body.status === true,
     };
 
@@ -1524,10 +1524,10 @@ export const updatePlague = async (req, res) => {
 
     await plague.update(data);
 
-    return res.redirect("/private/plagues");
+    return res.redirect('/private/plagues');
   } catch (error) {
-    console.error("Error al actualizar la plaga:", error);
-    return res.status(500).send("Error al actualizar la plaga");
+    console.error('Error al actualizar la plaga:', error);
+    return res.status(500).send('Error al actualizar la plaga');
   }
 };
 
@@ -1539,121 +1539,121 @@ export const deletePlague = async (req, res) => {
     const plague = await db.Plague.findByPk(id);
 
     if (!plague) {
-      return res.status(404).send("Plaga no encontrada");
+      return res.status(404).send('Plaga no encontrada');
     }
 
     await plague.destroy();
 
-    return res.redirect("/private/plagues");
+    return res.redirect('/private/plagues');
   } catch (error) {
-    console.error("Error al eliminar la plaga:", error);
-    return res.status(500).send("Error al eliminar la plaga");
+    console.error('Error al eliminar la plaga:', error);
+    return res.status(500).send('Error al eliminar la plaga');
   }
 };
 
 export const reportsPrivate = (req, res) => {
-  res.render("private/admin/reports", {
+  res.render('private/admin/reports', {
     layout: privateLayout,
-    pageTitle: "Reportes y Estadísticas",
-    activePage: "reports",
+    pageTitle: 'Reportes y Estadísticas',
+    activePage: 'reports',
   });
 };
 
 export const ingredientsPrivate = (req, res) => {
-  res.render("private/catalog/ingredients", {
+  res.render('private/catalog/ingredients', {
     layout: privateLayout,
-    pageTitle: "Ingredientes Activos",
-    activePage: "ingredients",
-    searchId: "ingredient-search",
+    pageTitle: 'Ingredientes Activos',
+    activePage: 'ingredients',
+    searchId: 'ingredient-search',
     searchPlaceholder:
-      "Buscar por nombre, grupo químico o mecanismo de acción...",
+      'Buscar por nombre, grupo químico o mecanismo de acción...',
     searchFilters: [
       {
-        id: "filter-tipo",
-        label: "Tipo: Todos",
+        id: 'filter-tipo',
+        label: 'Tipo: Todos',
         options: [
-          { value: "herbicida", text: "Herbicida" },
-          { value: "insecticida", text: "Insecticida" },
-          { value: "fungicida", text: "Fungicida" },
-          { value: "acaricida", text: "Acaricida" },
-          { value: "nematicida", text: "Nematicida" },
-          { value: "bactericida", text: "Bactericida" },
+          { value: 'herbicida', text: 'Herbicida' },
+          { value: 'insecticida', text: 'Insecticida' },
+          { value: 'fungicida', text: 'Fungicida' },
+          { value: 'acaricida', text: 'Acaricida' },
+          { value: 'nematicida', text: 'Nematicida' },
+          { value: 'bactericida', text: 'Bactericida' },
         ],
       },
       {
-        id: "filter-toxicidad",
-        label: "Toxicidad OMS: Todas",
+        id: 'filter-toxicidad',
+        label: 'Toxicidad OMS: Todas',
         options: [
-          { value: "clase-i", text: "Clase I — Extremadamente tóxico" },
-          { value: "clase-ii", text: "Clase II — Altamente tóxico" },
-          { value: "clase-iii", text: "Clase III — Moderadamente tóxico" },
-          { value: "clase-iv", text: "Clase IV — Ligeramente tóxico" },
+          { value: 'clase-i', text: 'Clase I — Extremadamente tóxico' },
+          { value: 'clase-ii', text: 'Clase II — Altamente tóxico' },
+          { value: 'clase-iii', text: 'Clase III — Moderadamente tóxico' },
+          { value: 'clase-iv', text: 'Clase IV — Ligeramente tóxico' },
         ],
       },
       {
-        id: "filter-status",
-        label: "Estatus: Todos",
+        id: 'filter-status',
+        label: 'Estatus: Todos',
         options: [
-          { value: "aprobado", text: "Aprobado" },
-          { value: "pendiente", text: "Pendiente" },
-          { value: "restringido", text: "Restringido" },
+          { value: 'aprobado', text: 'Aprobado' },
+          { value: 'pendiente', text: 'Pendiente' },
+          { value: 'restringido', text: 'Restringido' },
         ],
       },
     ],
-    ctaLabel: "Añadir Ingrediente",
-    ctaIcon: "science",
-    ctaBtnId: "btn-add-ingredient",
+    ctaLabel: 'Añadir Ingrediente',
+    ctaIcon: 'science',
+    ctaBtnId: 'btn-add-ingredient',
     showViewToggle: true,
   });
 };
 
 export const usersPrivate = (req, res) => {
-  res.render("private/admin/users", {
+  res.render('private/admin/users', {
     layout: privateLayout,
-    pageTitle: "Usuarios",
-    activePage: "users",
-    searchId: "user-search",
-    searchPlaceholder: "Buscar por nombre, correo o institución...",
+    pageTitle: 'Usuarios',
+    activePage: 'users',
+    searchId: 'user-search',
+    searchPlaceholder: 'Buscar por nombre, correo o institución...',
     searchFilters: [
       {
-        id: "filter-rol",
-        label: "Rol: Todos",
+        id: 'filter-rol',
+        label: 'Rol: Todos',
         options: [
-          { value: "admin", text: "Admin" },
-          { value: "investigador", text: "Investigador" },
-          { value: "tecnico", text: "Técnico" },
-          { value: "agricultor", text: "Agricultor" },
+          { value: 'admin', text: 'Admin' },
+          { value: 'investigador', text: 'Investigador' },
+          { value: 'tecnico', text: 'Técnico' },
+          { value: 'agricultor', text: 'Agricultor' },
         ],
       },
       {
-        id: "filter-status",
-        label: "Estatus: Todos",
+        id: 'filter-status',
+        label: 'Estatus: Todos',
         options: [
-          { value: "activo", text: "Activo" },
-          { value: "pendiente", text: "Pendiente" },
-          { value: "suspendido", text: "Suspendido" },
+          { value: 'activo', text: 'Activo' },
+          { value: 'pendiente', text: 'Pendiente' },
+          { value: 'suspendido', text: 'Suspendido' },
         ],
       },
     ],
-    ctaLabel: "Añadir Usuario",
-    ctaIcon: "person_add",
-    ctaBtnId: "btn-add-user",
+    ctaLabel: 'Añadir Usuario',
+    ctaIcon: 'person_add',
+    ctaBtnId: 'btn-add-user',
     showViewToggle: true,
   });
 };
 
 export const getPestDetail = (req, res) => {
-  res.render("private/catalog/pest-detail", {
+  res.render('private/catalog/pest-detail', {
     layout: privateLayout,
-    pageTitle: "Pulgón Verde - Plagas",
-    activePage: "plagues",
+    pageTitle: 'Pulgón Verde - Plagas',
+    activePage: 'plagues',
   });
 };
 
 export const getGlyphomaxDetail = (req, res) => {
-  res.render("private/catalog/product-detail", {
+  res.render('private/catalog/product-detail', {
     layout: privateLayout,
-    pageTitle: "Glyphomax Pro 480 - Productos",
-    activePage: "products",
+    pageTitle: 'Glyphomax Pro 480 - Productos',
+    activePage: 'products',
   });
 };

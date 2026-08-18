@@ -13,24 +13,26 @@ export default {
     // Obtener los IDs reales de las plagas insertadas
     const plagues = await queryInterface.sequelize.query(
       `SELECT id, name FROM "Plagues" ORDER BY "createdAt" ASC`,
-      { type: queryInterface.sequelize.QueryTypes.SELECT }
+      { type: queryInterface.sequelize.QueryTypes.SELECT },
     );
 
     if (!plagues.length) {
-      console.warn("⚠️  No se encontraron plagas. Corre primero el seeder de Plagues.");
+      console.warn(
+        '⚠️  No se encontraron plagas. Corre primero el seeder de Plagues.',
+      );
       return;
     }
 
     const images = [];
 
     plagues.forEach((plague, index) => {
-      const seed = plague.name.toLowerCase().replace(/\s+/g, "-");
+      const seed = plague.name.toLowerCase().replace(/\s+/g, '-');
       images.push(
         {
           plague_id: plague.id,
           url: `https://picsum.photos/seed/${seed}-sintomas/1200/900`,
           caption: `${plague.name} — Síntomas en campo`,
-          source: "Ref: Centro de Investigación INIFAP",
+          source: 'Ref: Centro de Investigación INIFAP',
           sort_order: 1,
           createdAt: new Date(),
           updatedAt: new Date(),
@@ -39,18 +41,18 @@ export default {
           plague_id: plague.id,
           url: `https://picsum.photos/seed/${seed}-dano/1200/900`,
           caption: `${plague.name} — Daño foliar avanzado`,
-          source: "Ref: Estación Experimental INIFAP",
+          source: 'Ref: Estación Experimental INIFAP',
           sort_order: 2,
           createdAt: new Date(),
           updatedAt: new Date(),
-        }
+        },
       );
     });
 
-    await queryInterface.bulkInsert("PlagueImages", images);
+    await queryInterface.bulkInsert('PlagueImages', images);
   },
 
   async down(queryInterface) {
-    await queryInterface.bulkDelete("PlagueImages", null, {});
+    await queryInterface.bulkDelete('PlagueImages', null, {});
   },
 };

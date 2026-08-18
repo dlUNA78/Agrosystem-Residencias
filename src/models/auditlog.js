@@ -1,4 +1,4 @@
-import { Model } from "sequelize";
+import { Model } from 'sequelize';
 
 export default (sequelize, DataTypes) => {
   class AuditLog extends Model {
@@ -11,16 +11,19 @@ export default (sequelize, DataTypes) => {
       // define association here
     }
   }
-  AuditLog.init({
-    action: DataTypes.STRING,
-    table_name: DataTypes.STRING,
-    record_id: DataTypes.INTEGER,
-    old_values: DataTypes.JSONB,
-    new_values: DataTypes.JSONB,
-    user_id: DataTypes.INTEGER
-  }, {
-    sequelize,
-    modelName: 'AuditLog',
-  });
+  AuditLog.init(
+    {
+      action: DataTypes.STRING,
+      table_name: DataTypes.STRING,
+      record_id: DataTypes.INTEGER,
+      old_values: DataTypes.JSONB,
+      new_values: DataTypes.JSONB,
+      user_id: DataTypes.INTEGER,
+    },
+    {
+      sequelize,
+      modelName: 'AuditLog',
+    },
+  );
   return AuditLog;
 };

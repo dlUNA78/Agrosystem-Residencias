@@ -5,45 +5,45 @@ export default {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
-        type: Sequelize.INTEGER
+        type: Sequelize.INTEGER,
       },
       action: {
         type: Sequelize.STRING,
-        allowNull: false
+        allowNull: false,
       },
       table_name: {
         type: Sequelize.STRING,
-        allowNull: false
+        allowNull: false,
       },
       record_id: {
-        type: Sequelize.INTEGER
+        type: Sequelize.INTEGER,
       },
       old_values: {
-        type: Sequelize.JSONB 
+        type: Sequelize.JSONB,
       },
       new_values: {
-        type: Sequelize.JSONB
+        type: Sequelize.JSONB,
       },
       user_id: {
         type: Sequelize.INTEGER,
         references: {
           model: 'Users',
-          key: 'id'
+          key: 'id',
         },
         onUpdate: 'CASCADE',
-        onDelete: 'SET NULL'
+        onDelete: 'SET NULL',
       },
       createdAt: {
         allowNull: false,
-        type: Sequelize.DATE
+        type: Sequelize.DATE,
       },
       updatedAt: {
         allowNull: false,
-        type: Sequelize.DATE
-      }
+        type: Sequelize.DATE,
+      },
     });
   },
   async down(queryInterface, Sequelize) {
     await queryInterface.dropTable('AuditLogs');
-  }
+  },
 };

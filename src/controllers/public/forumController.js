@@ -1,6 +1,6 @@
 export const renderForumPublic = (req, res) => {
   res.render('public/forum', {
-    pageTitle:  'Foro',
+    pageTitle: 'Foro',
     activePage: 'forum',
   });
 };

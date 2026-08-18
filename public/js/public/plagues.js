@@ -1,17 +1,17 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const searchInput = document.getElementById("search-input");
-  const categoryFilter = document.getElementById("category-filter");
-  const regionFilter = document.getElementById("region-filter");
-  const riskFilter = document.getElementById("risk-filter");
-  const filterBtn = document.getElementById("filter-btn");
+document.addEventListener('DOMContentLoaded', () => {
+  const searchInput = document.getElementById('search-input');
+  const categoryFilter = document.getElementById('category-filter');
+  const regionFilter = document.getElementById('region-filter');
+  const riskFilter = document.getElementById('risk-filter');
+  const filterBtn = document.getElementById('filter-btn');
 
-  const plaguesGrid = document.getElementById("plagues-grid");
-  const totalCountNumber = document.getElementById("total-count-number");
+  const plaguesGrid = document.getElementById('plagues-grid');
+  const totalCountNumber = document.getElementById('total-count-number');
 
-  const paginationContainer = document.getElementById("pagination-container");
-  const prevPageBtn = document.getElementById("prev-page-btn");
-  const nextPageBtn = document.getElementById("next-page-btn");
-  const currentPageDisplay = document.getElementById("current-page-display");
+  const paginationContainer = document.getElementById('pagination-container');
+  const prevPageBtn = document.getElementById('prev-page-btn');
+  const nextPageBtn = document.getElementById('next-page-btn');
+  const currentPageDisplay = document.getElementById('current-page-display');
 
   let currentPage = 1;
   let debounceTimeout;
@@ -23,41 +23,49 @@ document.addEventListener("DOMContentLoaded", () => {
     const risk = riskFilter.value;
 
     const queryParams = new URLSearchParams({
-      page: currentPage
+      page: currentPage,
     });
 
-    if (search) queryParams.append("search", search);
-    if (category && category !== "Categoría") queryParams.append("category", category);
-    if (region && region !== "Región") queryParams.append("region", region);
-    if (risk && risk !== "Riesgo") queryParams.append("risk", risk);
+    if (search) queryParams.append('search', search);
+    if (category && category !== 'Categoría')
+      queryParams.append('category', category);
+    if (region && region !== 'Región') queryParams.append('region', region);
+    if (risk && risk !== 'Riesgo') queryParams.append('risk', risk);
 
     try {
       const response = await fetch(`/api/plagues?${queryParams.toString()}`);
-      if (!response.ok) throw new Error("Error fetching data");
+      if (!response.ok) throw new Error('Error fetching data');
 
       const data = await response.json();
       renderPlagues(data);
     } catch (error) {
-      console.error("Error al obtener las plagas:", error);
+      console.error('Error al obtener las plagas:', error);
     }
   };
 
   const escapeHTML = (str) => {
-    if (!str) return "";
-    const p = document.createElement("p");
+    if (!str) return '';
+    const p = document.createElement('p');
     p.appendChild(document.createTextNode(str));
     return p.innerHTML;
   };
 
   const renderPlagues = (data) => {
-    const { plagues, totalCount, totalPages, currentPage: newCurrentPage } = data;
+    const {
+      plagues,
+      totalCount,
+      totalPages,
+      currentPage: newCurrentPage,
+    } = data;
 
     currentPage = newCurrentPage;
     totalCountNumber.textContent = totalCount;
 
     // Save CTA card if it exists in DOM or use default HTML if not found (on first load it should exist)
-    const existingCta = document.getElementById("cta-new-species");
-    const ctaCardHtml = existingCta ? existingCta.outerHTML : `
+    const existingCta = document.getElementById('cta-new-species');
+    const ctaCardHtml = existingCta
+      ? existingCta.outerHTML
+      : `
       <article id="cta-new-species" class="group bg-surface-container-lowest rounded-xl overflow-hidden editorial-shadow ghost-border flex flex-col hover:translate-y-[-4px] transition-all duration-300 border-2 border-dashed border-primary/20 items-center justify-center p-8">
         <div class="text-center">
           <span class="material-symbols-outlined text-4xl text-primary/40 mb-4">add_circle</span>
@@ -72,11 +80,12 @@ document.addEventListener("DOMContentLoaded", () => {
       </article>
     `;
 
-    plaguesGrid.innerHTML = "";
+    plaguesGrid.innerHTML = '';
 
-    plagues.forEach(plague => {
-      const article = document.createElement("article");
-      article.className = "group bg-surface-container-lowest rounded-xl overflow-hidden editorial-shadow ghost-border flex flex-col hover:translate-y-[-4px] transition-all duration-300";
+    plagues.forEach((plague) => {
+      const article = document.createElement('article');
+      article.className =
+        'group bg-surface-container-lowest rounded-xl overflow-hidden editorial-shadow ghost-border flex flex-col hover:translate-y-[-4px] transition-all duration-300';
 
       const safeImageUrl = encodeURI(plague.imageUrl || '');
       const safeName = escapeHTML(plague.name);
@@ -125,9 +134,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Update pagination UI
     if (totalPages <= 1) {
-      paginationContainer.style.display = "none";
+      paginationContainer.style.display = 'none';
     } else {
-      paginationContainer.style.display = "flex";
+      paginationContainer.style.display = 'flex';
       currentPageDisplay.textContent = `Página ${currentPage} de ${totalPages}`;
 
       prevPageBtn.disabled = currentPage === 1;
@@ -140,28 +149,28 @@ document.addEventListener("DOMContentLoaded", () => {
     fetchPlagues();
   };
 
-  searchInput.addEventListener("input", () => {
+  searchInput.addEventListener('input', () => {
     clearTimeout(debounceTimeout);
     debounceTimeout = setTimeout(handleFilterChange, 300);
   });
 
-  categoryFilter.addEventListener("change", handleFilterChange);
-  regionFilter.addEventListener("change", handleFilterChange);
-  riskFilter.addEventListener("change", handleFilterChange);
+  categoryFilter.addEventListener('change', handleFilterChange);
+  regionFilter.addEventListener('change', handleFilterChange);
+  riskFilter.addEventListener('change', handleFilterChange);
 
   if (filterBtn) {
     // Hide filter btn as we do it in real time, but keep functionality if clicked
-    filterBtn.addEventListener("click", handleFilterChange);
+    filterBtn.addEventListener('click', handleFilterChange);
   }
 
-  prevPageBtn.addEventListener("click", () => {
+  prevPageBtn.addEventListener('click', () => {
     if (currentPage > 1) {
       currentPage--;
       fetchPlagues();
     }
   });
 
-  nextPageBtn.addEventListener("click", () => {
+  nextPageBtn.addEventListener('click', () => {
     currentPage++;
     fetchPlagues();
   });

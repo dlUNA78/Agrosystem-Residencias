@@ -14,12 +14,12 @@
  *   --expires YYYY-MM-DD  Fecha de expiración (opcional)
  */
 
-import "dotenv/config";
-import crypto from "crypto";
+import 'dotenv/config';
+import crypto from 'crypto';
 
 // Tu index.js es asíncrono (usa await al nivel superior), así que el import
 // espera a que todos los modelos estén registrados antes de continuar
-import db from "../models/index.js";
+import db from '../models/index.js';
 
 const { InifapCode } = db;
 
@@ -30,20 +30,20 @@ const getArg = (name) => {
   return idx !== -1 ? args[idx + 1] : null;
 };
 
-const count = parseInt(getArg("count") || "1", 10);
-const note = getArg("note") || null;
-const expiresRaw = getArg("expires") || null;
+const count = parseInt(getArg('count') || '1', 10);
+const note = getArg('note') || null;
+const expiresRaw = getArg('expires') || null;
 const expires_at = expiresRaw ? new Date(expiresRaw) : null;
 
 // ── Validación de argumentos ─────────────────────────────────────────────────
 if (isNaN(count) || count < 1) {
-  console.error("❌ --count debe ser un número entero mayor a 0.");
+  console.error('❌ --count debe ser un número entero mayor a 0.');
   process.exit(1);
 }
 
 if (expiresRaw && isNaN(Date.parse(expiresRaw))) {
   console.error(
-    "❌ --expires debe tener el formato YYYY-MM-DD (ej: 2026-12-31).",
+    '❌ --expires debe tener el formato YYYY-MM-DD (ej: 2026-12-31).',
   );
   process.exit(1);
 }
@@ -53,7 +53,7 @@ if (expiresRaw && isNaN(Date.parse(expiresRaw))) {
 // Usa crypto.randomBytes → aleatoriedad criptográfica real
 const generateCode = () => {
   const segment = () =>
-    crypto.randomBytes(3).toString("hex").toUpperCase().slice(0, 4);
+    crypto.randomBytes(3).toString('hex').toUpperCase().slice(0, 4);
   return `INIFAP-${segment()}-${segment()}`;
 };
 
@@ -72,7 +72,7 @@ const generateCode = () => {
         attempts++;
         if (attempts > 10)
           throw new Error(
-            "No se pudo generar un código único tras 10 intentos.",
+            'No se pudo generar un código único tras 10 intentos.',
           );
       } while (await InifapCode.findOne({ where: { code } }));
 
@@ -80,22 +80,22 @@ const generateCode = () => {
 
       console.log(
         `  ✅ ${code}` +
-          (note ? `  →  "${note}"` : "") +
-          (expires_at ? `  (expira: ${expiresRaw})` : ""),
+          (note ? `  →  "${note}"` : '') +
+          (expires_at ? `  (expira: ${expiresRaw})` : ''),
       );
     }
 
     console.log(`\n📋 ${count} código(s) creado(s) exitosamente en la BD.`);
     console.log(
-      "⚠️  Entrega estos códigos de forma segura a cada empleado INIFAP.",
+      '⚠️  Entrega estos códigos de forma segura a cada empleado INIFAP.',
     );
     console.log(
-      "    Una vez canjeados, quedarán marcados como usados automáticamente.\n",
+      '    Una vez canjeados, quedarán marcados como usados automáticamente.\n',
     );
 
     process.exit(0);
   } catch (error) {
-    console.error("\n❌ Error al generar códigos:", error.message);
+    console.error('\n❌ Error al generar códigos:', error.message);
     process.exit(1);
   }
 })();
