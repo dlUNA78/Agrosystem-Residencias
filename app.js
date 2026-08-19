@@ -102,6 +102,72 @@ hbs.registerHelper('add', (a, b) => Number(a) + Number(b));
 hbs.registerHelper('sub', (a, b) => Number(a) - Number(b));
 hbs.registerHelper('urlEncode', (str) => encodeURIComponent(str));
 
+// ─── HELPERS RBAC Y CONTROL DE ACCESO EN VISTAS ────────────────────────────
+hbs.registerHelper('hasRole', function (...args) {
+  const lastArg = args[args.length - 1];
+  const isHandlebarsOptions =
+    lastArg &&
+    typeof lastArg === 'object' &&
+    ('hash' in lastArg || 'data' in lastArg);
+
+  let user = null;
+  let roles = null;
+
+  if (isHandlebarsOptions) {
+    const options = lastArg;
+    const realArgs = args.slice(0, -1);
+
+    if (realArgs.length === 1) {
+      roles = realArgs[0];
+      user = options?.data?.root?.user;
+    } else if (realArgs.length >= 2) {
+      const passedUser = realArgs[0];
+      roles = realArgs[1];
+      user =
+        passedUser && typeof passedUser === 'object' && passedUser.role
+          ? passedUser
+          : options?.data?.root?.user;
+    }
+  } else {
+    if (args.length >= 2) {
+      user = args[0];
+      roles = args[1];
+    } else if (args.length === 1) {
+      roles = args[0];
+    }
+  }
+
+  if (!user || !user.role || !roles) return false;
+
+  const allowedList =
+    typeof roles === 'string'
+      ? roles.split(',').map((r) => r.trim())
+      : Array.isArray(roles)
+        ? roles
+        : [];
+
+  return allowedList.includes(user.role);
+});
+
+hbs.registerHelper('canAccessPanel', function (user, options) {
+  const targetUser =
+    user && typeof user === 'object' && user.role
+      ? user
+      : (options || user)?.data?.root?.user;
+  if (!targetUser || !targetUser.role) return false;
+  return targetUser.role === 'inifap' || targetUser.role === 'admin';
+});
+
+hbs.registerHelper('userInitial', function (user, options) {
+  const targetUser =
+    user && typeof user === 'object'
+      ? user
+      : (options || user)?.data?.root?.user;
+  if (!targetUser) return 'U';
+  const name = targetUser.full_name || targetUser.email || 'U';
+  return name.trim().charAt(0).toUpperCase();
+});
+
 // Archivos estáticos y Middlewares base
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());

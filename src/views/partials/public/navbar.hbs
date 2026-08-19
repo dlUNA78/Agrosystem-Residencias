@@ -15,18 +15,10 @@
                     href="/products">Productos</a>
                 <a class="font-['Inter'] text-xs uppercase tracking-widest font-bold transition-all duration-200 pb-1 {{#if (eq activePage 'forum')}}text-[#43655c] border-b-2 border-[#43655c]{{else}}text-on-surface-variant hover:text-[#43655c] border-b-2 border-transparent hover:border-[#43655c]/40{{/if}}"
                     href="/forum">Foro</a>
-               
 
-
-                {{#if user}}
-                {{#if (eq user.role 'inifap')}}
+                {{#if (canAccessPanel user)}}
                 <a class="font-['Inter'] text-xs uppercase tracking-widest font-bold transition-all duration-200 pb-1 text-[#43655c] hover:text-[#2d443e]"
                     href="/dashboard">Ir al Panel INIFAP</a>
-                {{/if}}
-                {{#if (eq user.role 'admin')}}
-                <a class="font-['Inter'] text-xs uppercase tracking-widest font-bold transition-all duration-200 pb-1 text-[#43655c] hover:text-[#2d443e]"
-                    href="/dashboard">Ir al Panel INIFAP</a>
-                {{/if}}
                 {{/if}}
             </div>
         </div>
@@ -36,21 +28,61 @@
             <button class="p-2 text-on-surface-variant hover:bg-surface-container-low rounded-full transition-all">
                 <span class="material-symbols-outlined">notifications</span>
             </button>
-            <div class="h-8 w-8 rounded-full bg-outline-variant/30 mx-1 hidden sm:block"></div>
-            <div class="hidden sm:flex items-center gap-3 pl-2">
-                <div class="text-right hidden sm:block">
-                    <p class="text-xs font-bold text-on-surface leading-none">{{user.full_name}}</p>
-                    <p class="text-[10px] text-on-surface-variant capitalize">{{user.role}}</p>
+          
+
+            <!-- Menú Desplegable de Usuario (Profile Dropdown) -->
+            <div class="relative hidden sm:block">
+                <button id="user-menu-button" type="button"
+                    class="flex items-center gap-3 pl-2 py-1 px-2 rounded-xl hover:bg-surface-container-low transition-all cursor-pointer focus:outline-none"
+                    aria-expanded="false" aria-haspopup="true">
+                    <div class="text-right hidden sm:block">
+                        <p class="text-xs font-bold text-on-surface leading-none">{{user.full_name}}</p>
+                        <p class="text-[10px] text-on-surface-variant capitalize mt-0.5">{{user.role}}</p>
+                    </div>
+                    {{#if user.photo_url}}
+                    <img alt="{{user.full_name}}" class="w-10 h-10 rounded-full object-cover ring-2 ring-[#43655c]/30"
+                        src="{{user.photo_url}}" />
+                    {{else}}
+                    <div class="w-10 h-10 rounded-full bg-[#43655c] text-white flex items-center justify-center font-bold text-sm shadow-sm ring-2 ring-[#43655c]/30">
+                        {{userInitial user}}
+                    </div>
+                    {{/if}}
+                    <span class="material-symbols-outlined text-sm text-on-surface-variant transition-transform duration-200" id="user-menu-arrow">expand_more</span>
+                </button>
+
+                <!-- Menú Desplegable (Dropdown Content) -->
+                <div id="user-menu-dropdown" class="hidden absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-slate-100 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                    <div class="px-4 py-2.5 border-b border-slate-100">
+                        <p class="text-xs font-bold text-slate-800 truncate">{{user.full_name}}</p>
+                        <p class="text-[11px] text-slate-500 truncate">{{user.email}}</p>
+                        <span class="inline-block mt-1 px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider rounded-md bg-[#43655c]/10 text-[#43655c]">{{user.role}}</span>
+                    </div>
+
+                    <div class="py-1">
+                        {{#if (canAccessPanel user)}}
+                        <a href="/dashboard" class="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-[#43655c]/10 hover:text-[#43655c] transition-colors">
+                            <span class="material-symbols-outlined text-base">dashboard</span>
+                            Panel INIFAP
+                        </a>
+                        {{/if}}
+
+                        {{#if (eq user.role 'agricultor')}}
+                        <a href="/auth/inifap-upgrade" class="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-amber-700 hover:bg-amber-50 transition-colors">
+                            <span class="material-symbols-outlined text-base">workspace_premium</span>
+                            Ascender a Personal INIFAP
+                        </a>
+                        {{/if}}
+                    </div>
+
+                    <div class="border-t border-slate-100 pt-1 mt-1">
+                        <a href="/auth/logout" class="flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 transition-colors">
+                            <span class="material-symbols-outlined text-base">logout</span>
+                            Cerrar Sesión
+                        </a>
+                    </div>
                 </div>
-                {{#if user.photo_url}}
-                <img alt="User avatar" class="w-10 h-10 rounded-full object-cover ring-2 ring-primary-container"
-                    src="{{user.photo_url}}" />
-                {{else}}
-                <div class="w-10 h-10 rounded-full bg-[#43655c] text-white flex items-center justify-center font-bold">
-                    {{!-- Letra inicial dummy hasta que hagamos la extracción JS --}} U
-                </div>
-                {{/if}}
             </div>
+
             {{else}}
             <div class="hidden sm:flex gap-3">
                 <a href="/auth/login"
@@ -67,5 +99,33 @@
             </button>
         </div>
     </div>
-
 </nav>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const userBtn = document.getElementById('user-menu-button');
+    const userDropdown = document.getElementById('user-menu-dropdown');
+    const userArrow = document.getElementById('user-menu-arrow');
+
+    if (userBtn && userDropdown) {
+        userBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isHidden = userDropdown.classList.contains('hidden');
+            if (isHidden) {
+                userDropdown.classList.remove('hidden');
+                if (userArrow) userArrow.style.transform = 'rotate(180deg)';
+            } else {
+                userDropdown.classList.add('hidden');
+                if (userArrow) userArrow.style.transform = 'rotate(0deg)';
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!userDropdown.contains(e.target) && !userBtn.contains(e.target)) {
+                userDropdown.classList.add('hidden');
+                if (userArrow) userArrow.style.transform = 'rotate(0deg)';
+            }
+        });
+    }
+});
+</script>

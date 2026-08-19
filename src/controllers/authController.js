@@ -132,7 +132,10 @@ export const authController = {
       if (req.session && typeof req.session.regenerate === 'function') {
         req.session.regenerate((err) => {
           if (err) console.error('Error regenerando sesión en upgrade:', err);
-          return res.redirect('/dashboard');
+          req.logIn(req.user, (err) => {
+            if (err) return next(err);
+            return res.redirect('/dashboard');
+          });
         });
       } else {
         return res.redirect('/dashboard');

@@ -269,6 +269,7 @@
 
                                     </button>
 
+                                    {{#if (hasRole user 'admin')}}
                                     <!-- ELIMINAR -->
                                     <form action="/private/plagues/delete/{{id}}" method="POST"
                                         class="delete-plague-form">
@@ -284,6 +285,7 @@
                                         </button>
 
                                     </form>
+                                    {{/if}}
 
 
                                 </div>
@@ -556,6 +558,7 @@
                             </span>
 
                         </button>
+                        {{#if (hasRole user 'admin')}}
                         <!-- ELIMINAR -->
                         <form action="/private/plagues/delete/{{id}}" method="POST" class="delete-plague-form">
 
@@ -569,6 +572,7 @@
                             </button>
 
                         </form>
+                        {{/if}}
 
                     </div>
 

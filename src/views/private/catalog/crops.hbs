@@ -394,7 +394,8 @@
 
 
                                     {{!-- ELIMINAR --}}
-                                    <button type="button" class="delete-crop-btn
+                                    {{#if (hasRole user 'admin')}}
+<button type="button" class="delete-crop-btn
                                                p-2
                                                rounded-lg
                                                hover:bg-red-50
@@ -408,6 +409,7 @@
                                         </span>
 
                                     </button>
+{{/if}}
 
                                 </div>
 
@@ -881,7 +883,8 @@
 
                         </button>
                         {{!-- ELIMINAR --}}
-                        <button type="button" class="delete-crop-btn
+                        {{#if (hasRole user 'admin')}}
+<button type="button" class="delete-crop-btn
                                    p-2
                                    rounded-lg
                                    hover:bg-red-50
@@ -894,6 +897,7 @@
                             </span>
 
                         </button>
+{{/if}}
 
                     </div>
 

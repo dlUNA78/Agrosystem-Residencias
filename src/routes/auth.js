@@ -13,7 +13,7 @@ router.post('/register', authController.register);
 // --- RUTAS DE LOGIN ---
 router.get('/login', authController.showLogin);
 
-// Autenticación con Passport + Anti Fuerza Bruta + Regeneración de ID de Sesión
+// Autenticación con Passport + Anti Fuerza Bruta + Regeneración de ID de Sesión (Anti-Session Fixation)
 router.post('/login', authLimiter, (req, res, next) => {
   passport.authenticate('local', (err, user, info) => {
     if (err) return next(err);
@@ -23,19 +23,23 @@ router.post('/login', authLimiter, (req, res, next) => {
         error: info?.message || 'Credenciales incorrectas.',
       });
     }
-    req.logIn(user, (err) => {
-      if (err) return next(err);
 
-      // 🛡️ Regenerar ID de sesión para prevenir ataques de Session Fixation
-      if (req.session && typeof req.session.regenerate === 'function') {
-        req.session.regenerate((err) => {
-          if (err) return next(err);
-          return res.redirect('/');
-        });
-      } else {
+    const completeLogin = () => {
+      req.logIn(user, (err) => {
+        if (err) return next(err);
         return res.redirect('/');
-      }
-    });
+      });
+    };
+
+    // 🛡️ Regenerar el ID de sesión ANTES de guardar las credenciales de Passport
+    if (req.session && typeof req.session.regenerate === 'function') {
+      req.session.regenerate((err) => {
+        if (err) return next(err);
+        completeLogin();
+      });
+    } else {
+      completeLogin();
+    }
   })(req, res, next);
 });
 

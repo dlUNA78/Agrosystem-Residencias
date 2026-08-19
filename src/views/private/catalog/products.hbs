@@ -319,7 +319,8 @@
                                     data-status="{{status}}" data-image="{{image_url}}">
                                     ✏️ Editar
                                 </button>
-                                <form id="delete-form-{{id}}" action="/private/products/delete/{{id}}" method="POST"
+                                {{#if (hasRole user 'admin')}}
+<form id="delete-form-{{id}}" action="/private/products/delete/{{id}}" method="POST"
                                     style="display:inline;">
 
                                     <button type="button" data-delete-btn data-id="{{id}}" data-name="{{name}}"
@@ -328,6 +329,7 @@
                                     </button>
 
                                 </form>
+{{/if}}
 
                             </td>
 
