@@ -71,7 +71,7 @@ export const plaguesPrivate = async (req, res) => {
         console.log("FILTRO STATUS:", status);
         console.log("PLAGAS ENCONTRADAS:", plagues);
 
-        return res.render("private/plagues", {
+        return res.render("private/catalog/plagues", {
             layout: privateLayout,
             pageTitle: "Plagas",
             activePage: "plagues",
@@ -217,7 +217,7 @@ export const deletePlague = async (req, res) => {
 };
 
 export const getPestDetail = (req, res) => {
-    res.render('private/pest-detail', {
+    res.render('private/catalog/pest-detail', {
         layout: privateLayout,
         pageTitle: 'Pulgón Verde - Plagas',
         activePage: 'plagues',

@@ -9,25 +9,31 @@ import { upload, uploadPlague, uploadCrop } from '../middlewares/upload.js';
 // ─── Controladores del módulo principal (privateController) ───────────────────
 // Contiene todos los handlers que aún no han sido extraídos a sub-controladores
 import {
-  // Plagas
-  createPlague,
-  updatePlague,
-  deletePlague,
-  getPestDetail,
   // Vistas de panel
   dashboard,
-  plaguesPrivate,
   ingredientsPrivate,
   reportsPrivate,
   usersPrivate,
-  suppliersPrivate,
-  // Proveedores
-  createSupplier,
-  updateSupplier,
-  deleteSupplier,
   // Auditoría
   auditPrivate,
 } from '../controllers/privateController.js';
+
+// ─── Controladores del módulo de plagas (sub-controlador modular) ────────────
+import {
+  plaguesPrivate,
+  getPestDetail,
+  createPlague,
+  updatePlague,
+  deletePlague,
+} from '../controllers/private/plagueController.js';
+
+// ─── Controladores del módulo de proveedores (sub-controlador modular) ────────
+import {
+  suppliersPrivate,
+  createSupplier,
+  updateSupplier,
+  deleteSupplier,
+} from '../controllers/private/provedoresController.js';
 
 // ─── Controladores del módulo de cultivos (sub-controlador modular) ────────────
 import {
@@ -79,6 +85,7 @@ privateRouter.get('/dashboard', dashboard);
 // MÓDULO: CULTIVOS
 // ══════════════════════════════════════════════════════════════════════════════
 privateRouter.get('/private/crops', cropsPrivate); // Lista todos los cultivos
+privateRouter.get('/private/catalog/crops', cropsPrivate); // Alias catálogo cultivos
 privateRouter.get('/private/crops/:id', getCropDetail); // Detalle de un cultivo por ID
 privateRouter.post(
   '/private/crops/create',
@@ -104,6 +111,7 @@ privateRouter.post('/lands/create', createFarmPrivate); // Crear nueva parcela
 // MÓDULO: PLAGAS
 // ══════════════════════════════════════════════════════════════════════════════
 privateRouter.get('/private/plagues', plaguesPrivate); // Lista todas las plagas
+privateRouter.get('/private/catalog/plagues', plaguesPrivate); // Alias catálogo plagas
 privateRouter.get('/private/plagues/pulgon-verde', getPestDetail); // Detalle hardcoded de plaga (pulgón verde)
 privateRouter.post(
   '/private/plagues/create',
@@ -121,6 +129,7 @@ privateRouter.post('/private/plagues/delete/:id', deletePlague); // Eliminar pla
 // MÓDULO: PRODUCTOS AGROQUÍMICOS
 // ══════════════════════════════════════════════════════════════════════════════
 privateRouter.get('/private/products', productsPrivate); // Lista todos los productos
+privateRouter.get('/private/catalog/products', productsPrivate); // Alias catálogo productos
 privateRouter.get('/private/products/:id', getProductDetail); // Detalle de producto por ID
 privateRouter.post(
   '/private/products/create',

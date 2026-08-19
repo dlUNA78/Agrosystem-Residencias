@@ -104,7 +104,7 @@ export const productsPrivate = async (req, res) => {
             };
 
         });
-        res.render("private/products", {
+        res.render("private/catalog/products", {
             layout: privateLayout, pageTitle: "Productos", activePage: "products",
             // Productos filtrados
             products,
@@ -239,7 +239,7 @@ export const deleteProduct = async (req, res) => {
 };
 
 export const getGlyphomaxDetail = (req, res) => {
-    res.render('private/product-detail', {
+    res.render('shared/product-detail', {
         layout: privateLayout,
         pageTitle: 'Glyphomax Pro 480 - Productos',
         activePage: 'products',

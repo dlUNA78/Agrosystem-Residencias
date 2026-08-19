@@ -180,7 +180,7 @@ export const suppliersPrivate = async (req, res) => {
         // RENDERIZAR VISTA
         // =========================================
 
-        res.render("private/suppliers", {
+        res.render("private/admin/suppliers", {
 
             layout: privateLayout,
 

@@ -10,7 +10,7 @@ const __dirname = path.dirname(__filename);
 const privateLayout = path.join(__dirname, '../views/layouts/private');
 
 export const dashboard = (req, res) => {
-    res.render('private/dashboard', {
+    res.render('private/dashboard/index', {
         layout: privateLayout,
         pageTitle: 'Dashboard',
         activePage: 'dashboard',
@@ -18,7 +18,7 @@ export const dashboard = (req, res) => {
 };
 
 export const auditPrivate = (req, res) => {
-    res.render('private/audit', {
+    res.render('private/admin/audit', {
         layout: privateLayout,
         pageTitle: 'Auditoría',
         activePage: 'audit',
@@ -55,7 +55,7 @@ export const auditPrivate = (req, res) => {
 };
 
 export const landsPrivate = (req, res) => {
-    res.render('private/lands', {
+    res.render('private/lands/list', {
         layout: privateLayout,
         pageTitle: 'Terrenos',
         activePage: 'lands',
@@ -99,7 +99,7 @@ const DEMO_LANDS = {
 export const landDetail = (req, res) => {
     const land = DEMO_LANDS[req.params.id];
     if (!land) return res.status(404).send('Predio no encontrado');
-    res.render('private/land-detail', {
+    res.render('private/lands/detail', {
         layout: privateLayout,
         pageTitle: `Expediente — ${land.landName}`,
         activePage: 'lands',
@@ -109,7 +109,7 @@ export const landDetail = (req, res) => {
 
 
 export const reportsPrivate = (req, res) => {
-    res.render('private/reports', {
+    res.render('private/admin/reports', {
         layout: privateLayout,
         pageTitle: 'Reportes y Estadísticas',
         activePage: 'reports',
@@ -117,7 +117,7 @@ export const reportsPrivate = (req, res) => {
 };
 
 export const ingredientsPrivate = (req, res) => {
-    res.render('private/ingredients', {
+    res.render('private/catalog/ingredients', {
         layout: privateLayout,
         pageTitle: 'Ingredientes Activos',
         activePage: 'ingredients',
@@ -164,7 +164,7 @@ export const ingredientsPrivate = (req, res) => {
 };
 
 export const usersPrivate = (req, res) => {
-    res.render('private/users', {
+    res.render('private/admin/users', {
         layout: privateLayout,
         pageTitle: 'Usuarios',
         activePage: 'users',
