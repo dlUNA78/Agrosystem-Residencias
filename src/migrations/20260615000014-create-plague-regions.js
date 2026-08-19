@@ -1,25 +1,32 @@
-'use strict';
-/** @type {import('sequelize-cli').Migration} */
 export default {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Regions', {
+    await queryInterface.createTable('PlagueRegions', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER,
       },
-      name: {
+      plague_id: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        references: {
+          model: 'Plagues',
+          key: 'id',
+        },
+        onDelete: 'CASCADE',
+      },
+      region_id: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        references: {
+          model: 'Regions',
+          key: 'id',
+        },
+        onDelete: 'CASCADE',
+      },
+      risk_level: {
         type: Sequelize.STRING,
-        unique: true,
-        allowNull: false,
-      },
-      lat: {
-        type: Sequelize.FLOAT,
-        allowNull: false,
-      },
-      lng: {
-        type: Sequelize.FLOAT,
         allowNull: false,
       },
       createdAt: {
@@ -33,6 +40,6 @@ export default {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Regions');
+    await queryInterface.dropTable('PlagueRegions');
   },
 };

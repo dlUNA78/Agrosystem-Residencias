@@ -22,7 +22,7 @@ export default {
       },
       password_hash: {
         type: Sequelize.STRING,
-        allowNull: true, // Se permite nulo para quienes inicien sesión con Google
+        allowNull: true,
       },
       role: {
         type: Sequelize.STRING,

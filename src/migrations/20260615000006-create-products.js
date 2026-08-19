@@ -44,6 +44,30 @@ export default {
       image_url: {
         type: Sequelize.STRING,
       },
+      mode_of_action: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      hazard_category: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      suggested_dosage: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      safety_interval_days: {
+        type: Sequelize.INTEGER,
+        allowNull: true,
+      },
+      formulation_type: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      safety_sheet_url: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
       status: {
         type: Sequelize.BOOLEAN,
         defaultValue: true,

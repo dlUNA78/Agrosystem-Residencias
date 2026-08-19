@@ -11,6 +11,10 @@ export default {
         type: Sequelize.STRING,
         allowNull: false,
       },
+      scientific_name: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
       category: {
         type: Sequelize.STRING,
       },
@@ -31,6 +35,22 @@ export default {
       },
       control_methods: {
         type: Sequelize.TEXT,
+      },
+      biological_control: {
+        type: Sequelize.TEXT,
+        allowNull: true,
+      },
+      biological_cycle: {
+        type: Sequelize.JSONB,
+        allowNull: true,
+      },
+      verified_by: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      verified_at: {
+        type: Sequelize.DATE,
+        allowNull: true,
       },
       status: {
         type: Sequelize.BOOLEAN,

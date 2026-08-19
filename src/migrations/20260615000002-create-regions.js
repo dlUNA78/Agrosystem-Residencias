@@ -1,6 +1,6 @@
 export default {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Farms', {
+    await queryInterface.createTable('Regions', {
       id: {
         allowNull: false,
         autoIncrement: true,
@@ -9,25 +9,16 @@ export default {
       },
       name: {
         type: Sequelize.STRING,
+        unique: true,
         allowNull: false,
       },
-      location_lat: {
-        type: Sequelize.DECIMAL,
+      lat: {
+        type: Sequelize.FLOAT,
+        allowNull: false,
       },
-      location_lng: {
-        type: Sequelize.DECIMAL,
-      },
-      size_hectares: {
-        type: Sequelize.DECIMAL,
-      },
-      user_id: {
-        type: Sequelize.INTEGER,
-        references: {
-          model: 'Users',
-          key: 'id',
-        },
-        onUpdate: 'CASCADE',
-        onDelete: 'SET NULL',
+      lng: {
+        type: Sequelize.FLOAT,
+        allowNull: false,
       },
       createdAt: {
         allowNull: false,
@@ -40,6 +31,6 @@ export default {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Farms');
+    await queryInterface.dropTable('Regions');
   },
 };
