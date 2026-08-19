@@ -9,7 +9,7 @@
 - **TailwindCSS v4:** Todos los estilos deben construirse utilizando únicamente las clases del compilador de Tailwind v4.
 - **Fidelidad al Design System:** Se deben respetar estrictamente los colores, tipografías y componentes definidos en la guía de diseño (`Design.md`).
 - **Gestión de Librerías UI:** Todo componente de terceros (tablas avanzadas, modales, iconos) **debe instalarse como dependencia con pnpm**.
-  - ❌ *Prohibido:* Pegar links de CDNs (`<link>` o `<script>`) en el HTML sin aprobación.
+  - ❌ _Prohibido:_ Pegar links de CDNs (`<link>` o `<script>`) en el HTML sin aprobación.
   - ✅ Al hacer un Commit o Pull Request que añada librerías, se debe **subrayar/destacar** el paquete instalado en la descripción.
 
 ## 3. Gestor de Paquetes (Estándar pnpm)
@@ -41,9 +41,9 @@
 
 Todos los mensajes de commit deben usar prefijos estandarizados:
 
-- `feat:` Nuevas funcionalidades (Ej: *feat: agrega módulo de plagas e instala tabla UI*).
-- `fix:` Corrección de errores (Ej: *fix: corrige error de sesión en el login*).
-- `style:` Cambios visuales/CSS sin afectar la lógica (Ej: *style: actualiza botones según Design.md*).
+- `feat:` Nuevas funcionalidades (Ej: _feat: agrega módulo de plagas e instala tabla UI_).
+- `fix:` Corrección de errores (Ej: _fix: corrige error de sesión en el login_).
+- `style:` Cambios visuales/CSS sin afectar la lógica (Ej: _style: actualiza botones según Design.md_).
 
 ## 9. Recursos y Vistas Compartidas (`shared/`)
 
@@ -62,13 +62,12 @@ Todos los mensajes de commit deben usar prefijos estandarizados:
 
 ## 12. Formateo Automático de Código (Linting & Prettier)
 
-- **Estandarización de formato:** Se usará la extensión **Prettier** en VS Code con la opción *"Format on Save"* activada en ambas computadoras. Esto garantiza que comillas, sangrías y espacios se mantengan idénticos independientemente de quién escriba el código.
+- **Estandarización de formato:** Se usará la extensión **Prettier** en VS Code con la opción _"Format on Save"_ activada en ambas computadoras. Esto garantiza que comillas, sangrías y espacios se mantengan idénticos independientemente de quién escriba el código.
 
 ## 13. Optimización de Archivos e Imágenes
 
 - **Límite de peso en Backend:** Al configurar cargas de archivos (con `multer` o similares), se establecerá un peso máximo (ej. máximo 2MB a 5MB por imagen).
 - **Consistencia de interfaz:** En las plantillas `.hbs`, todas las imágenes cargadas dinámicamente deberán incluir clases de Tailwind como `object-cover` y proporciones definidas (`aspect-square`, `w-full`) para evitar romper el diseño visual.
-
 
 ### 🛡️ PROTOCOLO ESTRICTO DE MODIFICACIÓN DE CÓDIGO (Reglas para el Agente)
 

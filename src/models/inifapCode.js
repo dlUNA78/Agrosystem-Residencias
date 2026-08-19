@@ -1,9 +1,8 @@
 // src/models/InifapCode.js
-import { Model } from "sequelize";
+import { Model } from 'sequelize';
 
 export default (sequelize, DataTypes) => {
   class InifapCode extends Model {
-
     // ── Métodos de instancia ────────────────────────────────────────────────
 
     /**
@@ -53,7 +52,7 @@ export default (sequelize, DataTypes) => {
         allowNull: false,
         unique: true,
         validate: {
-          notEmpty: { msg: "El código no puede estar vacío." },
+          notEmpty: { msg: 'El código no puede estar vacío.' },
         },
       },
 
@@ -91,16 +90,16 @@ export default (sequelize, DataTypes) => {
     },
     {
       sequelize,
-      modelName: "InifapCode",
-    }
+      modelName: 'InifapCode',
+    },
   );
 
   // ── Asociaciones ──────────────────────────────────────────────────────────
   InifapCode.associate = (models) => {
     // Un código pertenece al usuario que lo canjeó
     InifapCode.belongsTo(models.User, {
-      foreignKey: "used_by_user_id",
-      as: "usedBy",
+      foreignKey: 'used_by_user_id',
+      as: 'usedBy',
     });
   };
 

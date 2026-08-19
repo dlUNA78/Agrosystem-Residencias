@@ -9,16 +9,18 @@ const router = express.Router();
 router.get('/register', authController.showRegister);
 router.post('/register', authController.register);
 
-// --- RUTAS DE LOGIN --- 
+// --- RUTAS DE LOGIN ---
 router.get('/login', authController.showLogin);
 
-
 // Usamos el middleware de Passport. Si falla, lo devuelve al login. Si acierta, va al inicio.
-router.post('/login', passport.authenticate('local', {
-  successRedirect: '/', // A dónde ir si el login es exitoso
-  failureRedirect: '/auth/login', // A dónde ir si se equivoca de contraseña
-  // failureFlash: true // (Opcional a futuro para mostrar mensajes de error rojos en la vista)
-}));
+router.post(
+  '/login',
+  passport.authenticate('local', {
+    successRedirect: '/', // A dónde ir si el login es exitoso
+    failureRedirect: '/auth/login', // A dónde ir si se equivoca de contraseña
+    // failureFlash: true // (Opcional a futuro para mostrar mensajes de error rojos en la vista)
+  }),
+);
 
 // --- RUTA DE CERRAR SESIÓN ---
 router.get('/logout', authController.logout);

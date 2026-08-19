@@ -1,4 +1,4 @@
-import { Model } from "sequelize";
+import { Model } from 'sequelize';
 
 export default (sequelize, DataTypes) => {
   class ActiveIngredient extends Model {
@@ -9,7 +9,7 @@ export default (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-    } 
+    }
   }
   ActiveIngredient.init(
     {
@@ -20,7 +20,7 @@ export default (sequelize, DataTypes) => {
     },
     {
       sequelize,
-      modelName: "ActiveIngredient",
+      modelName: 'ActiveIngredient',
     },
   );
   return ActiveIngredient;

@@ -1,13 +1,13 @@
-import LocalStrategy from "passport-local";
-import bcrypt from "bcrypt";
-import db from "../models/index.js";
+import LocalStrategy from 'passport-local';
+import bcrypt from 'bcrypt';
+import db from '../models/index.js';
 
 const { User } = db;
 
 export default function configurePassport(passport) {
   passport.use(
     new LocalStrategy(
-      { usernameField: "email", passwordField: "password" }, // Le decimos que usaremos 'email' en vez de 'username'
+      { usernameField: 'email', passwordField: 'password' }, // Le decimos que usaremos 'email' en vez de 'username'
       async (email, password, done) => {
         try {
           // Buscamos al usuario
@@ -15,20 +15,20 @@ export default function configurePassport(passport) {
 
           // No revelar si el error fue el correo o la contraseña
           if (!user) {
-            return done(null, false, { message: "Credenciales incorrectas." });
+            return done(null, false, { message: 'Credenciales incorrectas.' });
           }
 
           // Si el usuario se registró con Google, no tiene contraseña. Si intenta entrar por aquí, lo bloqueamos.
           if (!user.password_hash) {
             return done(null, false, {
-              message: "Esta cuenta utiliza inicio de sesión con Google.",
+              message: 'Esta cuenta utiliza inicio de sesión con Google.',
             });
           }
 
           // Verificación Criptográfica
           const isMatch = await bcrypt.compare(password, user.password_hash);
           if (!isMatch) {
-            return done(null, false, { message: "Credenciales incorrectas." });
+            return done(null, false, { message: 'Credenciales incorrectas.' });
           }
 
           // Return to Passport to be stored in the Session

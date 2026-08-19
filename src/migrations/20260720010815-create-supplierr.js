@@ -1,37 +1,34 @@
 export default {
-
   async up(queryInterface, Sequelize) {
-
-    await queryInterface.createTable("suppliers", {
+    await queryInterface.createTable('suppliers', {
       // ID
       id: {
         type: Sequelize.INTEGER,
         allowNull: false,
         autoIncrement: true,
-        primaryKey: true
+        primaryKey: true,
       },
       // DATOS DE LA EMPRESA
       name: {
         type: Sequelize.STRING(150),
-        allowNull: false
+        allowNull: false,
       },
 
       commercial_name: {
         type: Sequelize.STRING(150),
-        allowNull: true
+        allowNull: true,
       },
 
       rfc: {
         type: Sequelize.STRING(13),
         allowNull: false,
-        unique: true
+        unique: true,
       },
 
       supply_type: {
         type: Sequelize.STRING(100),
-        allowNull: false
+        allowNull: false,
       },
-
 
       // =====================================
       // DATOS DE CONTACTO
@@ -39,34 +36,33 @@ export default {
 
       contact_name: {
         type: Sequelize.STRING(120),
-        allowNull: false
+        allowNull: false,
       },
 
       contact_position: {
         type: Sequelize.STRING(100),
-        allowNull: true
+        allowNull: true,
       },
 
       email: {
         type: Sequelize.STRING(150),
-        allowNull: false
+        allowNull: false,
       },
 
       alternative_email: {
         type: Sequelize.STRING(150),
-        allowNull: true
+        allowNull: true,
       },
 
       phone: {
         type: Sequelize.STRING(30),
-        allowNull: false
+        allowNull: false,
       },
 
       alternative_phone: {
         type: Sequelize.STRING(30),
-        allowNull: true
+        allowNull: true,
       },
-
 
       // =====================================
       // UBICACIÓN
@@ -74,30 +70,29 @@ export default {
 
       address: {
         type: Sequelize.STRING(255),
-        allowNull: false
+        allowNull: false,
       },
 
       city: {
         type: Sequelize.STRING(100),
-        allowNull: false
+        allowNull: false,
       },
 
       state: {
         type: Sequelize.STRING(100),
-        allowNull: false
+        allowNull: false,
       },
 
       postal_code: {
         type: Sequelize.STRING(10),
-        allowNull: false
+        allowNull: false,
       },
 
       country: {
         type: Sequelize.STRING(100),
         allowNull: false,
-        defaultValue: "México"
+        defaultValue: 'México',
       },
-
 
       // =====================================
       // INFORMACIÓN DEL SUMINISTRO
@@ -105,24 +100,23 @@ export default {
 
       supplied_products: {
         type: Sequelize.TEXT,
-        allowNull: false
+        allowNull: false,
       },
 
       brands: {
         type: Sequelize.STRING(255),
-        allowNull: true
+        allowNull: true,
       },
 
       delivery_time: {
         type: Sequelize.STRING(100),
-        allowNull: true
+        allowNull: true,
       },
 
       minimum_order: {
         type: Sequelize.DECIMAL(12, 2),
-        allowNull: true
+        allowNull: true,
       },
-
 
       // =====================================
       // INFORMACIÓN COMERCIAL
@@ -130,24 +124,18 @@ export default {
 
       payment_method: {
         type: Sequelize.STRING(100),
-        allowNull: true
+        allowNull: true,
       },
-
 
       // =====================================
       // CONTROL
       // =====================================
 
       status: {
-        type: Sequelize.ENUM(
-          "activo",
-          "pendiente",
-          "inactivo"
-        ),
+        type: Sequelize.ENUM('activo', 'pendiente', 'inactivo'),
         allowNull: false,
-        defaultValue: "pendiente"
+        defaultValue: 'pendiente',
       },
-
 
       // =====================================
       // FECHAS
@@ -155,23 +143,17 @@ export default {
 
       createdAt: {
         type: Sequelize.DATE,
-        allowNull: false
+        allowNull: false,
       },
 
       updatedAt: {
         type: Sequelize.DATE,
-        allowNull: false
-      }
-
+        allowNull: false,
+      },
     });
-
   },
 
-
   async down(queryInterface) {
-
-    await queryInterface.dropTable("suppliers");
-
-  }
-
+    await queryInterface.dropTable('suppliers');
+  },
 };

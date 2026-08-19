@@ -1,38 +1,38 @@
-import { Model } from "sequelize";
+import { Model } from 'sequelize';
 
 export default (sequelize, DataTypes) => {
   class Crop extends Model {
     static associate(models) {
       // 1. Relación con imágenes de referencia (galería)
       Crop.hasMany(models.CropImage, {
-        foreignKey: "crop_id",
-        as: "images",
-        onDelete: "CASCADE",
-        onUpdate: "CASCADE",
+        foreignKey: 'crop_id',
+        as: 'images',
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE',
       });
 
       // 2. Predios Activos (Terrenos donde se siembra el cultivo)
       Crop.belongsToMany(models.Farm, {
-        through: models.FarmCrop || "FarmCrops",
-        foreignKey: "crop_id",
-        otherKey: "farm_id",
-        as: "farms",
+        through: models.FarmCrop || 'FarmCrops',
+        foreignKey: 'crop_id',
+        otherKey: 'farm_id',
+        as: 'farms',
       });
 
       // 3. Plagas Asociadas (Plagas que amenazan al cultivo)
       Crop.belongsToMany(models.Plague, {
-        through: "CropPlagues",
-        foreignKey: "crop_id",
-        otherKey: "plague_id",
-        as: "plagues",
+        through: 'CropPlagues',
+        foreignKey: 'crop_id',
+        otherKey: 'plague_id',
+        as: 'plagues',
       });
 
       // 4. Agroquímicos Compatibles (Productos aprobados)
       Crop.belongsToMany(models.Product, {
-        through: "CropProducts",
-        foreignKey: "crop_id",
-        otherKey: "product_id",
-        as: "products",
+        through: 'CropProducts',
+        foreignKey: 'crop_id',
+        otherKey: 'product_id',
+        as: 'products',
       });
     }
   }
@@ -267,15 +267,15 @@ export default (sequelize, DataTypes) => {
       status: {
         type: DataTypes.STRING(50),
         allowNull: false,
-        defaultValue: "pendiente",
+        defaultValue: 'pendiente',
       },
     },
     {
       sequelize,
-      modelName: "Crop",
-      tableName: "Crops",
+      modelName: 'Crop',
+      tableName: 'Crops',
       timestamps: true,
-    }
+    },
   );
 
   return Crop;

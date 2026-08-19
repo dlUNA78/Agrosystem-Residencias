@@ -1,17 +1,17 @@
-import path from "path";
-import { fileURLToPath } from "url";
-import db from "../../models/index.js";
+import path from 'path';
+import { fileURLToPath } from 'url';
+import db from '../../models/index.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const privateLayout = path.join(__dirname, "../../views/layouts/private");
+const privateLayout = path.join(__dirname, '../../views/layouts/private');
 
 // ============================================================
 // GET /private/crops — Listado de cultivos con filtros
 // ============================================================
 export const cropsPrivate = async (req, res) => {
   try {
-    const { search = "", category = "", status = "" } = req.query;
+    const { search = '', category = '', status = '' } = req.query;
     const { Op } = db.Sequelize;
 
     const where = {};
@@ -37,21 +37,23 @@ export const cropsPrivate = async (req, res) => {
       include: [
         {
           model: db.CropImage,
-          as: "images",
+          as: 'images',
           required: false,
           separate: true,
           order: [
-            ["is_primary", "DESC"],
-            ["display_order", "ASC"],
+            ['is_primary', 'DESC'],
+            ['display_order', 'ASC'],
           ],
         },
       ],
-      order: [["createdAt", "DESC"]],
+      order: [['createdAt', 'DESC']],
     });
 
     const cropsFormatted = crops.map((crop) => {
       const cropData = crop.toJSON();
-      const primaryImage = cropData.images?.find((img) => img.is_primary === true);
+      const primaryImage = cropData.images?.find(
+        (img) => img.is_primary === true,
+      );
       const firstImage = primaryImage || cropData.images?.[0];
 
       return {
@@ -61,52 +63,52 @@ export const cropsPrivate = async (req, res) => {
       };
     });
 
-    return res.render("private/catalog/crops", {
+    return res.render('private/catalog/crops', {
       layout: privateLayout,
-      pageTitle: "Cultivos",
-      activePage: "crops",
+      pageTitle: 'Cultivos',
+      activePage: 'crops',
       crops: cropsFormatted,
-      searchId: "crop-search",
-      searchPlaceholder: "Buscar por nombre, especie o tipo de cultivo...",
+      searchId: 'crop-search',
+      searchPlaceholder: 'Buscar por nombre, especie o tipo de cultivo...',
       searchFilters: [
         {
-          id: "filter-type",
-          param: "category",
-          label: "Tipo:",
+          id: 'filter-type',
+          param: 'category',
+          label: 'Tipo:',
           options: [
-            { value: "", text: "Todos" },
-            { value: "cereal", text: "Cereal" },
-            { value: "frutal", text: "Frutal" },
-            { value: "hortaliza", text: "Hortaliza" },
-            { value: "leguminosa", text: "Leguminosa" },
-            { value: "oleaginosa", text: "Oleaginosa" },
-            { value: "tuberculo", text: "Tubérculo" },
-            { value: "forrajera", text: "Forrajera" },
-            { value: "ornamental", text: "Ornamental" },
-            { value: "industrial", text: "Industrial" },
-            { value: "otro", text: "Otro" },
+            { value: '', text: 'Todos' },
+            { value: 'cereal', text: 'Cereal' },
+            { value: 'frutal', text: 'Frutal' },
+            { value: 'hortaliza', text: 'Hortaliza' },
+            { value: 'leguminosa', text: 'Leguminosa' },
+            { value: 'oleaginosa', text: 'Oleaginosa' },
+            { value: 'tuberculo', text: 'Tubérculo' },
+            { value: 'forrajera', text: 'Forrajera' },
+            { value: 'ornamental', text: 'Ornamental' },
+            { value: 'industrial', text: 'Industrial' },
+            { value: 'otro', text: 'Otro' },
           ],
         },
         {
-          id: "filter-status",
-          param: "status",
-          label: "Estatus:",
+          id: 'filter-status',
+          param: 'status',
+          label: 'Estatus:',
           options: [
-            { value: "", text: "Todos" },
-            { value: "aprobado", text: "Aprobado" },
-            { value: "pendiente", text: "Pendiente" },
-            { value: "rechazado", text: "Rechazado" },
+            { value: '', text: 'Todos' },
+            { value: 'aprobado', text: 'Aprobado' },
+            { value: 'pendiente', text: 'Pendiente' },
+            { value: 'rechazado', text: 'Rechazado' },
           ],
         },
       ],
-      ctaLabel: "Añadir Cultivo",
-      ctaIcon: "agriculture",
-      ctaBtnId: "btn-add-crop",
+      ctaLabel: 'Añadir Cultivo',
+      ctaIcon: 'agriculture',
+      ctaBtnId: 'btn-add-crop',
       showViewToggle: true,
     });
   } catch (error) {
-    console.error("Error al cargar los cultivos:", error);
-    return res.status(500).send("Error al cargar los cultivos");
+    console.error('Error al cargar los cultivos:', error);
+    return res.status(500).send('Error al cargar los cultivos');
   }
 };
 
@@ -124,57 +126,77 @@ export const getCropDetail = async (req, res) => {
       include: [
         {
           model: db.CropImage,
-          as: "images",
-          attributes: ["id", "image_url", "original_name", "is_primary", "display_order"],
+          as: 'images',
+          attributes: [
+            'id',
+            'image_url',
+            'original_name',
+            'is_primary',
+            'display_order',
+          ],
           required: false,
         },
         {
           model: db.Plague,
-          as: "plagues",
+          as: 'plagues',
           required: false,
         },
         {
           model: db.Farm,
-          as: "farms",
+          as: 'farms',
           required: false,
         },
         {
           model: db.Product,
-          as: "products",
+          as: 'products',
           required: false,
         },
       ],
     });
 
     if (!crop) {
-      if (req.xhr || req.headers.accept?.includes("json")) {
-        return res.status(404).json({ success: false, message: "Cultivo no encontrado" });
+      if (req.xhr || req.headers.accept?.includes('json')) {
+        return res
+          .status(404)
+          .json({ success: false, message: 'Cultivo no encontrado' });
       }
-      return res.status(404).send("Cultivo no encontrado");
+      return res.status(404).send('Cultivo no encontrado');
     }
 
-    if (req.xhr || (req.headers.accept && req.headers.accept.includes("json") && !req.headers.accept.includes("text/html"))) {
+    if (
+      req.xhr ||
+      (req.headers.accept &&
+        req.headers.accept.includes('json') &&
+        !req.headers.accept.includes('text/html'))
+    ) {
       return res.json({ success: true, crop });
     }
 
     const cropData = crop.toJSON();
-    const primaryImage = cropData.images?.find((img) => img.is_primary) || cropData.images?.[0];
+    const primaryImage =
+      cropData.images?.find((img) => img.is_primary) || cropData.images?.[0];
 
-    return res.render("shared/crop-detail", {
+    return res.render('shared/crop-detail', {
       layout: privateLayout,
       isPrivate: true,
       pageTitle: cropData.name,
-      activePage: "crops",
+      activePage: 'crops',
       crop: cropData,
       primaryImage: primaryImage ? primaryImage.image_url : null,
       carouselImages: cropData.images || [],
     });
   } catch (error) {
-    console.error("ERROR AL OBTENER CULTIVO:", error);
-    if (req.xhr || req.headers.accept?.includes("json")) {
-      return res.status(500).json({ success: false, message: "Error al obtener el cultivo", error: error.message });
+    console.error('ERROR AL OBTENER CULTIVO:', error);
+    if (req.xhr || req.headers.accept?.includes('json')) {
+      return res
+        .status(500)
+        .json({
+          success: false,
+          message: 'Error al obtener el cultivo',
+          error: error.message,
+        });
     }
-    return res.status(500).send("Error al obtener el cultivo");
+    return res.status(500).send('Error al obtener el cultivo');
   }
 };
 
@@ -226,14 +248,14 @@ export const createCrop = async (req, res) => {
 
     if (!name || !name.trim()) {
       await transaction.rollback();
-      return res.status(400).send("El nombre del cultivo es obligatorio");
+      return res.status(400).send('El nombre del cultivo es obligatorio');
     }
 
     const crop = await db.Crop.create(
       {
         name: name.trim(),
-        scientific_name: scientific_name ? scientific_name.trim() : "",
-        category: category || "otro",
+        scientific_name: scientific_name ? scientific_name.trim() : '',
+        category: category || 'otro',
         family: family?.trim() || null,
         genus: genus?.trim() || null,
         variety: variety?.trim() || null,
@@ -263,17 +285,17 @@ export const createCrop = async (req, res) => {
         nutrients: nutrients?.trim() || null,
         fertilization: fertilization?.trim() || null,
         requires_pruning:
-          requires_pruning === "true"
+          requires_pruning === 'true'
             ? true
-            : requires_pruning === "false"
+            : requires_pruning === 'false'
               ? false
               : null,
         pollination_type: pollination_type?.trim() || null,
         description: description?.trim() || null,
         observations: observations?.trim() || null,
-        status: status || "pendiente",
+        status: status || 'pendiente',
       },
-      { transaction }
+      { transaction },
     );
 
     if (req.files && req.files.length > 0) {
@@ -291,13 +313,13 @@ export const createCrop = async (req, res) => {
     }
 
     await transaction.commit();
-    return res.redirect("/private/crops");
+    return res.redirect('/private/crops');
   } catch (error) {
     await transaction.rollback();
-    console.error("ERROR AL CREAR CULTIVO:", error);
+    console.error('ERROR AL CREAR CULTIVO:', error);
     return res.status(500).json({
       success: false,
-      message: "Error al crear el cultivo",
+      message: 'Error al crear el cultivo',
       error: error.message,
     });
   }
@@ -354,13 +376,16 @@ export const updateCrop = async (req, res) => {
 
     if (!crop) {
       await transaction.rollback();
-      return res.status(404).send("Cultivo no encontrado");
+      return res.status(404).send('Cultivo no encontrado');
     }
 
     await crop.update(
       {
         name: name ? name.trim() : crop.name,
-        scientific_name: scientific_name !== undefined ? scientific_name.trim() : crop.scientific_name,
+        scientific_name:
+          scientific_name !== undefined
+            ? scientific_name.trim()
+            : crop.scientific_name,
         category: category || crop.category,
         family: family?.trim() || null,
         genus: genus?.trim() || null,
@@ -391,9 +416,9 @@ export const updateCrop = async (req, res) => {
         nutrients: nutrients?.trim() || null,
         fertilization: fertilization?.trim() || null,
         requires_pruning:
-          requires_pruning === "true"
+          requires_pruning === 'true'
             ? true
-            : requires_pruning === "false"
+            : requires_pruning === 'false'
               ? false
               : null,
         pollination_type: pollination_type?.trim() || null,
@@ -401,7 +426,7 @@ export const updateCrop = async (req, res) => {
         observations: observations?.trim() || null,
         status: status || crop.status,
       },
-      { transaction }
+      { transaction },
     );
 
     if (req.files && req.files.length > 0) {
@@ -424,13 +449,13 @@ export const updateCrop = async (req, res) => {
     }
 
     await transaction.commit();
-    return res.redirect("/private/crops");
+    return res.redirect('/private/crops');
   } catch (error) {
     await transaction.rollback();
-    console.error("ERROR AL ACTUALIZAR CULTIVO:", error);
+    console.error('ERROR AL ACTUALIZAR CULTIVO:', error);
     return res.status(500).json({
       success: false,
-      message: "Error al actualizar el cultivo",
+      message: 'Error al actualizar el cultivo',
       error: error.message,
     });
   }
@@ -447,7 +472,7 @@ export const deleteCrop = async (req, res) => {
 
     if (!crop) {
       await transaction.rollback();
-      return res.redirect("/private/crops");
+      return res.redirect('/private/crops');
     }
 
     await db.CropImage.destroy({
@@ -458,13 +483,13 @@ export const deleteCrop = async (req, res) => {
     await crop.destroy({ transaction });
     await transaction.commit();
 
-    return res.redirect("/private/crops");
+    return res.redirect('/private/crops');
   } catch (error) {
     await transaction.rollback();
-    console.error("ERROR AL ELIMINAR CULTIVO:", error);
+    console.error('ERROR AL ELIMINAR CULTIVO:', error);
     return res.status(500).json({
       success: false,
-      message: "Error al eliminar el cultivo",
+      message: 'Error al eliminar el cultivo',
       error: error.message,
     });
   }

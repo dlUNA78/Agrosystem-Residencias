@@ -1,21 +1,21 @@
-import "dotenv/config";
-import path from "path";
-import { fileURLToPath } from "url";
-import express from "express";
-import hbs from "express-hbs";
-import session from "express-session";
-import passport from "passport";
-import pg from "pg";
-import connectPgSimple from "connect-pg-simple";
-import configurePassport from "./src/config/passport.js";
+import 'dotenv/config';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import express from 'express';
+import hbs from 'express-hbs';
+import session from 'express-session';
+import passport from 'passport';
+import pg from 'pg';
+import connectPgSimple from 'connect-pg-simple';
+import configurePassport from './src/config/passport.js';
 
 // Importar la instancia de Sequelize
-import sequelize from "./src/config/database.js";
-import db from "./src/models/index.js";
-import publicRoutes from "./src/routes/publicRoutes.js";
-import privateRoutes from "./src/routes/privateRoutes.js";
-import authRoutes from "./src/routes/auth.js";
-import { seedDefaultUsers } from "./src/scripts/seedDefaultUsers.js";
+import sequelize from './src/config/database.js';
+import db from './src/models/index.js';
+import publicRoutes from './src/routes/publicRoutes.js';
+import privateRoutes from './src/routes/privateRoutes.js';
+import authRoutes from './src/routes/auth.js';
+import { seedDefaultUsers } from './src/scripts/seedDefaultUsers.js';
 
 const { User } = db;
 
@@ -29,21 +29,21 @@ const __dirname = path.dirname(__filename);
 // preferimos un error claro en el log a una sesión firmada con un secreto
 // público o a una caída de sesiones en producción.
 const requiredEnvVars = [
-  "SESSION_SECRET",
-  "DB_HOST",
-  "DB_PORT",
-  "DB_NAME",
-  "DB_USER",
-  "DB_PASS",
+  'SESSION_SECRET',
+  'DB_HOST',
+  'DB_PORT',
+  'DB_NAME',
+  'DB_USER',
+  'DB_PASS',
 ];
 
 const missingEnvVars = requiredEnvVars.filter((key) => !process.env[key]);
 
 if (missingEnvVars.length > 0) {
   console.error(
-    `❌ Faltan variables de entorno requeridas: ${missingEnvVars.join(", ")}`,
+    `❌ Faltan variables de entorno requeridas: ${missingEnvVars.join(', ')}`,
   );
-  console.error("   Revisa tu archivo .env antes de continuar.");
+  console.error('   Revisa tu archivo .env antes de continuar.');
   process.exit(1);
 }
 
@@ -65,12 +65,12 @@ const pgPool = new pg.Pool({
 
 // Configuración de Handlebars
 app.engine(
-  "hbs",
+  'hbs',
   hbs.express4({
-    extname: ".hbs",
-    layoutsDir: path.join(__dirname, "src/views/layouts"),
-    defaultLayout: path.join(__dirname, "src/views/layouts/public"),
-    partialsDir: path.join(__dirname, "src/views/partials"),
+    extname: '.hbs',
+    layoutsDir: path.join(__dirname, 'src/views/layouts'),
+    defaultLayout: path.join(__dirname, 'src/views/layouts/public'),
+    partialsDir: path.join(__dirname, 'src/views/partials'),
     helpers: {
       eq: function (a, b) {
         return a === b;
@@ -79,22 +79,22 @@ app.engine(
   }),
 );
 
-app.set("view engine", "hbs");
-app.set("views", path.join(__dirname, "src/views"));
+app.set('view engine', 'hbs');
+app.set('views', path.join(__dirname, 'src/views'));
 
 // Registrar helpers explícitamente (express-hbs ignora la opción helpers en express4)
-hbs.registerHelper("eq", (a, b) => a === b);
-hbs.registerHelper("ne", (a, b) => a !== b);
-hbs.registerHelper("gt", (a, b) => Number(a) > Number(b));
-hbs.registerHelper("lt", (a, b) => Number(a) < Number(b));
-hbs.registerHelper("gte", (a, b) => Number(a) >= Number(b));
-hbs.registerHelper("lte", (a, b) => Number(a) <= Number(b));
-hbs.registerHelper("add", (a, b) => Number(a) + Number(b));
-hbs.registerHelper("sub", (a, b) => Number(a) - Number(b));
-hbs.registerHelper("urlEncode", (str) => encodeURIComponent(str));
+hbs.registerHelper('eq', (a, b) => a === b);
+hbs.registerHelper('ne', (a, b) => a !== b);
+hbs.registerHelper('gt', (a, b) => Number(a) > Number(b));
+hbs.registerHelper('lt', (a, b) => Number(a) < Number(b));
+hbs.registerHelper('gte', (a, b) => Number(a) >= Number(b));
+hbs.registerHelper('lte', (a, b) => Number(a) <= Number(b));
+hbs.registerHelper('add', (a, b) => Number(a) + Number(b));
+hbs.registerHelper('sub', (a, b) => Number(a) - Number(b));
+hbs.registerHelper('urlEncode', (str) => encodeURIComponent(str));
 
 // Archivos estáticos y Middlewares base
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -119,7 +119,7 @@ app.use(
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: process.env.NODE_ENV === 'production',
       maxAge: 1000 * 60 * 60 * 24, // 1 día
     },
   }),
@@ -135,7 +135,7 @@ app.use((req, res, next) => {
 
   const _render = res.render.bind(res);
   res.render = function (view, options, callback) {
-    if (typeof options === "function") {
+    if (typeof options === 'function') {
       callback = options;
       options = {};
     }
@@ -146,27 +146,33 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use("/auth", authRoutes);
-app.use("/", publicRoutes);
-app.use("/", privateRoutes);
+app.use('/auth', authRoutes);
+app.use('/', publicRoutes);
+app.use('/', privateRoutes);
 
-// Arrancar el servidor
-// Probar la conexión a la base de datos y arrancar el servidor
-try {
-  await sequelize.authenticate();
-  console.log(
-    "✅ Conexión a la base de datos PostgreSQL establecida exitosamente.",
-  );
-
-  // Crear usuarios por defecto si no existen (admin/inifap y agricultor)
-  await seedDefaultUsers();
-
-  app.listen(PORT, () => {
+// Arrancar el servidor solo si no estamos en entorno de prueba
+if (process.env.NODE_ENV !== 'test') {
+  try {
+    await sequelize.authenticate();
     console.log(
-      `✅ Servidor AgroSystem encendido en: http://localhost:${PORT}`,
+      '✅ Conexión a la base de datos PostgreSQL establecida exitosamente.',
     );
-  });
-} catch (error) {
-  console.error("❌ Error al conectar con la base de datos PostgreSQL:", error);
-  process.exit(1); // Detiene el proceso si no hay base de datos como se solicitó
+
+    // Crear usuarios por defecto si no existen (admin/inifap y agricultor)
+    await seedDefaultUsers();
+
+    app.listen(PORT, () => {
+      console.log(
+        `✅ Servidor AgroSystem encendido en: http://localhost:${PORT}`,
+      );
+    });
+  } catch (error) {
+    console.error(
+      '❌ Error al conectar con la base de datos PostgreSQL:',
+      error,
+    );
+    process.exit(1);
+  }
 }
+
+export default app;

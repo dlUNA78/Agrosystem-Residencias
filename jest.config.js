@@ -1,5 +1,5 @@
-module.exports = {
+export default {
   testEnvironment: 'node',
-  coverageDirectory: 'coverage',
-  collectCoverageFrom: ['**/*.js', '!**/node_modules/**', '!**/tests/**'],
+  testMatch: ['**/tests/**/*.test.js'],
+  passWithNoTests: true,
 };

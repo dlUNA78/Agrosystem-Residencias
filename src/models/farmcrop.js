@@ -1,4 +1,4 @@
-import { Model } from "sequelize";
+import { Model } from 'sequelize';
 
 export default (sequelize, DataTypes) => {
   class FarmCrop extends Model {
@@ -11,15 +11,18 @@ export default (sequelize, DataTypes) => {
       // define association here
     }
   }
-  FarmCrop.init({
-    farm_id: DataTypes.INTEGER,
-    crop_id: DataTypes.INTEGER,
-    planting_date: DataTypes.DATE,
-    is_active: DataTypes.BOOLEAN,
-    status: DataTypes.STRING
-  }, {
-    sequelize,
-    modelName: 'FarmCrop',
-  });
+  FarmCrop.init(
+    {
+      farm_id: DataTypes.INTEGER,
+      crop_id: DataTypes.INTEGER,
+      planting_date: DataTypes.DATE,
+      is_active: DataTypes.BOOLEAN,
+      status: DataTypes.STRING,
+    },
+    {
+      sequelize,
+      modelName: 'FarmCrop',
+    },
+  );
   return FarmCrop;
 };

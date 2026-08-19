@@ -1,4 +1,4 @@
-import { Model } from "sequelize";
+import { Model } from 'sequelize';
 
 export default (sequelize, DataTypes) => {
   class PlagueRegion extends Model {
@@ -7,23 +7,26 @@ export default (sequelize, DataTypes) => {
     }
   }
 
-  PlagueRegion.init({
-    plague_id: {
-      type: DataTypes.INTEGER,
-      allowNull: false
+  PlagueRegion.init(
+    {
+      plague_id: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+      },
+      region_id: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+      },
+      risk_level: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
     },
-    region_id: {
-      type: DataTypes.INTEGER,
-      allowNull: false
+    {
+      sequelize,
+      modelName: 'PlagueRegion',
     },
-    risk_level: {
-      type: DataTypes.STRING,
-      allowNull: false
-    }
-  }, {
-    sequelize,
-    modelName: 'PlagueRegion',
-  });
+  );
 
   return PlagueRegion;
 };

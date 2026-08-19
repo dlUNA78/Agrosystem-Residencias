@@ -1,4 +1,4 @@
-import { Model } from "sequelize";
+import { Model } from 'sequelize';
 
 export default (sequelize, DataTypes) => {
   class User extends Model {
@@ -11,20 +11,23 @@ export default (sequelize, DataTypes) => {
       // define association here
     }
   }
-  User.init({
-    code: DataTypes.STRING,
-    full_name: DataTypes.STRING,
-    email: DataTypes.STRING,
-    password_hash: DataTypes.STRING,
-    role: DataTypes.STRING,
-    phone: DataTypes.STRING,
-    address: DataTypes.TEXT,
-    job_title: DataTypes.STRING,
-    shift: DataTypes.STRING,
-    photo_url: DataTypes.TEXT
-  }, {
-    sequelize,
-    modelName: 'User',
-  });
+  User.init(
+    {
+      code: DataTypes.STRING,
+      full_name: DataTypes.STRING,
+      email: DataTypes.STRING,
+      password_hash: DataTypes.STRING,
+      role: DataTypes.STRING,
+      phone: DataTypes.STRING,
+      address: DataTypes.TEXT,
+      job_title: DataTypes.STRING,
+      shift: DataTypes.STRING,
+      photo_url: DataTypes.TEXT,
+    },
+    {
+      sequelize,
+      modelName: 'User',
+    },
+  );
   return User;
 };

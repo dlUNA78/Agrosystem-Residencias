@@ -1,6 +1,6 @@
 export default {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable("CropPlagues", {
+    await queryInterface.createTable('CropPlagues', {
       id: {
         type: Sequelize.INTEGER,
         allowNull: false,
@@ -11,21 +11,21 @@ export default {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
-          model: "Crops",
-          key: "id",
+          model: 'Crops',
+          key: 'id',
         },
-        onUpdate: "CASCADE",
-        onDelete: "CASCADE",
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE',
       },
       plague_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
-          model: "Plagues",
-          key: "id",
+          model: 'Plagues',
+          key: 'id',
         },
-        onUpdate: "CASCADE",
-        onDelete: "CASCADE",
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE',
       },
       createdAt: {
         type: Sequelize.DATE,
@@ -39,6 +39,6 @@ export default {
   },
 
   async down(queryInterface) {
-    await queryInterface.dropTable("CropPlagues");
+    await queryInterface.dropTable('CropPlagues');
   },
 };
