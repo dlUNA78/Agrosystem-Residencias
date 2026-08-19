@@ -11,7 +11,7 @@ const DEFAULT_USERS = [
     full_name: 'Administrador INIFAP',
     email: process.env.ADMIN_EMAIL || 'admin@agrosystem.com',
     password: process.env.ADMIN_PASSWORD || 'Admin@1234',
-    role: 'inifap',
+    role: 'admin',
   },
   {
     full_name: 'Agricultor Demo',

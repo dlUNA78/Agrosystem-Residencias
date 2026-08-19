@@ -7,7 +7,7 @@
         </div>
         <div class="flex-1 min-w-0">
             <h1 class="text-xl font-extrabold text-[#0F2E2E] dark:text-emerald-500 leading-none">INIFAP</h1>
-            <div class="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold mt-1">rol:ADMIN</div>
+            <div class="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold mt-1">ROL: {{#if user.role}}{{user.role}}{{else}}INIFAP{{/if}}</div>
         </div>
         <!-- Botón cerrar sidebar (visible en pantallas pequeñas o cuando está abierto) -->
         <button id="sidebar-close-btn" aria-label="Cerrar menú"
@@ -46,12 +46,14 @@
             <span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
             <span>Productos</span>
         </a>
+        {{#if (hasRole user 'admin')}}
         <a class="flex items-center gap-3 px-4 py-3 rounded-lg font-bold transition-colors active:opacity-80
             {{#if (eq activePage 'users')}}bg-[#ebeeef] dark:bg-zinc-800 text-[#0F2E2E] dark:text-emerald-400{{else}}text-[#596061] dark:text-zinc-400 hover:bg-[#f9f9f9] dark:hover:bg-zinc-900{{/if}}"
             href="/private/users">
             <span class="material-symbols-outlined" data-icon="person">person</span>
             <span>Usuarios</span>
         </a>
+        {{/if}}
         <a class="flex items-center gap-3 px-4 py-3 rounded-lg font-bold transition-colors active:opacity-80
             {{#if (eq activePage 'forum')}}bg-[#ebeeef] dark:bg-zinc-800 text-[#0F2E2E] dark:text-emerald-400{{else}}text-[#596061] dark:text-zinc-400 hover:bg-[#f9f9f9] dark:hover:bg-zinc-900{{/if}}"
             href="#">
@@ -76,12 +78,14 @@
             <span class="material-symbols-outlined" data-icon="local_shipping">local_shipping</span>
             <span>Proveedores</span>
         </a>
+        {{#if (hasRole user 'admin')}}
         <a class="flex items-center gap-3 px-4 py-3 rounded-lg font-bold transition-colors active:opacity-80
             {{#if (eq activePage 'audit')}}bg-[#ebeeef] dark:bg-zinc-800 text-[#0F2E2E] dark:text-emerald-400{{else}}text-[#596061] dark:text-zinc-400 hover:bg-[#f9f9f9] dark:hover:bg-zinc-900{{/if}}"
             href="/private/audit">
             <span class="material-symbols-outlined" data-icon="fact_check">fact_check</span>
             <span>Auditoría</span>
         </a>
+        {{/if}}
         <div class="mt-auto pt-4 border-t border-surface-container dark:border-zinc-800">
             <a class="flex items-center gap-3 px-4 py-3 text-[#596061] dark:text-zinc-400 hover:bg-[#f9f9f9] dark:hover:bg-zinc-900 rounded-lg transition-all active:opacity-80 font-bold"
                 href="#">
