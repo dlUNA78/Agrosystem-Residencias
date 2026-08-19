@@ -1,6 +1,6 @@
 export default [
   {
-    ignores: ['node_modules/', 'public/css/', 'coverage/', 'src/views/']
+    ignores: ['node_modules/', 'public/css/', 'coverage/', 'src/views/'],
   },
   {
     languageOptions: {
@@ -19,12 +19,15 @@ export default [
         beforeEach: 'readonly',
         afterEach: 'readonly',
         beforeAll: 'readonly',
-        afterAll: 'readonly'
-      }
+        afterAll: 'readonly',
+      },
     },
     rules: {
-      'no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
-      'no-console': 'off'
-    }
-  }
+      'no-unused-vars': [
+        'warn',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+      ],
+      'no-console': 'off',
+    },
+  },
 ];

@@ -148,13 +148,11 @@ export const createProduct = async (req, res) => {
     });
 
     if (req.xhr || req.headers.accept?.includes('json')) {
-      return res
-        .status(201)
-        .json({
-          success: true,
-          message: 'Producto creado exitosamente',
-          product: newProduct,
-        });
+      return res.status(201).json({
+        success: true,
+        message: 'Producto creado exitosamente',
+        product: newProduct,
+      });
     }
 
     return res.redirect('/private/products');

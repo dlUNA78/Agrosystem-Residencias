@@ -128,9 +128,15 @@ export const authController = {
         await req.user.save({ transaction: t });
       });
 
-      // El req.user ya está actualizado en memoria → el middleware checkRole
-      // lo reconocerá como 'inifap' en la siguiente petición sin re-login
-      res.redirect('/dashboard');
+      // 🛡️ Regeneración de ID de sesión al elevar privilegios (Anti-Session Fixation)
+      if (req.session && typeof req.session.regenerate === 'function') {
+        req.session.regenerate((err) => {
+          if (err) console.error('Error regenerando sesión en upgrade:', err);
+          return res.redirect('/dashboard');
+        });
+      } else {
+        return res.redirect('/dashboard');
+      }
     } catch (error) {
       console.error('Error en processUpgrade:', error);
       res.status(500).render('auth/upgrade', {

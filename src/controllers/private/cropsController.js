@@ -188,13 +188,11 @@ export const getCropDetail = async (req, res) => {
   } catch (error) {
     console.error('ERROR AL OBTENER CULTIVO:', error);
     if (req.xhr || req.headers.accept?.includes('json')) {
-      return res
-        .status(500)
-        .json({
-          success: false,
-          message: 'Error al obtener el cultivo',
-          error: error.message,
-        });
+      return res.status(500).json({
+        success: false,
+        message: 'Error al obtener el cultivo',
+        error: error.message,
+      });
     }
     return res.status(500).send('Error al obtener el cultivo');
   }

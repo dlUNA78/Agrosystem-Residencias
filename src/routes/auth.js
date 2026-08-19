@@ -2,6 +2,7 @@ import express from 'express';
 import passport from 'passport';
 import { authController } from '../controllers/authController.js';
 import { isAuthenticated } from '../middlewares/authMiddleware.js';
+import { authLimiter, upgradeLimiter } from '../middlewares/rateLimiter.js';
 
 const router = express.Router();
 
@@ -12,20 +13,42 @@ router.post('/register', authController.register);
 // --- RUTAS DE LOGIN ---
 router.get('/login', authController.showLogin);
 
-// Usamos el middleware de Passport. Si falla, lo devuelve al login. Si acierta, va al inicio.
-router.post(
-  '/login',
-  passport.authenticate('local', {
-    successRedirect: '/', // A dónde ir si el login es exitoso
-    failureRedirect: '/auth/login', // A dónde ir si se equivoca de contraseña
-    // failureFlash: true // (Opcional a futuro para mostrar mensajes de error rojos en la vista)
-  }),
-);
+// Autenticación con Passport + Anti Fuerza Bruta + Regeneración de ID de Sesión
+router.post('/login', authLimiter, (req, res, next) => {
+  passport.authenticate('local', (err, user, info) => {
+    if (err) return next(err);
+    if (!user) {
+      return res.status(401).render('auth/login', {
+        title: 'Iniciar Sesión',
+        error: info?.message || 'Credenciales incorrectas.',
+      });
+    }
+    req.logIn(user, (err) => {
+      if (err) return next(err);
+
+      // 🛡️ Regenerar ID de sesión para prevenir ataques de Session Fixation
+      if (req.session && typeof req.session.regenerate === 'function') {
+        req.session.regenerate((err) => {
+          if (err) return next(err);
+          return res.redirect('/');
+        });
+      } else {
+        return res.redirect('/');
+      }
+    });
+  })(req, res, next);
+});
 
 // --- RUTA DE CERRAR SESIÓN ---
 router.get('/logout', authController.logout);
 
+// --- ASCENSO A PERSONAL INIFAP (UPGRADE) ---
 router.get('/inifap-upgrade', isAuthenticated, authController.showUpgrade);
-router.post('/inifap-upgrade', isAuthenticated, authController.processUpgrade);
+router.post(
+  '/inifap-upgrade',
+  isAuthenticated,
+  upgradeLimiter,
+  authController.processUpgrade,
+);
 
 export default router;

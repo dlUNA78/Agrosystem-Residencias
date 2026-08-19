@@ -7,6 +7,7 @@ import session from 'express-session';
 import passport from 'passport';
 import pg from 'pg';
 import connectPgSimple from 'connect-pg-simple';
+import helmet from 'helmet';
 import configurePassport from './src/config/passport.js';
 
 // Importar la instancia de Sequelize
@@ -49,6 +50,14 @@ if (missingEnvVars.length > 0) {
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// ─── SEGURIDAD: ENCABEZADOS HTTP CON HELMET ──────────────────────────────
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+    crossOriginEmbedderPolicy: false,
+  }),
+);
 
 // ─── POOL DE CONEXIÓN COMPARTIDO (pg) ─────────────────────────────────────
 // connect-pg-simple necesita un cliente `pg` crudo, no una instancia Sequelize.
@@ -130,8 +139,18 @@ configurePassport(passport);
 app.use(passport.initialize());
 app.use(passport.session());
 app.use((req, res, next) => {
-  // Convierte la instancia del modelo a objeto plano
-  res.locals.user = req.user ? req.user.toJSON() : null;
+  // Convierte la instancia del modelo a objeto plano y sanitiza campos sensibles
+  if (req.user) {
+    const safeUser =
+      typeof req.user.toJSON === 'function'
+        ? req.user.toJSON()
+        : { ...req.user };
+    delete safeUser.password_hash;
+    delete safeUser.password;
+    res.locals.user = safeUser;
+  } else {
+    res.locals.user = null;
+  }
 
   const _render = res.render.bind(res);
   res.render = function (view, options, callback) {
