@@ -44,6 +44,10 @@ export default {
       photo_url: {
         type: Sequelize.TEXT,
       },
+      status: {
+        type: Sequelize.STRING,
+        defaultValue: 'activo',
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,
