@@ -149,6 +149,15 @@ export const landDetail = async (req, res) => {
   try {
     const { id } = req.params;
 
+    // Verificar si el predio existe en la BD pero pertenece a otro usuario
+    const existingFarm = await db.Farm.findByPk(id);
+    if (
+      existingFarm &&
+      (existingFarm.user_id !== req.user.id || !existingFarm.status)
+    ) {
+      return res.status(404).send('Predio no encontrado');
+    }
+
     // Buscar la parcela real en la base de datos perteneciendo al usuario
     const farm = await db.Farm.findOne({
       where: {
@@ -200,5 +209,72 @@ export const landDetail = async (req, res) => {
   } catch (error) {
     console.error('Error al obtener el expediente del terreno:', error);
     return res.status(500).send('Error al obtener el expediente del terreno');
+  }
+};
+
+// ============================================================
+// POST /private/lands/update/:id — Actualizar un predio
+// REGLA DE SEGURIDAD: Edición restringida a predios del usuario logueado
+// ============================================================
+export const updateFarmPrivate = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      name,
+      size_hectares,
+      farming_type,
+      municipality,
+      region_id,
+      location_lat,
+      location_lng,
+    } = req.body;
+
+    const farm = await db.Farm.findOne({
+      where: { id, user_id: req.user.id, status: true },
+    });
+
+    if (!farm) {
+      return res.status(404).send('Predio no encontrado o sin permisos');
+    }
+
+    await farm.update({
+      name: name ? String(name).trim() : farm.name,
+      size_hectares: size_hectares || farm.size_hectares,
+      farming_type: farming_type || farm.farming_type,
+      municipality: municipality || farm.municipality,
+      region_id: region_id || farm.region_id,
+      location_lat: location_lat || farm.location_lat,
+      location_lng: location_lng || farm.location_lng,
+    });
+
+    return res.redirect('/lands');
+  } catch (error) {
+    console.error('Error al actualizar el terreno:', error);
+    return res.status(500).send('Error al actualizar el terreno');
+  }
+};
+
+// ============================================================
+// POST /private/lands/delete/:id — Baja lógica de un predio
+// REGLA DE SEGURIDAD: Eliminación restringida a predios del usuario logueado
+// ============================================================
+export const deleteFarmPrivate = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const farm = await db.Farm.findOne({
+      where: { id, user_id: req.user.id, status: true },
+    });
+
+    if (!farm) {
+      return res.status(404).send('Predio no encontrado o sin permisos');
+    }
+
+    await farm.update({ status: false });
+
+    return res.redirect('/lands');
+  } catch (error) {
+    console.error('Error al eliminar el terreno:', error);
+    return res.status(500).send('Error al eliminar el terreno');
   }
 };

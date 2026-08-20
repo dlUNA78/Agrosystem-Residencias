@@ -3,7 +3,8 @@ export const publicReadOnlyGuard = (req, res, next) => {
   if (
     req.path.startsWith('/private') ||
     req.path.startsWith('/auth') ||
-    req.path.startsWith('/profile')
+    req.path.startsWith('/profile') ||
+    req.path.startsWith('/lands')
   ) {
     return next();
   }

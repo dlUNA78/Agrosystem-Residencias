@@ -57,6 +57,8 @@ import {
   renderLandsPrivate, // Lista todas las parcelas
   landDetail, // Expediente detallado de una parcela por ID
   createFarmPrivate, // Crea una nueva parcela/granja
+  updateFarmPrivate, // Actualizar parcela
+  deleteFarmPrivate, // Baja lógica de parcela
 } from '../controllers/private/landsController.js';
 
 // ─── Middlewares de autenticación y autorización ──────────────────────────────
@@ -74,10 +76,16 @@ const privateRouter = Router();
 privateRouter.use(isAuthenticated);
 
 // ══════════════════════════════════════════════════════════════════════════════
-// MÓDULO: PERFIL PÚBLICO (Accesible para cualquier usuario autenticado)
+// MÓDULO: PERFIL Y TERRENOS DE USUARIO (Accesible para cualquier usuario autenticado)
 // ══════════════════════════════════════════════════════════════════════════════
 privateRouter.get('/profile', renderProfile);
 privateRouter.post('/profile', updateProfile);
+
+privateRouter.get('/lands', renderLandsPrivate);
+privateRouter.post('/lands/create', createFarmPrivate);
+privateRouter.get('/lands/:id/expediente', landDetail);
+privateRouter.post('/lands/update/:id', updateFarmPrivate);
+privateRouter.post('/lands/delete/:id', deleteFarmPrivate);
 
 // Aplica el bloqueo del panel privado (Solo INIFAP y Admin a partir de este punto)
 privateRouter.use(requirePanelAccess);
@@ -111,12 +119,12 @@ privateRouter.post(
 privateRouter.post('/private/crops/delete/:id', deleteCrop); // Eliminar cultivo
 
 // ══════════════════════════════════════════════════════════════════════════════
-// MÓDULO: PARCELAS / GRANJAS
+// MÓDULO: PARCELAS / GRANJAS (Panel Privado Admin/INIFAP)
 // ══════════════════════════════════════════════════════════════════════════════
 privateRouter.get('/private/lands', renderLandsPrivate); // Lista de parcelas (ruta con prefijo /private)
 privateRouter.get('/private/lands/:id/expediente', landDetail); // Expediente de una parcela específica
-privateRouter.get('/lands', renderLandsPrivate); // Alias de lista de parcelas (sin prefijo)
-privateRouter.post('/lands/create', createFarmPrivate); // Crear nueva parcela
+privateRouter.post('/private/lands/update/:id', updateFarmPrivate); // Actualizar parcela
+privateRouter.post('/private/lands/delete/:id', deleteFarmPrivate); // Baja lógica de parcela
 
 // ══════════════════════════════════════════════════════════════════════════════
 // MÓDULO: PLAGAS
