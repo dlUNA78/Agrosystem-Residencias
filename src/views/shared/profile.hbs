@@ -1,0 +1,126 @@
+<div class="space-y-6 font-manrope">
+    <!-- Encabezado de Página -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
+        <div>
+            <div class="flex items-center gap-2 text-xs font-semibold text-zinc-400 mb-1">
+                <a href="{{#if isPrivatePath}}/dashboard{{else}}/{{/if}}" class="hover:text-primary transition-colors">Inicio</a>
+                <span>/</span>
+                <span class="text-zinc-600 dark:text-zinc-300">Mi Perfil</span>
+            </div>
+            <h1 class="text-2xl font-extrabold text-zinc-900 dark:text-white tracking-tight">Perfil de Usuario</h1>
+            <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Gestiona tu información personal y preferencias de cuenta en Agrosystem.</p>
+        </div>
+    </div>
+
+    <!-- Mensajes de Notificación -->
+    {{#if success}}
+    <div class="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-sm font-bold flex items-center gap-3">
+        <span class="material-symbols-outlined text-emerald-600">check_circle</span>
+        <span>{{#if (eq success 'perfil_actualizado')}}¡Perfil actualizado correctamente!{{else}}{{success}}{{/if}}</span>
+    </div>
+    {{/if}}
+
+    {{#if error}}
+    <div class="p-4 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-300 text-sm font-bold flex items-center gap-3">
+        <span class="material-symbols-outlined text-red-600">error</span>
+        <span>{{#if (eq error 'campos_requeridos')}}Por favor completa los campos obligatorios.{{else}}{{error}}{{/if}}</span>
+    </div>
+    {{/if}}
+
+    <!-- Grid Principal de Perfil -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Columna Izquierda: Tarjeta Resumen -->
+        <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6 flex flex-col items-center text-center shadow-sm">
+            <div class="relative mb-4">
+                {{#if user.photo_url}}
+                <img src="{{user.photo_url}}" alt="{{user.full_name}}" class="w-24 h-24 rounded-full object-cover ring-4 ring-primary/20 shadow-md">
+                {{else}}
+                <div class="w-24 h-24 rounded-full bg-[#43655c] text-white flex items-center justify-center text-3xl font-extrabold shadow-md">
+                    {{userInitial user}}
+                </div>
+                {{/if}}
+            </div>
+
+            <h2 class="text-lg font-bold text-zinc-900 dark:text-white">{{user.full_name}}</h2>
+            <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 mb-3">{{user.email}}</p>
+
+            <div class="flex items-center gap-2 mb-6">
+                <!-- Badges de Rol y Estatus -->
+                <span class="px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider
+                    {{#if (eq user.role 'admin')}}bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800{{/if}}
+                    {{#if (eq user.role 'inifap')}}bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800{{/if}}
+                    {{#if (eq user.role 'agricultor')}}bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800{{/if}}">
+                    {{user.role}}
+                </span>
+
+                <span class="px-3 py-1 rounded-full text-xs font-bold capitalize
+                    {{#if (eq user.status 'activo')}}bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300{{/if}}
+                    {{#if (eq user.status 'suspendido')}}bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300{{/if}}
+                    {{#if (eq user.status 'pendiente')}}bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300{{/if}}">
+                    {{#if user.status}}{{user.status}}{{else}}activo{{/if}}
+                </span>
+            </div>
+
+            <div class="w-full border-t border-zinc-100 dark:border-zinc-800 pt-4 space-y-3 text-left">
+                <div class="flex items-center justify-between text-xs">
+                    <span class="text-zinc-500 font-medium">Puesto / Cargo:</span>
+                    <span class="font-bold text-zinc-800 dark:text-zinc-200">{{#if user.job_title}}{{user.job_title}}{{else}}Sin especificar{{/if}}</span>
+                </div>
+                <div class="flex items-center justify-between text-xs">
+                    <span class="text-zinc-500 font-medium">Teléfono:</span>
+                    <span class="font-bold text-zinc-800 dark:text-zinc-200">{{#if user.phone}}{{user.phone}}{{else}}No registrado{{/if}}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna Derecha: Formulario de Actualización -->
+        <div class="lg:col-span-2 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm">
+            <h3 class="text-base font-extrabold text-zinc-900 dark:text-white mb-4 pb-3 border-b border-zinc-100 dark:border-zinc-800 flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary">edit_square</span>
+                <span>Editar Información Personal</span>
+            </h3>
+
+            <form action="{{#if isPrivatePath}}/private/profile{{else}}/profile{{/if}}" method="POST" class="space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-1">Nombre Completo *</label>
+                        <input type="text" name="full_name" value="{{user.full_name}}" required
+                            class="w-full px-3.5 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-900 dark:text-white text-xs font-medium focus:ring-2 focus:ring-primary focus:outline-none transition-all">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-1">Correo Electrónico (No editable)</label>
+                        <input type="email" value="{{user.email}}" disabled
+                            class="w-full px-3.5 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-800 text-zinc-400 text-xs font-medium cursor-not-allowed">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-1">Teléfono de Contacto</label>
+                        <input type="text" name="phone" value="{{user.phone}}" placeholder="Ej. 5551234567"
+                            class="w-full px-3.5 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-900 dark:text-white text-xs font-medium focus:ring-2 focus:ring-primary focus:outline-none transition-all">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-1">Puesto o Cargo</label>
+                        <input type="text" name="job_title" value="{{user.job_title}}" placeholder="Ej. Investigador, Productor"
+                            class="w-full px-3.5 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-900 dark:text-white text-xs font-medium focus:ring-2 focus:ring-primary focus:outline-none transition-all">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-1">Dirección / Ubicación</label>
+                    <textarea name="address" rows="3" placeholder="Ingresa tu dirección o referencias de ubicación..."
+                        class="w-full px-3.5 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-900 dark:text-white text-xs font-medium focus:ring-2 focus:ring-primary focus:outline-none transition-all">{{user.address}}</textarea>
+                </div>
+
+                <div class="pt-3 flex justify-end">
+                    <button type="submit"
+                        class="px-5 py-2.5 rounded-xl bg-[#43655c] hover:bg-[#34514a] text-white font-bold text-xs shadow-md transition-all active:scale-95 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-sm">save</span>
+                        <span>Guardar Cambios</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

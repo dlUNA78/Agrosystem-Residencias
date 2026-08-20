@@ -23,6 +23,7 @@ export default (sequelize, DataTypes) => {
       job_title: DataTypes.STRING,
       shift: DataTypes.STRING,
       photo_url: DataTypes.TEXT,
+      status: DataTypes.STRING,
     },
     {
       sequelize,

@@ -1,463 +1,231 @@
-<main class="min-h-screen flex flex-col">
-    <!-- Content Area -->
-    <div class="mt-20 p-12 space-y-10">
-
-        {{!-- Control Bar & Search --}}
-        {{> private/search-bar}}
-
-        {{!-- Stats Bar --}}
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm p-5 flex items-center gap-4">
-                <div class="w-11 h-11 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                    <span class="material-symbols-outlined text-primary" data-icon="group">group</span>
-                </div>
-                <div>
-                    <p class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant">Total Usuarios</p>
-                    <p class="text-2xl font-extrabold text-on-surface">48</p>
-                </div>
+<main class="space-y-6 font-manrope">
+    <!-- BARRA SUPERIOR DE ACCIONES Y CONTROLES -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-surface-container-lowest p-6 rounded-2xl border border-outline-variant/10 shadow-sm">
+        <div>
+            <div class="flex items-center gap-2 text-xs font-medium text-on-surface-variant mb-1">
+                <a href="/dashboard" class="hover:text-primary transition-colors">Dashboard</a>
+                <span>/</span>
+                <span class="text-on-surface">Usuarios</span>
             </div>
-            <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm p-5 flex items-center gap-4">
-                <div class="w-11 h-11 rounded-full bg-emerald-500/10 flex items-center justify-center shrink-0">
-                    <span class="material-symbols-outlined text-emerald-600" data-icon="verified_user">verified_user</span>
-                </div>
-                <div>
-                    <p class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant">Activos</p>
-                    <p class="text-2xl font-extrabold text-on-surface">41</p>
-                </div>
-            </div>
-            <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm p-5 flex items-center gap-4">
-                <div class="w-11 h-11 rounded-full bg-amber-500/10 flex items-center justify-center shrink-0">
-                    <span class="material-symbols-outlined text-amber-600" data-icon="schedule">schedule</span>
-                </div>
-                <div>
-                    <p class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant">Pendientes</p>
-                    <p class="text-2xl font-extrabold text-on-surface">5</p>
-                </div>
-            </div>
-            <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm p-5 flex items-center gap-4">
-                <div class="w-11 h-11 rounded-full bg-error/10 flex items-center justify-center shrink-0">
-                    <span class="material-symbols-outlined text-error" data-icon="block">block</span>
-                </div>
-                <div>
-                    <p class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant">Suspendidos</p>
-                    <p class="text-2xl font-extrabold text-on-surface">2</p>
-                </div>
-            </div>
+            <h1 class="text-2xl font-extrabold text-on-surface tracking-tight">Gestión de Usuarios</h1>
+            <p class="text-xs text-on-surface-variant mt-1">Administra accesos, roles y credenciales del personal de INIFAP y agricultores.</p>
         </div>
 
-        <!-- Alert Panel (Optional based on design, but good for consistency) -->
-        <div class="bg-amber-50 border border-amber-100 p-4 rounded-xl flex flex-wrap items-center justify-between gap-3 shadow-sm">
-            <div class="flex items-center gap-3">
-                <div class="bg-amber-100 p-2 rounded-full">
-                    <span class="material-symbols-outlined text-amber-700">feedback</span>
-                </div>
-                <p class="text-amber-900 font-medium text-sm tracking-tight">
-                    Tienes <span class="font-bold">5 usuarios</span> con registro pendiente de aprobación.
-                </p>
-            </div>
-            <button class="bg-white text-amber-800 border border-amber-200 px-5 py-2 rounded-lg text-xs font-bold hover:bg-amber-100 transition-colors">
-                Ver pendientes
+        <div class="flex items-center gap-3">
+            <button id="btn-add-user" type="button"
+                class="px-5 py-2.5 rounded-xl bg-primary text-on-primary font-extrabold text-xs shadow-lg shadow-primary/20 hover:bg-primary-hover transition-all active:scale-95 flex items-center gap-2">
+                <span class="material-symbols-outlined text-sm">person_add</span>
+                <span>Nuevo Usuario</span>
             </button>
         </div>
+    </div>
+
+    <!-- NOTIFICACIONES -->
+    {{#if success}}
+    <div class="p-4 rounded-xl bg-emerald-50 text-emerald-800 text-sm font-bold flex items-center gap-2 border border-emerald-200">
+        <span class="material-symbols-outlined">check_circle</span>
+        <span>Operación realizada exitosamente.</span>
+    </div>
+    {{/if}}
+
+    {{#if error}}
+    <div class="p-4 rounded-xl bg-red-50 text-red-800 text-sm font-bold flex items-center gap-2 border border-red-200">
+        <span class="material-symbols-outlined">error</span>
+        <span>{{error}}</span>
+    </div>
+    {{/if}}
+
+    <!-- BARRA DE BÚSQUEDA Y FILTROS -->
+    {{> private/search-bar }}
+
+    <!-- CONTENEDOR VISTAS (TABLA / GRILLA) -->
+    <div id="users-views-container">
 
         <!-- TABLE VIEW -->
-        <div id="users-table-view" style="display:none" class="bg-surface-container-lowest rounded-2xl shadow-sm overflow-hidden border border-outline-variant/10">
+        <div id="users-table-view" class="bg-surface-container-lowest rounded-2xl border border-outline-variant/10 shadow-sm overflow-hidden hidden">
             <table class="w-full text-left border-collapse">
                 <thead>
-                    <tr class="bg-surface-container-low/50">
-                        <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
-                            Usuario</th>
-                        <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
-                            Contacto</th>
-                        <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
-                            Institución</th>
-                        <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant text-center">
-                            Rol</th>
-                        <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant text-center">
-                            Estatus</th>
-                        <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant text-right">
-                            Acciones</th>
+                    <tr class="bg-surface-container-low border-b border-outline-variant/10 text-[10px] font-black text-on-surface-variant uppercase tracking-widest">
+                        <th class="px-6 py-4">Usuario</th>
+                        <th class="px-6 py-4">Puesto / Cargo</th>
+                        <th class="px-6 py-4">Rol</th>
+                        <th class="px-6 py-4">Estatus</th>
+                        <th class="px-6 py-4">Contacto</th>
+                        <th class="px-6 py-4 text-right">Acciones</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-surface-container">
-
-                    <!-- Row 1 — Admin -->
-                    <tr class="hover:bg-surface/50 transition-colors">
-                        <td class="px-8 py-5">
+                <tbody class="divide-y divide-outline-variant/10 text-xs">
+                    {{#each users}}
+                    <tr class="hover:bg-surface-container-low/50 transition-colors">
+                        <td class="px-6 py-4">
                             <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-on-primary font-extrabold text-sm shrink-0">
-                                    MR</div>
+                                {{#if photo_url}}
+                                <img src="{{photo_url}}" alt="{{full_name}}" class="w-10 h-10 rounded-full object-cover shrink-0 ring-2 ring-primary/10">
+                                {{else}}
+                                <div class="w-10 h-10 rounded-full bg-[#43655c] flex items-center justify-center text-white font-extrabold text-sm shrink-0">
+                                    {{userInitial this}}
+                                </div>
+                                {{/if}}
                                 <div>
-                                    <p class="font-bold text-on-surface text-sm">Marcos Ramírez</p>
-                                    <p class="text-xs text-on-surface-variant">Registrado 12 Ene 2024</p>
+                                    <p class="font-bold text-on-surface text-sm">{{full_name}}</p>
+                                    <p class="text-on-surface-variant text-[11px]">{{email}}</p>
                                 </div>
                             </div>
                         </td>
-                        <td class="px-8 py-5">
-                            <p class="text-sm text-on-surface">m.ramirez@inifap.gob.mx</p>
-                            <p class="text-xs text-on-surface-variant mt-0.5">+52 667 123 4567</p>
+                        <td class="px-6 py-4 font-semibold text-on-surface-variant">
+                            {{#if job_title}}{{job_title}}{{else}}<span class="text-outline italic">Sin especificar</span>{{/if}}
                         </td>
-                        <td class="px-8 py-5">
-                            <p class="text-sm font-medium text-on-surface">INIFAP — Sinaloa</p>
+                        <td class="px-6 py-4">
+                            <span class="px-2.5 py-1 rounded-md text-[10px] font-extrabold uppercase tracking-wider
+                                {{#if (eq role 'admin')}}bg-purple-100 text-purple-700 border border-purple-200{{/if}}
+                                {{#if (eq role 'inifap')}}bg-emerald-100 text-emerald-700 border border-emerald-200{{/if}}
+                                {{#if (eq role 'agricultor')}}bg-blue-100 text-blue-700 border border-blue-200{{/if}}">
+                                {{role}}
+                            </span>
                         </td>
-                        <td class="px-8 py-5 text-center">
-                            <span class="px-3 py-1.5 bg-primary/10 text-primary rounded-full text-[10px] font-black uppercase">Admin</span>
+                        <td class="px-6 py-4">
+                            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold capitalize
+                                {{#if (eq status 'activo')}}bg-emerald-100 text-emerald-800{{/if}}
+                                {{#if (eq status 'suspendido')}}bg-red-100 text-red-800{{/if}}
+                                {{#if (eq status 'pendiente')}}bg-amber-100 text-amber-800{{/if}}">
+                                {{status}}
+                            </span>
                         </td>
-                        <td class="px-8 py-5 text-center">
-                            <div class="flex items-center justify-center gap-1.5 text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100 mx-auto w-fit">
-                                <span class="material-symbols-outlined text-sm" data-icon="check_circle"
-                                    data-weight="fill" style="font-variation-settings: 'FILL' 1;">check_circle</span>
-                                <span class="text-[10px] font-black uppercase">Activo</span>
-                            </div>
+                        <td class="px-6 py-4 text-on-surface-variant">
+                            {{#if phone}}{{phone}}{{else}}<span class="text-outline italic">No registrado</span>{{/if}}
                         </td>
-                        <td class="px-8 py-5">
-                            <div class="flex justify-end gap-3 text-on-surface-variant">
-                                <button class="hover:text-primary transition-colors" title="Ver perfil"><span
-                                        class="material-symbols-outlined"
-                                        data-icon="visibility">visibility</span></button>
-                                <button class="hover:text-primary transition-colors" title="Editar"><span
-                                        class="material-symbols-outlined" data-icon="edit">edit</span></button>
-                                <button class="hover:text-error transition-colors" title="Suspender"><span
-                                        class="material-symbols-outlined" data-icon="block">block</span></button>
+                        <td class="px-6 py-4 text-right">
+                            <div class="flex items-center justify-end gap-1">
+                                <!-- Ver Detalle Usuario -->
+                                <button type="button" 
+                                    class="btn-view-user p-2 rounded-lg hover:bg-surface-container-high text-on-surface-variant hover:text-primary transition-colors"
+                                    title="Ver Detalle"
+                                    data-id="{{id}}"
+                                    data-name="{{full_name}}"
+                                    data-email="{{email}}"
+                                    data-role="{{role}}"
+                                    data-job="{{job_title}}"
+                                    data-phone="{{phone}}"
+                                    data-address="{{address}}"
+                                    data-status="{{status}}">
+                                    <span class="material-symbols-outlined text-lg">visibility</span>
+                                </button>
+
+                                <!-- Editar Usuario -->
+                                <button type="button" 
+                                    class="btn-edit-user p-2 rounded-lg hover:bg-surface-container-high text-on-surface-variant hover:text-primary transition-colors"
+                                    title="Editar Usuario"
+                                    data-id="{{id}}"
+                                    data-name="{{full_name}}"
+                                    data-email="{{email}}"
+                                    data-role="{{role}}"
+                                    data-job="{{job_title}}"
+                                    data-phone="{{phone}}"
+                                    data-address="{{address}}"
+                                    data-status="{{status}}">
+                                    <span class="material-symbols-outlined text-lg">edit</span>
+                                </button>
+
+                                <!-- Eliminar Usuario -->
+                                <form action="/private/users/delete/{{id}}" method="POST" class="delete-user-form inline">
+                                    <button type="submit" 
+                                        class="p-2 rounded-lg hover:bg-red-100 hover:text-red-600 text-red-500 transition-colors"
+                                        title="Eliminar Usuario"
+                                        onclick="return confirm('¿Estás seguro de eliminar permanentemente al usuario {{full_name}}?');">
+                                        <span class="material-symbols-outlined text-lg">delete</span>
+                                    </button>
+                                </form>
                             </div>
                         </td>
                     </tr>
-
-                    <!-- Row 2 — Investigador -->
-                    <tr class="hover:bg-surface/50 transition-colors">
-                        <td class="px-8 py-5">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-on-secondary font-extrabold text-sm shrink-0">
-                                    LV</div>
-                                <div>
-                                    <p class="font-bold text-on-surface text-sm">Laura Vázquez</p>
-                                    <p class="text-xs text-on-surface-variant">Registrada 03 Mar 2024</p>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="px-8 py-5">
-                            <p class="text-sm text-on-surface">l.vazquez@inifap.gob.mx</p>
-                            <p class="text-xs text-on-surface-variant mt-0.5">+52 667 234 5678</p>
-                        </td>
-                        <td class="px-8 py-5">
-                            <p class="text-sm font-medium text-on-surface">INIFAP — Culiacán</p>
-                        </td>
-                        <td class="px-8 py-5 text-center">
-                            <span class="px-3 py-1.5 bg-secondary/10 text-secondary rounded-full text-[10px] font-black uppercase">Investigador</span>
-                        </td>
-                        <td class="px-8 py-5 text-center">
-                            <div class="flex items-center justify-center gap-1.5 text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100 mx-auto w-fit">
-                                <span class="material-symbols-outlined text-sm" data-icon="check_circle"
-                                    data-weight="fill" style="font-variation-settings: 'FILL' 1;">check_circle</span>
-                                <span class="text-[10px] font-black uppercase">Activo</span>
-                            </div>
-                        </td>
-                        <td class="px-8 py-5">
-                            <div class="flex justify-end gap-3 text-on-surface-variant">
-                                <button class="hover:text-primary transition-colors" title="Ver perfil"><span
-                                        class="material-symbols-outlined"
-                                        data-icon="visibility">visibility</span></button>
-                                <button class="hover:text-primary transition-colors" title="Editar"><span
-                                        class="material-symbols-outlined" data-icon="edit">edit</span></button>
-                                <button class="hover:text-error transition-colors" title="Suspender"><span
-                                        class="material-symbols-outlined" data-icon="block">block</span></button>
-                            </div>
+                    {{else}}
+                    <tr>
+                        <td colspan="6" class="px-8 py-12 text-center text-on-surface-variant font-medium">
+                            No se encontraron usuarios registrados en la base de datos.
                         </td>
                     </tr>
-
-                    <!-- Row 3 — Técnico Pendiente -->
-                    <tr class="hover:bg-surface/50 transition-colors bg-surface-container-low/20">
-                        <td class="px-8 py-5">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant font-extrabold text-sm shrink-0">
-                                    JH</div>
-                                <div>
-                                    <p class="font-bold text-on-surface text-sm">Jorge Herrera</p>
-                                    <p class="text-xs text-on-surface-variant">Registrado 22 Abr 2025</p>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="px-8 py-5">
-                            <p class="text-sm text-on-surface">j.herrera@uas.edu.mx</p>
-                            <p class="text-xs text-on-surface-variant mt-0.5">+52 667 345 6789</p>
-                        </td>
-                        <td class="px-8 py-5">
-                            <p class="text-sm font-medium text-on-surface">UAS — Facultad de Agronomía</p>
-                        </td>
-                        <td class="px-8 py-5 text-center">
-                            <span class="px-3 py-1.5 bg-surface-container-high text-on-surface-variant rounded-full text-[10px] font-black uppercase">Técnico</span>
-                        </td>
-                        <td class="px-8 py-5 text-center">
-                            <div class="flex items-center justify-center gap-1.5 text-orange-600 bg-orange-50 px-3 py-1.5 rounded-full border border-orange-100 mx-auto w-fit">
-                                <span class="material-symbols-outlined text-sm" data-icon="schedule">schedule</span>
-                                <span class="text-[10px] font-black uppercase">Pendiente</span>
-                            </div>
-                        </td>
-                        <td class="px-8 py-5">
-                            <div class="flex justify-end gap-3 text-on-surface-variant">
-                                <button class="hover:text-primary transition-colors" title="Ver perfil"><span
-                                        class="material-symbols-outlined"
-                                        data-icon="visibility">visibility</span></button>
-                                <button class="hover:text-emerald-600 transition-colors" title="Aprobar"><span
-                                        class="material-symbols-outlined" data-icon="check_circle">check_circle</span></button>
-                                <button class="hover:text-error transition-colors" title="Rechazar"><span
-                                        class="material-symbols-outlined" data-icon="cancel">cancel</span></button>
-                            </div>
-                        </td>
-                    </tr>
-
-                    <!-- Row 4 — Agricultor Suspendido -->
-                    <tr class="hover:bg-surface/50 transition-colors opacity-60">
-                        <td class="px-8 py-5">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-full bg-error/10 flex items-center justify-center text-error font-extrabold text-sm shrink-0">
-                                    AP</div>
-                                <div>
-                                    <p class="font-bold text-on-surface text-sm">Ana Patricia Flores</p>
-                                    <p class="text-xs text-on-surface-variant">Registrada 10 Jun 2023</p>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="px-8 py-5">
-                            <p class="text-sm text-on-surface">a.flores@agro.mx</p>
-                            <p class="text-xs text-on-surface-variant mt-0.5">+52 667 456 7890</p>
-                        </td>
-                        <td class="px-8 py-5">
-                            <p class="text-sm font-medium text-on-surface">Productor Independiente</p>
-                        </td>
-                        <td class="px-8 py-5 text-center">
-                            <span class="px-3 py-1.5 bg-surface-container-high text-on-surface-variant rounded-full text-[10px] font-black uppercase">Agricultor</span>
-                        </td>
-                        <td class="px-8 py-5 text-center">
-                            <div class="flex items-center justify-center gap-1.5 text-error bg-error/5 px-3 py-1.5 rounded-full border border-error/20 mx-auto w-fit">
-                                <span class="material-symbols-outlined text-sm" data-icon="block">block</span>
-                                <span class="text-[10px] font-black uppercase">Suspendido</span>
-                            </div>
-                        </td>
-                        <td class="px-8 py-5">
-                            <div class="flex justify-end gap-3 text-on-surface-variant">
-                                <button class="hover:text-primary transition-colors" title="Ver perfil"><span
-                                        class="material-symbols-outlined"
-                                        data-icon="visibility">visibility</span></button>
-                                <button class="hover:text-emerald-600 transition-colors" title="Reactivar"><span
-                                        class="material-symbols-outlined" data-icon="lock_open">lock_open</span></button>
-                                <button class="hover:text-error transition-colors" title="Eliminar"><span
-                                        class="material-symbols-outlined" data-icon="delete">delete</span></button>
-                            </div>
-                        </td>
-                    </tr>
-
-                    <!-- Row 5 — Investigador -->
-                    <tr class="hover:bg-surface/50 transition-colors">
-                        <td class="px-8 py-5">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-on-secondary font-extrabold text-sm shrink-0">
-                                    CF</div>
-                                <div>
-                                    <p class="font-bold text-on-surface text-sm">Carlos Fuentes</p>
-                                    <p class="text-xs text-on-surface-variant">Registrado 05 Ago 2024</p>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="px-8 py-5">
-                            <p class="text-sm text-on-surface">c.fuentes@cimmyt.org</p>
-                            <p class="text-xs text-on-surface-variant mt-0.5">+52 55 5804 2004</p>
-                        </td>
-                        <td class="px-8 py-5">
-                            <p class="text-sm font-medium text-on-surface">CIMMYT — México</p>
-                        </td>
-                        <td class="px-8 py-5 text-center">
-                            <span class="px-3 py-1.5 bg-secondary/10 text-secondary rounded-full text-[10px] font-black uppercase">Investigador</span>
-                        </td>
-                        <td class="px-8 py-5 text-center">
-                            <div class="flex items-center justify-center gap-1.5 text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100 mx-auto w-fit">
-                                <span class="material-symbols-outlined text-sm" data-icon="check_circle"
-                                    data-weight="fill" style="font-variation-settings: 'FILL' 1;">check_circle</span>
-                                <span class="text-[10px] font-black uppercase">Activo</span>
-                            </div>
-                        </td>
-                        <td class="px-8 py-5">
-                            <div class="flex justify-end gap-3 text-on-surface-variant">
-                                <button class="hover:text-primary transition-colors" title="Ver perfil"><span
-                                        class="material-symbols-outlined"
-                                        data-icon="visibility">visibility</span></button>
-                                <button class="hover:text-primary transition-colors" title="Editar"><span
-                                        class="material-symbols-outlined" data-icon="edit">edit</span></button>
-                                <button class="hover:text-error transition-colors" title="Suspender"><span
-                                        class="material-symbols-outlined" data-icon="block">block</span></button>
-                            </div>
-                        </td>
-                    </tr>
-
+                    {{/each}}
                 </tbody>
             </table>
-
-            <!-- Pagination -->
-            <div class="px-8 py-6 bg-surface-container-low/30 border-t border-outline-variant/10 flex items-center justify-between">
-                <p class="text-xs font-medium text-on-surface-variant">
-                    Mostrando <span class="font-bold text-on-surface">1 a 10</span> de <span
-                        class="font-bold text-on-surface">48</span> registros
-                </p>
-                <div class="flex gap-2">
-                    <button
-                        class="px-5 py-2 rounded-lg bg-surface-container-highest/50 text-on-surface text-xs font-bold hover:bg-surface-container-highest transition-colors flex items-center gap-2">
-                        <span class="material-symbols-outlined text-sm" data-icon="chevron_left">chevron_left</span>
-                        Anterior
-                    </button>
-                    <button
-                        class="px-5 py-2 rounded-lg bg-[#43655c] text-white text-xs font-bold hover:bg-[#354f47] transition-colors flex items-center gap-2 shadow-sm">
-                        Siguiente
-                        <span class="material-symbols-outlined text-sm" data-icon="chevron_right">chevron_right</span>
-                    </button>
-                </div>
-            </div>
         </div>
 
         <!-- GRID VIEW -->
         <div id="users-grid-view" class="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 grid">
-
-            <!-- Card 1 -->
+            {{#each users}}
             <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm overflow-hidden group hover:-translate-y-1 transition-all duration-300">
                 <div class="p-5">
                     <div class="flex justify-between items-start mb-4">
-                        <div class="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-on-primary font-extrabold text-base shrink-0 shadow-md">
-                            MR
+                        {{#if photo_url}}
+                        <img src="{{photo_url}}" alt="{{full_name}}" class="w-12 h-12 rounded-full object-cover shrink-0 shadow-md border border-outline-variant/20">
+                        {{else}}
+                        <div class="w-12 h-12 rounded-full bg-[#43655c] flex items-center justify-center text-white font-extrabold text-base shrink-0 shadow-md">
+                            {{userInitial this}}
                         </div>
-                        <div class="flex items-center justify-center gap-1.5 text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100">
-                            <span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">check_circle</span>
-                            <span class="text-[9px] font-black uppercase">Activo</span>
+                        {{/if}}
+                        <div class="flex items-center justify-center gap-1.5 px-2.5 py-1 rounded-full border text-[9px] font-black uppercase
+                            {{#if (eq status 'activo')}}text-emerald-600 bg-emerald-50 border-emerald-100{{/if}}
+                            {{#if (eq status 'pendiente')}}text-amber-600 bg-amber-50 border-amber-100{{/if}}
+                            {{#if (eq status 'suspendido')}}text-red-600 bg-red-50 border-red-100{{/if}}">
+                            <span class="material-symbols-outlined text-xs">
+                                {{#if (eq status 'activo')}}check_circle{{/if}}
+                                {{#if (eq status 'pendiente')}}schedule{{/if}}
+                                {{#if (eq status 'suspendido')}}block{{/if}}
+                            </span>
+                            <span>{{status}}</span>
                         </div>
                     </div>
-                    <span class="text-[9px] font-black uppercase tracking-widest text-primary">Admin</span>
-                    <h3 class="font-bold text-on-surface text-base mt-1">Marcos Ramírez</h3>
-                    <p class="text-xs text-on-surface-variant truncate">m.ramirez@inifap.gob.mx</p>
-                    <p class="text-xs text-on-surface-variant font-medium mt-2">INIFAP — Sinaloa</p>
+                    <span class="text-[9px] font-black uppercase tracking-widest text-primary">{{role}}</span>
+                    <h3 class="font-bold text-on-surface text-base mt-1 truncate" title="{{full_name}}">{{full_name}}</h3>
+                    <p class="text-xs text-on-surface-variant truncate" title="{{email}}">{{email}}</p>
+                    <p class="text-xs text-on-surface-variant font-medium mt-2 truncate">{{#if job_title}}{{job_title}}{{else}}No especificado{{/if}}</p>
 
                     <div class="mt-4 pt-4 border-t border-surface-container flex justify-between items-center">
-                        <span class="text-[10px] text-on-surface-variant">12 Ene 2024</span>
+                        <span class="text-[10px] text-on-surface-variant">ID: #{{id}}</span>
                         <div class="flex gap-2 text-on-surface-variant">
-                            <button class="hover:text-primary transition-colors"><span class="material-symbols-outlined text-base">visibility</span></button>
-                            <button class="hover:text-primary transition-colors"><span class="material-symbols-outlined text-base">edit</span></button>
-                            <button class="hover:text-error transition-colors"><span class="material-symbols-outlined text-base">block</span></button>
+                            <button type="button" 
+                                class="btn-view-user hover:text-primary transition-colors"
+                                title="Ver Detalle"
+                                data-id="{{id}}"
+                                data-name="{{full_name}}"
+                                data-email="{{email}}"
+                                data-role="{{role}}"
+                                data-job="{{job_title}}"
+                                data-phone="{{phone}}"
+                                data-address="{{address}}"
+                                data-status="{{status}}">
+                                <span class="material-symbols-outlined text-base">visibility</span>
+                            </button>
+
+                            <button type="button" 
+                                class="btn-edit-user hover:text-primary transition-colors"
+                                title="Editar Usuario"
+                                data-id="{{id}}"
+                                data-name="{{full_name}}"
+                                data-email="{{email}}"
+                                data-role="{{role}}"
+                                data-job="{{job_title}}"
+                                data-phone="{{phone}}"
+                                data-address="{{address}}"
+                                data-status="{{status}}">
+                                <span class="material-symbols-outlined text-base">edit</span>
+                            </button>
+
+                            <form action="/private/users/delete/{{id}}" method="POST" class="inline">
+                                <button type="submit" 
+                                    class="hover:text-red-600 text-red-500 transition-colors"
+                                    title="Eliminar Usuario"
+                                    onclick="return confirm('¿Estás seguro de eliminar al usuario {{full_name}}?');">
+                                    <span class="material-symbols-outlined text-base">delete</span>
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </div>
             </div>
-
-            <!-- Card 2 -->
-            <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm overflow-hidden group hover:-translate-y-1 transition-all duration-300">
-                <div class="p-5">
-                    <div class="flex justify-between items-start mb-4">
-                        <div class="w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-on-secondary font-extrabold text-base shrink-0 shadow-md">
-                            LV
-                        </div>
-                        <div class="flex items-center justify-center gap-1.5 text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100">
-                            <span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">check_circle</span>
-                            <span class="text-[9px] font-black uppercase">Activo</span>
-                        </div>
-                    </div>
-                    <span class="text-[9px] font-black uppercase tracking-widest text-secondary">Investigador</span>
-                    <h3 class="font-bold text-on-surface text-base mt-1">Laura Vázquez</h3>
-                    <p class="text-xs text-on-surface-variant truncate">l.vazquez@inifap.gob.mx</p>
-                    <p class="text-xs text-on-surface-variant font-medium mt-2">INIFAP — Culiacán</p>
-
-                    <div class="mt-4 pt-4 border-t border-surface-container flex justify-between items-center">
-                        <span class="text-[10px] text-on-surface-variant">03 Mar 2024</span>
-                        <div class="flex gap-2 text-on-surface-variant">
-                            <button class="hover:text-primary transition-colors"><span class="material-symbols-outlined text-base">visibility</span></button>
-                            <button class="hover:text-primary transition-colors"><span class="material-symbols-outlined text-base">edit</span></button>
-                            <button class="hover:text-error transition-colors"><span class="material-symbols-outlined text-base">block</span></button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Card 3 -->
-            <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm overflow-hidden group hover:-translate-y-1 transition-all duration-300 bg-surface-container-low/20">
-                <div class="p-5">
-                    <div class="flex justify-between items-start mb-4">
-                        <div class="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant font-extrabold text-base shrink-0 shadow-md">
-                            JH
-                        </div>
-                        <div class="flex items-center justify-center gap-1.5 text-orange-600 bg-orange-50 px-2.5 py-1 rounded-full border border-orange-100">
-                            <span class="material-symbols-outlined text-xs">schedule</span>
-                            <span class="text-[9px] font-black uppercase">Pendiente</span>
-                        </div>
-                    </div>
-                    <span class="text-[9px] font-black uppercase tracking-widest text-on-surface-variant">Técnico</span>
-                    <h3 class="font-bold text-on-surface text-base mt-1">Jorge Herrera</h3>
-                    <p class="text-xs text-on-surface-variant truncate">j.herrera@uas.edu.mx</p>
-                    <p class="text-xs text-on-surface-variant font-medium mt-2">UAS — Agronomía</p>
-
-                    <div class="mt-4 pt-4 border-t border-surface-container flex justify-between items-center">
-                        <span class="text-[10px] text-on-surface-variant">22 Abr 2025</span>
-                        <div class="flex gap-2 text-on-surface-variant">
-                            <button class="hover:text-primary transition-colors"><span class="material-symbols-outlined text-base">visibility</span></button>
-                            <button class="hover:text-emerald-600 transition-colors"><span class="material-symbols-outlined text-base">check_circle</span></button>
-                            <button class="hover:text-error transition-colors"><span class="material-symbols-outlined text-base">cancel</span></button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Card 4 -->
-            <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm overflow-hidden group hover:-translate-y-1 transition-all duration-300 opacity-60">
-                <div class="p-5">
-                    <div class="flex justify-between items-start mb-4">
-                        <div class="w-12 h-12 rounded-full bg-error/10 flex items-center justify-center text-error font-extrabold text-base shrink-0 shadow-md">
-                            AP
-                        </div>
-                        <div class="flex items-center justify-center gap-1.5 text-error bg-error/5 px-2.5 py-1 rounded-full border border-error/20">
-                            <span class="material-symbols-outlined text-xs">block</span>
-                            <span class="text-[9px] font-black uppercase">Suspendido</span>
-                        </div>
-                    </div>
-                    <span class="text-[9px] font-black uppercase tracking-widest text-on-surface-variant">Agricultor</span>
-                    <h3 class="font-bold text-on-surface text-base mt-1">Ana Patricia Flores</h3>
-                    <p class="text-xs text-on-surface-variant truncate">a.flores@agro.mx</p>
-                    <p class="text-xs text-on-surface-variant font-medium mt-2">Productor Independiente</p>
-
-                    <div class="mt-4 pt-4 border-t border-surface-container flex justify-between items-center">
-                        <span class="text-[10px] text-on-surface-variant">10 Jun 2023</span>
-                        <div class="flex gap-2 text-on-surface-variant">
-                            <button class="hover:text-primary transition-colors"><span class="material-symbols-outlined text-base">visibility</span></button>
-                            <button class="hover:text-emerald-600 transition-colors"><span class="material-symbols-outlined text-base">lock_open</span></button>
-                            <button class="hover:text-error transition-colors"><span class="material-symbols-outlined text-base">delete</span></button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Card 5 -->
-            <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm overflow-hidden group hover:-translate-y-1 transition-all duration-300">
-                <div class="p-5">
-                    <div class="flex justify-between items-start mb-4">
-                        <div class="w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-on-secondary font-extrabold text-base shrink-0 shadow-md">
-                            CF
-                        </div>
-                        <div class="flex items-center justify-center gap-1.5 text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100">
-                            <span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">check_circle</span>
-                            <span class="text-[9px] font-black uppercase">Activo</span>
-                        </div>
-                    </div>
-                    <span class="text-[9px] font-black uppercase tracking-widest text-secondary">Investigador</span>
-                    <h3 class="font-bold text-on-surface text-base mt-1">Carlos Fuentes</h3>
-                    <p class="text-xs text-on-surface-variant truncate">c.fuentes@cimmyt.org</p>
-                    <p class="text-xs text-on-surface-variant font-medium mt-2">CIMMYT — México</p>
-
-                    <div class="mt-4 pt-4 border-t border-surface-container flex justify-between items-center">
-                        <span class="text-[10px] text-on-surface-variant">05 Ago 2024</span>
-                        <div class="flex gap-2 text-on-surface-variant">
-                            <button class="hover:text-primary transition-colors"><span class="material-symbols-outlined text-base">visibility</span></button>
-                            <button class="hover:text-primary transition-colors"><span class="material-symbols-outlined text-base">edit</span></button>
-                            <button class="hover:text-error transition-colors"><span class="material-symbols-outlined text-base">block</span></button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            {{/each}}
 
             <!-- Add New Card -->
-            <div id="btn-add-user-card" class="bg-surface-container-lowest rounded-xl border-2 border-dashed border-primary/20 shadow-sm overflow-hidden group hover:-translate-y-1 transition-all duration-300 flex items-center justify-center min-h-[220px] cursor-pointer">
+            <div id="btn-add-user-card" class="bg-surface-container-lowest rounded-xl border-2 border-dashed border-primary/20 shadow-sm overflow-hidden group hover:-translate-y-1 transition-all duration-300 flex items-center justify-center min-h-55 cursor-pointer">
                 <div class="text-center p-6">
                     <span class="material-symbols-outlined text-3xl text-primary/30 mb-2 group-hover:text-primary/50 transition-colors">person_add</span>
                     <p class="text-sm font-bold text-on-surface-variant group-hover:text-primary transition-colors">Añadir usuario</p>
@@ -478,54 +246,54 @@
         <div class="flex items-center justify-between px-8 py-6 border-b border-outline-variant/10">
             <div class="flex items-center gap-3">
                 <div class="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <span class="material-symbols-outlined text-primary text-xl" data-icon="person_add">person_add</span>
+                    <span class="material-symbols-outlined text-primary text-xl" id="modal-user-icon">person_add</span>
                 </div>
-                <h2 class="text-base font-extrabold text-on-surface tracking-tight">Nuevo Usuario</h2>
+                <h2 class="text-base font-extrabold text-on-surface tracking-tight" id="modal-user-title">Nuevo Usuario</h2>
             </div>
-            <button id="btn-close-modal-user"
+            <button id="btn-close-modal-user" type="button"
                 class="p-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-colors">
-                <span class="material-symbols-outlined" data-icon="close">close</span>
+                <span class="material-symbols-outlined">close</span>
             </button>
         </div>
         <!-- Modal Body -->
-        <form id="form-user" class="px-8 py-6 space-y-4">
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">Nombre</label>
-                    <input type="text" id="user-nombre" placeholder="Nombre(s)"
-                        class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
-                </div>
-                <div>
-                    <label class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">Apellidos</label>
-                    <input type="text" id="user-apellidos" placeholder="Apellidos"
-                        class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
-                </div>
-            </div>
+        <form id="form-user" action="/private/users/create" method="POST" class="px-8 py-6 space-y-4">
             <div>
-                <label class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">Correo Electrónico</label>
-                <input type="email" id="user-email" placeholder="usuario@institución.mx"
+                <label class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">Nombre Completo *</label>
+                <input type="text" id="user-nombre" name="full_name" required placeholder="Nombre completo"
                     class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
             </div>
+
             <div>
-                <label class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">Institución</label>
-                <input type="text" id="user-institucion" placeholder="Nombre de la institución u organización"
+                <label class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">Correo Electrónico *</label>
+                <input type="email" id="user-email" name="email" required placeholder="usuario@agrosystem.com"
                     class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
             </div>
+
+            <div id="password-group">
+                <label class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">Contraseña *</label>
+                <input type="password" id="user-password" name="password" placeholder="••••••••"
+                    class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+            </div>
+
+            <div>
+                <label class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">Puesto / Cargo</label>
+                <input type="text" id="user-puesto" name="job_title" placeholder="Ej. Investigador Fitosanitario"
+                    class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+            </div>
+
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">Rol</label>
-                    <select id="user-rol"
+                    <label class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">Rol *</label>
+                    <select id="user-rol" name="role" required
                         class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
-                        <option value="">Seleccionar...</option>
-                        <option value="admin">Admin</option>
-                        <option value="investigador">Investigador</option>
-                        <option value="tecnico">Técnico</option>
+                        <option value="inifap">INIFAP</option>
+                        <option value="admin">Administrador</option>
                         <option value="agricultor">Agricultor</option>
                     </select>
                 </div>
                 <div>
-                    <label class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">Estatus</label>
-                    <select id="user-estatus"
+                    <label class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">Estatus *</label>
+                    <select id="user-estatus" name="status" required
                         class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
                         <option value="activo">Activo</option>
                         <option value="pendiente">Pendiente</option>
@@ -533,69 +301,162 @@
                     </select>
                 </div>
             </div>
+
+            <div>
+                <label class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">Teléfono</label>
+                <input type="text" id="user-telefono" name="phone" placeholder="+52 667 123 4567"
+                    class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+            </div>
         </form>
         <!-- Modal Footer -->
-        <div class="px-8 py-5 bg-surface-container-low/30 border-t border-outline-variant/10 flex justify-end gap-3">
-            <button id="btn-cancel-modal-user"
-                class="px-6 py-2.5 rounded-lg text-on-surface-variant text-sm font-bold hover:bg-surface-container-low transition-colors">
+        <div class="flex items-center justify-end gap-3 px-8 py-5 bg-surface-container-low border-t border-outline-variant/10">
+            <button id="btn-cancel-user" type="button"
+                class="px-5 py-2.5 rounded-xl border border-outline-variant/30 text-on-surface-variant font-extrabold text-xs hover:bg-surface-container-high transition-colors">
                 Cancelar
             </button>
-            <button type="submit" form="form-user"
-                class="px-6 py-2.5 rounded-lg bg-[#43655c] text-white text-sm font-bold hover:bg-[#354f47] transition-colors shadow-lg shadow-primary/10 flex items-center gap-2">
-                <span class="material-symbols-outlined text-base" data-icon="save">save</span>
+            <button id="btn-submit-user" type="submit" form="form-user"
+                class="px-5 py-2.5 rounded-xl bg-primary text-on-primary font-extrabold text-xs shadow-lg shadow-primary/20 hover:bg-primary-hover transition-all active:scale-95">
                 Guardar Usuario
             </button>
         </div>
     </div>
 </div>
 
+{{!-- ═══════════════════════════════════════════════════════════
+     MODAL: Ver Detalle de Usuario (Lectura)
+════════════════════════════════════════════════════════════ --}}
+<div id="modal-view-user" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+    <div class="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border border-zinc-200 dark:border-zinc-800">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-zinc-100 dark:border-zinc-800">
+            <h3 class="text-sm font-extrabold text-zinc-900 dark:text-white flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary text-lg">badge</span>
+                <span>Ficha de Usuario</span>
+            </h3>
+            <button id="btn-close-modal-view-user" type="button" class="p-1.5 rounded-lg text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors">
+                <span class="material-symbols-outlined text-base">close</span>
+            </button>
+        </div>
+
+        <div class="p-6 space-y-4 text-center">
+            <div class="w-16 h-16 rounded-full bg-[#43655c] text-white mx-auto flex items-center justify-center text-2xl font-extrabold shadow-md" id="view-user-initial">
+                U
+            </div>
+            <div>
+                <h4 class="text-base font-bold text-zinc-900 dark:text-white" id="view-user-name">---</h4>
+                <p class="text-xs text-zinc-500 dark:text-zinc-400" id="view-user-email">---</p>
+            </div>
+
+            <div class="flex items-center justify-center gap-2">
+                <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300" id="view-user-role">
+                    ---
+                </span>
+                <span class="px-3 py-1 rounded-full text-[10px] font-bold capitalize bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-300" id="view-user-status">
+                    ---
+                </span>
+            </div>
+
+            <div class="pt-4 border-t border-zinc-100 dark:border-zinc-800 text-left space-y-2 text-xs">
+                <div class="flex justify-between"><span class="text-zinc-400 font-medium">Cargo / Puesto:</span> <span class="font-bold text-zinc-800 dark:text-zinc-200" id="view-user-job">---</span></div>
+                <div class="flex justify-between"><span class="text-zinc-400 font-medium">Teléfono:</span> <span class="font-bold text-zinc-800 dark:text-zinc-200" id="view-user-phone">---</span></div>
+                <div class="flex justify-between"><span class="text-zinc-400 font-medium">Dirección:</span> <span class="font-bold text-zinc-800 dark:text-zinc-200" id="view-user-address">---</span></div>
+            </div>
+        </div>
+
+        <div class="px-6 py-4 bg-zinc-50 dark:bg-zinc-800/50 border-t border-zinc-100 dark:border-zinc-800 flex justify-end">
+            <button id="btn-done-view-user" type="button" class="px-4 py-2 rounded-xl bg-zinc-200 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 text-xs font-bold hover:bg-zinc-300 transition-colors">
+                Cerrar
+            </button>
+        </div>
+    </div>
+</div>
+
 <script>
-    // Modal toggle
-    const modalUser     = document.getElementById('modal-user');
-    const btnAddUser    = document.getElementById('btn-add-user');
-    const btnCloseUser  = document.getElementById('btn-close-modal-user');
-    const btnCancelUser = document.getElementById('btn-cancel-modal-user');
+document.addEventListener('DOMContentLoaded', () => {
+    const modalUser = document.getElementById('modal-user');
+    const formUser = document.getElementById('form-user');
+    const modalUserTitle = document.getElementById('modal-user-title');
+    const passwordGroup = document.getElementById('password-group');
+    const userPassword = document.getElementById('user-password');
 
-    const openModal  = () => modalUser.classList.replace('hidden', 'flex');
-    const closeModal = () => modalUser.classList.replace('flex', 'hidden');
-
+    const btnAddUser = document.getElementById('btn-add-user');
     const btnAddUserCard = document.getElementById('btn-add-user-card');
+    const btnCloseModalUser = document.getElementById('btn-close-modal-user');
+    const btnCancelUser = document.getElementById('btn-cancel-user');
 
-    btnAddUser?.addEventListener('click', openModal);
-    btnAddUserCard?.addEventListener('click', openModal);
-    btnCloseUser?.addEventListener('click', closeModal);
-    btnCancelUser?.addEventListener('click', closeModal);
-    modalUser?.addEventListener('click', (e) => { if (e.target === modalUser) closeModal(); });
+    const openCreateModal = () => {
+        if (!formUser || !modalUser) return;
+        formUser.reset();
+        formUser.action = '/private/users/create';
+        modalUserTitle.textContent = 'Nuevo Usuario';
+        if (passwordGroup) passwordGroup.style.display = 'block';
+        if (userPassword) userPassword.required = true;
+        modalUser.classList.remove('hidden');
+        modalUser.classList.add('flex');
+    };
 
-    // View toggle
-    const tableView = document.getElementById('users-table-view');
-    const gridView = document.getElementById('users-grid-view');
-    const btnTable = document.getElementById('view-table');
-    const btnGrid = document.getElementById('view-grid');
+    const closeModal = () => {
+        if (!modalUser) return;
+        modalUser.classList.add('hidden');
+        modalUser.classList.remove('flex');
+    };
 
-    if (btnTable && btnGrid) {
-        // Inicializar botones (Grid es default)
-        btnGrid.classList.add('bg-[#43655c]', 'text-white');
-        btnGrid.classList.remove('text-on-surface-variant');
-        btnTable.classList.remove('bg-[#43655c]', 'text-white');
-        btnTable.classList.add('text-on-surface-variant');
+    if (btnAddUser) btnAddUser.addEventListener('click', openCreateModal);
+    if (btnAddUserCard) btnAddUserCard.addEventListener('click', openCreateModal);
+    if (btnCloseModalUser) btnCloseModalUser.addEventListener('click', closeModal);
+    if (btnCancelUser) btnCancelUser.addEventListener('click', closeModal);
 
-        btnTable.addEventListener('click', function () {
-            tableView.style.display = '';
-            gridView.style.display = 'none';
-            btnTable.classList.add('bg-[#43655c]', 'text-white');
-            btnTable.classList.remove('text-on-surface-variant');
-            btnGrid.classList.remove('bg-[#43655c]', 'text-white');
-            btnGrid.classList.add('text-on-surface-variant');
+    // Editar usuario
+    document.querySelectorAll('.btn-edit-user').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const id = btn.dataset.id;
+            formUser.action = `/private/users/edit/${id}`;
+            modalUserTitle.textContent = 'Editar Usuario';
+            document.getElementById('user-nombre').value = btn.dataset.name || '';
+            document.getElementById('user-email').value = btn.dataset.email || '';
+            document.getElementById('user-puesto').value = btn.dataset.job || '';
+            document.getElementById('user-rol').value = btn.dataset.role || 'inifap';
+            document.getElementById('user-estatus').value = btn.dataset.status || 'activo';
+            document.getElementById('user-telefono').value = btn.dataset.phone || '';
+
+            if (passwordGroup) passwordGroup.style.display = 'none';
+            if (userPassword) userPassword.required = false;
+
+            modalUser.classList.remove('hidden');
+            modalUser.classList.add('flex');
         });
+    });
 
-        btnGrid.addEventListener('click', function () {
-            tableView.style.display = 'none';
-            gridView.style.display = 'grid';
-            btnGrid.classList.add('bg-[#43655c]', 'text-white');
-            btnGrid.classList.remove('text-on-surface-variant');
-            btnTable.classList.remove('bg-[#43655c]', 'text-white');
-            btnTable.classList.add('text-on-surface-variant');
+    // Ver detalle de usuario
+    const modalViewUser = document.getElementById('modal-view-user');
+    const btnCloseModalViewUser = document.getElementById('btn-close-modal-view-user');
+    const btnDoneViewUser = document.getElementById('btn-done-view-user');
+
+    const closeViewModal = () => {
+        if (modalViewUser) {
+            modalViewUser.classList.add('hidden');
+            modalViewUser.classList.remove('flex');
+        }
+    };
+
+    document.querySelectorAll('.btn-view-user').forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (!modalViewUser) return;
+            const name = btn.dataset.name || 'Sin nombre';
+            document.getElementById('view-user-name').textContent = name;
+            document.getElementById('view-user-email').textContent = btn.dataset.email || 'Sin correo';
+            document.getElementById('view-user-role').textContent = (btn.dataset.role || 'inifap').toUpperCase();
+            document.getElementById('view-user-status').textContent = btn.dataset.status || 'activo';
+            document.getElementById('view-user-job').textContent = btn.dataset.job || 'No especificado';
+            document.getElementById('view-user-phone').textContent = btn.dataset.phone || 'No registrado';
+            document.getElementById('view-user-address').textContent = btn.dataset.address || 'No registrada';
+            document.getElementById('view-user-initial').textContent = name.charAt(0).toUpperCase();
+
+            modalViewUser.classList.remove('hidden');
+            modalViewUser.classList.add('flex');
         });
-    }
+    });
+
+    if (btnCloseModalViewUser) btnCloseModalViewUser.addEventListener('click', closeViewModal);
+    if (btnDoneViewUser) btnDoneViewUser.addEventListener('click', closeViewModal);
+});
 </script>

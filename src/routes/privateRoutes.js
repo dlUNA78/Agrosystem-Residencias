@@ -13,7 +13,6 @@ import {
   dashboard,
   ingredientsPrivate,
   reportsPrivate,
-  usersPrivate,
   // Auditoría
   auditPrivate,
 } from '../controllers/privateController.js';
@@ -71,9 +70,21 @@ import {
 // ─── Instancia del router privado ─────────────────────────────────────────────
 const privateRouter = Router();
 
-// Aplica los middlewares de seguridad a TODAS las rutas de este router
+// Aplica el middleware de verificación de sesión activa a TODAS las rutas
 privateRouter.use(isAuthenticated);
+
+// ══════════════════════════════════════════════════════════════════════════════
+// MÓDULO: PERFIL PÚBLICO (Accesible para cualquier usuario autenticado)
+// ══════════════════════════════════════════════════════════════════════════════
+privateRouter.get('/profile', renderProfile);
+privateRouter.post('/profile', updateProfile);
+
+// Aplica el bloqueo del panel privado (Solo INIFAP y Admin a partir de este punto)
 privateRouter.use(requirePanelAccess);
+
+// Perfil dentro del Panel Privado (Solo INIFAP y Admin)
+privateRouter.get('/private/profile', renderProfile);
+privateRouter.post('/private/profile', updateProfile);
 
 // ══════════════════════════════════════════════════════════════════════════════
 // DASHBOARD
@@ -156,10 +167,35 @@ privateRouter.post('/private/suppliers/create', createSupplier); // Crear provee
 privateRouter.post('/private/suppliers/update/:id', updateSupplier); // Actualizar proveedor
 privateRouter.post('/private/suppliers/delete/:id', deleteSupplier); // Eliminar proveedor
 
+// ─── Controladores del módulo de usuarios (sub-controlador modular) ────────────
+import {
+  usersPrivate,
+  createUser,
+  updateUser,
+  updateUserStatus,
+  deleteUser,
+  renderProfile,
+  updateProfile,
+} from '../controllers/private/usersController.js';
+
+import { requireRole } from '../middlewares/authMiddleware.js';
+
 // ══════════════════════════════════════════════════════════════════════════════
-// MÓDULO: USUARIOS
+// MÓDULO: USUARIOS (Admin Only)
 // ══════════════════════════════════════════════════════════════════════════════
-privateRouter.get('/private/users', usersPrivate); // Lista todos los usuarios del sistema
+privateRouter.get('/private/users', requireRole('admin'), usersPrivate);
+privateRouter.post('/private/users/create', requireRole('admin'), createUser);
+privateRouter.post('/private/users/edit/:id', requireRole('admin'), updateUser);
+privateRouter.post(
+  '/private/users/status/:id',
+  requireRole('admin'),
+  updateUserStatus,
+);
+privateRouter.post(
+  '/private/users/delete/:id',
+  requireRole('admin'),
+  deleteUser,
+);
 
 // ══════════════════════════════════════════════════════════════════════════════
 // MÓDULO: REPORTES

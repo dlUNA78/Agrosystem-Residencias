@@ -22,27 +22,39 @@
             </button>
         </div>
 
-        <div class="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity relative group">
+        <div class="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity relative group py-2">
             <div class="text-right hidden sm:block">
-                <p class="text-xs font-bold text-on-surface leading-tight">{{user.full_name}}</p>
-                <p class="text-[10px] text-on-surface-variant leading-tight">{{user.email}}</p>
+                <p class="text-xs font-bold text-on-surface leading-tight">{{#if user.full_name}}{{user.full_name}}{{else}}Usuario{{/if}}</p>
+                <p class="text-[10px] text-on-surface-variant leading-tight">{{#if user.email}}{{user.email}}{{else}}Sin correo{{/if}}</p>
             </div>
 
             {{#if user.photo_url}}
-            <img alt="User profile" class="w-9 h-9 rounded-full object-cover ring-2 ring-primary/10"
+            <img alt="{{user.full_name}}" class="w-9 h-9 rounded-full object-cover ring-2 ring-primary/10 shadow-sm"
                 src="{{user.photo_url}}">
             {{else}}
             <div
-                class="w-9 h-9 rounded-full bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 flex items-center justify-center font-bold border border-zinc-300 dark:border-zinc-700">
-                U
+                class="w-9 h-9 rounded-full bg-[#43655c] text-white flex items-center justify-center font-extrabold text-sm shadow-sm">
+                {{userInitial user}}
             </div>
             {{/if}}
 
+            <!-- Dropdown Menu -->
             <div
-                class="absolute right-0 top-10 mt-2 w-48 bg-white dark:bg-zinc-900 rounded-md shadow-lg py-1 border border-zinc-200 dark:border-zinc-800 hidden group-hover:block transition-all">
+                class="absolute right-0 top-12 mt-1 w-52 bg-white dark:bg-zinc-900 rounded-xl shadow-xl py-2 border border-zinc-200 dark:border-zinc-800 hidden group-hover:block transition-all z-50">
+                <div class="px-4 py-2 border-b border-zinc-100 dark:border-zinc-800 sm:hidden">
+                    <p class="text-xs font-bold text-on-surface truncate">{{user.full_name}}</p>
+                    <p class="text-[10px] text-on-surface-variant truncate">{{user.email}}</p>
+                </div>
+                <a href="/private/profile"
+                    class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-zinc-700 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors">
+                    <span class="material-symbols-outlined text-base text-primary">person</span>
+                    <span>Mi Perfil</span>
+                </a>
                 <a href="/auth/logout"
-                    class="block px-4 py-2 text-sm text-red-600 hover:bg-zinc-100 dark:hover:bg-zinc-800">Cerrar
-                    Sesión</a>
+                    class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors">
+                    <span class="material-symbols-outlined text-base">logout</span>
+                    <span>Cerrar Sesión</span>
+                </a>
             </div>
         </div>
 
