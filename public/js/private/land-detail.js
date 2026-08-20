@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
+  // ── Tabs ──
   const tabBtns = document.querySelectorAll('.tab-btn');
   const tabPanels = document.querySelectorAll('.tab-panel');
 
@@ -12,19 +13,61 @@ document.addEventListener('DOMContentLoaded', function () {
       btn.classList.add('border-primary', 'text-[#0F2E2E]');
       btn.classList.remove('border-transparent', 'text-on-surface-variant');
       tabPanels.forEach((p) => p.classList.add('hidden'));
-      document.getElementById('tab-' + target).classList.remove('hidden');
+      const targetPanel = document.getElementById('tab-' + target);
+      if (targetPanel) {
+        targetPanel.classList.remove('hidden');
+      }
     });
   });
 
+  // ── Conmutación de Vistas: Lista de Cultivos vs Detalle del Cultivo ──
+  const sectionCropList = document.getElementById('section-crop-list');
+  const sectionCropDetail = document.getElementById('section-crop-detail');
+  const btnBackToCropList = document.getElementById('btn-back-to-crop-list');
+  const focusedCropTitle = document.getElementById('focused-crop-title');
+  const detailCropName = document.getElementById('detail-crop-name');
+  const detailCropSection = document.getElementById('detail-crop-section');
+
+  const btnSelectCrops = document.querySelectorAll('.btn-select-crop');
+
+  function showCropDetail(cropName, cropSection) {
+    if (focusedCropTitle)
+      focusedCropTitle.textContent = `${cropName} (${cropSection || 'General'})`;
+    if (detailCropName) detailCropName.textContent = cropName;
+    if (detailCropSection)
+      detailCropSection.textContent = `Área / Lote: ${cropSection || 'General'}`;
+
+    if (sectionCropList) sectionCropList.classList.add('hidden');
+    if (sectionCropDetail) sectionCropDetail.classList.remove('hidden');
+  }
+
+  function showCropList() {
+    if (sectionCropDetail) sectionCropDetail.classList.add('hidden');
+    if (sectionCropList) sectionCropList.classList.remove('hidden');
+  }
+
+  btnSelectCrops.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const name = btn.dataset.cropName || 'Cultivo';
+      const section = btn.dataset.cropSection || 'General';
+      showCropDetail(name, section);
+    });
+  });
+
+  if (btnBackToCropList) {
+    btnBackToCropList.addEventListener('click', showCropList);
+  }
+
+  // ── Modales ──
   function makeModal(modalId, openBtns, closeBtns, backdropId) {
     const modal = document.getElementById(modalId);
     const backdrop = document.getElementById(backdropId);
     function open() {
-      modal.classList.remove('hidden');
+      if (modal) modal.classList.remove('hidden');
       document.body.style.overflow = 'hidden';
     }
     function close() {
-      modal.classList.add('hidden');
+      if (modal) modal.classList.add('hidden');
       document.body.style.overflow = '';
     }
     openBtns.forEach((id) => {
@@ -53,4 +96,95 @@ document.addEventListener('DOMContentLoaded', function () {
     ['btn-close-aplicacion', 'btn-cancel-aplicacion'],
     'modal-aplicacion-backdrop',
   );
+  makeModal(
+    'modal-edit-land',
+    ['btn-open-edit-land'],
+    ['btn-close-edit-land', 'btn-cancel-edit-land'],
+    'modal-edit-land-backdrop',
+  );
+  makeModal(
+    'modal-nuevo-ciclo',
+    ['btn-open-nuevo-ciclo', 'btn-open-nuevo-ciclo-empty'],
+    ['btn-close-nuevo-ciclo', 'btn-cancel-nuevo-ciclo'],
+    'modal-nuevo-ciclo-backdrop',
+  );
+
+  // ── Lógica Dinámica de Opción "Otro" en Modales ──
+
+  // 1. Modal Nuevo Ciclo de Cultivo
+  const selectCropId = document.getElementById('select-crop-id');
+  const fieldCustomCrop = document.getElementById('field-custom-crop');
+  const inputCustomCropName = document.getElementById('input-custom-crop-name');
+
+  if (selectCropId) {
+    selectCropId.addEventListener('change', () => {
+      if (selectCropId.value === 'otro') {
+        fieldCustomCrop.classList.remove('hidden');
+        if (inputCustomCropName) inputCustomCropName.required = true;
+      } else {
+        fieldCustomCrop.classList.add('hidden');
+        if (inputCustomCropName) {
+          inputCustomCropName.required = false;
+          inputCustomCropName.value = '';
+        }
+      }
+    });
+  }
+
+  // 2. Modal Reporte de Salud
+  const selectPlagueId = document.getElementById('select-plague-id');
+  const fieldCustomPlague = document.getElementById('field-custom-plague');
+  const inputCustomPlagueName = document.getElementById(
+    'input-custom-plague-name',
+  );
+
+  if (selectPlagueId) {
+    selectPlagueId.addEventListener('change', () => {
+      if (selectPlagueId.value === 'otro') {
+        fieldCustomPlague.classList.remove('hidden');
+        if (inputCustomPlagueName) inputCustomPlagueName.required = true;
+      } else {
+        fieldCustomPlague.classList.add('hidden');
+        if (inputCustomPlagueName) {
+          inputCustomPlagueName.required = false;
+          inputCustomPlagueName.value = '';
+        }
+      }
+    });
+  }
+
+  // 3. Modal Aplicación Química
+  const selectProductId = document.getElementById('select-product-id');
+  const fieldCustomProduct = document.getElementById('field-custom-product');
+  const inputCustomProductName = document.getElementById(
+    'input-custom-product-name',
+  );
+  const inputActiveIngredient = document.getElementById(
+    'input-active-ingredient',
+  );
+
+  if (selectProductId) {
+    selectProductId.addEventListener('change', () => {
+      const selectedOption =
+        selectProductId.options[selectProductId.selectedIndex];
+      const activeIng = selectedOption
+        ? selectedOption.getAttribute('data-active-ingredient')
+        : '';
+
+      if (selectProductId.value === 'otro') {
+        fieldCustomProduct.classList.remove('hidden');
+        if (inputCustomProductName) inputCustomProductName.required = true;
+        if (inputActiveIngredient) inputActiveIngredient.value = '';
+      } else {
+        fieldCustomProduct.classList.add('hidden');
+        if (inputCustomProductName) {
+          inputCustomProductName.required = false;
+          inputCustomProductName.value = '';
+        }
+        if (inputActiveIngredient && activeIng) {
+          inputActiveIngredient.value = activeIng;
+        }
+      }
+    });
+  }
 });

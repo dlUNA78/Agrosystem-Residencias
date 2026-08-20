@@ -59,6 +59,9 @@ import {
   createFarmPrivate, // Crea una nueva parcela/granja
   updateFarmPrivate, // Actualizar parcela
   deleteFarmPrivate, // Baja lógica de parcela
+  createFarmCrop, // Registrar ciclo de cultivo
+  createHealthReport, // Registrar reporte fitosanitario
+  createApplicationLog, // Registrar aplicación química
 } from '../controllers/private/landsController.js';
 
 // ─── Middlewares de autenticación y autorización ──────────────────────────────
@@ -86,6 +89,9 @@ privateRouter.post('/lands/create', createFarmPrivate);
 privateRouter.get('/lands/:id/expediente', landDetail);
 privateRouter.post('/lands/update/:id', updateFarmPrivate);
 privateRouter.post('/lands/delete/:id', deleteFarmPrivate);
+privateRouter.post('/lands/:id/crop/create', createFarmCrop);
+privateRouter.post('/lands/:id/health-report/create', createHealthReport);
+privateRouter.post('/lands/:id/application-log/create', createApplicationLog);
 
 // Aplica el bloqueo del panel privado (Solo INIFAP y Admin a partir de este punto)
 privateRouter.use(requirePanelAccess);

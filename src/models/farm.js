@@ -19,6 +19,24 @@ export default (sequelize, DataTypes) => {
         foreignKey: 'region_id',
         as: 'region',
       });
+
+      // Relación con los cultivos sembrados en la parcela
+      Farm.hasMany(models.FarmCrop, {
+        foreignKey: 'farm_id',
+        as: 'farmCrops',
+      });
+
+      // Relación con reportes fitosanitarios
+      Farm.hasMany(models.HealthReport, {
+        foreignKey: 'farm_id',
+        as: 'healthReports',
+      });
+
+      // Relación con la bitácora de aplicaciones químicas
+      Farm.hasMany(models.ApplicationLog, {
+        foreignKey: 'farm_id',
+        as: 'applicationLogs',
+      });
     }
   }
 

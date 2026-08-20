@@ -76,23 +76,19 @@ describe('🌾 Módulo de Gestión de Terrenos y Predios (Lands - CRUD + Isolati
 
   const getFarmerAgent = async () => {
     const agent = request.agent(app);
-    await agent
-      .post('/auth/login')
-      .send({
-        email: 'agricultor_lands@agrosystem.com',
-        password: 'Farmer@1234',
-      });
+    await agent.post('/auth/login').send({
+      email: 'agricultor_lands@agrosystem.com',
+      password: 'Farmer@1234',
+    });
     return agent;
   };
 
   const getOtherAgent = async () => {
     const agent = request.agent(app);
-    await agent
-      .post('/auth/login')
-      .send({
-        email: 'agricultor_other@agrosystem.com',
-        password: 'Farmer@1234',
-      });
+    await agent.post('/auth/login').send({
+      email: 'agricultor_other@agrosystem.com',
+      password: 'Farmer@1234',
+    });
     return agent;
   };
 

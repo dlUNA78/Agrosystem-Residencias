@@ -8,13 +8,19 @@ export default (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      // define association here
+      FarmCrop.belongsTo(models.Farm, { foreignKey: 'farm_id', as: 'farm' });
+      FarmCrop.belongsTo(models.Crop, { foreignKey: 'crop_id', as: 'crop' });
     }
   }
   FarmCrop.init(
     {
       farm_id: DataTypes.INTEGER,
-      crop_id: DataTypes.INTEGER,
+      crop_id: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
+      custom_crop_name: DataTypes.STRING,
+      area_section: DataTypes.STRING,
       planting_date: DataTypes.DATE,
       is_active: DataTypes.BOOLEAN,
       status: DataTypes.STRING,
