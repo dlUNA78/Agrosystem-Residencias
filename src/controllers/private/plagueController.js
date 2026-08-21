@@ -110,7 +110,22 @@ export const plaguesPrivate = async (req, res) => {
 // CREAR PLAGA
 export const createPlague = async (req, res) => {
   try {
-    const image_url = req.file ? `images/plagues/${req.file.filename}` : null;
+    const image_url = req.file
+      ? `images/plagues/${req.file.filename}`
+      : null;
+
+    // =========================================
+    // CICLO BIOLÓGICO
+    // =========================================
+
+    let biological_cycle = null;
+
+    if (req.body.biological_cycle?.trim()) {
+      biological_cycle = req.body.biological_cycle
+        .split('\n')
+        .map((item) => item.trim())
+        .filter(Boolean);
+    }
 
     await db.Plague.create({
       name: req.body.name?.trim(),
@@ -119,12 +134,18 @@ export const createPlague = async (req, res) => {
       description: req.body.description,
       risk_level: req.body.risk_level,
       region: req.body.region,
+
       symptoms: req.body.symptoms,
       control_methods: req.body.control_methods,
       biological_control: req.body.biological_control,
+
+      // NUEVOS CAMPOS
+      biological_cycle,
+      verified_by: req.body.verified_by?.trim() || null,
+      verified_at: req.body.verified_at || null,
+
       image_url,
 
-      // Si el checkbox está marcado, será true
       status:
         req.body.status === 'true' ||
         req.body.status === 'on' ||
@@ -132,8 +153,10 @@ export const createPlague = async (req, res) => {
     });
 
     return res.redirect('/private/plagues');
+
   } catch (error) {
     console.error('Error al crear la plaga:', error);
+
     return res.status(500).send('Error al crear la plaga');
   }
 };
@@ -149,6 +172,19 @@ export const updatePlague = async (req, res) => {
       return res.status(404).send('Plaga no encontrada');
     }
 
+    // =========================================
+    // CICLO BIOLÓGICO
+    // =========================================
+
+    let biological_cycle = null;
+
+    if (req.body.biological_cycle?.trim()) {
+      biological_cycle = req.body.biological_cycle
+        .split('\n')
+        .map((item) => item.trim())
+        .filter(Boolean);
+    }
+
     const data = {
       name: req.body.name?.trim(),
       scientific_name: req.body.scientific_name?.trim(),
@@ -156,15 +192,25 @@ export const updatePlague = async (req, res) => {
       description: req.body.description,
       risk_level: req.body.risk_level,
       region: req.body.region,
+
       symptoms: req.body.symptoms,
       control_methods: req.body.control_methods,
       biological_control: req.body.biological_control,
+
+      // NUEVOS CAMPOS
+      biological_cycle,
+      verified_by: req.body.verified_by?.trim() || null,
+      verified_at: req.body.verified_at || null,
 
       status:
         req.body.status === 'true' ||
         req.body.status === 'on' ||
         req.body.status === true,
     };
+
+    // =========================================
+    // IMAGEN
+    // =========================================
 
     // Solo reemplaza la imagen si se seleccionó una nueva
     if (req.file) {
@@ -174,8 +220,10 @@ export const updatePlague = async (req, res) => {
     await plague.update(data);
 
     return res.redirect('/private/plagues');
+
   } catch (error) {
     console.error('Error al actualizar la plaga:', error);
+
     return res.status(500).send('Error al actualizar la plaga');
   }
 };
@@ -200,10 +248,29 @@ export const deletePlague = async (req, res) => {
   }
 };
 
-export const getPestDetail = (req, res) => {
-  res.render('private/catalog/pest-detail', {
-    layout: privateLayout,
-    pageTitle: 'Pulgón Verde - Plagas',
-    activePage: 'plagues',
-  });
+// VER DETALLE DE UNA PLAGA
+export const getPlagueDetail = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const plague = await db.Plague.findByPk(id, {
+      raw: true,
+    });
+
+    if (!plague) {
+      return res.status(404).send('Plaga no encontrada');
+    }
+
+    return res.render('private/catalog/plagues-Detalle', {
+      layout: privateLayout,
+      pageTitle: `${plague.name} - Plagas`,
+      activePage: 'plagues',
+      plague,
+    });
+
+  } catch (error) {
+    console.error('Error al cargar el detalle de la plaga:', error);
+
+    return res.status(500).send('Error al cargar el detalle de la plaga');
+  }
 };

@@ -1,94 +1,122 @@
 <main class="min-h-screen flex flex-col">
-    <!-- Content Area -->
-    <div class="mt-20 p-12 space-y-10">
-        {{!-- Control Bar & Search --}}
+
+    <div class="mt-20 p-8 lg:p-12 space-y-10">
+
         {{> private/search-bar}}
 
-        <!-- Alert Panel -->
-        <div class="bg-amber-50 border border-amber-100 p-4 rounded-xl flex items-center justify-between shadow-sm">
-            <div class="flex items-center gap-3">
-                <div class="bg-amber-100 p-2 rounded-full">
-                    <span class="material-symbols-outlined text-amber-700" data-icon="feedback">feedback</span>
-                </div>
-                <p class="text-amber-900 font-medium text-sm tracking-tight">Tienes <span class="font-bold">24
-                        sugerencias</span> de la comunidad pendientes de revisión.</p>
-            </div>
-            <button
-                class="bg-white text-amber-800 border border-amber-200 px-5 py-2 rounded-lg text-xs font-bold hover:bg-amber-100 transition-colors">
-                Revisar Sugerencias
-            </button>
-        </div>
 
-        <!-- TABLE VIEW -->
-        <div id="plagues-table-view" style="display:none"
-            class="bg-surface-container-lowest rounded-2xl shadow-sm overflow-hidden border border-outline-variant/10">
+        <!-- ===================================================== -->
+        <!-- PANEL DE SUGERENCIAS -->
+        <!-- ===================================================== -->
+
+        <section
+            class="bg-surface-container rounded-2xl ghost-border p-4 lg:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+
+            <div class="flex items-center gap-4">
+
+                <div class="w-11 h-11 rounded-xl bg-primary-container flex items-center justify-center shrink-0">
+
+                    <span class="material-symbols-outlined text-on-primary-container">
+                        feedback
+                    </span>
+
+                </div>
+
+                <div>
+
+                    <p class="text-sm font-bold text-on-surface">
+                        Sugerencias de la comunidad
+                    </p>
+
+                    <p class="text-xs text-on-surface-variant mt-0.5">
+                        Tienes
+                        <span class="font-bold text-primary">
+                            24 sugerencias
+                        </span>
+                        pendientes de revisión.
+                    </p>
+
+                </div>
+
+            </div>
+
+            <button type="button"
+                class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-surface-container-lowest ghost-border text-primary text-xs font-bold hover:bg-primary-container hover:text-on-primary-container transition-all">
+
+                <span class="material-symbols-outlined text-[18px]">
+                    rate_review
+                </span>
+
+                Revisar sugerencias
+
+            </button>
+
+        </section>
+
+
+
+        <!-- ===================================================== -->
+        <!-- TABLA -->
+        <!-- ===================================================== -->
+
+        <section id="plagues-table-view" style="display:none"
+            class="bg-surface-container-lowest rounded-2xl overflow-hidden editorial-shadow ghost-border">
 
             <div class="overflow-x-auto">
 
                 <table class="w-full text-left border-collapse">
 
-                    <!-- ENCABEZADOS -->
                     <thead>
 
-                        <tr class="bg-surface-container-low/50">
+                        <tr class="bg-surface-container">
 
-                            <!-- Imagen -->
                             <th
-                                class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
+                                class="px-7 py-5 text-[10px] font-label font-bold uppercase tracking-widest text-on-surface-variant">
                                 Imagen
                             </th>
 
-                            <!-- Nombre -->
                             <th
-                                class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
+                                class="px-7 py-5 text-[10px] font-label font-bold uppercase tracking-widest text-on-surface-variant">
                                 Nombre
                             </th>
 
-                            <!-- Nombre científico -->
                             <th
-                                class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
-                                Nombre Científico
+                                class="px-7 py-5 text-[10px] font-label font-bold uppercase tracking-widest text-on-surface-variant">
+                                Nombre científico
                             </th>
 
-                            <!-- Categoría -->
                             <th
-                                class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
+                                class="px-7 py-5 text-[10px] font-label font-bold uppercase tracking-widest text-on-surface-variant">
                                 Categoría
                             </th>
 
-                            <!-- Riesgo -->
                             <th
-                                class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant text-center">
-                                Nivel de Riesgo
+                                class="px-7 py-5 text-[10px] font-label font-bold uppercase tracking-widest text-on-surface-variant text-center">
+                                Riesgo
                             </th>
 
-                            <!-- Región -->
                             <th
-                                class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
+                                class="px-7 py-5 text-[10px] font-label font-bold uppercase tracking-widest text-on-surface-variant">
                                 Región
                             </th>
 
-                            <!-- Verificado por -->
                             <th
-                                class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
-                                Verificado Por
+                                class="px-7 py-5 text-[10px] font-label font-bold uppercase tracking-widest text-on-surface-variant">
+                                Verificado por
                             </th>
 
-                            <!-- Fecha de verificación -->
                             <th
-                                class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
+                                class="px-7 py-5 text-[10px] font-label font-bold uppercase tracking-widest text-on-surface-variant">
                                 Verificado
                             </th>
 
-                            <!-- Estatus -->
                             <th
-                                class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant text-center">
-                                Estatus
+                                class="px-7 py-5 text-[10px] font-label font-bold uppercase tracking-widest text-on-surface-variant text-center">
+                                Estado
                             </th>
 
-                            <!-- Acciones -->
                             <th
-                                class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant text-right">
+                                class="px-7 py-5 text-[10px] font-label font-bold uppercase tracking-widest text-on-surface-variant text-right">
                                 Acciones
                             </th>
 
@@ -96,28 +124,29 @@
 
                     </thead>
 
-                    <!-- DATOS DE LA BASE DE DATOS -->
+
                     <tbody>
 
                         {{#each plagues}}
 
-                        <tr
-                            class="border-t border-outline-variant/10 hover:bg-surface-container-low/40 transition-colors">
+                        <tr class="border-t border-surface-container hover:bg-surface-container-low transition-colors">
+
 
                             <!-- IMAGEN -->
-                            <td class="px-8 py-5">
+
+                            <td class="px-7 py-5">
 
                                 {{#if image_url}}
 
-                                <img src="/{{image_url}}" alt="{{name}}" class="w-16 h-16 rounded-xl object-cover"
+                                <img src="/{{image_url}}" alt="{{name}}"
+                                    class="w-14 h-14 rounded-xl object-cover ghost-border"
                                     onerror="this.src='/images/test/default.png'">
 
                                 {{else}}
 
-                                <div
-                                    class="w-16 h-16 rounded-xl bg-surface-container-low flex items-center justify-center">
+                                <div class="w-14 h-14 rounded-xl bg-surface-container flex items-center justify-center">
 
-                                    <span class="material-symbols-outlined text-3xl text-primary/30">
+                                    <span class="material-symbols-outlined text-2xl text-primary/30">
                                         bug_report
                                     </span>
 
@@ -129,9 +158,10 @@
 
 
                             <!-- NOMBRE -->
-                            <td class="px-8 py-5">
 
-                                <p class="font-extrabold text-[#0F2E2E]">
+                            <td class="px-7 py-5">
+
+                                <p class="font-headline font-bold text-on-surface">
                                     {{name}}
                                 </p>
 
@@ -139,9 +169,10 @@
 
 
                             <!-- NOMBRE CIENTÍFICO -->
-                            <td class="px-8 py-5">
 
-                                <p class="text-sm text-gray-500 italic">
+                            <td class="px-7 py-5">
+
+                                <p class="text-sm italic text-on-surface-variant">
                                     {{scientific_name}}
                                 </p>
 
@@ -149,27 +180,32 @@
 
 
                             <!-- CATEGORÍA -->
-                            <td class="px-8 py-5">
 
-                                <span class="text-sm text-gray-600">
+                            <td class="px-7 py-5">
+
+                                <span class="text-xs font-bold uppercase tracking-wide text-primary">
                                     {{category}}
                                 </span>
 
                             </td>
 
 
-                            <!-- NIVEL DE RIESGO -->
-                            <td class="px-8 py-5 text-center">
+                            <!-- RIESGO -->
+
+                            <td class="px-7 py-5 text-center">
 
                                 {{#if risk_level}}
 
-                                <span class="px-3 py-1 rounded-full bg-orange-100 text-orange-700 text-xs font-bold">
+                                <span
+                                    class="inline-flex px-3 py-1.5 rounded-full bg-primary-container text-on-primary-container text-[10px] font-bold uppercase tracking-wider">
+
                                     {{risk_level}}
+
                                 </span>
 
                                 {{else}}
 
-                                <span class="text-gray-400 text-sm">
+                                <span class="text-xs text-on-surface-variant">
                                     Sin especificar
                                 </span>
 
@@ -179,27 +215,35 @@
 
 
                             <!-- REGIÓN -->
-                            <td class="px-8 py-5">
 
-                                <p class="text-sm text-gray-600">
+                            <td class="px-7 py-5">
+
+                                <p class="text-sm text-on-surface-variant">
+
+                                    {{#if region}}
                                     {{region}}
+                                    {{else}}
+                                    No especificada
+                                    {{/if}}
+
                                 </p>
 
                             </td>
 
 
                             <!-- VERIFICADO POR -->
-                            <td class="px-8 py-5">
+
+                            <td class="px-7 py-5">
 
                                 {{#if verified_by}}
 
-                                <p class="text-sm text-gray-600">
+                                <p class="text-sm font-medium text-on-surface">
                                     {{verified_by}}
                                 </p>
 
                                 {{else}}
 
-                                <span class="text-gray-400 text-sm">
+                                <span class="text-xs text-on-surface-variant">
                                     No verificado
                                 </span>
 
@@ -208,18 +252,19 @@
                             </td>
 
 
-                            <!-- FECHA DE VERIFICACIÓN -->
-                            <td class="px-8 py-5">
+                            <!-- FECHA VERIFICACIÓN -->
+
+                            <td class="px-7 py-5">
 
                                 {{#if verified_at}}
 
-                                <p class="text-sm text-gray-600">
+                                <p class="text-sm text-on-surface-variant">
                                     {{verified_at}}
                                 </p>
 
                                 {{else}}
 
-                                <span class="text-gray-400 text-sm">
+                                <span class="text-xs text-on-surface-variant">
                                     Pendiente
                                 </span>
 
@@ -228,19 +273,30 @@
                             </td>
 
 
-                            <!-- ESTATUS -->
-                            <td class="px-8 py-5 text-center">
+                            <!-- ESTADO -->
+
+                            <td class="px-7 py-5 text-center">
 
                                 {{#if status}}
 
-                                <span class="px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-bold">
+                                <span
+                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary-container text-on-primary-container text-[10px] font-bold uppercase tracking-wider">
+
+                                    <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+
                                     Activa
+
                                 </span>
 
                                 {{else}}
 
-                                <span class="px-3 py-1 rounded-full bg-red-100 text-red-700 text-xs font-bold">
+                                <span
+                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-container-high text-on-surface-variant text-[10px] font-bold uppercase tracking-wider">
+
+                                    <span class="w-1.5 h-1.5 rounded-full bg-on-surface-variant"></span>
+
                                     Inactiva
+
                                 </span>
 
                                 {{/if}}
@@ -248,45 +304,62 @@
                             </td>
 
 
+                            <!-- ================================================= -->
                             <!-- ACCIONES -->
-                            <td class="px-8 py-5">
+                            <!-- ================================================= -->
 
-                                <div class="flex justify-end gap-2">
+                            <td class="px-7 py-5">
+
+                                <div class="flex justify-end items-center gap-2">
+
 
                                     <!-- EDITAR -->
+
                                     <button type="button"
-                                        class="btn-edit-plague p-2 rounded-lg hover:bg-blue-100 text-blue-600"
-                                        title="Editar" data-id="{{id}}" data-name="{{name}}"
+                                        class="btn-edit-plague inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-surface-container text-primary text-xs font-bold hover:bg-primary-container hover:text-on-primary-container transition-all active:scale-95"
+                                        title="Editar plaga" data-id="{{id}}" data-name="{{name}}"
                                         data-scientific-name="{{scientific_name}}" data-category="{{category}}"
                                         data-region="{{region}}" data-risk-level="{{risk_level}}"
                                         data-status="{{status}}" data-description="{{description}}"
                                         data-symptoms="{{symptoms}}" data-control-methods="{{control_methods}}"
-                                        data-biological-control="{{biological_control}}" data-image-url="{{image_url}}">
+                                        data-biological-control="{{biological_control}}"
+                                        data-biological-cycle="{{biological_cycle}}" data-verified-by="{{verified_by}}"
+                                        data-verified-at="{{verified_at}}" data-image-url="{{image_url}}">
 
-                                        <span class="material-symbols-outlined text-lg">
+                                        <span class="material-symbols-outlined text-[18px]">
                                             edit
                                         </span>
 
                                     </button>
-
-                                    {{#if (hasRole user 'admin')}}
                                     <!-- ELIMINAR -->
-                                    <form action="/private/plagues/delete/{{id}}" method="POST"
-                                        class="delete-plague-form">
 
-                                        <button type="button"
-                                            class="btn-delete-plague p-2 rounded-lg hover:bg-red-100 text-red-600"
-                                            title="Eliminar" data-id="{{id}}" data-name="{{name}}">
+                                    <button type="button"
+                                        class="btn-delete-plague inline-flex items-center justify-center w-9 h-9 rounded-xl bg-surface-container text-error hover:bg-error-container transition-all active:scale-95"
+                                        title="Eliminar plaga" data-id="{{id}}" data-name="{{name}}">
 
-                                            <span class="material-symbols-outlined text-lg">
-                                                delete
-                                            </span>
+                                        <span class="material-symbols-outlined text-[18px]">
+                                            delete
+                                        </span>
 
-                                        </button>
+                                    </button>
+                                    <button type="button"
+                                        class="btn-view-plague inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-surface-container text-primary text-xs font-bold hover:bg-primary-container hover:text-on-primary-container transition-all active:scale-95"
+                                        title="Ver detalles" data-id="{{id}}" data-name="{{name}}"
+                                        data-scientific-name="{{scientific_name}}" data-category="{{category}}"
+                                        data-region="{{region}}" data-risk-level="{{risk_level}}"
+                                        data-status="{{status}}" data-description="{{description}}"
+                                        data-symptoms="{{symptoms}}" data-control-methods="{{control_methods}}"
+                                        data-biological-control="{{biological_control}}"
+                                        data-biological-cycle="{{biological_cycle}}" data-verified-by="{{verified_by}}"
+                                        data-verified-at="{{verified_at}}" data-image-url="{{image_url}}">
 
-                                    </form>
-                                    {{/if}}
+                                        <span class="material-symbols-outlined text-sm">
+                                            visibility
+                                        </span>
 
+                                        Ver detalles
+
+                                    </button>
 
                                 </div>
 
@@ -294,20 +367,33 @@
 
                         </tr>
 
+
                         {{else}}
 
-                        <!-- CUANDO NO HAY REGISTROS -->
                         <tr>
 
-                            <td colspan="10" class="px-8 py-12 text-center">
+                            <td colspan="10" class="px-8 py-16 text-center">
 
-                                <span class="material-symbols-outlined text-5xl text-gray-300">
-                                    bug_report
-                                </span>
+                                <div class="flex flex-col items-center">
 
-                                <p class="mt-3 text-gray-500 font-semibold">
-                                    No hay plagas registradas.
-                                </p>
+                                    <div
+                                        class="w-16 h-16 rounded-2xl bg-surface-container flex items-center justify-center">
+
+                                        <span class="material-symbols-outlined text-4xl text-primary/30">
+                                            bug_report
+                                        </span>
+
+                                    </div>
+
+                                    <p class="mt-4 font-headline font-bold text-on-surface">
+                                        No hay plagas registradas
+                                    </p>
+
+                                    <p class="mt-1 text-sm text-on-surface-variant">
+                                        Comienza agregando una nueva plaga al catálogo.
+                                    </p>
+
+                                </div>
 
                             </td>
 
@@ -323,10 +409,11 @@
 
 
             <!-- PAGINACIÓN -->
-            <div
-                class="px-8 py-6 bg-surface-container-low/30 border-t border-outline-variant/10 flex items-center justify-between">
 
-                <p class="text-xs font-medium text-on-surface-variant">
+            <div
+                class="px-7 py-5 bg-surface-container border-t border-surface-container flex flex-col sm:flex-row items-center justify-between gap-4">
+
+                <p class="text-xs text-on-surface-variant">
 
                     Mostrando
 
@@ -338,11 +425,10 @@
 
                 </p>
 
+                <div class="flex items-center gap-2">
 
-                <div class="flex gap-2">
-
-                    <button
-                        class="px-5 py-2 rounded-lg bg-surface-container-highest/50 text-on-surface text-xs font-bold hover:bg-surface-container-highest transition-colors flex items-center gap-2">
+                    <button type="button"
+                        class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-surface-container-lowest ghost-border text-on-surface-variant text-xs font-bold hover:bg-surface-container-high transition-colors">
 
                         <span class="material-symbols-outlined text-sm">
                             chevron_left
@@ -352,9 +438,8 @@
 
                     </button>
 
-
-                    <button
-                        class="px-5 py-2 rounded-lg bg-[#43655c] text-white text-xs font-bold hover:bg-[#354f47] transition-colors flex items-center gap-2 shadow-sm">
+                    <button type="button"
+                        class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-on-primary text-xs font-bold hover:bg-primary-dim transition-colors shadow-sm">
 
                         Siguiente
 
@@ -368,41 +453,87 @@
 
             </div>
 
-        </div>
-        <!-- MODAL -->
+        </section>
+
+
+
+        <!-- ===================================================== -->
+        <!-- MODAL ELIMINAR -->
+        <!-- ===================================================== -->
+
         <div id="modal-delete-plague" class="fixed inset-0 z-[100] hidden items-center justify-center p-4">
 
-            <!-- Fondo -->
-            <div id="modal-delete-plague-backdrop" class="absolute inset-0 bg-black/40 backdrop-blur-sm">
+            <div id="modal-delete-plague-backdrop" class="absolute inset-0 bg-on-surface/40 backdrop-blur-sm">
             </div>
 
-            <!-- Contenido -->
-            <div class="relative z-10 w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
 
-                <h3 class="text-lg font-bold">
-                    ¿Eliminar plaga?
-                </h3>
+            <div
+                class="relative z-10 w-full max-w-md bg-surface-container-lowest rounded-2xl editorial-shadow ghost-border overflow-hidden">
 
-                <p class="mt-3">
-                    ¿Seguro que deseas eliminar
-                    <strong id="delete-plague-name"></strong>?
-                </p>
 
-                <div class="mt-6 flex justify-end gap-3">
+                <div class="p-6 border-b border-surface-container">
 
-                    <!-- CANCELAR -->
-                    <button type="button" id="btn-cancel-delete-plague" class="px-4 py-2 rounded-xl border">
+                    <div class="flex items-start gap-4">
+
+                        <div class="w-11 h-11 rounded-xl bg-error-container flex items-center justify-center shrink-0">
+
+                            <span class="material-symbols-outlined text-error">
+                                delete
+                            </span>
+
+                        </div>
+
+                        <div>
+
+                            <h3 class="text-lg font-headline font-bold text-on-surface">
+                                ¿Eliminar plaga?
+                            </h3>
+
+                            <p class="mt-1 text-sm text-on-surface-variant">
+                                Esta acción eliminará permanentemente el registro.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="p-6">
+
+                    <p class="text-sm text-on-surface-variant leading-relaxed">
+
+                        ¿Seguro que deseas eliminar
+
+                        <strong id="delete-plague-name" class="text-on-surface">
+                        </strong>?
+
+                    </p>
+
+                </div>
+
+
+                <div class="px-6 py-5 bg-surface-container flex justify-end gap-3">
+
+                    <button type="button" id="btn-cancel-delete-plague"
+                        class="inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-surface-container-lowest ghost-border text-on-surface-variant text-xs font-bold hover:bg-surface-container-high transition-colors">
 
                         Cancelar
 
                     </button>
 
-                    <!-- ESTE ES EL FORMULARIO DEL MODAL -->
+
                     <form id="delete-plague-form" method="POST">
 
-                        <button type="submit" class="px-4 py-2 rounded-xl bg-red-600 text-white">
+                        <button type="submit"
+                            class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-error text-on-error text-xs font-bold hover:opacity-90 transition-all active:scale-95">
 
-                            Eliminar
+                            <span class="material-symbols-outlined text-[17px]">
+                                delete
+                            </span>
+
+                            Eliminar plaga
 
                         </button>
 
@@ -413,26 +544,30 @@
             </div>
 
         </div>
-        <!-- GRID VIEW -->
-        <!-- GRID VIEW -->
-        <div id="plagues-grid-view" class="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 grid">
+
+
+
+        <!-- ===================================================== -->
+        <!-- GRID -->
+        <!-- ===================================================== -->
+
+        <section id="plagues-grid-view" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-7">
 
 
             {{#each plagues}}
 
-            <!-- TARJETA DE PLAGA -->
-            <div
-                class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm overflow-hidden group hover:-translate-y-1 transition-all duration-300">
+            <article
+                class="group bg-surface-container-lowest rounded-xl overflow-hidden editorial-shadow ghost-border flex flex-col hover:translate-y-[-4px] transition-all duration-300">
 
 
                 <!-- IMAGEN -->
-                <div class="h-48 bg-surface-container-low overflow-hidden">
+
+                <div class="relative h-56 overflow-hidden bg-surface-container">
 
                     {{#if image_url}}
 
-                    <img src="/{{image_url}}" alt="{{name}}"
-                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        onerror="this.src='/images/test/default.png'">
+                    <img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        src="/{{image_url}}" alt="{{name}}" onerror="this.src='/images/test/default.png'">
 
                     {{else}}
 
@@ -446,288 +581,661 @@
 
                     {{/if}}
 
-                </div>
 
+                    {{#if risk_level}}
 
-                <!-- INFORMACIÓN -->
-                <div class="p-5">
+                    <div class="absolute top-4 left-4">
 
+                        <span
+                            class="px-2 py-1 rounded bg-primary-container text-on-primary-container text-[10px] font-bold uppercase tracking-wider">
 
-                    <!-- NOMBRE Y ESTATUS -->
-                    <div class="flex items-start justify-between gap-3">
+                            {{risk_level}}
 
-                        <div>
-
-                            <h3 class="font-extrabold text-[#0F2E2E]">
-                                {{name}}
-                            </h3>
-
-                            <p class="text-sm text-gray-500 italic">
-                                {{scientific_name}}
-                            </p>
-
-                        </div>
-
-
-                        {{#if status}}
-
-                        <span class="px-2 py-1 rounded-full bg-green-100 text-green-700 text-[10px] font-bold">
-                            Activa
                         </span>
-
-                        {{else}}
-
-                        <span class="px-2 py-1 rounded-full bg-red-100 text-red-700 text-[10px] font-bold">
-                            Inactiva
-                        </span>
-
-                        {{/if}}
 
                     </div>
 
+                    {{/if}}
 
-                    <!-- DATOS PRINCIPALES -->
-                    <div class="mt-4 space-y-2 text-sm">
-
-
-                        <!-- CATEGORÍA -->
-                        <p class="text-gray-600">
-
-                            <strong>
-                                Categoría:
-                            </strong>
-
-                            {{category}}
-
-                        </p>
+                </div>
 
 
-                        <!-- REGIÓN -->
-                        <p class="text-gray-600">
 
-                            <strong>
+                <!-- CONTENIDO -->
+
+                <div class="p-6 flex-1 flex flex-col">
+
+                    <span class="text-[10px] font-label font-bold uppercase tracking-widest text-primary mb-2">
+
+                        {{category}}
+
+                    </span>
+
+
+                    <h3 class="text-xl font-headline font-bold text-on-surface mb-1 leading-tight">
+
+                        {{name}}
+
+                    </h3>
+
+
+                    <p class="text-sm italic text-on-surface-variant mb-4">
+
+                        {{scientific_name}}
+
+                    </p>
+
+
+                    <div class="space-y-2 mb-6">
+
+                        <p class="text-sm text-on-surface-variant">
+
+                            <span class="font-bold text-on-surface">
                                 Región:
-                            </strong>
+                            </span>
 
+                            {{#if region}}
                             {{region}}
+                            {{else}}
+                            No especificada
+                            {{/if}}
 
                         </p>
 
 
-                        <!-- NIVEL DE RIESGO -->
-                        <p class="text-gray-600">
-                            <strong> Riesgo:</strong>
-                            {{risk_level}}
-                        </p>
+                        <p class="text-sm text-on-surface-variant">
 
-
-                        <!-- VERIFICADO POR -->
-                        <p class="text-gray-600">
-                            <strong>
+                            <span class="font-bold text-on-surface">
                                 Verificado por:
-                            </strong>
+                            </span>
 
                             {{#if verified_by}}
-
                             {{verified_by}}
-
                             {{else}}
-
                             No verificado
-
                             {{/if}}
 
                         </p>
 
                     </div>
 
-                    <!-- ACCIONES -->
-                    <div class="flex justify-end gap-2 mt-5 pt-4 border-t border-gray-100">
 
-                        <!-- EDITAR -->
-                        <button type="button" class="btn-edit-plague p-2 rounded-lg hover:bg-blue-100 text-blue-600"
-                            title="Editar" data-id="{{id}}" data-name="{{name}}"
-                            data-scientific-name="{{scientific_name}}" data-category="{{category}}"
-                            data-region="{{region}}" data-risk-level="{{risk_level}}" data-status="{{status}}"
-                            data-description="{{description}}" data-symptoms="{{symptoms}}"
-                            data-control-methods="{{control_methods}}" data-biological-control="{{biological_control}}"
-                            data-image-url="{{image_url}}">
+                    <!-- ACCIONES CARD -->
 
-                            <span class="material-symbols-outlined text-lg">
-                                edit
+                    <div class="mt-auto pt-4 border-t border-surface-container flex justify-between items-center gap-3">
+
+
+                        <!-- ESTADO -->
+
+                        {{#if status}}
+
+                        <span class="inline-flex items-center gap-1.5 text-xs font-bold text-primary">
+
+                            <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+
+                            Activa
+
+                        </span>
+
+                        {{else}}
+
+                        <span class="inline-flex items-center gap-1.5 text-xs font-bold text-on-surface-variant">
+
+                            <span class="w-1.5 h-1.5 rounded-full bg-on-surface-variant">
                             </span>
 
-                        </button>
-                        {{#if (hasRole user 'admin')}}
-                        <!-- ELIMINAR -->
-                        <form action="/private/plagues/delete/{{id}}" method="POST" class="delete-plague-form">
+                            Inactiva
 
-                            <button type="button" class="btn-delete-plague p-2 rounded-lg hover:bg-red-100 text-red-600"
-                                title="Eliminar" data-id="{{id}}" data-name="{{name}}">
+                        </span>
 
-                                <span class="material-symbols-outlined text-lg">
+                        {{/if}}
+
+
+                        <div class="flex items-center gap-2">
+
+
+                            <!-- EDITAR -->
+                            <button type="button"
+                                class="btn-edit-plague inline-flex items-center justify-center w-9 h-9 rounded-xl bg-surface-container text-primary hover:bg-primary-container hover:text-on-primary-container transition-all active:scale-95"
+                                title="Editar plaga" data-id="{{id}}" data-name="{{name}}"
+                                data-scientific-name="{{scientific_name}}" data-category="{{category}}"
+                                data-region="{{region}}" data-risk-level="{{risk_level}}" data-status="{{status}}"
+                                data-description="{{description}}" data-symptoms="{{symptoms}}"
+                                data-control-methods="{{control_methods}}"
+                                data-biological-control="{{biological_control}}"
+                                data-biological-cycle="{{biological_cycle}}" data-verified-by="{{verified_by}}"
+                                data-verified-at="{{verified_at}}" data-image-url="{{image_url}}">
+
+                                <span class="material-symbols-outlined text-[18px]">
+                                    edit
+                                </span>
+
+                            </button>
+                            <!-- ELIMINAR -->
+
+                            <button type="button"
+                                class="btn-delete-plague inline-flex items-center justify-center w-9 h-9 rounded-lg bg-surface-container text-error hover:bg-error-container transition-all active:scale-95"
+                                title="Eliminar plaga" data-id="{{id}}" data-name="{{name}}">
+
+                                <span class="material-symbols-outlined text-sm">
                                     delete
                                 </span>
 
                             </button>
+                            <button type="button"
+                                class="btn-view-plague inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-surface-container text-primary text-xs font-bold hover:bg-primary-container hover:text-on-primary-container transition-all active:scale-95"
+                                title="Ver detalles" data-id="{{id}}" data-name="{{name}}"
+                                data-scientific-name="{{scientific_name}}" data-category="{{category}}"
+                                data-region="{{region}}" data-risk-level="{{risk_level}}" data-status="{{status}}"
+                                data-description="{{description}}" data-symptoms="{{symptoms}}"
+                                data-control-methods="{{control_methods}}"
+                                data-biological-control="{{biological_control}}"
+                                data-biological-cycle="{{biological_cycle}}" data-verified-by="{{verified_by}}"
+                                data-verified-at="{{verified_at}}" data-image-url="{{image_url}}">
 
-                        </form>
-                        {{/if}}
+                                <span class="material-symbols-outlined text-sm">
+                                    visibility
+                                </span>
+
+                                Ver detalles
+
+                            </button>
+
+                        </div>
 
                     </div>
 
                 </div>
 
-            </div>
+            </article>
 
 
             {{else}}
 
+            <div class="col-span-full flex flex-col items-center justify-center py-16 text-center">
 
-            <!-- SIN REGISTROS -->
-            <div class="col-span-full text-center py-12">
+                <div class="w-16 h-16 rounded-2xl bg-surface-container flex items-center justify-center">
 
-                <span class="material-symbols-outlined text-5xl text-gray-300">
-                    bug_report
-                </span>
+                    <span class="material-symbols-outlined text-4xl text-primary/30">
+                        bug_report
+                    </span>
 
-                <p class="mt-3 text-gray-500 font-semibold">
-                    No hay plagas registradas.
+                </div>
+
+                <p class="mt-4 font-headline font-bold text-on-surface">
+                    No hay plagas registradas
+                </p>
+
+                <p class="mt-1 text-sm text-on-surface-variant">
+                    No se encontraron registros para mostrar.
                 </p>
 
             </div>
 
             {{/each}}
 
-            <!-- ADD NEW CARD -->
-            <div id="btn-add-plague-card"
-                class="bg-surface-container-lowest rounded-xl border-2 border-dashed border-primary/20 shadow-sm overflow-hidden group hover:-translate-y-1 transition-all duration-300 flex items-center justify-center min-h-[220px] cursor-pointer">
-                <div class="text-center p-6">
+
+
+            <!-- ================================================= -->
+            <!-- AÑADIR PLAGA -->
+            <!-- ================================================= -->
+
+            <button type="button" id="btn-add-plague-card"
+                class="group bg-surface-container-lowest rounded-xl overflow-hidden editorial-shadow ghost-border flex flex-col items-center justify-center min-h-[360px] p-8 cursor-pointer border-2 border-dashed border-primary/20 hover:translate-y-[-4px] hover:border-primary/40 transition-all duration-300">
+
+                <div class="text-center">
+
                     <span
-                        class="material-symbols-outlined text-3xl text-primary/30 mb-2 group-hover:text-primary/50 transition-colors">
-                        bug_report
+                        class="material-symbols-outlined text-4xl text-primary/40 mb-4 group-hover:text-primary transition-colors">
+
+                        add_circle
+
                     </span>
-                    <p class="text-sm font-bold text-on-surface-variant group-hover:text-primary transition-colors">
+
+                    <h3 class="text-lg font-headline font-bold text-on-surface mb-2">
+
+                        ¿Nueva plaga?
+
+                    </h3>
+
+                    <p class="text-xs text-on-surface-variant leading-relaxed mb-6">
+
+                        Registra una nueva plaga en el catálogo científico.
+
+                    </p>
+
+                    <span
+                        class="inline-flex items-center gap-2 px-6 py-2 bg-surface-container-high rounded-full text-xs font-bold text-primary uppercase tracking-wider group-hover:bg-primary-container transition-colors">
+
+                        <span class="material-symbols-outlined text-sm">
+                            add
+                        </span>
+
                         Añadir plaga
+
+                    </span>
+
+                </div>
+
+            </button>
+
+        </section>
+
+    </div>
+
+</main>
+
+
+
+<!-- ========================================================= -->
+<!-- MODAL AÑADIR / EDITAR -->
+<!-- ========================================================= -->
+
+<div id="modal-plague" class="fixed inset-0 z-[100] hidden items-center justify-center p-4">
+
+    <div id="modal-plague-backdrop" class="absolute inset-0 bg-on-surface/40 backdrop-blur-sm">
+    </div>
+
+
+    <div
+        class="relative z-10 bg-surface-container-lowest rounded-2xl editorial-shadow ghost-border w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+
+
+        <!-- ================================================= -->
+        <!-- FORMULARIO -->
+        <!-- ================================================= -->
+
+        <form id="plague-form" action="/private/plagues/create" method="POST" enctype="multipart/form-data">
+
+
+            <!-- HEADER -->
+
+            <div
+                class="sticky top-0 z-20 bg-surface-container-lowest flex items-center justify-between border-b border-surface-container px-6 py-5">
+
+                <div>
+
+                    <p class="text-[10px] font-label font-bold uppercase tracking-widest text-primary mb-1">
+
+                        Catálogo científico
+
+                    </p>
+
+                    <h3 id="modal-plague-title" class="text-xl font-headline font-extrabold text-on-surface">
+
+                        Nueva Plaga
+
+                    </h3>
+
+                </div>
+
+
+                <button type="button" id="modal-plague-close"
+                    class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-surface-container text-on-surface-variant hover:bg-surface-container-high transition-colors">
+
+                    <span class="material-symbols-outlined">
+                        close
+                    </span>
+
+                </button>
+
+            </div>
+
+
+
+            <!-- CAMPOS -->
+
+            <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+
+
+                <!-- NOMBRE -->
+
+                <div>
+
+                    <label class="block text-xs font-bold text-on-surface mb-2">
+
+                        Nombre
+
+                    </label>
+
+                    <input type="text" name="name" required placeholder="Ej. Mosca blanca"
+                        class="w-full bg-surface-container border border-outline-variant/20 rounded-xl px-4 py-3 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+
+                </div>
+
+
+                <!-- NOMBRE CIENTÍFICO -->
+
+                <div>
+
+                    <label class="block text-xs font-bold text-on-surface mb-2">
+
+                        Nombre científico
+
+                    </label>
+
+                    <input type="text" name="scientific_name" required placeholder="Ej. Bemisia tabaci"
+                        class="w-full bg-surface-container border border-outline-variant/20 rounded-xl px-4 py-3 text-sm italic text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+
+                </div>
+
+
+                <!-- CATEGORÍA -->
+
+                <div>
+
+                    <label class="block text-xs font-bold text-on-surface mb-2">
+
+                        Categoría
+
+                    </label>
+
+                    <select name="category"
+                        class="w-full bg-surface-container border border-outline-variant/20 rounded-xl px-4 py-3 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+
+                        <option value="">
+                            Seleccione una categoría...
+                        </option>
+
+                        <option value="Insecto">
+                            Insecto
+                        </option>
+
+                        <option value="Hongo">
+                            Hongo
+                        </option>
+
+                        <option value="Bacteria">
+                            Bacteria
+                        </option>
+
+                        <option value="Virus">
+                            Virus
+                        </option>
+
+                        <option value="Ácaro">
+                            Ácaro
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <!-- REGIÓN -->
+
+                <div>
+
+                    <label class="block text-xs font-bold text-on-surface mb-2">
+
+                        Región
+
+                    </label>
+
+                    <input type="text" name="region" placeholder="Ej. Centro de México"
+                        class="w-full bg-surface-container border border-outline-variant/20 rounded-xl px-4 py-3 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+
+                </div>
+
+
+                <!-- RIESGO -->
+
+                <div>
+
+                    <label class="block text-xs font-bold text-on-surface mb-2">
+
+                        Nivel de riesgo
+
+                    </label>
+
+                    <select name="risk_level"
+                        class="w-full bg-surface-container border border-outline-variant/20 rounded-xl px-4 py-3 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+
+                        <option value="Bajo">
+                            Bajo
+                        </option>
+
+                        <option value="Medio">
+                            Medio
+                        </option>
+
+                        <option value="Alto">
+                            Alto
+                        </option>
+
+                        <option value="Crítico">
+                            Crítico
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <!-- ESTADO -->
+
+                <div>
+
+                    <label class="block text-xs font-bold text-on-surface mb-2">
+
+                        Estado
+
+                    </label>
+
+                    <select name="status"
+                        class="w-full bg-surface-container border border-outline-variant/20 rounded-xl px-4 py-3 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+
+                        <option value="true">
+                            Activa
+                        </option>
+
+                        <option value="false">
+                            Inactiva
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <!-- DESCRIPCIÓN -->
+
+                <div class="md:col-span-2">
+
+                    <label class="block text-xs font-bold text-on-surface mb-2">
+
+                        Descripción
+
+                    </label>
+
+                    <textarea name="description" rows="3"
+                        placeholder="Describe las características principales de la plaga..."
+                        class="w-full bg-surface-container border border-outline-variant/20 rounded-xl px-4 py-3 text-sm text-on-surface resize-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"></textarea>
+
+                </div>
+                <!-- ================================================= -->
+                <!-- CICLO BIOLÓGICO -->
+                <!-- ================================================= -->
+
+                <div class="md:col-span-2">
+
+                    <label class="block text-xs font-bold text-on-surface mb-2">
+
+                        Ciclo biológico
+
+                    </label>
+
+                    <textarea name="biological_cycle" rows="5"
+                        placeholder="Describe las etapas del ciclo biológico de la plaga..."
+                        class="w-full bg-surface-container border border-outline-variant/20 rounded-xl px-4 py-3 text-sm text-on-surface resize-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"></textarea>
+
+                    <p class="text-xs text-on-surface-variant mt-2">
+                        Describe las diferentes etapas del desarrollo de la plaga.
                     </p>
 
                 </div>
 
-            </div>
 
-        </div>
-    </div>
-</main>
-
-<!-- Modal: Añadir/Editar Plaga (Placeholder) -->
-<div id="modal-plague" class="fixed inset-0 z-100 hidden items-center justify-center p-4">
-    <div id="modal-plague-backdrop" class="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
-
-    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto z-10">
-        <form id="plague-form" action="/private/plagues/create" method="POST" enctype="multipart/form-data">
-
-            <div class="flex items-center justify-between border-b px-6 py-4">
-                <h3 id="modal-plague-title" class="text-xl font-extrabold text-[#0F2E2E]">Nueva Plaga</h3>
-                <button type="button" id="modal-plague-close" class="p-2 rounded-lg hover:bg-gray-100">
-                    <span class="material-symbols-outlined">close</span>
-                </button>
-            </div>
-
-            <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div>
-                    <label class="block font-bold mb-2">Nombre</label>
-                    <input type="text" name="name" class="w-full border rounded-lg p-3" required>
-                </div>
+                <!-- ================================================= -->
+                <!-- VERIFICADO POR -->
+                <!-- ================================================= -->
 
                 <div>
-                    <label class="block font-bold mb-2">Nombre científico</label>
-                    <input type="text" name="scientific_name" class="w-full border rounded-lg p-3" required>
+
+                    <label class="block text-xs font-bold text-on-surface mb-2">
+
+                        Verificado por
+
+                    </label>
+
+                    <input type="text" name="verified_by" placeholder="Ej. INIFAP, Ing. Juan Pérez..."
+                        class="w-full bg-surface-container border border-outline-variant/20 rounded-xl px-4 py-3 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+
                 </div>
 
-                <div>
-                    <label class="block font-bold mb-2">Categoría</label>
-                    <select name="category" class="w-full border rounded-lg p-3">
-                        <option value="">Seleccione...</option>
-                        <option>Insecto</option>
-                        <option>Hongo</option>
-                        <option>Bacteria</option>
-                        <option>Virus</option>
-                        <option>Ácaro</option>
-                    </select>
-                </div>
+
+                <!-- ================================================= -->
+                <!-- FECHA DE VERIFICACIÓN -->
+                <!-- ================================================= -->
 
                 <div>
-                    <label class="block font-bold mb-2">Región</label>
-                    <input type="text" name="region" class="w-full border rounded-lg p-3">
+
+                    <label class="block text-xs font-bold text-on-surface mb-2">
+
+                        Fecha de verificación
+
+                    </label>
+
+                    <input type="date" name="verified_at"
+                        class="w-full bg-surface-container border border-outline-variant/20 rounded-xl px-4 py-3 text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+
                 </div>
 
-                <div>
-                    <label class="block font-bold mb-2">Nivel de Riesgo</label>
-                    <select name="risk_level" class="w-full border rounded-lg p-3">
-                        <option>Bajo</option>
-                        <option>Medio</option>
-                        <option>Alto</option>
-                        <option>Crítico</option>
-                    </select>
-                </div>
 
-                <div>
-                    <label class="block font-bold mb-2">Estado</label>
-                    <select name="status" class="w-full border rounded-lg p-3">
-                        <option value="true">Activo</option>
-                        <option value="false">Inactivo</option>
-                    </select>
-                </div>
+                <!-- SÍNTOMAS -->
 
                 <div class="md:col-span-2">
-                    <label class="block font-bold mb-2">Descripción</label>
-                    <textarea name="description" rows="3" class="w-full border rounded-lg p-3"></textarea>
+
+                    <label class="block text-xs font-bold text-on-surface mb-2">
+
+                        Síntomas
+
+                    </label>
+
+                    <textarea name="symptoms" rows="3" placeholder="Describe los síntomas observables..."
+                        class="w-full bg-surface-container border border-outline-variant/20 rounded-xl px-4 py-3 text-sm text-on-surface resize-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"></textarea>
+
                 </div>
 
-                <div class="md:col-span-2">
-                    <label class="block font-bold mb-2">Síntomas</label>
-                    <textarea name="symptoms" rows="3" class="w-full border rounded-lg p-3"></textarea>
-                </div>
+
+                <!-- MÉTODOS DE CONTROL -->
 
                 <div>
-                    <label class="block font-bold mb-2">Métodos de Control</label>
-                    <textarea name="control_methods" rows="4" class="w-full border rounded-lg p-3"></textarea>
+
+                    <label class="block text-xs font-bold text-on-surface mb-2">
+
+                        Métodos de control
+
+                    </label>
+
+                    <textarea name="control_methods" rows="5"
+                        placeholder="Describe los métodos de control recomendados..."
+                        class="w-full bg-surface-container border border-outline-variant/20 rounded-xl px-4 py-3 text-sm text-on-surface resize-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"></textarea>
+
                 </div>
+
+
+                <!-- CONTROL BIOLÓGICO -->
 
                 <div>
-                    <label class="block font-bold mb-2">Control Biológico</label>
-                    <textarea name="biological_control" rows="4" class="w-full border rounded-lg p-3"></textarea>
+
+                    <label class="block text-xs font-bold text-on-surface mb-2">
+
+                        Control biológico
+
+                    </label>
+
+                    <textarea name="biological_control" rows="5"
+                        placeholder="Describe alternativas de control biológico..."
+                        class="w-full bg-surface-container border border-outline-variant/20 rounded-xl px-4 py-3 text-sm text-on-surface resize-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"></textarea>
+
                 </div>
 
+
+                <!-- IMAGEN -->
+
                 <div class="md:col-span-2">
-                    <label class="block font-bold mb-2">Imagen</label>
-                    <div class="flex items-center gap-5">
-                        <img id="plague-preview" class="hidden w-36 h-36 rounded-xl border object-cover">
-                        <div class="flex-1">
+
+                    <label class="block text-xs font-bold text-on-surface mb-2">
+
+                        Imagen
+
+                    </label>
+
+                    <div
+                        class="bg-surface-container rounded-2xl p-5 ghost-border flex flex-col sm:flex-row items-start gap-5">
+
+                        <img id="plague-preview" class="hidden w-32 h-32 rounded-xl object-cover ghost-border"
+                            alt="Vista previa de la plaga">
+
+
+                        <div class="flex-1 w-full">
+
                             <input id="plague-image" type="file" name="image" accept="image/*"
-                                class="w-full border rounded-lg p-3">
-                            <p class="text-xs text-gray-500 mt-2">JPG, PNG o WEBP.</p>
+                                class="block w-full text-sm text-on-surface-variant file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:bg-primary-container file:text-on-primary-container file:font-bold file:text-xs">
+
+                            <p class="text-xs text-on-surface-variant mt-2">
+                                Formatos permitidos: JPG, PNG o WEBP.
+                            </p>
+
                         </div>
+
                     </div>
+
                 </div>
 
             </div>
 
-            <div class="flex justify-end gap-3 border-t px-6 py-4">
+
+
+            <!-- ================================================= -->
+            <!-- BOTONES -->
+            <!-- ================================================= -->
+
+            <div
+                class="sticky bottom-0 bg-surface-container border-t border-surface-container px-6 py-5 flex justify-end gap-3">
+
                 <button type="button" id="modal-plague-cancel"
-                    class="px-6 py-2.5 rounded-lg bg-gray-200 font-bold hover:bg-gray-300">
+                    class="inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-surface-container-lowest ghost-border text-on-surface-variant text-xs font-bold hover:bg-surface-container-high transition-colors">
+
                     Cancelar
+
                 </button>
+
 
                 <button type="submit" id="btn-save-plague"
-                    class="px-6 py-2.5 rounded-lg bg-[#43655c] text-white font-bold hover:bg-[#355049]">
-                    Guardar Plaga
+                    class="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-primary text-on-primary text-xs font-bold hover:bg-primary-dim transition-all active:scale-95 shadow-sm">
+
+                    <span class="material-symbols-outlined text-[18px]">
+                        save
+                    </span>
+
+                    <span id="btn-save-plague-text">
+                        Guardar plaga
+                    </span>
+
                 </button>
+
             </div>
 
         </form>
+
     </div>
+
 </div>
+
+
+
 <!-- JAVASCRIPT -->
 
 <script src="/js/private/plagues.js"></script>

@@ -1,0 +1,640 @@
+<main class="min-h-screen flex flex-col">
+
+    <div class="mt-20 p-8 lg:p-12 space-y-8">
+
+        <!-- ===================================================== -->
+        <!-- ENCABEZADO -->
+        <!-- ===================================================== -->
+
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
+
+            <div>
+
+                <div class="flex items-center gap-2 mb-3">
+
+                    <span class="material-symbols-outlined text-primary text-[20px]">
+                        bug_report
+                    </span>
+
+                    <p class="text-[10px] font-label font-bold uppercase tracking-widest text-primary">
+                        Catálogo científico
+                    </p>
+
+                </div>
+
+                <h1 class="text-3xl lg:text-4xl font-headline font-extrabold text-on-surface">
+                    Detalles de la plaga
+                </h1>
+
+                <p class="mt-2 text-sm text-on-surface-variant">
+                    Consulta toda la información registrada de esta plaga.
+                </p>
+
+            </div>
+
+
+            <!-- BOTONES -->
+
+            <div class="flex items-center gap-3">
+
+                <button type="button" onclick="history.back()" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl
+                           bg-surface-container-lowest ghost-border
+                           text-on-surface-variant text-xs font-bold
+                           hover:bg-surface-container-high transition-all">
+
+                    <span class="material-symbols-outlined text-[18px]">
+                        arrow_back
+                    </span>
+
+                    Regresar a plagas
+
+                </button>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- ===================================================== -->
+        <!-- INFORMACIÓN PRINCIPAL -->
+        <!-- ===================================================== -->
+
+        <section class="bg-surface-container-lowest rounded-2xl editorial-shadow ghost-border overflow-hidden">
+
+            <div class="p-6 lg:p-8">
+
+                <div class="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-8">
+
+
+                    <!-- IMAGEN -->
+
+                    <div>
+
+                        <div class="w-full h-[260px] rounded-2xl overflow-hidden
+                                   bg-surface-container ghost-border">
+
+                            {{#if plague.image_url}}
+
+                            <img src="/{{plague.image_url}}" alt="{{plague.name}}" class="w-full h-full object-cover"
+                                onerror="this.src='/images/test/default.png'">
+
+                            {{else}}
+
+                            <div class="w-full h-full flex items-center justify-center">
+
+                                <span class="material-symbols-outlined text-7xl text-primary/20">
+                                    bug_report
+                                </span>
+
+                            </div>
+
+                            {{/if}}
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- DATOS PRINCIPALES -->
+
+                    <div class="flex flex-col">
+
+                        <div class="flex flex-wrap items-center gap-3 mb-4">
+
+                            {{#if plague.category}}
+
+                            <span class="inline-flex items-center px-3 py-1.5 rounded-full
+                                           bg-primary-container text-on-primary-container
+                                           text-[10px] font-bold uppercase tracking-wider">
+
+                                {{plague.category}}
+
+                            </span>
+
+                            {{/if}}
+
+
+                            {{#if plague.status}}
+
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full
+                                           bg-primary-container text-on-primary-container
+                                           text-[10px] font-bold uppercase tracking-wider">
+
+                                <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+
+                                Activa
+
+                            </span>
+
+                            {{else}}
+
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full
+                                           bg-surface-container-high text-on-surface-variant
+                                           text-[10px] font-bold uppercase tracking-wider">
+
+                                <span class="w-1.5 h-1.5 rounded-full bg-on-surface-variant"></span>
+
+                                Inactiva
+
+                            </span>
+
+                            {{/if}}
+
+                        </div>
+
+
+                        <h2 class="text-3xl lg:text-4xl font-headline font-extrabold
+                                   text-on-surface leading-tight">
+
+                            {{plague.name}}
+
+                        </h2>
+
+
+                        <p class="mt-2 text-lg italic text-on-surface-variant">
+
+                            {{plague.scientific_name}}
+
+                        </p>
+
+
+                        <!-- DATOS RÁPIDOS -->
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8">
+
+
+                            <!-- REGIÓN -->
+
+                            <div class="bg-surface-container rounded-xl p-4">
+
+                                <div class="flex items-center gap-3">
+
+                                    <div class="w-10 h-10 rounded-xl bg-primary-container
+                                               flex items-center justify-center shrink-0">
+
+                                        <span class="material-symbols-outlined text-primary">
+                                            public
+                                        </span>
+
+                                    </div>
+
+                                    <div>
+
+                                        <p class="text-[10px] font-bold uppercase tracking-wider
+                                                  text-on-surface-variant">
+
+                                            Región
+
+                                        </p>
+
+                                        <p class="mt-1 text-sm font-bold text-on-surface">
+
+                                            {{#if plague.region}}
+                                            {{plague.region}}
+                                            {{else}}
+                                            No especificada
+                                            {{/if}}
+
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+
+                            <!-- RIESGO -->
+
+                            <div class="bg-surface-container rounded-xl p-4">
+
+                                <div class="flex items-center gap-3">
+
+                                    <div class="w-10 h-10 rounded-xl bg-primary-container
+                                               flex items-center justify-center shrink-0">
+
+                                        <span class="material-symbols-outlined text-primary">
+                                            warning
+                                        </span>
+
+                                    </div>
+
+                                    <div>
+
+                                        <p class="text-[10px] font-bold uppercase tracking-wider
+                                                  text-on-surface-variant">
+
+                                            Nivel de riesgo
+
+                                        </p>
+
+                                        <p class="mt-1 text-sm font-bold text-on-surface">
+
+                                            {{#if plague.risk_level}}
+                                            {{plague.risk_level}}
+                                            {{else}}
+                                            No especificado
+                                            {{/if}}
+
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+
+                            <!-- VERIFICADO POR -->
+
+                            <div class="bg-surface-container rounded-xl p-4">
+
+                                <div class="flex items-center gap-3">
+
+                                    <div class="w-10 h-10 rounded-xl bg-primary-container
+                                               flex items-center justify-center shrink-0">
+
+                                        <span class="material-symbols-outlined text-primary">
+                                            verified
+                                        </span>
+
+                                    </div>
+
+                                    <div>
+
+                                        <p class="text-[10px] font-bold uppercase tracking-wider
+                                                  text-on-surface-variant">
+
+                                            Verificado por
+
+                                        </p>
+
+                                        <p class="mt-1 text-sm font-bold text-on-surface">
+
+                                            {{#if plague.verified_by}}
+                                            {{plague.verified_by}}
+                                            {{else}}
+                                            No verificado
+                                            {{/if}}
+
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+
+                            <!-- FECHA -->
+
+                            <div class="bg-surface-container rounded-xl p-4">
+
+                                <div class="flex items-center gap-3">
+
+                                    <div class="w-10 h-10 rounded-xl bg-primary-container
+                                               flex items-center justify-center shrink-0">
+
+                                        <span class="material-symbols-outlined text-primary">
+                                            calendar_month
+                                        </span>
+
+                                    </div>
+
+                                    <div>
+
+                                        <p class="text-[10px] font-bold uppercase tracking-wider
+                                                  text-on-surface-variant">
+
+                                            Fecha de verificación
+
+                                        </p>
+
+                                        <p class="mt-1 text-sm font-bold text-on-surface">
+
+                                            {{#if plague.verified_at}}
+                                            {{plague.verified_at}}
+                                            {{else}}
+                                            Pendiente
+                                            {{/if}}
+
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- ===================================================== -->
+        <!-- DESCRIPCIÓN -->
+        <!-- ===================================================== -->
+
+        <section class="bg-surface-container-lowest rounded-2xl editorial-shadow ghost-border p-6 lg:p-8">
+
+            <div class="flex items-center gap-3 mb-5">
+
+                <div class="w-10 h-10 rounded-xl bg-primary-container
+                           flex items-center justify-center">
+
+                    <span class="material-symbols-outlined text-primary">
+                        description
+                    </span>
+
+                </div>
+
+                <div>
+
+                    <p class="text-[10px] font-bold uppercase tracking-wider text-primary">
+                        Información general
+                    </p>
+
+                    <h2 class="text-xl font-headline font-bold text-on-surface">
+                        Descripción
+                    </h2>
+
+                </div>
+
+            </div>
+
+
+            <div class="pl-0 lg:pl-[52px]">
+
+                {{#if plague.description}}
+
+                <p class="text-sm leading-7 text-on-surface-variant">
+                    {{plague.description}}
+                </p>
+
+                {{else}}
+
+                <p class="text-sm text-on-surface-variant">
+                    No hay información registrada.
+                </p>
+
+                {{/if}}
+
+            </div>
+
+        </section>
+
+
+
+        <!-- ===================================================== -->
+        <!-- SÍNTOMAS -->
+        <!-- ===================================================== -->
+
+        <section class="bg-surface-container-lowest rounded-2xl editorial-shadow ghost-border p-6 lg:p-8">
+
+            <div class="flex items-center gap-3 mb-5">
+
+                <div class="w-10 h-10 rounded-xl bg-primary-container
+                           flex items-center justify-center">
+
+                    <span class="material-symbols-outlined text-primary">
+                        healing
+                    </span>
+
+                </div>
+
+                <div>
+
+                    <p class="text-[10px] font-bold uppercase tracking-wider text-primary">
+                        Identificación
+                    </p>
+
+                    <h2 class="text-xl font-headline font-bold text-on-surface">
+                        Síntomas
+                    </h2>
+
+                </div>
+
+            </div>
+
+
+            <div class="pl-0 lg:pl-[52px]">
+
+                {{#if plague.symptoms}}
+
+                <p class="text-sm leading-7 text-on-surface-variant whitespace-pre-line">
+                    {{plague.symptoms}}
+                </p>
+
+                {{else}}
+
+                <p class="text-sm text-on-surface-variant">
+                    No hay información registrada.
+                </p>
+
+                {{/if}}
+
+            </div>
+
+        </section>
+
+
+
+        <!-- ===================================================== -->
+        <!-- CICLO BIOLÓGICO -->
+        <!-- ===================================================== -->
+
+        <section class="bg-surface-container-lowest rounded-2xl editorial-shadow ghost-border p-6 lg:p-8">
+
+            <div class="flex items-center gap-3 mb-5">
+
+                <div class="w-10 h-10 rounded-xl bg-primary-container
+                           flex items-center justify-center">
+
+                    <span class="material-symbols-outlined text-primary">
+                        cycle
+                    </span>
+
+                </div>
+
+                <div>
+
+                    <p class="text-[10px] font-bold uppercase tracking-wider text-primary">
+                        Desarrollo
+                    </p>
+
+                    <h2 class="text-xl font-headline font-bold text-on-surface">
+                        Ciclo biológico
+                    </h2>
+
+                </div>
+
+            </div>
+
+
+            <div class="pl-0 lg:pl-[52px]">
+
+                {{#if plague.biological_cycle}}
+
+                <p class="text-sm leading-7 text-on-surface-variant whitespace-pre-line">
+                    {{plague.biological_cycle}}
+                </p>
+
+                {{else}}
+
+                <p class="text-sm text-on-surface-variant">
+                    No hay información registrada.
+                </p>
+
+                {{/if}}
+
+            </div>
+
+        </section>
+
+
+
+        <!-- ===================================================== -->
+        <!-- MÉTODOS DE CONTROL -->
+        <!-- ===================================================== -->
+
+        <section class="bg-surface-container-lowest rounded-2xl editorial-shadow ghost-border p-6 lg:p-8">
+
+            <div class="flex items-center gap-3 mb-5">
+
+                <div class="w-10 h-10 rounded-xl bg-primary-container
+                           flex items-center justify-center">
+
+                    <span class="material-symbols-outlined text-primary">
+                        pest_control
+                    </span>
+
+                </div>
+
+                <div>
+
+                    <p class="text-[10px] font-bold uppercase tracking-wider text-primary">
+                        Manejo
+                    </p>
+
+                    <h2 class="text-xl font-headline font-bold text-on-surface">
+                        Métodos de control
+                    </h2>
+
+                </div>
+
+            </div>
+
+
+            <div class="pl-0 lg:pl-[52px]">
+
+                {{#if plague.control_methods}}
+
+                <p class="text-sm leading-7 text-on-surface-variant whitespace-pre-line">
+                    {{plague.control_methods}}
+                </p>
+
+                {{else}}
+
+                <p class="text-sm text-on-surface-variant">
+                    No hay información registrada.
+                </p>
+
+                {{/if}}
+
+            </div>
+
+        </section>
+
+
+
+        <!-- ===================================================== -->
+        <!-- CONTROL BIOLÓGICO -->
+        <!-- ===================================================== -->
+
+        <section class="bg-surface-container-lowest rounded-2xl editorial-shadow ghost-border p-6 lg:p-8">
+
+            <div class="flex items-center gap-3 mb-5">
+
+                <div class="w-10 h-10 rounded-xl bg-primary-container
+                           flex items-center justify-center">
+
+                    <span class="material-symbols-outlined text-primary">
+                        eco
+                    </span>
+
+                </div>
+
+                <div>
+
+                    <p class="text-[10px] font-bold uppercase tracking-wider text-primary">
+                        Manejo sostenible
+                    </p>
+
+                    <h2 class="text-xl font-headline font-bold text-on-surface">
+                        Control biológico
+                    </h2>
+
+                </div>
+
+            </div>
+
+
+            <div class="pl-0 lg:pl-[52px]">
+
+                {{#if plague.biological_control}}
+
+                <p class="text-sm leading-7 text-on-surface-variant whitespace-pre-line">
+                    {{plague.biological_control}}
+                </p>
+
+                {{else}}
+
+                <p class="text-sm text-on-surface-variant">
+                    No hay información registrada.
+                </p>
+
+                {{/if}}
+
+            </div>
+
+        </section>
+
+
+
+        <!-- ===================================================== -->
+        <!-- BOTONES INFERIORES -->
+        <!-- ===================================================== -->
+
+        <div class="flex flex-col sm:flex-row justify-between items-center gap-4
+                   pt-2 pb-6">
+
+            <button type="button" onclick="history.back()" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl
+                       bg-surface-container-lowest ghost-border
+                       text-on-surface-variant text-xs font-bold
+                       hover:bg-surface-container-high transition-all">
+
+                <span class="material-symbols-outlined text-[18px]">
+                    arrow_back
+                </span>
+
+                Regresar a plagas
+
+            </button>
+
+        </div>
+
+    </div>
+
+</main>
