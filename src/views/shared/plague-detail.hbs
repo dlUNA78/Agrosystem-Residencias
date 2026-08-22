@@ -64,9 +64,10 @@
           {{! Slides }}
           <div class="flex h-full transition-transform duration-700 ease-in-out" id="hero-slides">
             {{! Slide 0: imagen principal de la plaga }}
-            {{#if plague.imageUrl}}
+            {{#if plague.image_url}}
             <div class="flex-none w-full h-full relative" style="min-width:100%">
-              <img class="w-full h-full object-cover" src="{{plague.imageUrl}}" alt="{{plague.name}} — Vista general" />
+              <img class="w-full h-full object-cover" src="/{{plague.image_url}}"
+                alt="{{plague.name}} — Vista general" />
               <div class="absolute inset-0 bg-linear-to-t from-black/50 via-transparent to-transparent"></div>
               <div class="absolute bottom-0 left-0 right-0 p-6">
                 <span class="text-white/70 text-[10px] uppercase tracking-widest font-bold block mb-1">Vista
@@ -88,7 +89,7 @@
             </div>
             {{/each}}
             {{! Fallback si no hay ninguna imagen }}
-            {{#unless plague.imageUrl}}{{#unless carouselImages}}
+            {{#unless plague.image_url}}{{#unless carouselImages}}
             <div class="flex-none w-full h-full bg-surface-container-highest flex items-center justify-center"
               style="min-width:100%">
               <span class="material-symbols-outlined text-6xl text-on-surface-variant">pest_control</span>
@@ -227,12 +228,14 @@
               </div>
               {{#each incidenceRegions}}
 
-              <div id="incidence-map" data-regions="{{incidenceRegionsJson}}" ...></div>
               <div class="flex items-center justify-between py-3 border-b border-outline-variant/10 last:border-0">
                 <span class="text-sm font-medium text-on-surface">{{this.name}}</span>
-                <span class="px-2.5 py-1 text-[10px] font-bold uppercase rounded-full
-                        {{this.riskBadgeClass}}">{{this.riskLabel}}</span>
+
+                <span class="px-2.5 py-1 text-[10px] font-bold uppercase rounded-full {{this.riskBadgeClass}}">
+                  {{this.riskLabel}}
+                </span>
               </div>
+
               {{/each}}
             </div>
           </div>
@@ -391,13 +394,14 @@
         <div id="plague-carousel" class="flex gap-6 overflow-x-auto pb-4"
           style="scrollbar-width:none;-ms-overflow-style:none;scroll-snap-type:x mandatory;">
           {{! Primer slide: imagen principal de la plaga }}
-          {{#if plague.imageUrl}}
+          {{#if plague.image_url}}
           <div class="flex-none w-[300px] md:w-[380px]" style="scroll-snap-align:start;">
             <div class="overflow-hidden rounded-xl bg-surface-container-highest mb-3 relative"
               style="aspect-ratio:4/3;">
               <img alt="Vista principal de {{plague.name}}"
                 class="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
-                src="{{plague.imageUrl}}" />
+                src="/{{plague.image_url}}" />
+
               <div class="absolute bottom-0 left-0 right-0 p-4 bg-linear-to-t from-black/60 to-transparent">
                 <span class="text-white text-sm font-bold">{{plague.name}}
                   — Vista General</span>
@@ -424,7 +428,7 @@
           </div>
           {{/each}}
           {{! Si no hay imágenes adicionales ni imagen principal, mostrar placeholder }}
-          {{#unless plague.imageUrl}}{{#unless carouselImages}}
+          {{#unless plague.image_url}}{{#unless carouselImages}}
           <div class="flex-none w-[300px] md:w-[380px]" style="scroll-snap-align:start;">
             <div
               class="overflow-hidden rounded-xl bg-surface-container-highest mb-3 relative flex items-center justify-center"

@@ -27,9 +27,6 @@ export default {
       region: {
         type: Sequelize.STRING,
       },
-      image_url: {
-        type: Sequelize.STRING,
-      },
       symptoms: {
         type: Sequelize.TEXT,
       },

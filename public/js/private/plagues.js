@@ -1,188 +1,527 @@
-// MODAL DE CREACIÓN DE PLAGAS
-    (() => {
+document.addEventListener('DOMContentLoaded', () => {
+  // ELEMENTOS DEL MODAL CREAR / EDITAR
 
-        const modal = document.getElementById("modal-plague");
-        const form = document.getElementById("plague-form");
+  const modal = document.getElementById('modal-plague');
+  const form = document.getElementById('plague-form');
 
-        const btnAdd = document.getElementById("btn-add-plague");
-        const btnAddCard = document.getElementById("btn-add-plague-card");
+  const btnAdd = document.getElementById('btn-add-plague');
+  const btnAddCard = document.getElementById('btn-add-plague-card');
 
-        const btnClose = document.getElementById("modal-plague-close");
-        const btnCancel = document.getElementById("modal-plague-cancel");
-        const backdrop = document.getElementById("modal-plague-backdrop");
+  const btnClose = document.getElementById('modal-plague-close');
+  const btnCancel = document.getElementById('modal-plague-cancel');
+  const backdrop = document.getElementById('modal-plague-backdrop');
 
-        const title = document.getElementById("modal-plague-title");
+  const title = document.getElementById('modal-plague-title');
+  const btnSave = document.getElementById('btn-save-plague');
 
-        const imageInput = document.getElementById("plague-image");
-        const imagePreview = document.getElementById("plague-preview");
+  const imageInput = document.getElementById('plague-image');
+  const imagePreview = document.getElementById('plague-preview');
 
-        // BUSCADOR EN TIEMPO REAL
-        const searchInput = document.getElementById("plague-search");
+  // CAMPOS DEL FORMULARIO
 
-        if (searchInput) {
+  const inputName = form?.querySelector('[name="name"]');
 
-            searchInput.addEventListener("input", () => {
+  const inputScientificName = form?.querySelector('[name="scientific_name"]');
 
-                const search = searchInput.value.toLowerCase().trim();
+  const inputCategory = form?.querySelector('[name="category"]');
 
-                // FILAS DE LA TABLA
-                const rows = document.querySelectorAll(
-                    "#plagues-table-view tbody tr"
-                );
+  const inputRegion = form?.querySelector('[name="region"]');
 
-                rows.forEach(row => {
+  const inputRiskLevel = form?.querySelector('[name="risk_level"]');
 
-                    const text = row.textContent.toLowerCase();
+  const inputStatus = form?.querySelector('[name="status"]');
 
-                    row.style.display =
-                        text.includes(search) ? "" : "none";
+  const inputDescription = form?.querySelector('[name="description"]');
 
-                });
+  const inputSymptoms = form?.querySelector('[name="symptoms"]');
 
-                // TARJETAS DEL GRID
-                const cards = document.querySelectorAll(
-                    "#plagues-grid-view > div:not(#btn-add-plague-card)"
-                );
+  const inputControlMethods = form?.querySelector('[name="control_methods"]');
 
-                cards.forEach(card => {
+  const inputBiologicalControl = form?.querySelector(
+    '[name="biological_control"]',
+  );
 
-                    const text = card.textContent.toLowerCase();
+  const inputBiologicalCycle = form?.querySelector('[name="biological_cycle"]');
 
-                    card.style.display =
-                        text.includes(search) ? "" : "none";
+  const inputVerifiedBy = form?.querySelector('[name="verified_by"]');
 
-                });
+  const inputVerifiedAt = form?.querySelector('[name="verified_at"]');
 
-            });
+  // FUNCIONES AUXILIARES
 
-        }
+  function showModal() {
+    if (!modal) return;
 
-        function openModal() {
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
 
-            form.reset();
+    document.body.classList.add('overflow-hidden');
+  }
 
-            title.textContent = "Nueva Plaga";
+  function hideModal() {
+    if (!modal) return;
 
-            form.action = "/private/plagues/create";
+    modal.classList.remove('flex');
+    modal.classList.add('hidden');
 
-            imagePreview.src = "";
-            imagePreview.classList.add("hidden");
+    document.body.classList.remove('overflow-hidden');
+  }
 
-            modal.classList.remove("hidden");
-            modal.classList.add("flex");
-        }
+  function resetImagePreview() {
+    if (!imagePreview) return;
 
-        function closeModal() {
-            modal.classList.remove("flex");
-            modal.classList.add("hidden");
-        }
+    imagePreview.src = '';
+    imagePreview.classList.add('hidden');
+  }
 
-        if (btnAdd) btnAdd.addEventListener("click", openModal);
-        if (btnAddCard) btnAddCard.addEventListener("click", openModal);
+  // ABRIR MODAL PARA CREAR
 
-        btnClose.addEventListener("click", closeModal);
-        btnCancel.addEventListener("click", closeModal);
-        backdrop.addEventListener("click", closeModal);
+  function openCreateModal() {
+    if (!form) return;
 
-        imageInput.addEventListener("change", function () {
+    form.reset();
 
-            const file = this.files[0];
+    // Acción para CREAR
+    form.action = '/private/plagues/create';
 
-            if (!file) {
-                imagePreview.src = "";
-                imagePreview.classList.add("hidden");
-                return;
-            }
+    // Título
+    if (title) {
+      title.textContent = 'Nueva Plaga';
+    }
 
-            imagePreview.src = URL.createObjectURL(file);
-            imagePreview.classList.remove("hidden");
+    // Botón
+    if (btnSave) {
+      btnSave.innerHTML = `
+                <span class="material-symbols-outlined text-[18px]">save</span>
+                Guardar plaga
+            `;
+    }
 
-        });
+    // Limpiar imagen
+    resetImagePreview();
 
-        // CAMBIO DE VISTA
+    if (imageInput) {
+      imageInput.value = '';
+    }
 
-        const tableView = document.getElementById("plagues-table-view");
-        const gridView = document.getElementById("plagues-grid-view");
+    showModal();
+  }
 
-        const btnTable = document.getElementById("view-table");
-        const btnGrid = document.getElementById("view-grid");
+  // ABRIR MODAL PARA EDITAR
 
-        if (btnTable && btnGrid) {
+  function openEditModal(button) {
+    if (!form || !button) return;
 
-            btnGrid.classList.add("bg-[#43655c]", "text-white");
-            btnGrid.classList.remove("text-on-surface-variant");
+    const data = button.dataset;
 
-            btnTable.classList.remove("bg-[#43655c]", "text-white");
-            btnTable.classList.add("text-on-surface-variant");
+    const id = data.id || '';
 
-            btnTable.addEventListener("click", () => {
+    // VALIDACIÓN
 
-                tableView.style.display = "";
-                gridView.style.display = "none";
+    if (!id) {
+      console.error('No se encontró el ID de la plaga.');
+      return;
+    }
 
-                btnTable.classList.add("bg-[#43655c]", "text-white");
-                btnTable.classList.remove("text-on-surface-variant");
+    // CARGAR DATOS EN EL FORMULARIO
 
-                btnGrid.classList.remove("bg-[#43655c]", "text-white");
-                btnGrid.classList.add("text-on-surface-variant");
+    if (inputName) {
+      inputName.value = data.name || '';
+    }
 
-            });
+    if (inputScientificName) {
+      inputScientificName.value = data.scientificName || '';
+    }
 
-            btnGrid.addEventListener("click", () => {
+    if (inputCategory) {
+      inputCategory.value = data.category || '';
+    }
 
-                tableView.style.display = "none";
-                gridView.style.display = "grid";
+    if (inputRegion) {
+      inputRegion.value = data.region || '';
+    }
 
-                btnGrid.classList.add("bg-[#43655c]", "text-white");
-                btnGrid.classList.remove("text-on-surface-variant");
+    if (inputRiskLevel) {
+      inputRiskLevel.value = data.riskLevel || '';
+    }
 
-                btnTable.classList.remove("bg-[#43655c]", "text-white");
-                btnTable.classList.add("text-on-surface-variant");
+    if (inputStatus) {
+      const status = String(data.status).toLowerCase();
 
-            });
+      inputStatus.value = status === 'true' ? 'true' : 'false';
+    }
 
-        }
+    if (inputDescription) {
+      inputDescription.value = data.description || '';
+    }
 
-    })();
+    if (inputSymptoms) {
+      inputSymptoms.value = data.symptoms || '';
+    }
 
-// MODAL DE ELIMINACIÓN DE PLAGAS
-    document.addEventListener("DOMContentLoaded", () => {
+    if (inputControlMethods) {
+      inputControlMethods.value = data.controlMethods || '';
+    }
 
-        const modal = document.getElementById("modal-delete-plague");
-        const backdrop = document.getElementById("modal-delete-plague-backdrop");
+    if (inputBiologicalControl) {
+      inputBiologicalControl.value = data.biologicalControl || '';
+    }
 
-        const deleteForm = document.getElementById("delete-plague-form");
-        const deleteName = document.getElementById("delete-plague-name");
+    if (inputBiologicalCycle) {
+      inputBiologicalCycle.value = data.biologicalCycle || '';
+    }
 
-        const cancelButton = document.getElementById(
-            "btn-cancel-delete-plague"
-        );
+    if (inputVerifiedBy) {
+      inputVerifiedBy.value = data.verifiedBy || '';
+    }
 
-        document.querySelectorAll(".btn-delete-plague").forEach(button => {
+    if (inputVerifiedAt) {
+      inputVerifiedAt.value = data.verifiedAt || '';
+    }
 
-            button.addEventListener("click", () => {
+    // CAMBIAR FORM ACTION
+    form.action = `/private/plagues/update/${id}`;
 
-                const id = button.dataset.id;
-                const name = button.dataset.name;
+    // CAMBIAR TÍTULO
 
-                deleteName.textContent = name;
+    if (title) {
+      title.textContent = 'Editar Plaga';
+    }
 
-                deleteForm.action =
-                    `/private/plagues/delete/${id}`;
+    // CAMBIAR TEXTO DEL BOTÓN
 
-                modal.classList.remove("hidden");
-                modal.classList.add("flex");
+    if (btnSave) {
+      btnSave.innerHTML = `
+                <span class="material-symbols-outlined text-[18px]">save</span>
+                Guardar cambios
+            `;
+    }
 
-            });
+    // MOSTRAR IMAGEN ACTUAL
+    if (imagePreview) {
+      if (data.imageUrl) {
+        imagePreview.src = `/${data.imageUrl}`;
 
-        });
+        imagePreview.classList.remove('hidden');
+      } else {
+        resetImagePreview();
+      }
+    }
 
-        const closeModal = () => {
-            modal.classList.add("hidden");
-            modal.classList.remove("flex");
-        };
+    // LIMPIAR INPUT DE ARCHIVO
 
-        cancelButton.addEventListener("click", closeModal);
-        backdrop.addEventListener("click", closeModal);
+    if (imageInput) {
+      imageInput.value = '';
+    }
 
+    // ABRIR MODAL
+
+    showModal();
+  }
+
+  // BOTONES DE CREAR
+
+  if (btnAdd) {
+    btnAdd.addEventListener('click', () => {
+      openCreateModal();
     });
+  }
+
+  if (btnAddCard) {
+    btnAddCard.addEventListener('click', () => {
+      openCreateModal();
+    });
+  }
+
+  // BOTONES DE EDITAR
+
+  const editButtons = document.querySelectorAll('.btn-edit-plague');
+
+  editButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      openEditModal(button);
+    });
+  });
+
+  // CERRAR MODAL
+
+  if (btnClose) {
+    btnClose.addEventListener('click', () => {
+      hideModal();
+    });
+  }
+
+  if (btnCancel) {
+    btnCancel.addEventListener('click', () => {
+      hideModal();
+    });
+  }
+
+  if (backdrop) {
+    backdrop.addEventListener('click', () => {
+      hideModal();
+    });
+  }
+
+  // ESC PARA CERRAR
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      if (modal && !modal.classList.contains('hidden')) {
+        hideModal();
+      }
+    }
+  });
+
+  // PREVISUALIZACIÓN DE IMAGEN
+
+  if (imageInput) {
+    imageInput.addEventListener('change', function () {
+      const file = this.files[0];
+
+      if (!file) {
+        return;
+      }
+
+      // Validar que sea imagen
+
+      if (!file.type.startsWith('image/')) {
+        alert('Selecciona un archivo de imagen válido.');
+
+        this.value = '';
+
+        resetImagePreview();
+
+        return;
+      }
+
+      // Liberar URL anterior si existiera
+
+      if (imagePreview && imagePreview.dataset.objectUrl) {
+        URL.revokeObjectURL(imagePreview.dataset.objectUrl);
+      }
+
+      const objectUrl = URL.createObjectURL(file);
+
+      if (imagePreview) {
+        imagePreview.src = objectUrl;
+
+        imagePreview.dataset.objectUrl = objectUrl;
+
+        imagePreview.classList.remove('hidden');
+      }
+    });
+  }
+
+  // BUSCADOR EN TIEMPO REAL
+  // IMPORTANTE:
+  // Se soportan ambos IDs:
+  //
+  // #plague-search
+  // #search-input
+  //
+  // Esto evita romper el partial reutilizable.
+
+  const searchInput =
+    document.getElementById('plague-search') ||
+    document.getElementById('search-input');
+
+  if (searchInput) {
+    searchInput.addEventListener('input', () => {
+      const search = searchInput.value.toLowerCase().trim();
+
+      // TABLA
+
+      const rows = document.querySelectorAll('#plagues-table-view tbody tr');
+
+      rows.forEach((row) => {
+        // No ocultar la fila de "no hay registros"
+
+        if (
+          row.querySelector('.btn-edit-plague') ||
+          row.querySelector('.btn-delete-plague')
+        ) {
+          const text = row.textContent.toLowerCase();
+
+          row.style.display = text.includes(search) ? '' : 'none';
+        }
+      });
+
+      // GRID
+
+      const cards = document.querySelectorAll('#plagues-grid-view article');
+
+      cards.forEach((card) => {
+        // La tarjeta "Nueva plaga" nunca se oculta
+
+        if (card.id === 'cta-new-plague' || card.id === 'btn-add-plague-card') {
+          return;
+        }
+
+        const text = card.textContent.toLowerCase();
+
+        card.style.display = text.includes(search) ? '' : '';
+
+        if (search && !text.includes(search)) {
+          card.style.display = 'none';
+        }
+      });
+    });
+  }
+  // CAMBIO DE VISTA TABLA / GRID
+
+  const tableView = document.getElementById('plagues-table-view');
+
+  const gridView = document.getElementById('plagues-grid-view');
+
+  const btnTable = document.getElementById('view-table');
+
+  const btnGrid = document.getElementById('view-grid');
+
+  function activateTableView() {
+    if (tableView) {
+      tableView.style.display = '';
+    }
+
+    if (gridView) {
+      gridView.style.display = 'none';
+    }
+
+    if (btnTable) {
+      btnTable.classList.add('bg-[#43655c]', 'text-white');
+
+      btnTable.classList.remove('text-on-surface-variant');
+    }
+
+    if (btnGrid) {
+      btnGrid.classList.remove('bg-[#43655c]', 'text-white');
+
+      btnGrid.classList.add('text-on-surface-variant');
+    }
+  }
+
+  function activateGridView() {
+    if (tableView) {
+      tableView.style.display = 'none';
+    }
+
+    if (gridView) {
+      gridView.style.display = 'grid';
+    }
+
+    if (btnGrid) {
+      btnGrid.classList.add('bg-[#43655c]', 'text-white');
+
+      btnGrid.classList.remove('text-on-surface-variant');
+    }
+
+    if (btnTable) {
+      btnTable.classList.remove('bg-[#43655c]', 'text-white');
+
+      btnTable.classList.add('text-on-surface-variant');
+    }
+  }
+
+  if (btnTable && btnGrid) {
+    // Vista inicial
+    activateGridView();
+
+    btnTable.addEventListener('click', activateTableView);
+
+    btnGrid.addEventListener('click', activateGridView);
+  }
+
+  // MODAL DE ELIMINACIÓN
+  const deleteModal = document.getElementById('modal-delete-plague');
+
+  const deleteBackdrop = document.getElementById(
+    'modal-delete-plague-backdrop',
+  );
+
+  const deleteForm = document.getElementById('delete-plague-form');
+
+  const deleteName = document.getElementById('delete-plague-name');
+
+  const cancelDelete = document.getElementById('btn-cancel-delete-plague');
+
+  function openDeleteModal(button) {
+    if (!deleteModal || !deleteForm || !button) {
+      return;
+    }
+
+    const id = button.dataset.id || '';
+
+    const name = button.dataset.name || 'esta plaga';
+
+    if (!id) {
+      console.error('No se encontró el ID de la plaga para eliminar.');
+
+      return;
+    }
+
+    if (deleteName) {
+      deleteName.textContent = name;
+    }
+
+    deleteForm.action = `/private/plagues/delete/${id}`;
+
+    deleteModal.classList.remove('hidden');
+
+    deleteModal.classList.add('flex');
+  }
+
+  function closeDeleteModal() {
+    if (!deleteModal) {
+      return;
+    }
+
+    deleteModal.classList.remove('flex');
+
+    deleteModal.classList.add('hidden');
+  }
+
+  const deleteButtons = document.querySelectorAll('.btn-delete-plague');
+
+  deleteButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      openDeleteModal(button);
+    });
+  });
+
+  if (cancelDelete) {
+    cancelDelete.addEventListener('click', closeDeleteModal);
+  }
+
+  if (deleteBackdrop) {
+    deleteBackdrop.addEventListener('click', closeDeleteModal);
+  }
+
+  // ESC PARA CERRAR MODAL DE ELIMINACIÓN
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape') {
+      return;
+    }
+
+    if (deleteModal && !deleteModal.classList.contains('hidden')) {
+      closeDeleteModal();
+    }
+  });
+
+  // VER DETALLES DE LA PLAGA
+
+  const viewButtons = document.querySelectorAll('.btn-view-plague');
+
+  viewButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      const id = button.dataset.id;
+
+      if (!id) {
+        console.error('No se encontró el ID de la plaga.');
+        return;
+      }
+
+      window.location.href = `/private/plagues/${id}`;
+    });
+  });
+});
