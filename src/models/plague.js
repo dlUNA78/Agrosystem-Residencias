@@ -43,7 +43,6 @@ export default (sequelize, DataTypes) => {
       description: DataTypes.TEXT,
       risk_level: DataTypes.STRING,
       region: DataTypes.STRING,
-      image_url: DataTypes.STRING,
       symptoms: DataTypes.TEXT,
       control_methods: DataTypes.TEXT,
       biological_control: DataTypes.TEXT,

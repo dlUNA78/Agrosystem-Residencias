@@ -128,12 +128,12 @@ privateRouter.post(
   '/private/plagues/create',
   uploadPlague.single('image'),
   createPlague,
-); // Crear plaga (1 imagen)
+);
 privateRouter.post(
   '/private/plagues/update/:id',
   uploadPlague.single('image'),
   updatePlague,
-); // Actualizar plaga
+);
 privateRouter.post('/private/plagues/delete/:id', deletePlague); // Eliminar plaga
 
 // ══════════════════════════════════════════════════════════════════════════════

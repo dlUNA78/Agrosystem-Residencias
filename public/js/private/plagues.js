@@ -1,754 +1,527 @@
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener('DOMContentLoaded', () => {
+  // ELEMENTOS DEL MODAL CREAR / EDITAR
 
-    // ELEMENTOS DEL MODAL CREAR / EDITAR
+  const modal = document.getElementById('modal-plague');
+  const form = document.getElementById('plague-form');
 
-    const modal = document.getElementById("modal-plague");
-    const form = document.getElementById("plague-form");
+  const btnAdd = document.getElementById('btn-add-plague');
+  const btnAddCard = document.getElementById('btn-add-plague-card');
 
-    const btnAdd = document.getElementById("btn-add-plague");
-    const btnAddCard = document.getElementById("btn-add-plague-card");
+  const btnClose = document.getElementById('modal-plague-close');
+  const btnCancel = document.getElementById('modal-plague-cancel');
+  const backdrop = document.getElementById('modal-plague-backdrop');
 
-    const btnClose = document.getElementById("modal-plague-close");
-    const btnCancel = document.getElementById("modal-plague-cancel");
-    const backdrop = document.getElementById("modal-plague-backdrop");
+  const title = document.getElementById('modal-plague-title');
+  const btnSave = document.getElementById('btn-save-plague');
 
-    const title = document.getElementById("modal-plague-title");
-    const btnSave = document.getElementById("btn-save-plague");
+  const imageInput = document.getElementById('plague-image');
+  const imagePreview = document.getElementById('plague-preview');
 
-    const imageInput = document.getElementById("plague-image");
-    const imagePreview = document.getElementById("plague-preview");
+  // CAMPOS DEL FORMULARIO
 
-    // CAMPOS DEL FORMULARIO
+  const inputName = form?.querySelector('[name="name"]');
 
-    const inputName =
-        form?.querySelector('[name="name"]');
+  const inputScientificName = form?.querySelector('[name="scientific_name"]');
 
-    const inputScientificName =
-        form?.querySelector('[name="scientific_name"]');
+  const inputCategory = form?.querySelector('[name="category"]');
 
-    const inputCategory =
-        form?.querySelector('[name="category"]');
+  const inputRegion = form?.querySelector('[name="region"]');
 
-    const inputRegion =
-        form?.querySelector('[name="region"]');
+  const inputRiskLevel = form?.querySelector('[name="risk_level"]');
 
-    const inputRiskLevel =
-        form?.querySelector('[name="risk_level"]');
+  const inputStatus = form?.querySelector('[name="status"]');
 
-    const inputStatus =
-        form?.querySelector('[name="status"]');
+  const inputDescription = form?.querySelector('[name="description"]');
 
-    const inputDescription =
-        form?.querySelector('[name="description"]');
+  const inputSymptoms = form?.querySelector('[name="symptoms"]');
 
-    const inputSymptoms =
-        form?.querySelector('[name="symptoms"]');
+  const inputControlMethods = form?.querySelector('[name="control_methods"]');
 
-    const inputControlMethods =
-        form?.querySelector('[name="control_methods"]');
+  const inputBiologicalControl = form?.querySelector(
+    '[name="biological_control"]',
+  );
 
-    const inputBiologicalControl =
-        form?.querySelector('[name="biological_control"]');
+  const inputBiologicalCycle = form?.querySelector('[name="biological_cycle"]');
 
-    const inputBiologicalCycle =
-        form?.querySelector('[name="biological_cycle"]');
+  const inputVerifiedBy = form?.querySelector('[name="verified_by"]');
 
-    const inputVerifiedBy =
-        form?.querySelector('[name="verified_by"]');
+  const inputVerifiedAt = form?.querySelector('[name="verified_at"]');
 
-    const inputVerifiedAt =
-        form?.querySelector('[name="verified_at"]');
+  // FUNCIONES AUXILIARES
 
-    // FUNCIONES AUXILIARES
+  function showModal() {
+    if (!modal) return;
 
-    function showModal() {
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
 
-        if (!modal) return;
+    document.body.classList.add('overflow-hidden');
+  }
 
-        modal.classList.remove("hidden");
-        modal.classList.add("flex");
+  function hideModal() {
+    if (!modal) return;
 
-        document.body.classList.add("overflow-hidden");
+    modal.classList.remove('flex');
+    modal.classList.add('hidden');
+
+    document.body.classList.remove('overflow-hidden');
+  }
+
+  function resetImagePreview() {
+    if (!imagePreview) return;
+
+    imagePreview.src = '';
+    imagePreview.classList.add('hidden');
+  }
+
+  // ABRIR MODAL PARA CREAR
+
+  function openCreateModal() {
+    if (!form) return;
+
+    form.reset();
+
+    // Acción para CREAR
+    form.action = '/private/plagues/create';
+
+    // Título
+    if (title) {
+      title.textContent = 'Nueva Plaga';
     }
 
-
-    function hideModal() {
-
-        if (!modal) return;
-
-        modal.classList.remove("flex");
-        modal.classList.add("hidden");
-
-        document.body.classList.remove("overflow-hidden");
-    }
-
-
-    function resetImagePreview() {
-
-        if (!imagePreview) return;
-
-        imagePreview.src = "";
-        imagePreview.classList.add("hidden");
-    }
-
-    // ABRIR MODAL PARA CREAR
-
-    function openCreateModal() {
-
-        if (!form) return;
-
-        form.reset();
-
-        // Acción para CREAR
-        form.action = "/private/plagues/create";
-
-        // Título
-        if (title) {
-            title.textContent = "Nueva Plaga";
-        }
-
-        // Botón
-        if (btnSave) {
-            btnSave.innerHTML = `
+    // Botón
+    if (btnSave) {
+      btnSave.innerHTML = `
                 <span class="material-symbols-outlined text-[18px]">save</span>
                 Guardar plaga
             `;
-        }
-
-        // Limpiar imagen
-        resetImagePreview();
-
-        if (imageInput) {
-            imageInput.value = "";
-        }
-
-        showModal();
     }
 
-    // ABRIR MODAL PARA EDITAR
+    // Limpiar imagen
+    resetImagePreview();
 
-    function openEditModal(button) {
+    if (imageInput) {
+      imageInput.value = '';
+    }
 
-        if (!form || !button) return;
+    showModal();
+  }
 
-        const data = button.dataset;
+  // ABRIR MODAL PARA EDITAR
 
-        const id = data.id || "";
+  function openEditModal(button) {
+    if (!form || !button) return;
 
-        // VALIDACIÓN
+    const data = button.dataset;
 
-        if (!id) {
-            console.error("No se encontró el ID de la plaga.");
-            return;
-        }
+    const id = data.id || '';
 
-        // CARGAR DATOS EN EL FORMULARIO
+    // VALIDACIÓN
 
-        if (inputName) {
-            inputName.value = data.name || "";
-        }
+    if (!id) {
+      console.error('No se encontró el ID de la plaga.');
+      return;
+    }
 
-        if (inputScientificName) {
-            inputScientificName.value =
-                data.scientificName || "";
-        }
+    // CARGAR DATOS EN EL FORMULARIO
 
-        if (inputCategory) {
-            inputCategory.value =
-                data.category || "";
-        }
+    if (inputName) {
+      inputName.value = data.name || '';
+    }
 
-        if (inputRegion) {
-            inputRegion.value =
-                data.region || "";
-        }
+    if (inputScientificName) {
+      inputScientificName.value = data.scientificName || '';
+    }
 
-        if (inputRiskLevel) {
-            inputRiskLevel.value =
-                data.riskLevel || "";
-        }
+    if (inputCategory) {
+      inputCategory.value = data.category || '';
+    }
 
-        if (inputStatus) {
+    if (inputRegion) {
+      inputRegion.value = data.region || '';
+    }
 
-            const status =
-                String(data.status).toLowerCase();
+    if (inputRiskLevel) {
+      inputRiskLevel.value = data.riskLevel || '';
+    }
 
-            inputStatus.value =
-                status === "true" ? "true" : "false";
-        }
+    if (inputStatus) {
+      const status = String(data.status).toLowerCase();
 
-        if (inputDescription) {
-            inputDescription.value =
-                data.description || "";
-        }
+      inputStatus.value = status === 'true' ? 'true' : 'false';
+    }
 
-        if (inputSymptoms) {
-            inputSymptoms.value =
-                data.symptoms || "";
-        }
+    if (inputDescription) {
+      inputDescription.value = data.description || '';
+    }
 
-        if (inputControlMethods) {
-            inputControlMethods.value =
-                data.controlMethods || "";
-        }
+    if (inputSymptoms) {
+      inputSymptoms.value = data.symptoms || '';
+    }
 
-        if (inputBiologicalControl) {
-            inputBiologicalControl.value =
-                data.biologicalControl || "";
-        }
+    if (inputControlMethods) {
+      inputControlMethods.value = data.controlMethods || '';
+    }
 
-        if (inputBiologicalCycle) {
-            inputBiologicalCycle.value =
-                data.biologicalCycle || "";
-        }
+    if (inputBiologicalControl) {
+      inputBiologicalControl.value = data.biologicalControl || '';
+    }
 
-        if (inputVerifiedBy) {
-            inputVerifiedBy.value =
-                data.verifiedBy || "";
-        }
+    if (inputBiologicalCycle) {
+      inputBiologicalCycle.value = data.biologicalCycle || '';
+    }
 
-        if (inputVerifiedAt) {
-            inputVerifiedAt.value =
-                data.verifiedAt || "";
-        }
+    if (inputVerifiedBy) {
+      inputVerifiedBy.value = data.verifiedBy || '';
+    }
 
-        // CAMBIAR FORM ACTION
-        form.action = `/private/plagues/update/${id}`;
+    if (inputVerifiedAt) {
+      inputVerifiedAt.value = data.verifiedAt || '';
+    }
 
-        // CAMBIAR TÍTULO
+    // CAMBIAR FORM ACTION
+    form.action = `/private/plagues/update/${id}`;
 
-        if (title) {
-            title.textContent = "Editar Plaga";
-        }
+    // CAMBIAR TÍTULO
 
-        // CAMBIAR TEXTO DEL BOTÓN
+    if (title) {
+      title.textContent = 'Editar Plaga';
+    }
 
-        if (btnSave) {
+    // CAMBIAR TEXTO DEL BOTÓN
 
-            btnSave.innerHTML = `
+    if (btnSave) {
+      btnSave.innerHTML = `
                 <span class="material-symbols-outlined text-[18px]">save</span>
                 Guardar cambios
             `;
-        }
-
-        // MOSTRAR IMAGEN ACTUAL
-        if (imagePreview) {
-
-            if (data.imageUrl) {
-
-                imagePreview.src =
-                    `/${data.imageUrl}`;
-
-                imagePreview.classList.remove("hidden");
-
-            } else {
-
-                resetImagePreview();
-            }
-        }
-
-        // LIMPIAR INPUT DE ARCHIVO
-
-        if (imageInput) {
-            imageInput.value = "";
-        }
-
-        // ABRIR MODAL
-
-        showModal();
     }
 
-    // BOTONES DE CREAR
+    // MOSTRAR IMAGEN ACTUAL
+    if (imagePreview) {
+      if (data.imageUrl) {
+        imagePreview.src = `/${data.imageUrl}`;
 
-    if (btnAdd) {
-
-        btnAdd.addEventListener("click", () => {
-            openCreateModal();
-        });
+        imagePreview.classList.remove('hidden');
+      } else {
+        resetImagePreview();
+      }
     }
 
-
-    if (btnAddCard) {
-
-        btnAddCard.addEventListener("click", () => {
-            openCreateModal();
-        });
-    }
-
-    // BOTONES DE EDITAR
-
-    const editButtons =
-        document.querySelectorAll(".btn-edit-plague");
-
-    editButtons.forEach(button => {
-
-        button.addEventListener("click", () => {
-
-            openEditModal(button);
-
-        });
-
-    });
-
-    // CERRAR MODAL
-
-    if (btnClose) {
-
-        btnClose.addEventListener("click", () => {
-            hideModal();
-        });
-    }
-
-
-    if (btnCancel) {
-
-        btnCancel.addEventListener("click", () => {
-            hideModal();
-        });
-    }
-
-
-    if (backdrop) {
-
-        backdrop.addEventListener("click", () => {
-            hideModal();
-        });
-    }
-
-    // ESC PARA CERRAR
-
-    document.addEventListener("keydown", event => {
-
-        if (event.key === "Escape") {
-
-            if (
-                modal &&
-                !modal.classList.contains("hidden")
-            ) {
-                hideModal();
-            }
-
-        }
-
-    });
-
-    // PREVISUALIZACIÓN DE IMAGEN
+    // LIMPIAR INPUT DE ARCHIVO
 
     if (imageInput) {
-
-        imageInput.addEventListener("change", function () {
-
-            const file = this.files[0];
-
-            if (!file) {
-                return;
-            }
-
-
-            // Validar que sea imagen
-
-            if (!file.type.startsWith("image/")) {
-
-                alert("Selecciona un archivo de imagen válido.");
-
-                this.value = "";
-
-                resetImagePreview();
-
-                return;
-            }
-
-
-            // Liberar URL anterior si existiera
-
-            if (
-                imagePreview &&
-                imagePreview.dataset.objectUrl
-            ) {
-
-                URL.revokeObjectURL(
-                    imagePreview.dataset.objectUrl
-                );
-            }
-
-
-            const objectUrl =
-                URL.createObjectURL(file);
-
-
-            if (imagePreview) {
-
-                imagePreview.src = objectUrl;
-
-                imagePreview.dataset.objectUrl =
-                    objectUrl;
-
-                imagePreview.classList.remove("hidden");
-            }
-
-        });
-
+      imageInput.value = '';
     }
 
-    // BUSCADOR EN TIEMPO REAL
-    // IMPORTANTE:
-    // Se soportan ambos IDs:
-    //
-    // #plague-search
-    // #search-input
-    //
-    // Esto evita romper el partial reutilizable.
+    // ABRIR MODAL
 
-    const searchInput =
-        document.getElementById("plague-search") ||
-        document.getElementById("search-input");
+    showModal();
+  }
 
+  // BOTONES DE CREAR
 
-    if (searchInput) {
+  if (btnAdd) {
+    btnAdd.addEventListener('click', () => {
+      openCreateModal();
+    });
+  }
 
-        searchInput.addEventListener("input", () => {
+  if (btnAddCard) {
+    btnAddCard.addEventListener('click', () => {
+      openCreateModal();
+    });
+  }
 
-            const search =
-                searchInput.value
-                    .toLowerCase()
-                    .trim();
+  // BOTONES DE EDITAR
 
-            // TABLA
+  const editButtons = document.querySelectorAll('.btn-edit-plague');
 
-            const rows =
-                document.querySelectorAll(
-                    "#plagues-table-view tbody tr"
-                );
+  editButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      openEditModal(button);
+    });
+  });
 
+  // CERRAR MODAL
 
-            rows.forEach(row => {
+  if (btnClose) {
+    btnClose.addEventListener('click', () => {
+      hideModal();
+    });
+  }
 
-                // No ocultar la fila de "no hay registros"
+  if (btnCancel) {
+    btnCancel.addEventListener('click', () => {
+      hideModal();
+    });
+  }
 
-                if (
-                    row.querySelector(".btn-edit-plague") ||
-                    row.querySelector(".btn-delete-plague")
-                ) {
+  if (backdrop) {
+    backdrop.addEventListener('click', () => {
+      hideModal();
+    });
+  }
 
-                    const text =
-                        row.textContent
-                            .toLowerCase();
+  // ESC PARA CERRAR
 
-                    row.style.display =
-                        text.includes(search)
-                            ? ""
-                            : "none";
-                }
-
-            });
-
-            // GRID
-
-            const cards =
-                document.querySelectorAll(
-                    "#plagues-grid-view article"
-                );
-
-
-            cards.forEach(card => {
-
-                // La tarjeta "Nueva plaga" nunca se oculta
-
-                if (
-                    card.id === "cta-new-plague" ||
-                    card.id === "btn-add-plague-card"
-                ) {
-                    return;
-                }
-
-
-                const text =
-                    card.textContent
-                        .toLowerCase();
-
-
-                card.style.display =
-                    text.includes(search)
-                        ? ""
-                        : "";
-
-                if (
-                    search &&
-                    !text.includes(search)
-                ) {
-                    card.style.display = "none";
-                }
-
-            });
-
-        });
-
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      if (modal && !modal.classList.contains('hidden')) {
+        hideModal();
+      }
     }
-    // CAMBIO DE VISTA TABLA / GRID
+  });
 
-    const tableView = document.getElementById("plagues-table-view");
+  // PREVISUALIZACIÓN DE IMAGEN
 
-    const gridView = document.getElementById("plagues-grid-view");
+  if (imageInput) {
+    imageInput.addEventListener('change', function () {
+      const file = this.files[0];
 
-    const btnTable = document.getElementById("view-table");
+      if (!file) {
+        return;
+      }
 
-    const btnGrid = document.getElementById("view-grid");
+      // Validar que sea imagen
 
-    function activateTableView() {
+      if (!file.type.startsWith('image/')) {
+        alert('Selecciona un archivo de imagen válido.');
 
-        if (tableView) {
-            tableView.style.display = "";
-        }
+        this.value = '';
 
-        if (gridView) {
-            gridView.style.display = "none";
-        }
+        resetImagePreview();
 
+        return;
+      }
 
-        if (btnTable) {
+      // Liberar URL anterior si existiera
 
-            btnTable.classList.add(
-                "bg-[#43655c]",
-                "text-white"
-            );
+      if (imagePreview && imagePreview.dataset.objectUrl) {
+        URL.revokeObjectURL(imagePreview.dataset.objectUrl);
+      }
 
-            btnTable.classList.remove(
-                "text-on-surface-variant"
-            );
-        }
+      const objectUrl = URL.createObjectURL(file);
 
+      if (imagePreview) {
+        imagePreview.src = objectUrl;
 
-        if (btnGrid) {
+        imagePreview.dataset.objectUrl = objectUrl;
 
-            btnGrid.classList.remove(
-                "bg-[#43655c]",
-                "text-white"
-            );
+        imagePreview.classList.remove('hidden');
+      }
+    });
+  }
 
-            btnGrid.classList.add(
-                "text-on-surface-variant"
-            );
-        }
+  // BUSCADOR EN TIEMPO REAL
+  // IMPORTANTE:
+  // Se soportan ambos IDs:
+  //
+  // #plague-search
+  // #search-input
+  //
+  // Esto evita romper el partial reutilizable.
 
-    }
+  const searchInput =
+    document.getElementById('plague-search') ||
+    document.getElementById('search-input');
 
+  if (searchInput) {
+    searchInput.addEventListener('input', () => {
+      const search = searchInput.value.toLowerCase().trim();
 
-    function activateGridView() {
+      // TABLA
 
-        if (tableView) {
-            tableView.style.display = "none";
-        }
+      const rows = document.querySelectorAll('#plagues-table-view tbody tr');
 
-        if (gridView) {
-            gridView.style.display = "grid";
-        }
-
-
-        if (btnGrid) {
-
-            btnGrid.classList.add(
-                "bg-[#43655c]",
-                "text-white"
-            );
-
-            btnGrid.classList.remove(
-                "text-on-surface-variant"
-            );
-        }
-
-
-        if (btnTable) {
-
-            btnTable.classList.remove(
-                "bg-[#43655c]",
-                "text-white"
-            );
-
-            btnTable.classList.add(
-                "text-on-surface-variant"
-            );
-        }
-
-    }
-
-
-    if (btnTable && btnGrid) {
-
-        // Vista inicial
-        activateGridView();
-
-
-        btnTable.addEventListener(
-            "click",
-            activateTableView
-        );
-
-
-        btnGrid.addEventListener(
-            "click",
-            activateGridView
-        );
-
-    }
-
-    // MODAL DE ELIMINACIÓN
-    const deleteModal =
-        document.getElementById(
-            "modal-delete-plague"
-        );
-
-    const deleteBackdrop =
-        document.getElementById(
-            "modal-delete-plague-backdrop"
-        );
-
-    const deleteForm =
-        document.getElementById(
-            "delete-plague-form"
-        );
-
-    const deleteName =
-        document.getElementById(
-            "delete-plague-name"
-        );
-
-    const cancelDelete =
-        document.getElementById(
-            "btn-cancel-delete-plague"
-        );
-
-
-    function openDeleteModal(button) {
+      rows.forEach((row) => {
+        // No ocultar la fila de "no hay registros"
 
         if (
-            !deleteModal ||
-            !deleteForm ||
-            !button
+          row.querySelector('.btn-edit-plague') ||
+          row.querySelector('.btn-delete-plague')
         ) {
-            return;
+          const text = row.textContent.toLowerCase();
+
+          row.style.display = text.includes(search) ? '' : 'none';
+        }
+      });
+
+      // GRID
+
+      const cards = document.querySelectorAll('#plagues-grid-view article');
+
+      cards.forEach((card) => {
+        // La tarjeta "Nueva plaga" nunca se oculta
+
+        if (card.id === 'cta-new-plague' || card.id === 'btn-add-plague-card') {
+          return;
         }
 
+        const text = card.textContent.toLowerCase();
 
-        const id =
-            button.dataset.id || "";
+        card.style.display = text.includes(search) ? '' : '';
 
-        const name =
-            button.dataset.name || "esta plaga";
-
-
-        if (!id) {
-
-            console.error(
-                "No se encontró el ID de la plaga para eliminar."
-            );
-
-            return;
+        if (search && !text.includes(search)) {
+          card.style.display = 'none';
         }
-
-
-        if (deleteName) {
-            deleteName.textContent = name;
-        }
-
-
-        deleteForm.action =
-            `/private/plagues/delete/${id}`;
-
-
-        deleteModal.classList.remove("hidden");
-
-        deleteModal.classList.add("flex");
-
-    }
-
-
-    function closeDeleteModal() {
-
-        if (!deleteModal) {
-            return;
-        }
-
-        deleteModal.classList.remove("flex");
-
-        deleteModal.classList.add("hidden");
-    }
-
-
-    const deleteButtons =
-        document.querySelectorAll(
-            ".btn-delete-plague"
-        );
-
-
-    deleteButtons.forEach(button => {
-
-        button.addEventListener(
-            "click",
-            () => {
-                openDeleteModal(button);
-            }
-        );
-
+      });
     });
+  }
+  // CAMBIO DE VISTA TABLA / GRID
 
+  const tableView = document.getElementById('plagues-table-view');
 
-    if (cancelDelete) {
+  const gridView = document.getElementById('plagues-grid-view');
 
-        cancelDelete.addEventListener(
-            "click",
-            closeDeleteModal
-        );
+  const btnTable = document.getElementById('view-table');
 
+  const btnGrid = document.getElementById('view-grid');
+
+  function activateTableView() {
+    if (tableView) {
+      tableView.style.display = '';
     }
 
-
-    if (deleteBackdrop) {
-
-        deleteBackdrop.addEventListener(
-            "click",
-            closeDeleteModal
-        );
-
+    if (gridView) {
+      gridView.style.display = 'none';
     }
 
-    // ESC PARA CERRAR MODAL DE ELIMINACIÓN
+    if (btnTable) {
+      btnTable.classList.add('bg-[#43655c]', 'text-white');
 
-    document.addEventListener("keydown", event => {
+      btnTable.classList.remove('text-on-surface-variant');
+    }
 
-        if (event.key !== "Escape") {
-            return;
-        }
+    if (btnGrid) {
+      btnGrid.classList.remove('bg-[#43655c]', 'text-white');
 
+      btnGrid.classList.add('text-on-surface-variant');
+    }
+  }
 
-        if (
-            deleteModal &&
-            !deleteModal.classList.contains("hidden")
-        ) {
+  function activateGridView() {
+    if (tableView) {
+      tableView.style.display = 'none';
+    }
 
-            closeDeleteModal();
+    if (gridView) {
+      gridView.style.display = 'grid';
+    }
 
-        }
+    if (btnGrid) {
+      btnGrid.classList.add('bg-[#43655c]', 'text-white');
 
+      btnGrid.classList.remove('text-on-surface-variant');
+    }
+
+    if (btnTable) {
+      btnTable.classList.remove('bg-[#43655c]', 'text-white');
+
+      btnTable.classList.add('text-on-surface-variant');
+    }
+  }
+
+  if (btnTable && btnGrid) {
+    // Vista inicial
+    activateGridView();
+
+    btnTable.addEventListener('click', activateTableView);
+
+    btnGrid.addEventListener('click', activateGridView);
+  }
+
+  // MODAL DE ELIMINACIÓN
+  const deleteModal = document.getElementById('modal-delete-plague');
+
+  const deleteBackdrop = document.getElementById(
+    'modal-delete-plague-backdrop',
+  );
+
+  const deleteForm = document.getElementById('delete-plague-form');
+
+  const deleteName = document.getElementById('delete-plague-name');
+
+  const cancelDelete = document.getElementById('btn-cancel-delete-plague');
+
+  function openDeleteModal(button) {
+    if (!deleteModal || !deleteForm || !button) {
+      return;
+    }
+
+    const id = button.dataset.id || '';
+
+    const name = button.dataset.name || 'esta plaga';
+
+    if (!id) {
+      console.error('No se encontró el ID de la plaga para eliminar.');
+
+      return;
+    }
+
+    if (deleteName) {
+      deleteName.textContent = name;
+    }
+
+    deleteForm.action = `/private/plagues/delete/${id}`;
+
+    deleteModal.classList.remove('hidden');
+
+    deleteModal.classList.add('flex');
+  }
+
+  function closeDeleteModal() {
+    if (!deleteModal) {
+      return;
+    }
+
+    deleteModal.classList.remove('flex');
+
+    deleteModal.classList.add('hidden');
+  }
+
+  const deleteButtons = document.querySelectorAll('.btn-delete-plague');
+
+  deleteButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      openDeleteModal(button);
     });
+  });
 
-    // VER DETALLES DE LA PLAGA
+  if (cancelDelete) {
+    cancelDelete.addEventListener('click', closeDeleteModal);
+  }
 
-    const viewButtons = document.querySelectorAll(".btn-view-plague");
+  if (deleteBackdrop) {
+    deleteBackdrop.addEventListener('click', closeDeleteModal);
+  }
 
-    viewButtons.forEach(button => {
+  // ESC PARA CERRAR MODAL DE ELIMINACIÓN
 
-        button.addEventListener("click", () => {
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape') {
+      return;
+    }
 
-            const id = button.dataset.id;
+    if (deleteModal && !deleteModal.classList.contains('hidden')) {
+      closeDeleteModal();
+    }
+  });
 
-            if (!id) {
-                console.error("No se encontró el ID de la plaga.");
-                return;
-            }
+  // VER DETALLES DE LA PLAGA
 
-            window.location.href = `/private/plagues/${id}`;
-        });
+  const viewButtons = document.querySelectorAll('.btn-view-plague');
 
+  viewButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      const id = button.dataset.id;
+
+      if (!id) {
+        console.error('No se encontró el ID de la plaga.');
+        return;
+      }
+
+      window.location.href = `/private/plagues/${id}`;
     });
-
+  });
 });

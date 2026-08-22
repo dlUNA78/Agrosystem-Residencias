@@ -312,11 +312,9 @@
 
                                 <div class="flex justify-end items-center gap-2">
 
-
                                     <!-- EDITAR -->
-
                                     <button type="button"
-                                        class="btn-edit-plague inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-surface-container text-primary text-xs font-bold hover:bg-primary-container hover:text-on-primary-container transition-all active:scale-95"
+                                        class="btn-edit-plague inline-flex items-center justify-center w-9 h-9 rounded-xl bg-surface-container text-primary hover:bg-primary-container hover:text-on-primary-container transition-all active:scale-95"
                                         title="Editar plaga" data-id="{{id}}" data-name="{{name}}"
                                         data-scientific-name="{{scientific_name}}" data-category="{{category}}"
                                         data-region="{{region}}" data-risk-level="{{risk_level}}"
@@ -331,8 +329,8 @@
                                         </span>
 
                                     </button>
-                                    <!-- ELIMINAR -->
 
+                                    <!-- ELIMINAR -->
                                     <button type="button"
                                         class="btn-delete-plague inline-flex items-center justify-center w-9 h-9 rounded-xl bg-surface-container text-error hover:bg-error-container transition-all active:scale-95"
                                         title="Eliminar plaga" data-id="{{id}}" data-name="{{name}}">
@@ -342,29 +340,24 @@
                                         </span>
 
                                     </button>
-                                    <button type="button"
-                                        class="btn-view-plague inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-surface-container text-primary text-xs font-bold hover:bg-primary-container hover:text-on-primary-container transition-all active:scale-95"
-                                        title="Ver detalles" data-id="{{id}}" data-name="{{name}}"
-                                        data-scientific-name="{{scientific_name}}" data-category="{{category}}"
-                                        data-region="{{region}}" data-risk-level="{{risk_level}}"
-                                        data-status="{{status}}" data-description="{{description}}"
-                                        data-symptoms="{{symptoms}}" data-control-methods="{{control_methods}}"
-                                        data-biological-control="{{biological_control}}"
-                                        data-biological-cycle="{{biological_cycle}}" data-verified-by="{{verified_by}}"
-                                        data-verified-at="{{verified_at}}" data-image-url="{{image_url}}">
 
-                                        <span class="material-symbols-outlined text-sm">
+
+                                    <!-- VER DETALLE -->
+                                    <a href="/private/plagues/{{id}}"
+                                        class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-surface-container text-primary text-xs font-bold hover:bg-primary-container hover:text-on-primary-container transition-all active:scale-95"
+                                        title="Ver detalles">
+
+                                        <span class="material-symbols-outlined text-[18px]">
                                             visibility
                                         </span>
 
                                         Ver detalles
 
-                                    </button>
+                                    </a>
 
                                 </div>
 
                             </td>
-
                         </tr>
 
 
@@ -690,9 +683,7 @@
 
                         {{/if}}
 
-
                         <div class="flex items-center gap-2">
-
 
                             <!-- EDITAR -->
                             <button type="button"
@@ -711,8 +702,9 @@
                                 </span>
 
                             </button>
-                            <!-- ELIMINAR -->
 
+
+                            <!-- ELIMINAR -->
                             <button type="button"
                                 class="btn-delete-plague inline-flex items-center justify-center w-9 h-9 rounded-lg bg-surface-container text-error hover:bg-error-container transition-all active:scale-95"
                                 title="Eliminar plaga" data-id="{{id}}" data-name="{{name}}">
@@ -722,16 +714,12 @@
                                 </span>
 
                             </button>
-                            <button type="button"
-                                class="btn-view-plague inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-surface-container text-primary text-xs font-bold hover:bg-primary-container hover:text-on-primary-container transition-all active:scale-95"
-                                title="Ver detalles" data-id="{{id}}" data-name="{{name}}"
-                                data-scientific-name="{{scientific_name}}" data-category="{{category}}"
-                                data-region="{{region}}" data-risk-level="{{risk_level}}" data-status="{{status}}"
-                                data-description="{{description}}" data-symptoms="{{symptoms}}"
-                                data-control-methods="{{control_methods}}"
-                                data-biological-control="{{biological_control}}"
-                                data-biological-cycle="{{biological_cycle}}" data-verified-by="{{verified_by}}"
-                                data-verified-at="{{verified_at}}" data-image-url="{{image_url}}">
+
+
+                            <!-- VER DETALLES -->
+                            <a href="/private/plagues/{{id}}"
+                                class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-surface-container text-primary text-xs font-bold hover:bg-primary-container hover:text-on-primary-container transition-all active:scale-95"
+                                title="Ver detalles">
 
                                 <span class="material-symbols-outlined text-sm">
                                     visibility
@@ -739,7 +727,7 @@
 
                                 Ver detalles
 
-                            </button>
+                            </a>
 
                         </div>
 
