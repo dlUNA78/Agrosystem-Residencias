@@ -17,6 +17,20 @@ export default {
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE',
       },
+      farm_crop_id: {
+        type: Sequelize.INTEGER,
+        allowNull: true,
+        references: {
+          model: 'FarmCrops',
+          key: 'id',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'SET NULL',
+      },
+      etapa_nombre: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
       producto_nombre: {
         type: Sequelize.STRING,
         allowNull: false,

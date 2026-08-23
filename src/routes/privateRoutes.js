@@ -60,6 +60,9 @@ import {
   updateFarmPrivate, // Actualizar parcela
   deleteFarmPrivate, // Baja lógica de parcela
   createFarmCrop, // Registrar ciclo de cultivo
+  deleteFarmCrop, // Eliminar ciclo de cultivo
+  advanceCropStage, // Avanzar de etapa fenológica
+  finishFarmCrop, // Finalizar ciclo de cultivo
   createHealthReport, // Registrar reporte fitosanitario
   createApplicationLog, // Registrar aplicación química
 } from '../controllers/private/landsController.js';
@@ -90,6 +93,9 @@ privateRouter.get('/lands/:id/expediente', landDetail);
 privateRouter.post('/lands/update/:id', updateFarmPrivate);
 privateRouter.post('/lands/delete/:id', deleteFarmPrivate);
 privateRouter.post('/lands/:id/crop/create', createFarmCrop);
+privateRouter.post('/lands/:id/crop/delete', deleteFarmCrop);
+privateRouter.post('/lands/:id/crop-stage/advance', advanceCropStage);
+privateRouter.post('/lands/:id/crop/finish', finishFarmCrop);
 privateRouter.post('/lands/:id/health-report/create', createHealthReport);
 privateRouter.post('/lands/:id/application-log/create', createApplicationLog);
 

@@ -12,6 +12,9 @@ describe('📋 Módulo de Expediente de Predio (Lands Detail - Ciclos, Reportes 
   let testCrop = null;
 
   beforeAll(async () => {
+    // Sincronizar esquemas en la base de datos de pruebas
+    await db.sequelize.sync();
+
     // 1. Limpieza de datos de prueba
     await Farm.destroy({
       where: { name: ['Predio Expediente TDD', 'Predio Expediente Editado'] },
@@ -210,5 +213,105 @@ describe('📋 Módulo de Expediente de Predio (Lands Detail - Ciclos, Reportes 
       },
     });
     expect(log).not.toBeNull();
+    expect(log.ingrediente_activo).toBe('Extracto de Ajo + Neem');
+  });
+
+  it('8. Debe auto-generar las 5 etapas en FarmCropProgress al crear un ciclo', async () => {
+    const agent = await getFarmerAgent();
+    const res = await agent.post(`/lands/${testFarm.id}/crop/create`).send({
+      crop_id: 'otro',
+      custom_crop_name: 'Tomate Saladette TDD',
+      area_section: 'Lote Sur 1',
+      planting_date: '2026-03-01',
+      status: 'Siembra',
+    });
+    expect(res.status).toBe(302);
+
+    const farmCrop = await FarmCrop.findOne({
+      where: {
+        farm_id: testFarm.id,
+        custom_crop_name: 'Tomate Saladette TDD',
+      },
+    });
+    expect(farmCrop).not.toBeNull();
+
+    const stages = await db.FarmCropProgress.findAll({
+      where: { farm_crop_id: farmCrop.id },
+      order: [['stage_order', 'ASC']],
+    });
+
+    expect(stages.length).toBe(5);
+    expect(stages[0].stage_name).toMatch(/Siembra/i);
+    expect(stages[0].status).toBe('Completada');
+    expect(stages[1].status).toBe('En Progreso');
+  });
+
+  it('9. Debe avanzar de etapa fenológica vía POST /lands/:id/crop-stage/advance', async () => {
+    const agent = await getFarmerAgent();
+    const farmCrop = await FarmCrop.findOne({
+      where: {
+        farm_id: testFarm.id,
+        custom_crop_name: 'Tomate Saladette TDD',
+      },
+    });
+
+    const res = await agent
+      .post(`/lands/${testFarm.id}/crop-stage/advance`)
+      .send({
+        farm_crop_id: farmCrop ? farmCrop.id : 1,
+        stage_order: 2,
+        notes: 'Confirmación de germinación en parcela',
+      });
+
+    expect(res.status).toBe(302);
+
+    const updatedStage = await db.FarmCropProgress.findOne({
+      where: { farm_crop_id: farmCrop ? farmCrop.id : 1, stage_order: 2 },
+    });
+    expect(updatedStage.status).toBe('Completada');
+    expect(updatedStage.real_date).not.toBeNull();
+  });
+
+  it('10. Debe finalizar el ciclo del cultivo vía POST /lands/:id/crop/finish', async () => {
+    const agent = await getFarmerAgent();
+    const farmCrop = await FarmCrop.findOne({
+      where: {
+        farm_id: testFarm.id,
+        custom_crop_name: 'Tomate Saladette TDD',
+      },
+    });
+
+    const res = await agent
+      .post(`/lands/${testFarm.id}/crop/finish`)
+      .send({
+        farm_crop_id: farmCrop ? farmCrop.id : 1,
+      });
+
+    expect(res.status).toBe(302);
+
+    const finishedCrop = await FarmCrop.findByPk(farmCrop.id);
+    expect(finishedCrop.is_active).toBe(false);
+    expect(finishedCrop.status).toBe('Finalizado');
+  });
+
+  it('11. Debe eliminar un ciclo de cultivo vía POST /lands/:id/crop/delete', async () => {
+    const agent = await getFarmerAgent();
+    const farmCrop = await FarmCrop.findOne({
+      where: {
+        farm_id: testFarm.id,
+        custom_crop_name: 'Tomate Saladette TDD',
+      },
+    });
+
+    const res = await agent
+      .post(`/lands/${testFarm.id}/crop/delete`)
+      .send({
+        farm_crop_id: farmCrop ? farmCrop.id : 1,
+      });
+
+    expect(res.status).toBe(302);
+
+    const deletedCrop = await FarmCrop.findByPk(farmCrop.id);
+    expect(deletedCrop).toBeNull();
   });
 });

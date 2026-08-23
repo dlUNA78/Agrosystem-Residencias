@@ -7,12 +7,24 @@ export default (sequelize, DataTypes) => {
         foreignKey: 'farm_id',
         as: 'farm',
       });
+      ApplicationLog.belongsTo(models.FarmCrop, {
+        foreignKey: 'farm_crop_id',
+        as: 'farmCrop',
+      });
     }
   }
 
   ApplicationLog.init(
     {
       farm_id: DataTypes.INTEGER,
+      farm_crop_id: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
+      etapa_nombre: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
       producto_nombre: DataTypes.STRING,
       ingrediente_activo: DataTypes.STRING,
       dosis: DataTypes.STRING,

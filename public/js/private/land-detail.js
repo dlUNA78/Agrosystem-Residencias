@@ -20,6 +20,60 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
+  // Helper para conmutar pestañas programáticamente
+  function switchTab(tabName) {
+    const btn = document.querySelector(`.tab-btn[data-tab="${tabName}"]`);
+    if (btn) btn.click();
+  }
+
+  const btnQuickHealthReport = document.getElementById('btn-quick-health-report');
+  const btnQuickAppLog = document.getElementById('btn-quick-app-log');
+
+  if (btnQuickHealthReport) {
+    btnQuickHealthReport.addEventListener('click', () => {
+      switchTab('reportes');
+      const openReporteBtn = document.getElementById('btn-open-reporte');
+      if (openReporteBtn) openReporteBtn.click();
+    });
+  }
+
+  if (btnQuickAppLog) {
+    btnQuickAppLog.addEventListener('click', () => {
+      switchTab('bitacora');
+      const openAplicacionBtn = document.getElementById('btn-open-aplicacion');
+      if (openAplicacionBtn) openAplicacionBtn.click();
+    });
+  }
+
+  // ── Botones dentro de la tarjeta de la Etapa Activa ──
+  const btnStageHealthReports = document.querySelectorAll('.btn-stage-health-report');
+  btnStageHealthReports.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const stageName = btn.dataset.stage;
+      const cropId = btn.dataset.crop;
+      const inputEtapa = document.getElementById('input-reporte-etapa-nombre');
+      const inputCrop = document.getElementById('input-reporte-crop-id');
+      if (inputEtapa) inputEtapa.value = stageName || '';
+      if (inputCrop && cropId) inputCrop.value = cropId;
+      const openReporteBtn = document.getElementById('btn-open-reporte');
+      if (openReporteBtn) openReporteBtn.click();
+    });
+  });
+
+  const btnStageAppLogs = document.querySelectorAll('.btn-stage-app-log');
+  btnStageAppLogs.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const stageName = btn.dataset.stage;
+      const cropId = btn.dataset.crop;
+      const inputEtapa = document.getElementById('input-aplicacion-etapa-nombre');
+      const inputCrop = document.getElementById('input-aplicacion-crop-id');
+      if (inputEtapa) inputEtapa.value = stageName || '';
+      if (inputCrop && cropId) inputCrop.value = cropId;
+      const openAplicacionBtn = document.getElementById('btn-open-aplicacion');
+      if (openAplicacionBtn) openAplicacionBtn.click();
+    });
+  });
+
   // ── Conmutación de Vistas: Lista de Cultivos vs Detalle del Cultivo ──
   const sectionCropList = document.getElementById('section-crop-list');
   const sectionCropDetail = document.getElementById('section-crop-detail');
@@ -56,6 +110,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
   if (btnBackToCropList) {
     btnBackToCropList.addEventListener('click', showCropList);
+  }
+
+  // Auto-enfocar el expediente del cultivo si viene en el query string
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlCropId = urlParams.get('crop_id');
+  if (urlCropId) {
+    if (sectionCropList) sectionCropList.classList.add('hidden');
+    if (sectionCropDetail) sectionCropDetail.classList.remove('hidden');
   }
 
   // ── Modales ──

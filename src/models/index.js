@@ -37,11 +37,15 @@ const modelFiles = files.filter((file) => {
 });
 
 for (const file of modelFiles) {
-  // En ES Modules, import() necesita una URL de archivo (file://...) en Windows
-  const modelUrl = pathToFileURL(path.join(__dirname, file)).href;
-  const { default: modelDefiner } = await import(modelUrl);
-  const model = modelDefiner(sequelize, DataTypes);
-  db[model.name] = model;
+  try {
+    // En ES Modules, import() necesita una URL de archivo (file://...) en Windows
+    const modelUrl = pathToFileURL(path.join(__dirname, file)).href;
+    const { default: modelDefiner } = await import(modelUrl);
+    const model = modelDefiner(sequelize, DataTypes);
+    db[model.name] = model;
+  } catch (err) {
+    console.error(`ERROR LOADING MODEL FILE ${file}:`, err);
+  }
 }
 
 // Ejecutar las asociaciones (relaciones) de cada modelo

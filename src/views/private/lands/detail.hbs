@@ -98,12 +98,18 @@
                             </p>
                         </div>
                     </div>
-                    <div class="pt-5 mt-4">
-                        <button data-crop-id="{{this.id}}" data-crop-name="{{this.displayName}}" data-crop-section="{{this.areaSection}}"
-                            class="btn-select-crop w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-slate-50 hover:bg-primary hover:text-white text-slate-700 text-xs font-bold transition-all border border-slate-200 hover:border-primary">
-                            <span>Ver Expediente del Cultivo</span>
+                    <div class="pt-5 mt-4 border-t border-slate-100 flex items-center gap-2">
+                        <a href="/lands/{{../farm.id}}/expediente?crop_id={{this.id}}#crop-detail"
+                            class="btn-select-crop flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-slate-50 hover:bg-primary hover:text-white text-slate-700 text-xs font-bold transition-all border border-slate-200 hover:border-primary">
+                            <span>Ver Expediente</span>
                             <span class="material-symbols-outlined text-sm" data-icon="arrow_forward">arrow_forward</span>
-                        </button>
+                        </a>
+                        <form action="/lands/{{../farm.id}}/crop/delete" method="POST" onsubmit="return confirm('¿Estás seguro de eliminar este ciclo de cultivo y todo su historial de etapas?');">
+                            <input type="hidden" name="farm_crop_id" value="{{this.id}}">
+                            <button type="submit" title="Eliminar Cultivo" class="p-2.5 rounded-xl text-red-600 hover:bg-red-50 hover:border-red-200 transition-colors border border-slate-200">
+                                <span class="material-symbols-outlined text-base" data-icon="delete">delete</span>
+                            </button>
+                        </form>
                     </div>
                 </div>
                 {{/each}}
@@ -173,20 +179,24 @@
                                     <span class="material-symbols-outlined text-on-primary-container" data-icon="grass">grass</span>
                                 </div>
                                 <div>
-                                    <p id="detail-crop-name" class="font-extrabold text-[#0F2E2E] text-base">Cultivo</p>
-                                    <p id="detail-crop-section" class="text-xs text-on-surface-variant">Área: General</p>
+                                    <p id="detail-crop-name" class="font-extrabold text-[#0F2E2E] text-base">{{#if selectedCrop}}{{selectedCrop.displayName}}{{else}}Cultivo{{/if}}</p>
+                                    <p id="detail-crop-section" class="text-xs text-on-surface-variant">Área: {{#if selectedCrop}}{{selectedCrop.areaSection}}{{else}}General{{/if}}</p>
                                 </div>
                             </div>
                         </div>
                         <div class="bg-slate-50 rounded-2xl p-5 border border-slate-100">
-                            <p class="text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-2">Estado Fenológico</p>
+                            <p class="text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-2">Progreso Fenológico</p>
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
                                     <span class="material-symbols-outlined text-emerald-700" data-icon="energy_savings_leaf">energy_savings_leaf</span>
                                 </div>
                                 <div>
-                                    <p class="font-extrabold text-[#0F2E2E] text-base">En Crecimiento</p>
-                                    <p class="text-xs text-on-surface-variant">Desarrollo vegetativo activo</p>
+                                    <p id="detail-crop-stage" class="font-extrabold text-[#0F2E2E] text-base">
+                                        {{#if selectedCrop.currentStage}}{{selectedCrop.currentStage.stage_name}}{{else}}En Crecimiento{{/if}}
+                                    </p>
+                                    <p id="detail-crop-percent" class="text-xs text-emerald-700 font-bold">
+                                        {{#if selectedCrop}}{{selectedCrop.progressPercent}}% completado{{else}}20% completado{{/if}}
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -202,6 +212,149 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+
+                    {{!-- Linea de Tiempo Fenológica Vertical (Stepper) --}}
+                    <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm mb-8">
+                        <div class="flex flex-wrap items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-100">
+                            <div>
+                                <h3 class="font-extrabold text-[#0F2E2E] text-base flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-emerald-600" data-icon="timeline">timeline</span>
+                                    Línea de Tiempo del Cultivo
+                                </h3>
+                                <p class="text-xs text-on-surface-variant mt-0.5">Seguimiento vertical por hitos fenológicos proyectados y confirmados en campo.</p>
+                            </div>
+                            
+                            {{#if selectedCrop}}
+                            <div class="flex flex-wrap items-center gap-2">
+                                {{!-- Botones de Acceso Directo a Salud y Bitácora --}}
+                                <button type="button" id="btn-quick-health-report" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-50 text-red-700 hover:bg-red-100 text-xs font-bold transition-colors border border-red-200">
+                                    <span class="material-symbols-outlined text-sm" data-icon="pest_control">pest_control</span>
+                                    Reportar Salud
+                                </button>
+                                <button type="button" id="btn-quick-app-log" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-teal-50 text-teal-800 hover:bg-teal-100 text-xs font-bold transition-colors border border-teal-200">
+                                    <span class="material-symbols-outlined text-sm" data-icon="science">science</span>
+                                    Registrar Bitácora
+                                </button>
+                                
+                                <form action="/lands/{{farm.id}}/crop/finish" method="POST" onsubmit="return confirm('¿Deseas finalizar y dar por cosechado este ciclo de cultivo?');">
+                                    <input type="hidden" name="farm_crop_id" value="{{selectedCrop.id}}">
+                                    <button type="submit" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-700 hover:bg-emerald-100 text-xs font-bold transition-colors border border-emerald-200">
+                                        <span class="material-symbols-outlined text-sm" data-icon="check_circle">check_circle</span>
+                                        Finalizar Ciclo
+                                    </button>
+                                </form>
+                                <form action="/lands/{{farm.id}}/crop/delete" method="POST" onsubmit="return confirm('¿Estás seguro de eliminar este ciclo de cultivo y todo su historial de etapas?');">
+                                    <input type="hidden" name="farm_crop_id" value="{{selectedCrop.id}}">
+                                    <button type="submit" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700 hover:bg-red-50 hover:text-red-700 text-xs font-bold transition-colors border border-slate-200">
+                                        <span class="material-symbols-outlined text-sm" data-icon="delete">delete</span>
+                                        Eliminar Ciclo
+                                    </button>
+                                </form>
+                            </div>
+                            {{/if}}
+                        </div>
+
+                        {{#if selectedCrop}}
+                        {{!-- Vertical Stepper Timeline --}}
+                        <div class="relative pl-6 sm:pl-8 space-y-6 before:absolute before:left-3 sm:before:left-4 before:top-3 before:bottom-3 before:w-0.5 before:bg-slate-200 mb-4">
+                            {{#each selectedCrop.stagesTimeline}}
+                            <div class="relative flex flex-col sm:flex-row items-start justify-between gap-4 p-5 rounded-2xl border transition-all {{#if this.isCompleted}}bg-emerald-50/50 border-emerald-200 shadow-sm{{else if this.isInProgress}}bg-amber-50/80 border-amber-300 ring-2 ring-amber-300 shadow-md{{else}}bg-slate-50/60 border-slate-200 opacity-70{{/if}}">
+                                {{!-- Node Badge on Vertical Line --}}
+                                <div class="absolute -left-6 sm:-left-8 top-5 -translate-x-1/2 z-10">
+                                    <span class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-black shadow-sm {{#if this.isCompleted}}bg-emerald-600 text-white ring-4 ring-emerald-100{{else if this.isInProgress}}bg-amber-500 text-white ring-4 ring-amber-100 animate-pulse{{else}}bg-slate-300 text-slate-700 ring-4 ring-slate-100{{/if}}">
+                                        {{this.stage_order}}
+                                    </span>
+                                </div>
+
+                                <div class="flex-1 space-y-1">
+                                    <div class="flex items-center gap-3">
+                                        <h4 class="font-extrabold text-[#0F2E2E] text-sm">{{this.stage_name}}</h4>
+                                        <span class="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full {{#if this.isCompleted}}bg-emerald-100 text-emerald-800 border border-emerald-200{{else if this.isInProgress}}bg-amber-100 text-amber-900 border border-amber-200{{else}}bg-slate-200 text-slate-600 border border-slate-300{{/if}}">
+                                            {{this.status}}
+                                        </span>
+                                    </div>
+                                    <p class="text-xs font-medium text-slate-500 flex items-center gap-1">
+                                        <span class="material-symbols-outlined text-xs" data-icon="calendar_month">calendar_month</span>
+                                        Fecha Estimada/Real: <strong class="text-slate-700">{{this.displayDate}}</strong>
+                                    </p>
+
+                                    {{#if this.notes}}
+                                    <div class="mt-2 pt-2 border-t border-slate-200/60">
+                                        <p class="text-xs font-medium text-slate-700 bg-white/90 p-2.5 rounded-xl border border-slate-200/80 flex items-start gap-2 shadow-2xs">
+                                            <span class="material-symbols-outlined text-sm text-amber-600 shrink-0 mt-0.5" data-icon="sticky_note_2">sticky_note_2</span>
+                                            <span>"{{this.notes}}"</span>
+                                        </p>
+                                    </div>
+                                    {{/if}}
+
+                                    {{#if this.stageHealthReports.length}}
+                                    <div class="mt-3 pt-2 border-t border-slate-200/60 space-y-1.5">
+                                        <p class="text-[10px] font-black uppercase text-red-600 tracking-wider">Hallazgos Fitosanitarios:</p>
+                                        {{#each this.stageHealthReports}}
+                                        <div class="flex items-center justify-between text-xs bg-red-50/90 text-red-900 p-2 rounded-xl border border-red-200">
+                                            <div class="flex items-center gap-1.5 font-bold">
+                                                <span class="material-symbols-outlined text-sm text-red-600" data-icon="bug_report">bug_report</span>
+                                                <span>{{this.plaga_nombre}}</span>
+                                            </div>
+                                            <span class="text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-red-100 text-red-800">
+                                                {{this.severidad}}
+                                            </span>
+                                        </div>
+                                        {{/each}}
+                                    </div>
+                                    {{/if}}
+
+                                    {{#if this.stageApplicationLogs.length}}
+                                    <div class="mt-3 pt-2 border-t border-slate-200/60 space-y-1.5">
+                                        <p class="text-[10px] font-black uppercase text-teal-700 tracking-wider">Productos Aplicados:</p>
+                                        {{#each this.stageApplicationLogs}}
+                                        <div class="flex items-center justify-between text-xs bg-teal-50/90 text-teal-900 p-2 rounded-xl border border-teal-200">
+                                            <div class="flex items-center gap-1.5 font-bold">
+                                                <span class="material-symbols-outlined text-sm text-teal-700" data-icon="science">science</span>
+                                                <span>{{this.producto_nombre}}</span>
+                                            </div>
+                                            <span class="text-[10px] font-bold text-teal-800">
+                                                {{this.dosis}}
+                                            </span>
+                                        </div>
+                                        {{/each}}
+                                    </div>
+                                    {{/if}}
+                                </div>
+
+                                {{#if this.isInProgress}}
+                                <div class="w-full sm:w-auto shrink-0 bg-white p-3.5 rounded-2xl border border-amber-300 shadow-2xs space-y-3">
+                                    <div class="flex items-center gap-2 pb-2.5 border-b border-slate-100">
+                                        <button type="button" class="btn-stage-health-report flex-1 flex items-center justify-center gap-1 py-1.5 px-3 rounded-xl bg-red-50 hover:bg-red-100 text-red-700 text-xs font-bold border border-red-200 transition-colors shadow-2xs" data-stage="{{this.stage_name}}" data-crop="{{../selectedCrop.id}}">
+                                            <span class="material-symbols-outlined text-sm" data-icon="pest_control">pest_control</span>
+                                            + Salud
+                                        </button>
+                                        <button type="button" class="btn-stage-app-log flex-1 flex items-center justify-center gap-1 py-1.5 px-3 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-800 text-xs font-bold border border-teal-200 transition-colors shadow-2xs" data-stage="{{this.stage_name}}" data-crop="{{../selectedCrop.id}}">
+                                            <span class="material-symbols-outlined text-sm" data-icon="science">science</span>
+                                            + Bitácora
+                                        </button>
+                                    </div>
+
+                                    <form action="/lands/{{../farm.id}}/crop-stage/advance" method="POST" class="flex flex-col gap-2">
+                                        <input type="hidden" name="farm_crop_id" value="{{../selectedCrop.id}}">
+                                        <input type="hidden" name="stage_order" value="{{this.stage_order}}">
+                                        <input type="text" name="notes" placeholder="Agregar notas de esta etapa..." class="px-3 py-1.5 rounded-xl text-xs border border-amber-300 focus:outline-none focus:ring-1 focus:ring-amber-500 bg-slate-50 w-full sm:w-60">
+                                        <button type="submit" class="w-full flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-[#43655c] hover:bg-[#0F2E2E] text-white text-xs font-bold transition-all shadow-sm">
+                                            <span class="material-symbols-outlined text-sm" data-icon="arrow_forward">arrow_forward</span>
+                                            Completar & Avanzar Etapa
+                                        </button>
+                                    </form>
+                                </div>
+                                {{/if}}
+                            </div>
+                            {{/each}}
+                        </div>
+                        {{else}}
+                        <div class="text-center py-6 text-slate-400 text-xs font-medium">
+                            Selecciona un cultivo en la lista superior para visualizar y avanzar su línea de tiempo fenológica.
+                        </div>
+                        {{/if}}
                     </div>
                 </div>
 
@@ -228,7 +381,12 @@
                             </div>
                             <div class="flex-1">
                                 <div class="flex items-center justify-between mb-1">
-                                    <h3 class="font-bold text-[#0F2E2E] text-sm">{{this.plaga_nombre}}</h3>
+                                    <div class="flex items-center gap-2">
+                                        <h3 class="font-bold text-[#0F2E2E] text-sm">{{this.plaga_nombre}}</h3>
+                                        <span class="text-[10px] bg-slate-100 text-slate-700 font-extrabold px-2 py-0.5 rounded-full border border-slate-200">
+                                            Etapa: {{#if this.etapa_nombre}}{{this.etapa_nombre}}{{else}}General{{/if}}
+                                        </span>
+                                    </div>
                                     <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded-full border
                                         {{#if (eq this.severidad 'alta')}}bg-red-50 text-red-700 border-red-200{{else if (eq this.severidad 'media')}}bg-amber-50 text-amber-700 border-amber-200{{else}}bg-emerald-50 text-emerald-700 border-emerald-200{{/if}}">
                                         Severidad: {{this.severidad}}
@@ -271,6 +429,7 @@
                             <thead>
                                 <tr class="bg-slate-50 text-[10px] font-black uppercase text-slate-500 tracking-wider border-b border-slate-200">
                                     <th class="px-6 py-4">Fecha</th>
+                                    <th class="px-6 py-4">Etapa Fenológica</th>
                                     <th class="px-6 py-4">Producto Comercial</th>
                                     <th class="px-6 py-4">Ingrediente Activo</th>
                                     <th class="px-6 py-4">Dosis</th>
@@ -281,6 +440,11 @@
                                 {{#each applicationLogs}}
                                 <tr class="hover:bg-slate-50/50 transition-colors">
                                     <td class="px-6 py-4 font-mono text-slate-500">{{this.fecha_aplicacion}}</td>
+                                    <td class="px-6 py-4 font-bold text-teal-800">
+                                        <span class="bg-teal-50 text-teal-800 px-2 py-0.5 rounded-md border border-teal-200">
+                                            {{#if this.etapa_nombre}}{{this.etapa_nombre}}{{else}}General{{/if}}
+                                        </span>
+                                    </td>
                                     <td class="px-6 py-4 font-bold text-[#0F2E2E]">{{this.producto_nombre}}</td>
                                     <td class="px-6 py-4 text-slate-600">{{this.ingrediente_activo}}</td>
                                     <td class="px-6 py-4 font-bold text-[#0F2E2E]">{{this.dosis}}</td>
@@ -429,6 +593,8 @@
 <div id="modal-reporte" class="hidden fixed inset-0 z-[200] flex items-center justify-center">
     <div id="modal-reporte-backdrop" class="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
     <form action="/lands/{{farm.id}}/health-report/create" method="POST" class="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden">
+        <input type="hidden" name="farm_crop_id" id="input-reporte-crop-id" value="{{#if selectedCrop}}{{selectedCrop.id}}{{/if}}">
+        <input type="hidden" name="etapa_nombre" id="input-reporte-etapa-nombre" value="">
         <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
             <h3 class="font-extrabold text-[#0F2E2E] text-base flex items-center gap-2">
                 <span class="material-symbols-outlined text-primary" data-icon="pest_control">pest_control</span>
@@ -501,6 +667,8 @@
 <div id="modal-aplicacion" class="hidden fixed inset-0 z-[200] flex items-center justify-center">
     <div id="modal-aplicacion-backdrop" class="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
     <form action="/lands/{{farm.id}}/application-log/create" method="POST" class="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden">
+        <input type="hidden" name="farm_crop_id" id="input-aplicacion-crop-id" value="{{#if selectedCrop}}{{selectedCrop.id}}{{/if}}">
+        <input type="hidden" name="etapa_nombre" id="input-aplicacion-etapa-nombre" value="">
         <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
             <h3 class="font-extrabold text-[#0F2E2E] text-base flex items-center gap-2">
                 <span class="material-symbols-outlined text-primary" data-icon="science">science</span>

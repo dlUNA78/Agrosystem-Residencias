@@ -1,53 +1,47 @@
 export default {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('HealthReports', {
+    await queryInterface.createTable('FarmCropProgresses', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER,
       },
-      farm_id: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-        references: {
-          model: 'Farms',
-          key: 'id',
-        },
-        onUpdate: 'CASCADE',
-        onDelete: 'CASCADE',
-      },
       farm_crop_id: {
         type: Sequelize.INTEGER,
-        allowNull: true,
+        allowNull: false,
         references: {
           model: 'FarmCrops',
           key: 'id',
         },
         onUpdate: 'CASCADE',
-        onDelete: 'SET NULL',
+        onDelete: 'CASCADE',
       },
-      etapa_nombre: {
-        type: Sequelize.STRING,
-        allowNull: true,
-      },
-      plaga_nombre: {
-        type: Sequelize.STRING,
+      stage_name: {
+        type: Sequelize.STRING(150),
         allowNull: false,
       },
-      severidad: {
-        type: Sequelize.STRING,
-        defaultValue: 'baja',
+      stage_order: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        defaultValue: 1,
       },
-      descripcion: {
-        type: Sequelize.TEXT,
+      estimated_date: {
+        type: Sequelize.DATEONLY,
+        allowNull: true,
+      },
+      real_date: {
+        type: Sequelize.DATEONLY,
+        allowNull: true,
       },
       status: {
-        type: Sequelize.STRING,
-        defaultValue: 'Activa',
+        type: Sequelize.STRING(50),
+        allowNull: false,
+        defaultValue: 'Pendiente', // 'Pendiente' | 'En Progreso' | 'Completada'
       },
-      reporter_name: {
-        type: Sequelize.STRING,
+      notes: {
+        type: Sequelize.TEXT,
+        allowNull: true,
       },
       createdAt: {
         allowNull: false,
@@ -60,7 +54,7 @@ export default {
     });
   },
 
-  async down(queryInterface) {
-    await queryInterface.dropTable('HealthReports');
+  async down(queryInterface, Sequelize) {
+    await queryInterface.dropTable('FarmCropProgresses');
   },
 };

@@ -2,6 +2,10 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 import db from '../../models/index.js';
+import {
+  generateDefaultStageRecords,
+  processStageTimeline,
+} from '../../utils/cropPhenology.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -148,9 +152,13 @@ export const createFarmPrivate = async (req, res) => {
 export const landDetail = async (req, res) => {
   try {
     const { id } = req.params;
+    const farmId = parseInt(id, 10);
+    if (!farmId || isNaN(farmId)) {
+      return res.status(404).send('Predio no encontrado');
+    }
 
     // Verificar si el predio existe en la BD pero pertenece a otro usuario
-    const existingFarm = await db.Farm.findByPk(id);
+    const existingFarm = await db.Farm.findByPk(farmId);
     if (
       existingFarm &&
       (existingFarm.user_id !== req.user.id || !existingFarm.status)
@@ -161,7 +169,7 @@ export const landDetail = async (req, res) => {
     // Buscar la parcela real en la base de datos perteneciendo al usuario
     const farm = await db.Farm.findOne({
       where: {
-        id,
+        id: farmId,
         user_id: req.user.id,
         status: true,
       },
@@ -180,6 +188,10 @@ export const landDetail = async (req, res) => {
               model: db.Crop,
               as: 'crop',
             },
+            {
+              model: db.FarmCropProgress,
+              as: 'progressStages',
+            },
           ],
         },
         {
@@ -190,14 +202,6 @@ export const landDetail = async (req, res) => {
           model: db.ApplicationLog,
           as: 'applicationLogs',
         },
-      ],
-      order: [
-        [{ model: db.HealthReport, as: 'healthReports' }, 'createdAt', 'DESC'],
-        [
-          { model: db.ApplicationLog, as: 'applicationLogs' },
-          'createdAt',
-          'DESC',
-        ],
       ],
     });
 
@@ -229,25 +233,55 @@ export const landDetail = async (req, res) => {
       const landData = farm.toJSON();
 
       const rawFarmCrops = landData.farmCrops || [];
-      const farmCrops = rawFarmCrops.map((fc) => ({
-        ...fc,
-        displayName: fc.crop
-          ? fc.crop.name
-          : fc.custom_crop_name || 'Otro Cultivo',
-        displaySubName: fc.crop ? fc.crop.common_name : 'Cultivo Personalizado',
-        areaSection: fc.area_section || 'General',
-      }));
+      const farmCrops = rawFarmCrops.map((fc) => {
+        const timeline = processStageTimeline(fc.progressStages || []);
+        return {
+          ...fc,
+          displayName: fc.crop
+            ? fc.crop.name
+            : fc.custom_crop_name || 'Otro Cultivo',
+          displaySubName: fc.crop ? fc.crop.common_name : 'Cultivo Personalizado',
+          areaSection: fc.area_section || 'General',
+          stagesTimeline: timeline.stagesFormatted,
+          currentStage: timeline.currentStage,
+          progressPercent: timeline.progressPercent,
+        };
+      });
 
-      // Seleccionar un cultivo específico si viene en query o si el usuario quiere enfocar uno
+      // Seleccionar un cultivo específico si viene en query o asignar por defecto el primero
       const selectedCropId = req.query.crop_id
         ? String(req.query.crop_id)
         : null;
       const selectedCrop = selectedCropId
         ? farmCrops.find((fc) => String(fc.id) === selectedCropId) || null
-        : null;
+        : farmCrops.length > 0
+          ? farmCrops[0]
+          : null;
 
-      const healthReports = landData.healthReports || [];
-      const applicationLogs = landData.applicationLogs || [];
+      const healthReports = (landData.healthReports || []).sort(
+        (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
+      );
+      const applicationLogs = (landData.applicationLogs || []).sort(
+        (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
+      );
+
+      if (selectedCrop && selectedCrop.stagesTimeline) {
+        selectedCrop.stagesTimeline = selectedCrop.stagesTimeline.map((stage) => {
+          const stageHealthReports = healthReports.filter(
+            (r) => r.farm_crop_id === selectedCrop.id && r.etapa_nombre === stage.stage_name,
+          );
+          const stageApplicationLogs = applicationLogs.filter(
+            (l) => l.farm_crop_id === selectedCrop.id && l.etapa_nombre === stage.stage_name,
+          );
+          return {
+            ...stage,
+            stageHealthReports,
+            stageApplicationLogs,
+            hasStageEvents:
+              stageHealthReports.length > 0 || stageApplicationLogs.length > 0,
+          };
+        });
+      }
 
       return res.render('private/lands/detail', {
         layout: privateLayout,
@@ -290,7 +324,9 @@ export const landDetail = async (req, res) => {
 
     return res.status(404).send('Predio no encontrado');
   } catch (error) {
-    console.error('Error al obtener el expediente del terreno:', error);
+    console.log('--- HANDLEBARS ERR MESSAGE START ---');
+    console.log(error.message);
+    console.log('--- HANDLEBARS ERR MESSAGE END ---');
     return res.status(500).send('Error al obtener el expediente del terreno');
   }
 };
@@ -362,18 +398,28 @@ export const deleteFarmPrivate = async (req, res) => {
   }
 };
 
+// Helper interno para validar y recuperar predio
+const findFarmForUser = async (id, user) => {
+  const parsedId = parseInt(id, 10);
+  if (isNaN(parsedId)) return null;
+  const where = { id: parsedId, status: true };
+  if (user && user.role === 'agricultor') {
+    where.user_id = user.id;
+  }
+  return db.Farm.findOne({ where });
+};
+
 // ============================================================
 // POST /lands/:id/crop/create — Registrar ciclo de cultivo
 // ============================================================
 export const createFarmCrop = async (req, res) => {
   try {
+    console.error('MODELS IN DB AT RUNTIME:', Object.keys(db));
     const { id } = req.params;
     const { crop_id, custom_crop_name, area_section, planting_date, status } =
       req.body;
 
-    const farm = await db.Farm.findOne({
-      where: { id, user_id: req.user.id, status: true },
-    });
+    const farm = await findFarmForUser(id, req.user);
 
     if (!farm) {
       return res.status(404).send('Predio no encontrado o sin permisos');
@@ -387,7 +433,15 @@ export const createFarmCrop = async (req, res) => {
         : 'Otro Cultivo'
       : null;
 
-    await db.FarmCrop.create({
+    let harvestDays = 120;
+    if (finalCropId) {
+      const cropRef = await db.Crop.findByPk(finalCropId);
+      if (cropRef && cropRef.harvest_days) {
+        harvestDays = cropRef.harvest_days;
+      }
+    }
+
+    const newFarmCrop = await db.FarmCrop.create({
       farm_id: farm.id,
       crop_id: finalCropId,
       custom_crop_name: finalCustomName,
@@ -397,10 +451,116 @@ export const createFarmCrop = async (req, res) => {
       status: status || 'En Crecimiento',
     });
 
-    return res.redirect(`/lands/${id}/expediente`);
+    // Auto-generar las 5 etapas iniciales en FarmCropProgress
+    const initialStages = generateDefaultStageRecords(
+      newFarmCrop.planting_date,
+      harvestDays,
+    );
+
+    const stageRecords = initialStages.map((stage) => ({
+      farm_crop_id: newFarmCrop.id,
+      stage_name: stage.stage_name,
+      stage_order: stage.stage_order,
+      estimated_date: stage.estimated_date,
+      real_date: stage.real_date,
+      status: stage.status,
+      notes: stage.notes,
+    }));
+
+    await db.FarmCropProgress.bulkCreate(stageRecords);
+
+    return res.redirect(`/lands/${id}/expediente?crop_id=${newFarmCrop.id}`);
   } catch (error) {
     console.error('Error al registrar el ciclo de cultivo:', error);
-    return res.status(500).send('Error al registrar el ciclo de cultivo');
+    return res
+      .status(500)
+      .send(error.message || 'Error al registrar el ciclo de cultivo');
+  }
+};
+
+// ============================================================
+// POST /lands/:id/crop-stage/advance — Avanzar de etapa fenológica
+// ============================================================
+export const advanceCropStage = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { farm_crop_id, stage_order, notes } = req.body;
+
+    const farm = await findFarmForUser(id, req.user);
+
+    if (!farm) {
+      return res.status(404).send('Predio no encontrado o sin permisos');
+    }
+
+    const orderNum = parseInt(stage_order, 10);
+    const today = new Date().toISOString().split('T')[0];
+
+    // Marcar la etapa actual como Completada
+    await db.FarmCropProgress.update(
+      {
+        status: 'Completada',
+        real_date: today,
+        notes: notes ? String(notes).trim() : 'Etapa confirmada en campo',
+      },
+      {
+        where: {
+          farm_crop_id: parseInt(farm_crop_id, 10),
+          stage_order: orderNum,
+        },
+      },
+    );
+
+    // Activar la siguiente etapa si existe
+    await db.FarmCropProgress.update(
+      {
+        status: 'En Progreso',
+      },
+      {
+        where: {
+          farm_crop_id: parseInt(farm_crop_id, 10),
+          stage_order: orderNum + 1,
+        },
+      },
+    );
+
+    return res.redirect(`/lands/${id}/expediente?crop_id=${farm_crop_id}`);
+  } catch (error) {
+    console.error('Error al avanzar la etapa del cultivo:', error);
+    return res.status(500).send('Error al avanzar la etapa del cultivo');
+  }
+};
+
+// ============================================================
+// POST /lands/:id/crop/finish — Finalizar el ciclo de cultivo
+// ============================================================
+export const finishFarmCrop = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { farm_crop_id } = req.body;
+
+    const farm = await findFarmForUser(id, req.user);
+
+    if (!farm) {
+      return res.status(404).send('Predio no encontrado o sin permisos');
+    }
+
+    await db.FarmCrop.update(
+      {
+        is_active: false,
+        status: 'Finalizado',
+      },
+      {
+        where: {
+          id: parseInt(farm_crop_id, 10),
+          farm_id: farm.id,
+        },
+      },
+    );
+
+    return res.redirect(`/lands/${id}/expediente`);
+  } catch (error) {
+    console.error('Error al finalizar el ciclo de cultivo:', error);
+    return res.status(500).send('Error al finalizar el ciclo de cultivo');
   }
 };
 
@@ -410,12 +570,15 @@ export const createFarmCrop = async (req, res) => {
 export const createHealthReport = async (req, res) => {
   try {
     const { id } = req.params;
-    const { plaga_nombre, custom_plaga_nombre, severidad, descripcion } =
-      req.body;
+    const {
+      plaga_nombre,
+      custom_plaga_nombre,
+      severidad,
+      descripcion,
+      farm_crop_id,
+    } = req.body;
 
-    const farm = await db.Farm.findOne({
-      where: { id, user_id: req.user.id, status: true },
-    });
+    const farm = await findFarmForUser(id, req.user);
 
     if (!farm) {
       return res.status(404).send('Predio no encontrado o sin permisos');
@@ -427,8 +590,31 @@ export const createHealthReport = async (req, res) => {
         ? String(plaga_nombre).trim()
         : 'Hallazgo Fitosanitario';
 
+    const parsedCropId =
+      farm_crop_id && !isNaN(parseInt(farm_crop_id, 10))
+        ? parseInt(farm_crop_id, 10)
+        : null;
+
+    let finalEtapaNombre = req.body.etapa_nombre
+      ? String(req.body.etapa_nombre).trim()
+      : null;
+
+    if (!finalEtapaNombre && parsedCropId) {
+      const activeStage = await db.FarmCropProgress.findOne({
+        where: {
+          farm_crop_id: parsedCropId,
+          status: 'En Progreso',
+        },
+      });
+      if (activeStage) {
+        finalEtapaNombre = activeStage.stage_name;
+      }
+    }
+
     await db.HealthReport.create({
       farm_id: farm.id,
+      farm_crop_id: parsedCropId,
+      etapa_nombre: finalEtapaNombre,
       plaga_nombre: finalPlagaNombre,
       severidad: severidad || 'baja',
       descripcion: descripcion || '',
@@ -455,36 +641,97 @@ export const createApplicationLog = async (req, res) => {
       ingrediente_activo,
       dosis,
       fecha_aplicacion,
-      notas,
+      aplicador,
+      observaciones,
+      farm_crop_id,
     } = req.body;
 
-    const farm = await db.Farm.findOne({
-      where: { id, user_id: req.user.id, status: true },
-    });
+    const farm = await findFarmForUser(id, req.user);
 
     if (!farm) {
       return res.status(404).send('Predio no encontrado o sin permisos');
     }
 
-    const finalProducto = custom_producto_nombre
+    const finalProductoNombre = custom_producto_nombre
       ? String(custom_producto_nombre).trim()
       : producto_nombre
         ? String(producto_nombre).trim()
-        : 'Producto Fitosanitario';
+        : 'Producto Agroquímico';
+
+    const parsedCropId =
+      farm_crop_id && !isNaN(parseInt(farm_crop_id, 10))
+        ? parseInt(farm_crop_id, 10)
+        : null;
+
+    let finalEtapaNombre = req.body.etapa_nombre
+      ? String(req.body.etapa_nombre).trim()
+      : null;
+
+    if (!finalEtapaNombre && parsedCropId) {
+      const activeStage = await db.FarmCropProgress.findOne({
+        where: {
+          farm_crop_id: parsedCropId,
+          status: 'En Progreso',
+        },
+      });
+      if (activeStage) {
+        finalEtapaNombre = activeStage.stage_name;
+      }
+    }
 
     await db.ApplicationLog.create({
       farm_id: farm.id,
-      producto_nombre: finalProducto,
-      ingrediente_activo: ingrediente_activo || '',
-      dosis: dosis || '1.0 L/ha',
+      farm_crop_id: parsedCropId,
+      etapa_nombre: finalEtapaNombre,
+      producto_nombre: finalProductoNombre,
+      ingrediente_activo: ingrediente_activo
+        ? String(ingrediente_activo).trim()
+        : 'No especificado',
+      dosis: dosis ? String(dosis).trim() : 'N/A',
       fecha_aplicacion: fecha_aplicacion || new Date(),
-      notas: notas || '',
-      applicator_name: req.user ? req.user.full_name : 'Técnico',
+      applicator_name: aplicador
+        ? String(aplicador).trim()
+        : req.user
+          ? req.user.full_name
+          : 'Técnico Agrónomo',
+      notas: observaciones ? String(observaciones).trim() : '',
     });
 
     return res.redirect(`/lands/${id}/expediente`);
   } catch (error) {
-    console.error('Error al registrar la aplicación química:', error);
-    return res.status(500).send('Error al registrar la aplicación química');
+    console.error('Error al registrar en bitácora de aplicaciones:', error);
+    return res.status(500).send('Error al registrar en bitácora de aplicaciones');
+  }
+};
+
+// ============================================================
+// POST /lands/:id/crop/delete — Eliminar un ciclo de cultivo
+// ============================================================
+export const deleteFarmCrop = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { farm_crop_id } = req.body;
+
+    const farm = await findFarmForUser(id, req.user);
+
+    if (!farm) {
+      return res.status(404).send('Predio no encontrado o sin permisos');
+    }
+
+    if (!farm_crop_id) {
+      return res.status(400).send('ID de cultivo no proporcionado');
+    }
+
+    await db.FarmCrop.destroy({
+      where: {
+        id: parseInt(farm_crop_id, 10),
+        farm_id: farm.id,
+      },
+    });
+
+    return res.redirect(`/lands/${id}/expediente`);
+  } catch (error) {
+    console.error('Error al eliminar el ciclo de cultivo:', error);
+    return res.status(500).send('Error al eliminar el ciclo de cultivo');
   }
 };
