@@ -192,6 +192,7 @@ export const renderCropDetail = async (req, res) => {
       ],
     });
 
+    // ── Validar que el cultivo exista y esté aprobado ─────────────────────
     if (!cropRecord || cropRecord.status !== 'aprobado') {
       return res.status(404).render('public/crops', {
         pageTitle: 'Cultivo No Encontrado',
@@ -205,16 +206,49 @@ export const renderCropDetail = async (req, res) => {
     }
 
     const crop = cropRecord.toJSON();
+
+    // ── Obtener imagen principal ──────────────────────────────────────────
     const primaryImg =
-      crop.images?.find((i) => i.is_primary) || crop.images?.[0];
+      crop.images?.find((image) => image.is_primary) ||
+      crop.images?.[0] ||
+      null;
+
+    // ── Normalizar ruta de imagen ─────────────────────────────────────────
+    const normalizeImagePath = (imagePath) => {
+      if (!imagePath) return null;
+
+      let path = String(imagePath).trim();
+
+      // Quitar "/" inicial
+      path = path.replace(/^\/+/, '');
+
+      // Quitar "public/" si fue guardado accidentalmente
+      path = path.replace(/^public\/+/, '');
+
+      return `/${path}`;
+    };
+
+    // ── Imagen principal ──────────────────────────────────────────────────
+    const primaryImage = primaryImg
+      ? normalizeImagePath(primaryImg.image_url)
+      : null;
+
+    // ── Normalizar imágenes del carrusel ──────────────────────────────────
+    const carouselImages = (crop.images || []).map((image) => ({
+      ...image,
+      image_url: normalizeImagePath(image.image_url),
+    }));
+
+    // Mantener también las imágenes normalizadas dentro de crop
+    crop.images = carouselImages;
 
     res.render('shared/crop-detail', {
       pageTitle: crop.name,
       activePage: 'crops',
       isPrivate: false,
       crop,
-      primaryImage: primaryImg ? primaryImg.image_url : null,
-      carouselImages: crop.images || [],
+      primaryImage,
+      carouselImages,
     });
   } catch (error) {
     console.error('Error en renderCropDetail:', error);
