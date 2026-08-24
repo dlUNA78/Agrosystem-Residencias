@@ -15,6 +15,7 @@ export default {
         suggested_dosage: '0.5 - 0.75 L/ha',
         safety_interval_days: 7,
         formulation_type: 'Suspensión Concentrada (SC)',
+        image_url: '/images/products/amistar-top.webp',
         status: true,
         createdAt: now,
         updatedAt: now
@@ -31,6 +32,7 @@ export default {
         suggested_dosage: '1.5 - 2.5 L/ha',
         safety_interval_days: 7,
         formulation_type: 'Suspensión Concentrada (SC)',
+        image_url: '/images/products/ridomil-gold-bravo.webp',
         status: true,
         createdAt: now,
         updatedAt: now
@@ -47,6 +49,7 @@ export default {
         suggested_dosage: '100 - 150 mL/ha',
         safety_interval_days: 1,
         formulation_type: 'Suspensión Concentrada (SC)',
+        image_url: '/images/products/coragen.webp',
         status: true,
         createdAt: now,
         updatedAt: now
@@ -63,6 +66,7 @@ export default {
         suggested_dosage: '100 - 150 mL/ha',
         safety_interval_days: 1,
         formulation_type: 'Suspensión Concentrada (SC)',
+        image_url: '/images/products/belt-480-sc.webp',
         status: true,
         createdAt: now,
         updatedAt: now
@@ -79,6 +83,7 @@ export default {
         suggested_dosage: '0.75 - 1.0 L/ha',
         safety_interval_days: 14,
         formulation_type: 'Suspensión Concentrada (SC)',
+        image_url: '/images/products/confidor-350-sc.webp',
         status: true,
         createdAt: now,
         updatedAt: now
@@ -95,6 +100,7 @@ export default {
         suggested_dosage: '0.5 - 0.75 L/ha',
         safety_interval_days: 3,
         formulation_type: 'Suspensión Concentrada (SC)',
+        image_url: '/images/products/movento-150-sc.webp',
         status: true,
         createdAt: now,
         updatedAt: now
@@ -111,6 +117,7 @@ export default {
         suggested_dosage: '150 - 250 mL/ha',
         safety_interval_days: 1,
         formulation_type: 'Suspensión Concentrada (SC)',
+        image_url: '/images/products/success-120-sc.webp',
         status: true,
         createdAt: now,
         updatedAt: now
@@ -127,6 +134,7 @@ export default {
         suggested_dosage: '0.5 - 0.75 L/ha',
         safety_interval_days: 30,
         formulation_type: 'Emulsión en Agua (EW)',
+        image_url: '/images/products/folicur-250-ew.webp',
         status: true,
         createdAt: now,
         updatedAt: now
