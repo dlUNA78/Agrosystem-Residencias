@@ -66,8 +66,8 @@
             {{! Slide 0: imagen principal de la plaga }}
             {{#if plague.image_url}}
             <div class="flex-none w-full h-full relative" style="min-width:100%">
-              <img class="w-full h-full object-cover" src="/{{plague.image_url}}"
-                alt="{{plague.name}} — Vista general" />
+              <img class="w-full h-full object-cover" src="/{{plague.image_url}}" alt="{{plague.name}} — Vista general"
+                onerror="this.onerror=null; this.src='/images/test/default.png';" />
               <div class="absolute inset-0 bg-linear-to-t from-black/50 via-transparent to-transparent"></div>
               <div class="absolute bottom-0 left-0 right-0 p-6">
                 <span class="text-white/70 text-[10px] uppercase tracking-widest font-bold block mb-1">Vista
@@ -400,7 +400,7 @@
               style="aspect-ratio:4/3;">
               <img alt="Vista principal de {{plague.name}}"
                 class="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
-                src="/{{plague.image_url}}" />
+                src="/{{plague.image_url}}" onerror="this.onerror=null; this.src='/images/test/default.png';" />
 
               <div class="absolute bottom-0 left-0 right-0 p-4 bg-linear-to-t from-black/60 to-transparent">
                 <span class="text-white text-sm font-bold">{{plague.name}}

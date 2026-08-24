@@ -294,7 +294,7 @@ export const renderPlagueDetail = async (req, res) => {
       name: p.name,
       activeIngredient: p.active_ingredient,
       manufacturer: p.manufacturer,
-      imageUrl: p.image_url,
+      image_Url: p.image_url,
       category: p.category,
       isValidated: p.validation_status === 'Validado',
     }));
@@ -337,7 +337,7 @@ export const renderPlagueDetail = async (req, res) => {
         scientificName: plague.scientific_name,
         category: plague.category,
         description: plague.description,
-        imageUrl: plague.image_url,
+        image_Url: plague.image_url | '/images/test/default.png',
         symptoms: plague.symptoms,
         controlMethods: plague.control_methods,
         biologicalControl: plague.biological_control,
