@@ -1,6 +1,6 @@
 export default {
   async up(queryInterface, Sequelize) {
-    // Buscamos los usuarios creados para no adivinar sus IDs
+    await queryInterface.bulkDelete('Farms', null, {});
     const users = await queryInterface.sequelize.query(
       `SELECT id FROM "Users";`,
     );
@@ -13,10 +13,10 @@ export default {
       [
         {
           name: 'Huerta El Milagro',
-          location_lat: 19.432608, // Coordenadas dummy para el mapa Leaflet
+          location_lat: 19.432608,
           location_lng: -99.133209,
           size_hectares: 5.5,
-          user_id: userRows[0].id, // Se le asigna al Admin
+          user_id: userRows[0].id,
           createdAt: new Date(),
           updatedAt: new Date(),
         },
@@ -25,7 +25,7 @@ export default {
           location_lat: 19.435,
           location_lng: -99.14,
           size_hectares: 2.0,
-          user_id: userRows[1] ? userRows[1].id : userRows[0].id, // Se le asigna a Juan
+          user_id: userRows[1] ? userRows[1].id : userRows[0].id,
           createdAt: new Date(),
           updatedAt: new Date(),
         },

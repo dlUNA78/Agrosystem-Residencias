@@ -1,121 +1,43 @@
-'use strict';
-
-/** @type {import('sequelize-cli').Migration} */
 export default {
-  async up(queryInterface, Sequelize) {
+  async up(queryInterface) {
     const now = new Date();
-
-    // Obtener los ids de las plagas y regiones insertadas
-    const plagues = await queryInterface.sequelize.query(
-      `SELECT id, name FROM "Plagues";`,
-    );
-    const regions = await queryInterface.sequelize.query(
-      `SELECT id, name FROM "Regions";`,
-    );
-
-    const plaguesRows = plagues[0];
-    const regionsRows = regions[0];
-
-    // Helper para buscar ID por nombre
-    const getPlagueId = (name) => plaguesRows.find((p) => p.name === name)?.id;
-    const getRegionId = (name) => regionsRows.find((r) => r.name === name)?.id;
-
-    const plagueRegions = [];
-
-    // Pulgón Verde (Alto) - El Bajío, Norte de Tamaulipas, Sonora
-    const pulgonVerdeId = getPlagueId('Pulgón Verde');
-    if (pulgonVerdeId) {
-      const regionNames = [
-        'El Bajío',
-        'Norte de Tamaulipas',
-        'Sonora',
-        'Sinaloa',
-      ];
-      regionNames.forEach((name, index) => {
-        const rId = getRegionId(name);
-        if (rId) {
-          plagueRegions.push({
-            plague_id: pulgonVerdeId,
-            region_id: rId,
-            risk_level:
-              index === 0 || index === 2
-                ? 'Alto'
-                : index === 1
-                  ? 'Medio'
-                  : 'Bajo',
-            createdAt: now,
-            updatedAt: now,
-          });
-        }
-      });
-    }
-
-    // Roya Amarilla del Trigo (Alto) - Sonora, Sinaloa, Guanajuato, Jalisco
-    const royaAmarillaId = getPlagueId('Roya Amarilla del Trigo');
-    if (royaAmarillaId) {
-      const regionNames = ['Sonora', 'Sinaloa', 'Guanajuato', 'Jalisco'];
-      regionNames.forEach((name, index) => {
-        const rId = getRegionId(name);
-        if (rId) {
-          plagueRegions.push({
-            plague_id: royaAmarillaId,
-            region_id: rId,
-            risk_level: index === 0 ? 'Alto' : index === 1 ? 'Medio' : 'Bajo',
-            createdAt: now,
-            updatedAt: now,
-          });
-        }
-      });
-    }
-
-    // Gusano Cogollero (Alto) - Veracruz, Tabasco, Chiapas, Oaxaca, Jalisco
-    const gusanoCogolleroId = getPlagueId('Gusano Cogollero');
-    if (gusanoCogolleroId) {
-      const regionNames = [
-        'Veracruz',
-        'Tabasco',
-        'Chiapas',
-        'Oaxaca',
-        'Jalisco',
-      ];
-      regionNames.forEach((name, index) => {
-        const rId = getRegionId(name);
-        if (rId) {
-          plagueRegions.push({
-            plague_id: gusanoCogolleroId,
-            region_id: rId,
-            risk_level: index < 2 ? 'Alto' : index < 4 ? 'Medio' : 'Bajo',
-            createdAt: now,
-            updatedAt: now,
-          });
-        }
-      });
-    }
-
-    // Cenicilla Polvorienta (Medio) - Sonora, Sinaloa, Baja California
-    const cenicillaId = getPlagueId('Cenicilla Polvorienta');
-    if (cenicillaId) {
-      const regionNames = ['Sonora', 'Sinaloa'];
-      regionNames.forEach((name, index) => {
-        const rId = getRegionId(name);
-        if (rId) {
-          plagueRegions.push({
-            plague_id: cenicillaId,
-            region_id: rId,
-            risk_level: index === 0 ? 'Medio' : 'Bajo',
-            createdAt: now,
-            updatedAt: now,
-          });
-        }
-      });
-    }
-
-    if (plagueRegions.length > 0) {
-      await queryInterface.bulkInsert('PlagueRegions', plagueRegions);
-    }
-  },
-
-  async down(queryInterface, Sequelize) {
     await queryInterface.bulkDelete('PlagueRegions', null, {});
+
+    const [plagues] = await queryInterface.sequelize.query(`SELECT id, name FROM "Plagues";`);
+    const [regions] = await queryInterface.sequelize.query(`SELECT id, name FROM "Regions";`);
+
+    const getPId = (name) => plagues.find((p) => p.name === name)?.id;
+    const getRId = (name) => regions.find((r) => r.name === name)?.id;
+
+    const relations = [
+      { plague_id: getPId('Cenicilla Polvorienta'), region_id: getRId('Michoacán'), risk_level: 'Medio' },
+      { plague_id: getPId('Cenicilla Polvorienta'), region_id: getRId('Sinaloa'), risk_level: 'Medio' },
+      { plague_id: getPId('Gusano Cogollero'), region_id: getRId('El Bajío'), risk_level: 'Alto' },
+      { plague_id: getPId('Gusano Cogollero'), region_id: getRId('Michoacán'), risk_level: 'Alto' },
+      { plague_id: getPId('Mosca del Mediterráneo'), region_id: getRId('Chiapas'), risk_level: 'Alto' },
+      { plague_id: getPId('Psílido Asiático de los Cítricos'), region_id: getRId('Michoacán'), risk_level: 'Alto' },
+      { plague_id: getPId('Psílido Asiático de los Cítricos'), region_id: getRId('Colima'), risk_level: 'Alto' },
+      { plague_id: getPId('Psílido Asiático de los Cítricos'), region_id: getRId('Veracruz'), risk_level: 'Medio' },
+      { plague_id: getPId('Pulgón Verde'), region_id: getRId('El Bajío'), risk_level: 'Medio' },
+      { plague_id: getPId('Pulgón Verde'), region_id: getRId('Sonora'), risk_level: 'Alto' },
+      { plague_id: getPId('Roya Amarilla del Trigo'), region_id: getRId('Sonora'), risk_level: 'Alto' },
+      { plague_id: getPId('Roya Amarilla del Trigo'), region_id: getRId('El Bajío'), risk_level: 'Medio' },
+      { plague_id: getPId('Tizón Tardío'), region_id: getRId('Estado de México'), risk_level: 'Alto' },
+      { plague_id: getPId('Tizón Tardío'), region_id: getRId('Puebla'), risk_level: 'Alto' },
+      { plague_id: getPId('Trips Oriental'), region_id: getRId('Sinaloa'), risk_level: 'Alto' },
+      { plague_id: getPId('Trips Oriental'), region_id: getRId('Michoacán'), risk_level: 'Medio' }
+    ].filter((rel) => rel.plague_id && rel.region_id);
+
+    if (relations.length > 0) {
+      await queryInterface.bulkInsert(
+        'PlagueRegions',
+        relations.map((r) => ({ ...r, createdAt: now, updatedAt: now })),
+        {}
+      );
+    }
   },
+
+  async down(queryInterface) {
+    await queryInterface.bulkDelete('PlagueRegions', null, {});
+  }
 };
