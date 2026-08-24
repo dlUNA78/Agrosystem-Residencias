@@ -10,7 +10,7 @@ export default {
     if (!crops.length) return;
 
     const imageMap = {
-      'Maíz': '/images/cultivos/maíz.jpg',
+      'Maíz': '/images/cultivos/maiz.jpg',
       'Trigo': '/images/cultivos/trigo.jpg',
       'Limón Mexicano': '/images/cultivos/limon-mexicano.jpg',
       'Naranja Dulce': '/images/cultivos/naranja-dulce.jpg',

@@ -17,7 +17,7 @@ export default {
         optimal_climate: 'Templado a cálido (18°C a 30°C)',
         region: 'El Bajío',
         state: 'Guanajuato, Michoacán, Sinaloa',
-        image_url: '/images/cultivos/maíz.jpg',
+        image_url: '/images/cultivos/maiz.jpg',
         description: 'Cereal base de la alimentación, cultivado tanto en regadío como en temporal.',
         createdAt: now,
         updatedAt: now
