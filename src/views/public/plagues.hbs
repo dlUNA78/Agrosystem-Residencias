@@ -1,192 +1,200 @@
-<div class="pt-4 pb-24">
-  <!-- Header Section -->
-  <header class="max-w-[1440px] mx-auto px-10 mb-16">
-    <div class="flex flex-col md:flex-row md:items-end justify-between gap-8">
-      <div class="max-w-2xl">
-        <span
-          class="inline-block px-3 py-1 mb-4 rounded-full bg-primary-container text-on-primary-container font-label text-xs font-bold tracking-wider uppercase"
-        >Base de Datos Científica</span>
-        <h1
-          class="text-5xl md:text-6xl font-headline font-extrabold tracking-tighter text-on-surface mb-4"
-        >
-          Catálogo de Plagas</h1>
-        <p class="text-on-surface-variant text-lg font-medium leading-relaxed">
-          Explora nuestra enciclopedia especializada de agentes biológicos.
-          Información técnica para la gestión inteligente de cultivos.
-        </p>
-      </div>
-      <div
-        class="bg-surface-container rounded-xl p-6 ghost-border flex flex-col items-center justify-center min-w-[200px]"
-      >
-        <span
-          class="text-4xl font-headline font-extrabold text-primary tracking-tighter"
-        >{{totalCount}}</span>
-        <span
-          class="text-xs font-label uppercase tracking-widest text-on-surface-variant font-bold mt-1"
-        >especies registradas</span>
-      </div>
-    </div>
-    <!-- Search & Filters -->
-    <div class="mt-12 p-2 bg-surface-container-low rounded-2xl ghost-border">
-      <div class="flex flex-col lg:flex-row gap-2">
-        <div class="flex-1 relative flex items-center">
-          <span
-            class="material-symbols-outlined absolute left-4 text-on-surface-variant"
-          >search</span>
-          <input
-            id="search-input"
-            class="w-full bg-surface-container-lowest border-none rounded-xl py-4 pl-12 pr-4 text-on-surface placeholder:text-on-surface-variant/60 focus:ring-2 focus:ring-primary/20 transition-all font-body"
-            placeholder="Buscar por nombre, género o síntoma..."
-            type="text"
-          />
+<!-- Área Principal del Catálogo de Plagas (/plagas) -->
+<main class="font-['Geist'] antialiased">
+  <section aria-labelledby="catalogo-title" class="bg-background min-h-screen pb-20">
+    <div class="mx-auto max-w-7xl px-6 py-10 md:py-14">
+    
+      <!-- Encabezado de la Sección idéntico a docs/Migración.md -->
+      <div class="grid gap-8 border-b border-border pb-10 md:grid-cols-[1.7fr_1fr] md:items-end">
+        <div class="flex flex-col gap-3">
+          <p class="text-mono-label text-[#1b4332] font-semibold tracking-wider">
+            SISTEMA NACIONAL DE VIGILANCIA FITOSANITARIA · BASE DE DATOS CIENTÍFICA
+          </p>
+          <h1 id="catalogo-title" class="text-4xl font-headline font-extrabold leading-[1.05] tracking-tight text-foreground md:text-5xl">
+            Catálogo de Plagas
+          </h1>
+          <p class="max-w-xl text-sm leading-relaxed text-muted-foreground">
+            Enciclopedia especializada de agentes biológicos de importancia agrícola. Información técnica verificada para la gestión inteligente de cultivos y el manejo integrado.
+          </p>
         </div>
-        <div class="flex flex-wrap md:flex-nowrap gap-2">
-          <select id="category-filter"
-            class="bg-surface-container-lowest border-none rounded-xl py-4 px-6 text-sm font-semibold text-on-surface-variant focus:ring-2 focus:ring-primary/20 appearance-none min-w-[140px]"
-          >
-            <option>Categoría</option>
-            <option>Insectos</option>
-            <option>Hongos</option>
-            <option>Bacterias</option>
-            <option>Virus</option>
-          </select>
-          <select id="region-filter"
-            class="bg-surface-container-lowest border-none rounded-xl py-4 px-6 text-sm font-semibold text-on-surface-variant focus:ring-2 focus:ring-primary/20 appearance-none min-w-[140px]"
-          >
-            <option>Región</option>
-            {{#each regions}}
-            <option>{{this}}</option>
-            {{/each}}
-          </select>
-          <select id="risk-filter"
-            class="bg-surface-container-lowest border-none rounded-xl py-4 px-6 text-sm font-semibold text-on-surface-variant focus:ring-2 focus:ring-primary/20 appearance-none min-w-[140px]"
-          >
-            <option>Riesgo</option>
-            <option>Crítico</option>
-            <option>Moderado</option>
-            <option>Bajo</option>
-          </select>
-          <button id="filter-btn" style="display:none;"
-            class="bg-primary text-on-primary px-8 py-4 rounded-xl font-bold text-sm hover:bg-primary-dim transition-colors flex items-center gap-2"
-          >
-            <span class="material-symbols-outlined text-sm">filter_list</span>
-            Filtrar Resultados
-          </button>
-        </div>
-      </div>
-    </div>
-  </header>
-  <!-- Catalog Grid -->
-  <section class="max-w-[1440px] mx-auto px-10">
-    <div id="plagues-grid"
-      class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
-    >
 
-      {{#each plagues}}
-        <article
-          class="group bg-surface-container-lowest rounded-xl overflow-hidden editorial-shadow ghost-border flex flex-col hover:translate-y-[-4px] transition-all duration-300"
-        >
-          <div class="relative h-56 overflow-hidden">
-            <img
-              class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-              src="{{this.imageUrl}}"
-              alt="{{this.name}}"
-            />
-            <div class="absolute top-4 left-4">
-              <span
-                class="px-2 py-1 rounded
-                  {{this.riskBadgeClass}}
-                  text-[10px] font-bold uppercase tracking-wider"
-              >
-                {{this.riskLabel}}
+        <!-- Muestra de Métricas Institucionales -->
+        <dl class="grid grid-cols-2 divide-x divide-border border border-border rounded-lg bg-card shadow-2xs overflow-hidden">
+          <div class="flex flex-col gap-1 p-4 text-center sm:text-left">
+            <dd class="font-mono text-3xl font-medium tabular-nums text-[#1b4332]" id="total-count-number-header">{{totalCount}}</dd>
+            <dt class="text-mono-label text-muted-foreground font-medium">Especies registradas</dt>
+          </div>
+          <div class="flex flex-col gap-1 p-4 text-center sm:text-left">
+            <dd class="font-mono text-3xl font-medium tabular-nums text-[#1b4332]">100%</dd>
+            <dt class="text-mono-label text-muted-foreground font-medium">Validación INIFAP</dt>
+          </div>
+        </dl>
+      </div>
+
+      <!-- BARRA PEGAJOSA DE BUSCADOR Y FILTROS CON EFECTO DE FUSIÓN (sticky top-[57px]) -->
+      <div class="sticky top-[57px] z-30 -mx-6 mb-8 border-b border-border bg-background/95 px-6 py-4 backdrop-blur supports-[backdrop-filter]:bg-background/80 shadow-2xs">
+        <form action="/plagues" method="GET" id="form-filtros" onsubmit="return false;">
+          <div class="flex flex-col gap-3 lg:flex-row lg:items-center">
+          
+            <!-- Campo de Búsqueda -->
+            <div class="relative flex-1">
+              <span class="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-lg">search</span>
+              <input
+                id="search-input"
+                name="search"
+                type="search"
+                value="{{query}}"
+                placeholder="Buscar por nombre común, científico, género, familia o cultivo…"
+                class="h-10 w-full border border-input bg-card pl-10 pr-4 text-sm rounded-md outline-none transition-all placeholder:text-muted-foreground focus-visible:border-[#1b4332] focus-visible:ring-2 focus-visible:ring-[#1b4332]/20"
+              />
+            </div>
+
+            <!-- Dropdowns de Filtrado -->
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-3 lg:w-auto lg:flex">
+            
+              <!-- Filtro Categoría -->
+              <div class="relative lg:w-44">
+                <select id="category-filter" name="category" class="h-10 w-full appearance-none border border-input bg-card px-3 pr-8 text-sm rounded-md outline-none transition-colors focus-visible:border-[#1b4332] text-foreground font-medium cursor-pointer">
+                  <option value="Categoría">Categoría · Todas</option>
+                  <option value="Insectos">Insectos</option>
+                  <option value="Hongos">Hongos</option>
+                  <option value="Bacterias">Bacterias</option>
+                  <option value="Virus">Virus</option>
+                  <option value="Ácaros">Ácaros</option>
+                </select>
+                <span class="material-symbols-outlined pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">expand_more</span>
+              </div>
+
+              <!-- Filtro Región -->
+              <div class="relative lg:w-44">
+                <select id="region-filter" name="region" class="h-10 w-full appearance-none border border-input bg-card px-3 pr-8 text-sm rounded-md outline-none transition-colors focus-visible:border-[#1b4332] text-foreground font-medium cursor-pointer">
+                  <option value="Región">Región · Todas</option>
+                  {{#each regions}}
+                    <option value="{{this}}">{{this}}</option>
+                  {{/each}}
+                </select>
+                <span class="material-symbols-outlined pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">expand_more</span>
+              </div>
+
+              <!-- Filtro Riesgo -->
+              <div class="relative lg:w-44">
+                <select id="risk-filter" name="risk" class="h-10 w-full appearance-none border border-input bg-card px-3 pr-8 text-sm rounded-md outline-none transition-colors focus-visible:border-[#1b4332] text-foreground font-medium cursor-pointer">
+                  <option value="Riesgo">Riesgo · Todos</option>
+                  <option value="Crítico">Crítico</option>
+                  <option value="Moderado">Moderado</option>
+                  <option value="Bajo">Bajo</option>
+                </select>
+                <span class="material-symbols-outlined pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">expand_more</span>
+              </div>
+
+              <button id="filter-btn" type="button" class="hidden">Filtrar</button>
+            </div>
+          </div>
+
+          <!-- Barra de Estado de Filtros -->
+          <div class="mt-3 flex items-center justify-between gap-4">
+            <p class="text-mono-label flex items-center gap-2 text-muted-foreground font-medium">
+              <span id="total-count-number" class="font-mono font-bold text-foreground tabular-nums">{{totalCount}}</span> especies encontradas
+            </p>
+            <a href="/plagues" class="inline-flex items-center gap-1 text-xs font-semibold text-[#1b4332] hover:underline">
+              ✕ Limpiar filtros
+            </a>
+          </div>
+        </form>
+      </div>
+
+      <!-- REJILLA DE TARJETAS DE PLAGA (PESTCARD) CON DISEÑO ESTRUCTURADO v0 -->
+      <div id="plagues-grid" class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {{#each plagues}}
+          <article class="group flex flex-col border border-border bg-card transition-all duration-200 hover:border-[#1b4332]/40 rounded-lg overflow-hidden shadow-2xs hover:shadow-md">
+          
+            <!-- 1. Barra de Nivel de Riesgo Superior -->
+            <div class="h-1 w-full {{#if (eq this.riskLabel 'Crítico')}}bg-rose-600{{else if (eq this.riskLabel 'Moderado')}}bg-amber-500{{else}}bg-emerald-600{{/if}}"></div>
+
+            <!-- 2. Marco de Imagen a Color Natural -->
+            <div class="relative aspect-[4/3] overflow-hidden bg-muted">
+              <img
+                src="{{this.imageUrl}}"
+                alt="{{this.name}}"
+                class="size-full object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+              <div aria-hidden="true" class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none"></div>
+            
+              <!-- Badge de Riesgo (Top-Left) -->
+              <div class="absolute left-3 top-3 flex items-center gap-1.5 bg-card/90 px-2 py-1 backdrop-blur rounded-md border border-border shadow-2xs">
+                <span aria-hidden="true" class="inline-block size-1.5 rounded-full {{#if (eq this.riskLabel 'Crítico')}}bg-rose-600 animate-pulse{{else if (eq this.riskLabel 'Moderado')}}bg-amber-500{{else}}bg-emerald-600{{/if}}"></span>
+                <span class="text-mono-label text-foreground capitalize font-bold">{{this.riskLabel}}</span>
+              </div>
+
+              <!-- Crédito de Imagen Minimalista (Bottom-Left) -->
+              <span class="absolute left-3 bottom-3 text-mono-label text-[10px] text-white/90 font-mono tracking-wider drop-shadow-xs select-none">
+                {{#if this.imageCredit}}{{this.imageCredit}}{{else}}ACERVO FOTO · INIFAP{{/if}}
               </span>
             </div>
-          </div>
-          <div class="p-6 flex-1 flex flex-col">
-            <span
-              class="text-[10px] font-label font-bold uppercase tracking-widest text-primary mb-2"
-            >
-              {{this.category}}
-            </span>
-            <h3
-              class="text-xl font-headline font-bold text-on-surface mb-1 leading-tight"
-            >
-              {{this.name}}
-            </h3>
-            <p class="text-sm italic text-on-surface-variant mb-4">
-              {{this.scientificName}}
-            </p>
-            <p
-              class="text-sm text-on-surface-variant line-clamp-2 leading-relaxed mb-6"
-            >
-              {{this.description}}
-            </p>
-            <div
-              class="mt-auto pt-4 border-t border-surface-container flex justify-between items-center"
-            >
-              <a
-                href="/plagues/{{this.id}}"
-                class="text-primary font-bold text-sm flex items-center gap-1 group/btn"
-              >
-                Ver detalle
-                <span
-                  class="material-symbols-outlined text-sm group-hover/btn:translate-x-1 transition-transform"
-                >arrow_forward</span>
-              </a>
+
+            <!-- 3. Contenido de la Tarjeta -->
+            <div class="flex flex-1 flex-col gap-3 p-5">
+            
+              <!-- Taxonomía / Categoría -->
+              <p class="text-mono-label text-muted-foreground font-semibold">
+                {{this.category}} — VIGILANCIA SANITARIA
+              </p>
+
+              <!-- Nombre Común H3 + Nombre Científico -->
+              <div class="flex flex-col gap-1">
+                <h3 class="text-lg font-headline font-bold leading-tight tracking-tight text-foreground group-hover:text-[#1b4332] transition-colors">
+                  {{this.name}}
+                </h3>
+                <p class="font-mono text-xs italic text-muted-foreground">{{this.scientificName}}</p>
+              </div>
+
+              <!-- Descripción corta -->
+              <p class="line-clamp-3 text-sm leading-relaxed text-muted-foreground">
+                {{this.description}}
+              </p>
+
+              <!-- Pie de Tarjeta: Estatus + Enlace a Ficha Técnica -->
+              <div class="mt-auto flex items-end justify-between gap-4 border-t border-border pt-4">
+                <div class="flex flex-col gap-0.5">
+                  <span class="text-mono-label text-muted-foreground">Estatus fitosanitario</span>
+                  <span class="text-xs font-semibold text-emerald-800">Verificado INIFAP</span>
+                </div>
+                <a href="/plagues/{{this.id}}" class="inline-flex shrink-0 items-center gap-1 text-xs font-bold text-[#1b4332] hover:underline">
+                  Ficha técnica →
+                </a>
+              </div>
+
             </div>
-          </div>
-        </article>
-      {{/each}}
+          </article>
+        {{/each}}
 
-      {{! Card CTA fija al final }}
-      <article id="cta-new-species"
-        class="group bg-surface-container-lowest rounded-xl overflow-hidden editorial-shadow ghost-border flex flex-col hover:translate-y-[-4px] transition-all duration-300 border-2 border-dashed border-primary/20 items-center justify-center p-8"
-      >
-        <div class="text-center">
-          <span
-            class="material-symbols-outlined text-4xl text-primary/40 mb-4"
-          >add_circle</span>
-          <h3
-            class="text-lg font-headline font-bold text-on-surface mb-2"
-          >¿Nueva especie?</h3>
-          <p class="text-xs text-on-surface-variant leading-relaxed mb-6">
-            Colabora con nuestra red científica reportando una nueva plaga.
+        <!-- Card CTA fija al final para solicitar registro de nueva especie -->
+        <article id="cta-new-species" class="group flex flex-col items-center justify-center p-8 border-2 border-dashed border-border hover:border-[#1b4332]/40 rounded-lg bg-card/60 hover:bg-card transition-all text-center">
+          <span class="material-symbols-outlined text-4xl text-[#1b4332]/60 mb-3">add_circle</span>
+          <h3 class="text-base font-headline font-bold text-foreground mb-1">¿Nueva especie?</h3>
+          <p class="text-xs text-muted-foreground leading-relaxed mb-5 max-w-[200px]">
+            Colabora con nuestra red científica reportando una nueva plaga o brote.
           </p>
-          <button
-            class="px-6 py-2 bg-surface-container-high rounded-full text-xs font-bold text-primary uppercase tracking-wider hover:bg-primary-container transition-colors"
-          >
+          <a href="/forum" class="px-4 py-2 bg-secondary hover:bg-emerald-100 text-[#1b4332] text-xs font-bold rounded-md border border-border transition-colors">
             Solicitar registro
+          </a>
+        </article>
+      </div>
+
+      <!-- Paginación Dinámica -->
+      <div class="mt-12 flex justify-center" id="pagination-container" {{#if (eq totalPages 1)}}style="display:none;"{{/if}}>
+        <nav class="flex items-center gap-2 bg-card border border-border p-1.5 rounded-lg shadow-2xs">
+          <button id="prev-page-btn" disabled class="w-9 h-9 flex items-center justify-center rounded-md hover:bg-secondary text-foreground disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors">
+            <span class="material-symbols-outlined text-xl">chevron_left</span>
           </button>
-        </div>
-      </article>
+
+          <span id="current-page-display" class="px-4 text-xs font-mono font-semibold text-foreground">Página {{currentPage}} de {{totalPages}}</span>
+
+          <button id="next-page-btn" {{#if (eq currentPage totalPages)}}disabled{{/if}} class="w-9 h-9 flex items-center justify-center rounded-md hover:bg-secondary text-foreground disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors">
+            <span class="material-symbols-outlined text-xl">chevron_right</span>
+          </button>
+        </nav>
+      </div>
 
     </div>
-
-    {{! Contador dinámico debajo del grid }}
-    <p id="total-count-text" class="mt-8 text-center text-sm text-on-surface-variant">
-      Mostrando
-      <span id="total-count-number">{{totalCount}}</span>
-      plagas registradas
-    </p>
-
-    {{! Paginación — estática por ahora, se dinamiza en la tarea de paginación }}
-    <div class="mt-12 flex justify-center" id="pagination-container" style="{{#if (eq totalPages 1)}}display:none;{{/if}}">
-      <nav class="flex items-center gap-1 bg-surface-container p-1 rounded-xl">
-        <button id="prev-page-btn" disabled
-          class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-surface-container-highest text-on-surface-variant disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <span class="material-symbols-outlined">chevron_left</span>
-        </button>
-
-        <span id="current-page-display" class="px-4 text-sm font-bold text-on-surface-variant">Página {{currentPage}} de {{totalPages}}</span>
-
-        <button id="next-page-btn" {{#if (eq currentPage totalPages)}}disabled{{/if}}
-          class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-surface-container-highest text-on-surface-variant disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <span class="material-symbols-outlined">chevron_right</span>
-        </button>
-      </nav>
-    </div>
-
   </section>
-</div>
+</main>

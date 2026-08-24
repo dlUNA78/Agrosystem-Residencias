@@ -85,43 +85,59 @@ document.addEventListener('DOMContentLoaded', () => {
     plagues.forEach((plague) => {
       const article = document.createElement('article');
       article.className =
-        'group bg-surface-container-lowest rounded-xl overflow-hidden editorial-shadow ghost-border flex flex-col hover:translate-y-[-4px] transition-all duration-300';
+        'group flex flex-col border border-border bg-card transition-all duration-200 hover:border-[#1b4332]/40 rounded-lg overflow-hidden shadow-2xs hover:shadow-md';
 
       const safeImageUrl = encodeURI(plague.imageUrl || '');
       const safeName = escapeHTML(plague.name);
       const safeCategory = escapeHTML(plague.category);
       const safeScientificName = escapeHTML(plague.scientificName);
       const safeDescription = escapeHTML(plague.description);
-      const safeRiskBadgeClass = escapeHTML(plague.riskBadgeClass);
-      const safeRiskLabel = escapeHTML(plague.riskLabel);
+      const safeRiskLabel = escapeHTML(plague.riskLabel || 'Bajo');
       const safeId = escapeHTML(plague.id.toString());
 
+      const isCritical = safeRiskLabel === 'Crítico' || safeRiskLabel === 'Alto';
+      const isModerate = safeRiskLabel === 'Moderado' || safeRiskLabel === 'Medio';
+      const riskBarColor = isCritical ? 'bg-rose-600' : isModerate ? 'bg-amber-500' : 'bg-emerald-600';
+      const riskDotColor = isCritical ? 'bg-rose-600 animate-pulse' : isModerate ? 'bg-amber-500' : 'bg-emerald-600';
+
       article.innerHTML = `
-        <div class="relative h-56 overflow-hidden">
-          <img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" src="${safeImageUrl}" alt="${safeName}" />
-          <div class="absolute top-4 left-4">
-            <span class="px-2 py-1 rounded ${safeRiskBadgeClass} text-[10px] font-bold uppercase tracking-wider">
-              ${safeRiskLabel}
-            </span>
+        <div class="h-1 w-full ${riskBarColor}"></div>
+
+        <div class="relative aspect-[4/3] overflow-hidden bg-muted">
+          <img class="size-full object-cover transition-transform duration-500 group-hover:scale-105" src="${safeImageUrl}" alt="${safeName}" />
+          <div aria-hidden="true" class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none"></div>
+        
+          <div class="absolute left-3 top-3 flex items-center gap-1.5 bg-card/90 px-2 py-1 backdrop-blur rounded-md border border-border shadow-2xs">
+            <span aria-hidden="true" class="inline-block size-1.5 rounded-full ${riskDotColor}"></span>
+            <span class="text-mono-label text-foreground capitalize font-bold">${safeRiskLabel}</span>
           </div>
+
+          <span class="absolute left-3 bottom-3 text-mono-label text-[10px] text-white/90 font-mono tracking-wider drop-shadow-xs select-none">${escapeHTML(plague.imageCredit || 'ACERVO FOTO · INIFAP')}</span>
         </div>
-        <div class="p-6 flex-1 flex flex-col">
-          <span class="text-[10px] font-label font-bold uppercase tracking-widest text-primary mb-2">
-            ${safeCategory}
-          </span>
-          <h3 class="text-xl font-headline font-bold text-on-surface mb-1 leading-tight">
-            ${safeName}
-          </h3>
-          <p class="text-sm italic text-on-surface-variant mb-4">
-            ${safeScientificName}
+
+        <div class="flex flex-1 flex-col gap-3 p-5">
+          <p class="text-mono-label text-muted-foreground font-semibold">
+            ${safeCategory} — VIGILANCIA SANITARIA
           </p>
-          <p class="text-sm text-on-surface-variant line-clamp-2 leading-relaxed mb-6">
+
+          <div class="flex flex-col gap-1">
+            <h3 class="text-lg font-headline font-bold leading-tight tracking-tight text-foreground group-hover:text-[#1b4332] transition-colors">
+              ${safeName}
+            </h3>
+            <p class="font-mono text-xs italic text-muted-foreground">${safeScientificName}</p>
+          </div>
+
+          <p class="line-clamp-3 text-sm leading-relaxed text-muted-foreground">
             ${safeDescription}
           </p>
-          <div class="mt-auto pt-4 border-t border-surface-container flex justify-between items-center">
-            <a href="/plagues/${safeId}" class="text-primary font-bold text-sm flex items-center gap-1 group/btn">
-              Ver detalle
-              <span class="material-symbols-outlined text-sm group-hover/btn:translate-x-1 transition-transform">arrow_forward</span>
+
+          <div class="mt-auto flex items-end justify-between gap-4 border-t border-border pt-4">
+            <div class="flex flex-col gap-0.5">
+              <span class="text-mono-label text-muted-foreground">Estatus fitosanitario</span>
+              <span class="text-xs font-semibold text-emerald-800">Verificado INIFAP</span>
+            </div>
+            <a href="/plagues/${safeId}" class="inline-flex shrink-0 items-center gap-1 text-xs font-bold text-[#1b4332] hover:underline">
+              Ficha técnica →
             </a>
           </div>
         </div>
