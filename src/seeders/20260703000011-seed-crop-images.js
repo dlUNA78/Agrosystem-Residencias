@@ -10,19 +10,19 @@ export default {
     if (!crops.length) return;
 
     const imageMap = {
-      'Maíz': '/uploads/crops/maiz.jpg',
-      'Trigo': '/uploads/crops/trigo.jpg',
-      'Limón Mexicano': '/uploads/crops/limon.jpg',
-      'Naranja Dulce': '/uploads/crops/naranja.jpg',
-      'Jitomate': '/uploads/crops/jitomate.jpg',
-      'Papa': '/uploads/crops/papa.jpg',
-      'Calabacita': '/uploads/crops/calabacita.jpg'
+      'Maíz': '/images/cultivos/maíz.jpg',
+      'Trigo': '/images/cultivos/trigo.jpg',
+      'Limón Mexicano': '/images/cultivos/limon-mexicano.jpg',
+      'Naranja Dulce': '/images/cultivos/naranja-dulce.jpg',
+      'Jitomate': '/images/cultivos/jitomate.jpg',
+      'Papa': '/images/cultivos/papa.jpg',
+      'Calabacita': '/images/cultivos/calabacita.jpg'
     };
 
     const images = [];
 
     crops.forEach((crop) => {
-      const primaryUrl = imageMap[crop.name] || '/uploads/crops/default.jpg';
+      const primaryUrl = imageMap[crop.name] || '/images/cultivos/default.jpg';
 
       images.push({
         crop_id: crop.id,
