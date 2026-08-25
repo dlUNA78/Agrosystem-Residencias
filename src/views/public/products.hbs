@@ -1,103 +1,188 @@
-<div class="pt-4 pb-24">
-    <!-- Header Section -->
-    <header class="max-w-[1440px] mx-auto px-10 mb-16">
-        <div class="flex flex-col md:flex-row md:items-end justify-between gap-8">
-            <div class="max-w-2xl">
-                <span
-                    class="inline-block px-3 py-1 mb-4 rounded-full bg-primary-container text-on-primary-container font-label text-xs font-bold tracking-wider uppercase">Catálogo
-                    Científico</span>
-                <h1 class="text-5xl md:text-6xl font-headline font-extrabold tracking-tighter text-on-surface mb-4">
-                    Catálogo de Productos</h1>
-                <p class="text-on-surface-variant text-lg font-medium leading-relaxed">
-                    Explora nuestra biblioteca curada de soluciones agroquímicas validadas por INIFAP. Ciencia aplicada para la
-                    protección de cultivos de alto rendimiento.
-                </p>
-            </div>
-            <div
-                class="bg-surface-container rounded-xl p-6 ghost-border flex flex-col items-center justify-center min-w-[200px]">
-                <span class="text-4xl font-headline font-extrabold text-primary tracking-tighter">{{totalCount}}</span>
-                <span
-                    class="text-xs font-label uppercase tracking-widest text-on-surface-variant font-bold mt-1">productos
-                    catalogados</span>
-            </div>
+<!-- Área Principal del Catálogo de Productos (/products) -->
+<main class="font-['Geist'] antialiased">
+  <section aria-labelledby="catalogo-products-title" class="bg-background min-h-screen pb-20">
+    <div class="mx-auto max-w-7xl px-6 py-10 md:py-14">
+    
+      <!-- Encabezado de la Sección idéntico al estándar Geist INIFAP -->
+      <div class="grid gap-8 border-b border-border pb-10 md:grid-cols-[1.7fr_1fr] md:items-end">
+        <div class="flex flex-col gap-3">
+          <p class="text-mono-label text-[#1b4332] font-semibold tracking-wider">
+            SISTEMA NACIONAL DE REGISTRO FITOSANITARIO · INSUMOS Y AGROQUÍMICOS
+          </p>
+          <h1 id="catalogo-products-title" class="text-4xl font-headline font-extrabold leading-[1.05] tracking-tight text-foreground md:text-5xl">
+            Catálogo de Productos
+          </h1>
+          <p class="max-w-xl text-sm leading-relaxed text-muted-foreground">
+            Biblioteca curada de insumos agrícolas y agroquímicos validados por el INIFAP. Ciencia aplicada para la protección vegetal y nutrición de cultivos.
+          </p>
         </div>
-        <!-- Search & Filters -->
-        <form action="/products" method="GET" class="mt-12 p-2 bg-surface-container-low rounded-2xl ghost-border">
-            <div class="flex flex-col lg:flex-row gap-2">
-                <div class="flex-1 relative flex items-center">
-                    <span class="material-symbols-outlined absolute left-4 text-on-surface-variant">search</span>
-                    <input
-                        name="search"
-                        value="{{search}}"
-                        class="w-full bg-surface-container-lowest border-none rounded-xl py-4 pl-12 pr-4 text-on-surface placeholder:text-on-surface-variant/60 focus:ring-2 focus:ring-primary/20 transition-all font-body"
-                        placeholder="Buscar por producto, principio activo o fabricante..." type="text" />
-                </div>
-                <div class="flex flex-wrap md:flex-nowrap gap-2">
-                    <button
-                        type="submit"
-                        class="bg-primary text-on-primary px-8 py-4 rounded-xl font-bold text-sm hover:bg-primary-dim transition-colors flex items-center gap-2">
-                        <span class="material-symbols-outlined text-sm">filter_list</span>
-                        Buscar Productos
-                    </button>
-                </div>
-            </div>
-        </form>
-    </header>
 
-    <!-- Catalog Grid -->
-    <section class="max-w-[1440px] mx-auto px-10">
+        <!-- Muestra de Métricas Institucionales -->
+        <dl class="grid grid-cols-2 divide-x divide-border border border-border rounded-lg bg-card shadow-2xs overflow-hidden">
+          <div class="flex flex-col gap-1 p-4 text-center sm:text-left">
+            <dd class="font-mono text-3xl font-medium tabular-nums text-[#1b4332]" id="total-products-count-header">{{totalCount}}</dd>
+            <dt class="text-mono-label text-muted-foreground font-medium">Insumos registrados</dt>
+          </div>
+          <div class="flex flex-col gap-1 p-4 text-center sm:text-left">
+            <dd class="font-mono text-3xl font-medium tabular-nums text-[#1b4332]">100%</dd>
+            <dt class="text-mono-label text-muted-foreground font-medium">Validación INIFAP</dt>
+          </div>
+        </dl>
+      </div>
+
+      <!-- BARRA PEGAJOSA DE BUSCADOR Y FILTROS CON EFECTO DE FUSIÓN (sticky top-[57px]) -->
+      <div class="sticky top-[57px] z-30 -mx-6 mb-8 border-b border-border bg-background/95 px-6 py-4 backdrop-blur supports-[backdrop-filter]:bg-background/80 shadow-2xs">
+        <form action="/products" method="GET" id="form-filtros-products">
+          <div class="flex flex-col gap-3 lg:flex-row lg:items-center">
+          
+            <!-- Campo de Búsqueda -->
+            <div class="relative flex-1">
+              <span class="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-lg">search</span>
+              <input
+                id="search-products-input"
+                name="search"
+                type="search"
+                value="{{search}}"
+                placeholder="Buscar por producto, ingrediente activo, formulación o fabricante…"
+                class="h-10 w-full border border-input bg-card pl-10 pr-4 text-sm rounded-md outline-none transition-all placeholder:text-muted-foreground focus-visible:border-[#1b4332] focus-visible:ring-2 focus-visible:ring-[#1b4332]/20"
+              />
+            </div>
+
+            <!-- Dropdowns de Filtrado -->
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:w-auto lg:flex">
+            
+              <!-- Filtro Categoría -->
+              <div class="relative lg:w-52">
+                <select id="category-products-filter" name="category" class="h-10 w-full appearance-none border border-input bg-card px-3 pr-8 text-sm rounded-md outline-none transition-colors focus-visible:border-[#1b4332] text-foreground font-medium cursor-pointer">
+                  <option value="Categoría">Categoría · Todas</option>
+                  <option value="Fungicida">Fungicidas</option>
+                  <option value="Insecticida">Insecticidas</option>
+                  <option value="Herbicida">Herbicidas</option>
+                  <option value="Bioinsumo">Bioinsumos</option>
+                  <option value="Fertilizante">Fertilizantes</option>
+                  <option value="Coadyuvante">Coadyuvantes</option>
+                  <option value="Acaricida">Acaricidas</option>
+                  <option value="Bactericida">Bactericidas</option>
+                </select>
+                <span class="material-symbols-outlined pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">expand_more</span>
+              </div>
+
+              <button type="submit" class="h-10 bg-[#1b4332] hover:bg-[#1b4332]/90 text-white font-bold text-xs px-6 rounded-md transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
+                <span class="material-symbols-outlined text-sm">filter_list</span>
+                Filtrar
+              </button>
+            </div>
+          </div>
+
+          <!-- Barra de Estado de Filtros -->
+          <div class="mt-3 flex items-center justify-between gap-4">
+            <p class="text-mono-label flex items-center gap-2 text-muted-foreground font-medium">
+              <span id="total-products-count-number" class="font-mono font-bold text-foreground tabular-nums">{{totalCount}}</span> productos encontrados
+            </p>
+            <a href="/products" class="inline-flex items-center gap-1 text-xs font-semibold text-[#1b4332] hover:underline">
+              ✕ Limpiar filtros
+            </a>
+          </div>
+        </form>
+      </div>
+
+      <!-- REJILLA DE TARJETAS DE PRODUCTO -->
+      <section class="w-full">
         {{#if products.length}}
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-            {{#each products}}
-            <article
-                class="group bg-surface-container-lowest rounded-xl overflow-hidden editorial-shadow ghost-border flex flex-col hover:translate-y-[-4px] transition-all duration-300">
-                <a href="/products/{{id}}" class="relative h-56 overflow-hidden bg-emerald-50 block">
-                    {{#if image_url}}
-                    <img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                        alt="{{name}}"
-                        src="{{image_url}}"
-                        onerror="this.onerror=null; this.src='/images/test/default.png';" />
-                    {{else}}
-                    <img class="w-full h-full object-cover" src="/images/test/default.png" alt="Sin imagen" />
-                    {{/if}}
-                    <div class="absolute top-4 left-4">
-                        <span class="px-2.5 py-1 rounded bg-primary-container text-on-primary-container text-[10px] font-bold uppercase tracking-wider">
-                            {{#if category}}{{category}}{{else}}Fitosanitario{{/if}}
-                        </span>
-                    </div>
-                </a>
-                <div class="p-6 flex-1 flex flex-col">
-                    <span
-                        class="text-[10px] font-label font-bold uppercase tracking-widest text-primary mb-1">{{manufacturer}}</span>
-                    <h3 class="text-xl font-headline font-bold text-on-surface mb-1 leading-tight">
-                        <a href="/products/{{id}}" class="hover:text-primary transition-colors">
-                            {{name}}
-                        </a>
-                    </h3>
-                    {{#if active_ingredient}}
-                    <p class="text-xs font-semibold text-on-surface-variant mb-3">{{active_ingredient}}</p>
-                    {{/if}}
-                    <p class="text-sm text-on-surface-variant line-clamp-2 leading-relaxed mb-6">
-                        {{#if description}}{{description}}{{else}}Producto agroquímico registrado en el catálogo oficial.{{/if}}
-                    </p>
-                    <div class="mt-auto pt-4 border-t border-surface-container flex justify-between items-center">
-                        <a href="/products/{{id}}" class="text-primary font-bold text-sm flex items-center gap-1 group/btn">
-                            Ver detalle
-                            <span
-                                class="material-symbols-outlined text-sm group-hover/btn:translate-x-1 transition-transform">arrow_forward</span>
-                        </a>
-                    </div>
+        <div id="products-grid" class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {{#each products}}
+            <article class="group flex flex-col border border-border bg-card transition-all duration-200 hover:border-[#1b4332]/40 rounded-lg overflow-hidden shadow-2xs hover:shadow-md">
+            
+              <!-- 1. Barra de Acento Superior -->
+              <div class="h-1 w-full bg-[#1b4332]"></div>
+
+              <!-- 2. Marco de Imagen 4:3 con Crédito de Foto Minimalista -->
+              <div class="relative aspect-[4/3] overflow-hidden bg-muted">
+                {{#if image_url}}
+                  <img
+                    src="{{image_url}}"
+                    alt="{{name}}"
+                    class="size-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    onerror="this.onerror=null; this.src='/images/test/default.png';"
+                  />
+                {{else}}
+                  <img src="/images/test/default.png" alt="Sin imagen" class="size-full object-cover" />
+                {{/if}}
+                <div aria-hidden="true" class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none"></div>
+              
+                <!-- Badge Categoría (Top-Left) -->
+                <div class="absolute left-3 top-3 flex items-center gap-1.5 bg-card/90 px-2.5 py-1 backdrop-blur rounded-md border border-border shadow-2xs">
+                  <span aria-hidden="true" class="inline-block size-1.5 rounded-full bg-[#1b4332]"></span>
+                  <span class="text-mono-label text-foreground capitalize font-bold">{{#if category}}{{category}}{{else}}Fitosanitario{{/if}}</span>
                 </div>
+
+                <!-- Crédito de Imagen Minimalista (Bottom-Left) -->
+                <span class="absolute left-3 bottom-3 text-mono-label text-[10px] text-white/90 font-mono tracking-wider drop-shadow-xs select-none">
+                  REGISTRO TÉCNICO · INIFAP
+                </span>
+              </div>
+
+              <!-- 3. Contenido de la Tarjeta -->
+              <div class="flex flex-1 flex-col gap-3 p-5">
+              
+                <!-- Fabricante / Categoría -->
+                <p class="text-mono-label text-muted-foreground font-semibold">
+                  {{#if manufacturer}}{{manufacturer}}{{else}}FABRICANTE AUTORIZADO{{/if}} — COPRISAN
+                </p>
+
+                <!-- Nombre Comercial H3 + Ingrediente Activo -->
+                <div class="flex flex-col gap-1">
+                  <h3 class="text-lg font-headline font-bold leading-tight tracking-tight text-foreground group-hover:text-[#1b4332] transition-colors">
+                    <a href="/products/{{id}}">{{name}}</a>
+                  </h3>
+                  {{#if active_ingredient}}
+                    <p class="font-mono text-xs font-semibold text-[#1b4332]">{{active_ingredient}}</p>
+                  {{/if}}
+                </div>
+
+                <!-- Descripción corta -->
+                <p class="line-clamp-3 text-sm leading-relaxed text-muted-foreground">
+                  {{#if description}}{{description}}{{else}}Producto agroquímico registrado en el catálogo oficial del sistema INIFAP.{{/if}}
+                </p>
+
+                <!-- Pie de Tarjeta -->
+                <div class="mt-auto flex items-end justify-between gap-4 border-t border-border pt-4">
+                  <div class="flex flex-col gap-0.5">
+                    <span class="text-mono-label text-muted-foreground">Validación técnica</span>
+                    <span class="text-xs font-semibold text-emerald-800">Oficial INIFAP</span>
+                  </div>
+                  <a href="/products/{{id}}" class="inline-flex shrink-0 items-center gap-1 text-xs font-bold text-[#1b4332] hover:underline">
+                    Ver detalle →
+                  </a>
+                </div>
+
+              </div>
             </article>
-            {{/each}}
+          {{/each}}
+
+          <!-- Card CTA para solicitar registro de nuevo producto -->
+          <article class="group flex flex-col items-center justify-center p-8 border-2 border-dashed border-border hover:border-[#1b4332]/40 rounded-lg bg-card/60 hover:bg-card transition-all text-center">
+            <span class="material-symbols-outlined text-4xl text-[#1b4332]/60 mb-3">add_circle</span>
+            <h3 class="text-base font-headline font-bold text-foreground mb-1">¿Nuevo insumo?</h3>
+            <p class="text-xs text-muted-foreground leading-relaxed mb-5 max-w-[200px]">
+              Solicita la validación e inclusión de un producto agroquímico en el catálogo.
+            </p>
+            <a href="/private/products" class="px-4 py-2 bg-secondary hover:bg-emerald-100 text-[#1b4332] text-xs font-bold rounded-md border border-border transition-colors">
+              Solicitar registro
+            </a>
+          </article>
         </div>
+
         {{else}}
-        <div class="text-center py-20 bg-surface-container-lowest rounded-2xl ghost-border p-8">
-            <span class="material-symbols-outlined text-6xl text-on-surface-variant/40 mb-4">science</span>
-            <h3 class="text-xl font-bold text-on-surface mb-2">No se encontraron productos</h3>
-            <p class="text-sm text-on-surface-variant max-w-md mx-auto mb-6">No hay registros que coincidan con la búsqueda.</p>
-            <a href="/products" class="px-6 py-3 bg-primary text-on-primary font-bold text-xs rounded-xl hover:bg-primary-dim transition-colors inline-block">Ver todos los productos</a>
+        <div class="text-center py-20 bg-card border border-border rounded-lg p-8">
+          <span class="material-symbols-outlined text-6xl text-muted-foreground/40 mb-4">science</span>
+          <h3 class="text-xl font-bold text-foreground mb-2">No se encontraron productos</h3>
+          <p class="text-sm text-muted-foreground max-w-md mx-auto mb-6">No hay registros agroquímicos que coincidan con la búsqueda.</p>
+          <a href="/products" class="px-6 py-3 bg-[#1b4332] text-white font-bold text-xs rounded-md hover:bg-[#1b4332]/90 transition-colors inline-block">Ver todos los productos</a>
         </div>
         {{/if}}
-    </section>
-</div>
+      </section>
+
+    </div>
+  </section>
+</main>
