@@ -52,7 +52,7 @@ export const getCropsData = async (req, res) => {
         category: c.category || 'General',
         family: c.family,
         description: c.description,
-        image_url: primaryImg ? primaryImg.image_url : null,
+        image_url: primaryImg?.image_url || c.image_url,
         climate: c.climate,
         season: c.season,
         harvest_days: c.harvest_days,
@@ -122,7 +122,7 @@ export const renderCropsPublic = async (req, res) => {
         category: c.category || 'General',
         family: c.family,
         description: c.description,
-        image_url: primaryImg ? primaryImg.image_url : null,
+        image_url: primaryImg?.image_url || c.image_url,
         climate: c.climate,
         season: c.season,
         harvest_days: c.harvest_days,
@@ -213,7 +213,7 @@ export const renderCropDetail = async (req, res) => {
       activePage: 'crops',
       isPrivate: false,
       crop,
-      primaryImage: primaryImg ? primaryImg.image_url : null,
+      primaryImage: primaryImg?.image_url || crop.image_url,
       carouselImages: crop.images || [],
     });
   } catch (error) {
