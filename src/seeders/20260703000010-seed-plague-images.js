@@ -1,18 +1,14 @@
 /**
- * Seeder para PlagueImages — imágenes adicionales del carrusel.
- * Los plague_id deben coincidir con el orden de inserción del seeder de plagas:
- *   1 = Pulgón Verde
- *   2 = Roya Amarilla del Trigo
- *   3 = Gusano Cogollero
- *   4 = Cenicilla Polvorienta
- *
- * Se usan URLs de picsum.photos con seed fijo para imágenes consistentes.
+ * Seeder para PlagueImages — imágenes locales del carrusel y galería.
+ * Utiliza las rutas de la carpeta local /images/plagas/ definidas en la tabla Plagues.
  */
 export default {
   async up(queryInterface) {
-    // Obtener los IDs reales de las plagas insertadas
+    await queryInterface.bulkDelete('PlagueImages', null, {});
+
+    // Obtener los IDs y la imagen principal de las plagas insertadas
     const plagues = await queryInterface.sequelize.query(
-      `SELECT id, name FROM "Plagues" ORDER BY "createdAt" ASC`,
+      `SELECT id, name, image_url FROM "Plagues" ORDER BY "createdAt" ASC`,
       { type: queryInterface.sequelize.QueryTypes.SELECT },
     );
 
@@ -25,31 +21,24 @@ export default {
 
     const images = [];
 
-    plagues.forEach((plague, index) => {
-      const seed = plague.name.toLowerCase().replace(/\s+/g, '-');
-      images.push(
-        {
+    plagues.forEach((plague) => {
+      // 1. Imagen principal desde la carpeta local /images/plagas/
+      if (plague.image_url) {
+        images.push({
           plague_id: plague.id,
-          url: `https://picsum.photos/seed/${seed}-sintomas/1200/900`,
-          caption: `${plague.name} — Síntomas en campo`,
-          source: 'Ref: Centro de Investigación INIFAP',
-          sort_order: 1,
+          url: plague.image_url,
+          caption: `${plague.name} — Vista principal de muestra en campo`,
+          source: 'Banco de Germoplasma INIFAP',
+          sort_order: 0,
           createdAt: new Date(),
           updatedAt: new Date(),
-        },
-        {
-          plague_id: plague.id,
-          url: `https://picsum.photos/seed/${seed}-dano/1200/900`,
-          caption: `${plague.name} — Daño foliar avanzado`,
-          source: 'Ref: Estación Experimental INIFAP',
-          sort_order: 2,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
-      );
+        });
+      }
     });
 
-    await queryInterface.bulkInsert('PlagueImages', images);
+    if (images.length) {
+      await queryInterface.bulkInsert('PlagueImages', images);
+    }
   },
 
   async down(queryInterface) {

@@ -116,8 +116,8 @@ export const getPlaguesData = async (req, res) => {
 
     const plagues = rows.map((p) => {
       const risk = riskMap[p.risk_level] || defaultRisk;
-
       const firstImage = p.images?.[0];
+      const imgUrl = p.image_url || firstImage?.url || '/images/test/default.png';
 
       return {
         id: p.id,
@@ -126,8 +126,8 @@ export const getPlaguesData = async (req, res) => {
         category: p.category,
         description: p.description,
 
-        // La imagen ahora viene de PlagueImages
-        image_url: firstImage?.url || '/images/test/default.png',
+        image_url: imgUrl,
+        imageUrl: imgUrl,
 
         riskLabel: risk.label,
         riskBadgeClass: risk.badgeClass,
@@ -178,11 +178,8 @@ export const renderPlaguesPublic = async (req, res) => {
 
     const plagues = rows.map((p) => {
       const risk = riskMap[p.risk_level] || defaultRisk;
-
-      // La imagen viene de PlagueImages
       const firstImage = p.images?.[0];
-
-      console.log('PLAGA:', p.id, '| IMAGEN:', firstImage?.url || 'SIN IMAGEN');
+      const imgUrl = p.image_url || firstImage?.url || '/images/test/default.png';
 
       return {
         id: p.id,
@@ -191,8 +188,8 @@ export const renderPlaguesPublic = async (req, res) => {
         category: p.category,
         description: p.description,
 
-        // IMPORTANTE: esta propiedad coincide con el HBS
-        image_url: firstImage?.url || '/images/test/default.png',
+        image_url: imgUrl,
+        imageUrl: imgUrl,
 
         riskLabel: risk.label,
         riskBadgeClass: risk.badgeClass,
@@ -283,7 +280,11 @@ export const renderPlagueDetail = async (req, res) => {
     const carouselImages = (plague.images || [])
       .sort((a, b) => a.sort_order - b.sort_order)
       .map((img) => ({
-        url: img.url ? `/${img.url.replace(/^\/+/, '')}` : null,
+        url: img.url
+          ? img.url.startsWith('http')
+            ? img.url
+            : `/${img.url.replace(/^\/+/, '')}`
+          : null,
         caption: img.caption || plague.name,
         source: img.source || 'Banco de Germoplasma INIFAP',
       }));
@@ -294,7 +295,8 @@ export const renderPlagueDetail = async (req, res) => {
       name: p.name,
       activeIngredient: p.active_ingredient,
       manufacturer: p.manufacturer,
-      image_Url: p.image_url,
+      imageUrl: p.image_url,
+      image_url: p.image_url,
       category: p.category,
       isValidated: p.validation_status === 'Validado',
     }));
@@ -326,6 +328,8 @@ export const renderPlagueDetail = async (req, res) => {
       return orderA - orderB;
     });
 
+    const mainImageUrl = plague.image_url || (carouselImages[0]?.url) || '/images/test/default.png';
+
     res.render('shared/plague-detail', {
       layout: 'public',
       pageTitle: plague.name,
@@ -337,7 +341,8 @@ export const renderPlagueDetail = async (req, res) => {
         scientificName: plague.scientific_name,
         category: plague.category,
         description: plague.description,
-        image_Url: plague.image_url | '/images/test/default.png',
+        image_url: mainImageUrl,
+        imageUrl: mainImageUrl,
         symptoms: plague.symptoms,
         controlMethods: plague.control_methods,
         biologicalControl: plague.biological_control,

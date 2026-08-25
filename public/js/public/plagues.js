@@ -87,7 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
       article.className =
         'group flex flex-col border border-border bg-card transition-all duration-200 hover:border-[#1b4332]/40 rounded-lg overflow-hidden shadow-2xs hover:shadow-md';
 
-      const safeImageUrl = encodeURI(plague.imageUrl || '');
+      const safeImageUrl = encodeURI(plague.imageUrl || plague.image_url || '/images/test/default.png');
       const safeName = escapeHTML(plague.name);
       const safeCategory = escapeHTML(plague.category);
       const safeScientificName = escapeHTML(plague.scientificName);
@@ -104,7 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="h-1 w-full ${riskBarColor}"></div>
 
         <div class="relative aspect-[4/3] overflow-hidden bg-muted">
-          <img class="size-full object-cover transition-transform duration-500 group-hover:scale-105" src="${safeImageUrl}" alt="${safeName}" />
+          <img class="size-full object-cover transition-transform duration-500 group-hover:scale-105" src="${safeImageUrl}" alt="${safeName}" onerror="this.onerror=null; this.src='/images/test/default.png';" />
           <div aria-hidden="true" class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none"></div>
         
           <div class="absolute left-3 top-3 flex items-center gap-1.5 bg-card/90 px-2 py-1 backdrop-blur rounded-md border border-border shadow-2xs">

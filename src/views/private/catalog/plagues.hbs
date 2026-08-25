@@ -138,9 +138,9 @@
 
                                 {{#if image_url}}
 
-                                <img src="/{{image_url}}" alt="{{name}}"
+                                <img src="{{image_url}}" alt="{{name}}"
                                     class="w-14 h-14 rounded-xl object-cover ghost-border"
-                                    onerror="this.src='/images/test/default.png'">
+                                    onerror="this.onerror=null; this.src='/images/test/default.png';">
 
                                 {{else}}
 
@@ -560,7 +560,7 @@
                     {{#if image_url}}
 
                     <img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                        src="/{{image_url}}" alt="{{name}}" onerror="this.src='/images/test/default.png'">
+                        src="{{image_url}}" alt="{{name}}" onerror="this.onerror=null; this.src='/images/test/default.png';">
 
                     {{else}}
 

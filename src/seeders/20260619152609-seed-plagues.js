@@ -58,7 +58,7 @@ export default {
         },
         {
           name: 'Mosca del Mediterráneo',
-          scientific_name: 'Ceratitis capitata',z
+          scientific_name: 'Ceratitis capitata',
           category: 'Insectos',
           risk_level: 'Alto',
           region: 'Chiapas (Zona de Vigilancia)',
