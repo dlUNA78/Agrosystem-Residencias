@@ -80,11 +80,6 @@ export default (sequelize, DataTypes) => {
         allowNull: true,
       },
 
-      image_url: {
-        type: DataTypes.STRING(255),
-        allowNull: true,
-      },
-
       // 2. FICHA TÉCNICA AGRONÓMICA
       growth_cycle: {
         type: DataTypes.STRING(100),

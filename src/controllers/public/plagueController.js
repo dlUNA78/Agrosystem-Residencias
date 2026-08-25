@@ -98,28 +98,41 @@ export const getPlaguesData = async (req, res) => {
     }
 
     const { count, rows } = await Plague.findAndCountAll({
-      where,
-      include: includeModels,
+      where: where,
+      include: [
+        {
+          model: PlagueImage,
+          as: 'images',
+          required: false,
+          separate: true,
+          order: [['sort_order', 'ASC']],
+        },
+      ],
       order: [['createdAt', 'DESC']],
       limit,
-      offset,
+      offset: offset,
       distinct: true,
     });
 
     const plagues = rows.map((p) => {
-      const riskObj = riskMap[p.risk_level] || defaultRisk;
+      const risk = riskMap[p.risk_level] || defaultRisk;
+
+      const firstImage = p.images?.[0];
+
       return {
         id: p.id,
         name: p.name,
         scientificName: p.scientific_name,
         category: p.category,
         description: p.description,
-        imageUrl: p.image_url,
-        riskLabel: riskObj.label,
-        riskBadgeClass: riskObj.badgeClass,
+
+        // La imagen ahora viene de PlagueImages
+        image_url: firstImage?.url || '/images/test/default.png',
+
+        riskLabel: risk.label,
+        riskBadgeClass: risk.badgeClass,
       };
     });
-
     res.json({
       plagues,
       totalCount: count,
@@ -136,8 +149,20 @@ export const getPlaguesData = async (req, res) => {
 export const renderPlaguesPublic = async (req, res) => {
   try {
     const limit = 8;
+
     const { count, rows } = await Plague.findAndCountAll({
       where: { status: true },
+
+      include: [
+        {
+          model: PlagueImage,
+          as: 'images',
+          required: false,
+          separate: true,
+          order: [['sort_order', 'ASC']],
+        },
+      ],
+
       order: [['createdAt', 'DESC']],
       limit,
       offset: 0,
@@ -148,17 +173,27 @@ export const renderPlaguesPublic = async (req, res) => {
       attributes: ['name'],
       order: [['name', 'ASC']],
     });
+
     const regionNames = regionsDB.map((r) => r.name);
 
     const plagues = rows.map((p) => {
       const risk = riskMap[p.risk_level] || defaultRisk;
+
+      // La imagen viene de PlagueImages
+      const firstImage = p.images?.[0];
+
+      console.log('PLAGA:', p.id, '| IMAGEN:', firstImage?.url || 'SIN IMAGEN');
+
       return {
         id: p.id,
         name: p.name,
         scientificName: p.scientific_name,
         category: p.category,
         description: p.description,
-        imageUrl: p.image_url,
+
+        // IMPORTANTE: esta propiedad coincide con el HBS
+        image_url: firstImage?.url || '/images/test/default.png',
+
         riskLabel: risk.label,
         riskBadgeClass: risk.badgeClass,
       };
@@ -178,6 +213,7 @@ export const renderPlaguesPublic = async (req, res) => {
     });
   } catch (error) {
     console.error('Error en renderPlaguesPublic:', error);
+
     res.status(500).render('public/plagues', {
       pageTitle: 'Plagas',
       activePage: 'plagues',
@@ -247,7 +283,7 @@ export const renderPlagueDetail = async (req, res) => {
     const carouselImages = (plague.images || [])
       .sort((a, b) => a.sort_order - b.sort_order)
       .map((img) => ({
-        url: img.url,
+        url: img.url ? `/${img.url.replace(/^\/+/, '')}` : null,
         caption: img.caption || plague.name,
         source: img.source || 'Banco de Germoplasma INIFAP',
       }));
@@ -258,7 +294,7 @@ export const renderPlagueDetail = async (req, res) => {
       name: p.name,
       activeIngredient: p.active_ingredient,
       manufacturer: p.manufacturer,
-      imageUrl: p.image_url,
+      image_Url: p.image_url,
       category: p.category,
       isValidated: p.validation_status === 'Validado',
     }));
@@ -301,7 +337,7 @@ export const renderPlagueDetail = async (req, res) => {
         scientificName: plague.scientific_name,
         category: plague.category,
         description: plague.description,
-        imageUrl: plague.image_url,
+        image_Url: plague.image_url | '/images/test/default.png',
         symptoms: plague.symptoms,
         controlMethods: plague.control_methods,
         biologicalControl: plague.biological_control,

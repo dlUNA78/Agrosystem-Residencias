@@ -20,7 +20,7 @@ import {
 // ─── Controladores del módulo de plagas (sub-controlador modular) ────────────
 import {
   plaguesPrivate,
-  getPestDetail,
+  getPlagueDetail,
   createPlague,
   updatePlague,
   deletePlague,
@@ -123,17 +123,17 @@ privateRouter.post('/lands/create', createFarmPrivate); // Crear nueva parcela
 // ══════════════════════════════════════════════════════════════════════════════
 privateRouter.get('/private/plagues', plaguesPrivate); // Lista todas las plagas
 privateRouter.get('/private/catalog/plagues', plaguesPrivate); // Alias catálogo plagas
-privateRouter.get('/private/plagues/pulgon-verde', getPestDetail); // Detalle hardcoded de plaga (pulgón verde)
+privateRouter.get('/private/plagues/:id', getPlagueDetail); // Detalle de una plaga específica
 privateRouter.post(
   '/private/plagues/create',
   uploadPlague.single('image'),
   createPlague,
-); // Crear plaga (1 imagen)
+);
 privateRouter.post(
   '/private/plagues/update/:id',
   uploadPlague.single('image'),
   updatePlague,
-); // Actualizar plaga
+);
 privateRouter.post('/private/plagues/delete/:id', deletePlague); // Eliminar plaga
 
 // ══════════════════════════════════════════════════════════════════════════════

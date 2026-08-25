@@ -115,15 +115,20 @@ export const cropsPrivate = async (req, res) => {
 // Alias por consistencia
 export const renderCropsPrivate = cropsPrivate;
 
-// ============================================================
 // GET /private/crops/:id — Detalle del cultivo
-// ============================================================
 export const getCropDetail = async (req, res) => {
   try {
     const { id } = req.params;
 
+    // ============================================================
+    // OBTENER CULTIVO
+    // ============================================================
+
     const crop = await db.Crop.findByPk(id, {
       include: [
+        // ─────────────────────────────────────────────────────────
+        // IMÁGENES DEL CULTIVO
+        // ─────────────────────────────────────────────────────────
         {
           model: db.CropImage,
           as: 'images',
@@ -135,17 +140,34 @@ export const getCropDetail = async (req, res) => {
             'display_order',
           ],
           required: false,
+          separate: true,
+          order: [
+            ['is_primary', 'DESC'],
+            ['display_order', 'ASC'],
+          ],
         },
+
+        // ─────────────────────────────────────────────────────────
+        // PLAGAS RELACIONADAS
+        // ─────────────────────────────────────────────────────────
         {
           model: db.Plague,
           as: 'plagues',
           required: false,
         },
+
+        // ─────────────────────────────────────────────────────────
+        // TERRENOS / GRANJAS RELACIONADAS
+        // ─────────────────────────────────────────────────────────
         {
           model: db.Farm,
           as: 'farms',
           required: false,
         },
+
+        // ─────────────────────────────────────────────────────────
+        // PRODUCTOS RELACIONADOS
+        // ─────────────────────────────────────────────────────────
         {
           model: db.Product,
           as: 'products',
@@ -154,46 +176,126 @@ export const getCropDetail = async (req, res) => {
       ],
     });
 
+    // ============================================================
+    // CULTIVO NO ENCONTRADO
+    // ============================================================
+
     if (!crop) {
-      if (req.xhr || req.headers.accept?.includes('json')) {
-        return res
-          .status(404)
-          .json({ success: false, message: 'Cultivo no encontrado' });
+      const wantsJson = req.xhr || req.headers.accept?.includes('json');
+
+      if (wantsJson) {
+        return res.status(404).json({
+          success: false,
+          message: 'Cultivo no encontrado',
+        });
       }
+
       return res.status(404).send('Cultivo no encontrado');
     }
 
-    if (
-      req.xhr ||
-      (req.headers.accept &&
-        req.headers.accept.includes('json') &&
-        !req.headers.accept.includes('text/html'))
-    ) {
-      return res.json({ success: true, crop });
-    }
+    // ============================================================
+    // CONVERTIR SEQUELIZE A OBJETO NORMAL
+    // ============================================================
 
     const cropData = crop.toJSON();
+
+    // ============================================================
+    // NORMALIZAR IMÁGENES
+    // ============================================================
+
+    const images = Array.isArray(cropData.images) ? cropData.images : [];
+
+    // Buscar primero la imagen marcada como principal.
+    // Si no existe, utilizar la primera imagen disponible.
     const primaryImage =
-      cropData.images?.find((img) => img.is_primary) || cropData.images?.[0];
+      images.find((image) => image.is_primary === true) || images[0] || null;
+
+    // ============================================================
+    // NORMALIZAR TODAS LAS RUTAS DE IMÁGENES
+    // ============================================================
+
+    const normalizedImages = images.map((image) => ({
+      ...image,
+      image_url: image.image_url
+        ? `/${image.image_url.replace(/^\/+/, '')}`
+        : null,
+    }));
+
+    // ============================================================
+    // NORMALIZAR IMAGEN PRINCIPAL
+    // ============================================================
+
+    const primaryImageUrl = primaryImage?.image_url
+      ? `/${primaryImage.image_url.replace(/^\/+/, '')}`
+      : null;
+
+    // ============================================================
+    // RESPUESTA JSON
+    // ============================================================
+
+    const wantsJson =
+      req.xhr ||
+      (req.headers.accept?.includes('json') &&
+        !req.headers.accept?.includes('text/html'));
+
+    if (wantsJson) {
+      return res.json({
+        success: true,
+        crop: {
+          ...cropData,
+          images: normalizedImages,
+          primaryImage: primaryImageUrl,
+        },
+      });
+    }
+
+    // ============================================================
+    // VISTA PRIVADA
+    // ============================================================
 
     return res.render('shared/crop-detail', {
       layout: privateLayout,
+
+      // Indica que estamos dentro del módulo privado
       isPrivate: true,
+
+      // Información de la página
       pageTitle: cropData.name,
       activePage: 'crops',
-      crop: cropData,
-      primaryImage: primaryImage ? primaryImage.image_url : null,
-      carouselImages: cropData.images || [],
+
+      // Datos completos del cultivo
+      crop: {
+        ...cropData,
+        images: normalizedImages,
+      },
+
+      // Imagen principal
+      primaryImage: primaryImageUrl,
+
+      // Todas las imágenes para el carrusel
+      carouselImages: normalizedImages,
     });
   } catch (error) {
     console.error('ERROR AL OBTENER CULTIVO:', error);
-    if (req.xhr || req.headers.accept?.includes('json')) {
+
+    // ============================================================
+    // ERROR JSON
+    // ============================================================
+
+    const wantsJson = req.xhr || req.headers.accept?.includes('json');
+
+    if (wantsJson) {
       return res.status(500).json({
         success: false,
         message: 'Error al obtener el cultivo',
         error: error.message,
       });
     }
+
+    // ============================================================
+    // ERROR VISTA
+    // ============================================================
+
     return res.status(500).send('Error al obtener el cultivo');
   }
 };
