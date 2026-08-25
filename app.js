@@ -101,6 +101,19 @@ hbs.registerHelper('lte', (a, b) => Number(a) <= Number(b));
 hbs.registerHelper('add', (a, b) => Number(a) + Number(b));
 hbs.registerHelper('sub', (a, b) => Number(a) - Number(b));
 hbs.registerHelper('urlEncode', (str) => encodeURIComponent(str));
+hbs.registerHelper('getMesBg', (mesNum, siembra, cosecha, mesActual) => {
+  const num = Number(mesNum);
+  const cur = Number(mesActual);
+  const enCosecha =
+    Array.isArray(cosecha) && num >= cosecha[0] && num <= cosecha[1];
+  const enSiembra =
+    Array.isArray(siembra) && num >= siembra[0] && num <= siembra[1];
+
+  if (enCosecha) return 'bg-[#1b4332]';
+  if (enSiembra) return 'bg-[#73b398]';
+  if (num === cur) return 'bg-emerald-100/60';
+  return 'bg-secondary/50';
+});
 
 // ─── HELPERS RBAC Y CONTROL DE ACCESO EN VISTAS ────────────────────────────
 hbs.registerHelper('hasRole', function (...args) {

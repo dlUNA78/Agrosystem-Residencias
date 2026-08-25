@@ -4,105 +4,135 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-@theme {
-  /* ── Colores primarios ── */
-  --color-primary: #43655c;
-  --color-on-primary: #ddfff4;
-  --color-primary-container: #c5eadf;
-  --color-on-primary-container: #36584f;
-  --color-primary-fixed: #c5eadf;
-  --color-primary-fixed-dim: #b7dcd1;
-  --color-on-primary-fixed: #24453d;
-  --color-on-primary-fixed-variant: #406259;
-  --color-primary-dim: #375950;
-  --color-inverse-primary: #d9fff2;
-  --color-surface-tint: #43655c;
+@theme inline {
+  --font-sans: 'Geist', 'Inter', system-ui, -apple-system, sans-serif;
+  --font-display: 'Geist', 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'Geist Mono', 'JetBrains Mono', 'Fira Code', monospace;
 
-  /* ── Colores secundarios ── */
-  --color-secondary: #50635f;
-  --color-on-secondary: #e8fdf8;
-  --color-secondary-container: #d2e7e2;
-  --color-on-secondary-container: #435552;
-  --color-secondary-fixed: #d2e7e2;
-  --color-secondary-fixed-dim: #c4d9d4;
-  --color-on-secondary-fixed: #30433f;
-  --color-on-secondary-fixed-variant: #4c5f5b;
-  --color-secondary-dim: #445753;
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
 
-  /* ── Colores terciarios ── */
-  --color-tertiary: #4a6552;
-  --color-on-tertiary: #e7ffea;
-  --color-tertiary-container: #d9f9df;
-  --color-on-tertiary-container: #45604d;
-  --color-tertiary-fixed: #d9f9df;
-  --color-tertiary-fixed-dim: #cbead1;
-  --color-on-tertiary-fixed: #334e3b;
-  --color-on-tertiary-fixed-variant: #4f6b57;
-  --color-tertiary-dim: #3e5946;
+  --color-level-0: var(--level-0);
+  --color-level-1: var(--level-1);
+  --color-level-2: var(--level-2);
+  --color-level-3: var(--level-3);
+  --color-level-4: var(--level-4);
 
-  /* ── Error ── */
-  --color-error: #9f403d;
-  --color-on-error: #fff7f6;
-  --color-error-container: #fe8983;
-  --color-on-error-container: #752121;
-  --color-error-dim: #4e0309;
+  /* Tokens de Nivel de Riesgo para el Catálogo de Plagas */
+  --color-risk-critico: var(--risk-critico);
+  --color-risk-alto: var(--risk-alto);
+  --color-risk-moderado: var(--risk-moderado);
+  --color-risk-bajo: var(--risk-bajo);
 
-  /* ── Superficies ── */
-  --color-background: #f9f9f9;
-  --color-on-background: #2d3435;
-  --color-surface: #f9f9f9;
-  --color-surface-dim: #d3dbdd;
-  --color-surface-bright: #f9f9f9;
-  --color-surface-variant: #dde4e5;
-  --color-surface-container-lowest: #ffffff;
-  --color-surface-container-low: #f2f4f4;
-  --color-surface-container: #ebeeef;
-  --color-surface-container-high: #e4e9ea;
-  --color-surface-container-highest: #dde4e5;
-  --color-inverse-surface: #0c0f0f;
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
 
-  /* Aliases cortos usados en las vistas */
-  --color-surface-low: #f2f4f4;
-  --color-surface-high: #e4e9ea;
+:root {
+  color-scheme: light;
 
-  /* ── Texto ── */
-  --color-on-surface: #2d3435;
-  --color-on-surface-variant: #596061;
-  --color-inverse-on-surface: #9c9d9d;
+  --background: oklch(0.985 0.002 240);
+  --foreground: oklch(0.20 0.012 250);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.20 0.012 250);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.20 0.012 250);
 
-  /* ── Contornos ── */
-  --color-outline: #757c7d;
-  --color-outline-variant: #acb3b4;
+  --primary: oklch(0.28 0.070 150);
+  --primary-foreground: oklch(0.985 0.002 240);
 
-  /* ── Tipografía ── */
-  --font-display: 'Manrope', sans-serif; /* headline */
-  --font-body: 'Inter', sans-serif;
+  --secondary: oklch(0.96 0.003 250);
+  --secondary-foreground: oklch(0.26 0.012 250);
+  --muted: oklch(0.96 0.003 250);
+  --muted-foreground: oklch(0.52 0.011 250);
+  --accent: oklch(0.96 0.003 250);
+  --accent-foreground: oklch(0.26 0.012 250);
 
-  /* ── Radios ── */
-  --radius-sm: 0.25rem; /* DEFAULT */
-  --radius-md: 0.5rem; /* lg */
-  --radius-lg: 0.75rem; /* xl */
-  --radius-full: 9999px;
+  --destructive: oklch(0.512 0.185 27);
+  --border: oklch(0.91 0.004 250);
+  --input: oklch(0.91 0.004 250);
+  --ring: oklch(0.28 0.070 150);
+
+  /* Paleta OKLCH para Nivel de Riesgo de Plagas */
+  --risk-critico: oklch(0.512 0.185 27);     /* Rojo crítico */
+  --risk-alto: oklch(0.705 0.155 62);       /* Naranja advertencia */
+  --risk-moderado: oklch(0.545 0.072 155);   /* Verde medio */
+  --risk-bajo: oklch(0.6 0.011 250);         /* Gris neutro */
+
+  /* Paleta de tonos verdes idéntica al prototipo v0 de la Imagen 1 */
+  --level-0: oklch(0.965 0.005 145);
+  --level-1: oklch(0.780 0.048 145);
+  --level-2: oklch(0.580 0.082 145);
+  --level-3: oklch(0.380 0.095 145);
+  --level-4: oklch(0.240 0.075 145);
+
+  --radius: 0.25rem;
 }
 
 @layer base {
+  * {
+    border-color: var(--border);
+  }
   body {
-    font-family: var(--font-body);
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
   }
   h1,
   h2,
   h3,
+  h4,
   .font-headline {
     font-family: var(--font-display);
   }
 }
 
-@layer utilities {
-  .material-symbols-outlined {
-    font-variation-settings:
-      'FILL' 0,
-      'wght' 400,
-      'GRAD' 0,
-      'opsz' 24;
-  }
+@utility text-mono-label {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* Trazados vectoriales del mapa de México */
+.state-path {
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+  stroke: #ffffff;
+  stroke-width: 1.2px;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.state-path:hover {
+  filter: brightness(0.85);
+  stroke: #ffffff;
+  stroke-width: 2px;
+}
+
+.state-path.is-selected {
+  stroke: #092116;
+  stroke-width: 2.5px;
+  filter: brightness(0.85);
 }

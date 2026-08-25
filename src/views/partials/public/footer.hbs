@@ -1,19 +1,66 @@
-<footer class="w-full py-12 px-10 bg-[#f9f9f9] border-t border-outline-variant[#acb3b4]/15">
-    <div class="flex flex-col md:flex-row justify-between items-center gap-8 w-full max-w-7xl mx-auto">
-        <div class="text-[#43655c] font-['Inter'] text-xs uppercase tracking-widest font-medium" style="">
-            © 2026 Agrosystem. El Laboratorio Digital para la Agricultura Moderna.
+<footer class="w-full bg-[#1b4332] text-white pt-16 pb-12 border-t border-emerald-900">
+  <div class="max-w-7xl mx-auto px-6 md:px-12">
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-10 pb-12 border-b border-emerald-800/60">
+      
+      <!-- Marca e información -->
+      <div class="md:col-span-5 space-y-4">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-lg bg-emerald-700/60 text-white font-bold flex items-center justify-center text-sm font-headline border border-emerald-600">
+            AS
+          </div>
+          <div>
+            <h3 class="text-lg font-bold font-headline leading-none text-white tracking-tight">AgroSystem INIFAP</h3>
+            <p class="text-[10px] text-mono-label text-emerald-300/80 tracking-widest mt-1">SISTEMA NACIONAL DE CONSULTA</p>
+          </div>
         </div>
-        <div class="flex flex-wrap justify-center gap-6">
-            <a class="te        xt-on-surface-variant hover:text-[#43655c] font-['Inter'] text-xs uppercase tracking-widest font-medium underline decoration-[#43655c]/30 underline-offset-4 transition-all duration-200"
-                href="#" style="">Privacidad</a>
-            <a class="text-on-surface-variant hover:text-[#43655c] font-['Inter'] text-xs uppercase tracking-widest font-medium underline decoration-[#43655c]/30 underline-offset-4 transition-all duration-200"
-                href="#" style="">Términos de Uso</a>
-            <a class="text-on-surface-variant hover:text-[#43655c] font-['Inter'] text-xs uppercase tracking-widest font-medium underline decoration-[#43655c]/30 underline-offset-4 transition-all duration-200"
-                href="#" style="">Contacto</a>
-            <a class="text-on-surface-variant hover:text-[#43655c] font-['Inter'] text-xs uppercase tracking-widest font-medium underline decoration-[#43655c]/30 underline-offset-4 transition-all duration-200"
-                href="#" style="">Soporte Técnico</a>
-            <a class="text-on-surface-variant hover:text-[#43655c] font-['Inter'] text-xs uppercase tracking-widest font-medium underline decoration-[#43655c]/30 underline-offset-4 transition-all duration-200"
-                href="#" style="">Documentación</a>
-        </div>
+        <p class="text-sm text-emerald-100/70 leading-relaxed max-w-md font-body">
+          Plataforma de consulta del Instituto Nacional de Investigaciones Forestales, Agrícolas y Pecuarias. Información técnica validada para el campo mexicano.
+        </p>
+      </div>
+
+      <!-- Enlaces Consulta -->
+      <div class="md:col-span-2 space-y-3">
+        <h4 class="text-xs font-mono tracking-widest text-emerald-300 font-bold uppercase">CONSULTA</h4>
+        <ul class="space-y-2 text-xs text-emerald-100/80">
+          <li><a href="/plagues" class="hover:text-white transition-colors">Plagas y enfermedades</a></li>
+          <li><a href="/crops" class="hover:text-white transition-colors">Cultivos</a></li>
+          <li><a href="/products" class="hover:text-white transition-colors">Insumos autorizados</a></li>
+          <li><a href="/#panorama-nacional" class="hover:text-white transition-colors">Avisos fitosanitarios</a></li>
+        </ul>
+      </div>
+
+      <!-- Enlaces Institucional -->
+      <div class="md:col-span-3 space-y-3">
+        <h4 class="text-xs font-mono tracking-widest text-emerald-300 font-bold uppercase">INSTITUCIONAL</h4>
+        <ul class="space-y-2 text-xs text-emerald-100/80">
+          <li><a href="#" class="hover:text-white transition-colors">Campos experimentales</a></li>
+          <li><a href="#" class="hover:text-white transition-colors">Metodología de validación</a></li>
+          <li><a href="#" class="hover:text-white transition-colors">Publicaciones</a></li>
+          <li><a href="#" class="hover:text-white transition-colors">Transparencia</a></li>
+        </ul>
+      </div>
+
+      <!-- Enlaces Servicios -->
+      <div class="md:col-span-2 space-y-3">
+        <h4 class="text-xs font-mono tracking-widest text-emerald-300 font-bold uppercase">SERVICIOS</h4>
+        <ul class="space-y-2 text-xs text-emerald-100/80">
+          <li><a href="#" class="hover:text-white transition-colors">API pública</a></li>
+          <li><a href="#" class="hover:text-white transition-colors">Descarga de datos abiertos</a></li>
+          <li><a href="/forum" class="hover:text-white transition-colors">Foro técnico</a></li>
+          <li><a href="#" class="hover:text-white transition-colors">Guía de uso</a></li>
+        </ul>
+      </div>
+
     </div>
+
+    <!-- Sub-footer marcas finales -->
+    <div class="pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-emerald-300/60 font-mono text-[10px] tracking-wider uppercase">
+      <div>
+        DATOS DE DEMOSTRACIÓN CON FINES DE PROTOTIPO
+      </div>
+      <div>
+        ÚLTIMA SINCRONIZACIÓN {{#if lastUpdate}}{{lastUpdate}}{{else}}22.08.2026 · 06:00 H{{/if}}
+      </div>
+    </div>
+  </div>
 </footer>

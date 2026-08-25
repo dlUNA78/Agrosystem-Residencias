@@ -4,43 +4,44 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{#if pageTitle}}{{pageTitle}} — INIFAP{{else}}INIFAP{{/if}}</title>
+  <title>{{#if pageTitle}}{{pageTitle}} — INIFAP Agrosystem{{else}}Agrosystem INIFAP{{/if}}</title>
 
-  <!-- Fonts: Manrope (headlines) + Inter (body) -->
+  <!-- Tipografías Oficiales del Sistema: Geist Sans + Geist Mono (con fallback a Inter y JetBrains Mono) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap"
-    rel="stylesheet">
-  <link
-    href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap"
-    rel="stylesheet">
-  <link
-    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
-    rel="stylesheet">
-  <link
-    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
-    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600;700&family=Geist:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="/css/style.css">
-
-
 
   {{#if extraHead}}{{{extraHead}}}{{/if}}
 </head>
 
+<body class="bg-background text-foreground antialiased selection:bg-[#36584f]/20 selection:text-[#36584f]">
 
-<body class="bg-surface text-on-surface">
+  <!-- Top Bar Institucional -->
+  <div class="bg-[#1b4332] text-white/90 px-6 md:px-12 py-2 text-xs font-medium border-b border-white/10 flex flex-wrap justify-between items-center gap-2">
+    <div class="flex items-center gap-2 tracking-wide font-headline uppercase text-[11px] font-semibold">
+      <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+      INSTITUTO NACIONAL DE INVESTIGACIONES FORESTALES, AGRÍCOLAS Y PECUARIAS
+    </div>
+    <div class="text-mono-label text-emerald-200/80 font-mono">
+      ACTUALIZADO {{#if lastUpdate}}{{lastUpdate}}{{else}}22.08.2026 · 06:00 H (CDMX){{/if}}
+    </div>
+  </div>
 
   {{> public/navbar}}
 
-  <main id="main-content" class="pt-20 pb-12 min-h-screen">
+  <main id="main-content" class="min-h-screen">
     {{{body}}}
   </main>
 
   {{> public/footer}}
 
   <script src="/js/main.js"></script>
+  {{#if (eq activePage 'home')}}
+  <script src="/js/public/home-map.js"></script>
+  {{/if}}
   {{#if extraScripts}}{{{extraScripts}}}{{/if}}
 </body>
 
