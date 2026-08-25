@@ -1,32 +1,30 @@
-<div class="pt-24 px-4 md:px-10 pb-12 min-h-screen">
+<div class="pt-24 px-4 md:px-10 pb-12 min-h-screen font-['Geist'] antialiased">
 
-  {{! ── BREADCRUMBS ─────────────────────────────────────────────────────── }}
-  <div class="mb-8">
+  {{! ── BREADCRUMBS & HEADER ─────────────────────────────────────────────── }}
+  <div class="mb-8 max-w-7xl mx-auto">
     <nav aria-label="Breadcrumb" class="flex mb-4">
-      <ol
-        class="inline-flex items-center space-x-1 md:space-x-3 text-xs font-medium tracking-widest uppercase text-on-surface-variant">
+      <ol class="inline-flex items-center space-x-1 md:space-x-3 text-xs font-mono tracking-widest uppercase text-muted-foreground">
         <li class="inline-flex items-center">
           {{#if isPrivate}}
-          <a class="hover:text-primary transition-colors" href="/dashboard">Dashboard</a>
+            <a class="hover:text-[#1b4332] transition-colors" href="/dashboard">Dashboard</a>
           {{else}}
-          <a class="hover:text-primary transition-colors" href="/">Inicio</a>
+            <a class="hover:text-[#1b4332] transition-colors" href="/">Inicio</a>
           {{/if}}
         </li>
         <li>
           <div class="flex items-center">
             <span class="material-symbols-outlined text-sm mx-1">chevron_right</span>
             {{#if isPrivate}}
-            <a class="hover:text-primary transition-colors" href="/private/crops">Cultivos</a>
+              <a class="hover:text-[#1b4332] transition-colors" href="/private/crops">Cultivos</a>
             {{else}}
-            <a class="hover:text-primary transition-colors" href="/crops">Cultivos</a>
+              <a class="hover:text-[#1b4332] transition-colors" href="/crops">Cultivos</a>
             {{/if}}
           </div>
         </li>
         <li aria-current="page">
           <div class="flex items-center">
             <span class="material-symbols-outlined text-sm mx-1">chevron_right</span>
-            <span class="text-primary font-bold">{{#if
-              crop.common_name}}{{crop.common_name}}{{else}}{{crop.name}}{{/if}}</span>
+            <span class="text-[#1b4332] font-bold">{{#if crop.common_name}}{{crop.common_name}}{{else}}{{crop.name}}{{/if}}</span>
           </div>
         </li>
       </ol>
@@ -35,227 +33,207 @@
     <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
       <div>
         <div class="flex items-center gap-3 mb-2 flex-wrap">
-          <h1 class="text-4xl md:text-6xl font-headline font-extrabold text-on-surface tracking-tighter">
+          <h1 class="text-4xl md:text-5xl font-headline font-extrabold text-foreground tracking-tight">
             {{#if crop.common_name}}{{crop.common_name}}{{else}}{{crop.name}}{{/if}}
           </h1>
           {{#if (eq crop.status "aprobado")}}
-          <span
-            class="inline-flex items-center gap-1 px-3 py-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold rounded-full border border-emerald-500/20">
-            <span class="material-symbols-outlined text-sm">verified</span> Aprobado INIFAP
-          </span>
+            <span class="inline-flex items-center gap-1 px-3 py-1 bg-emerald-500/10 text-emerald-800 text-xs font-mono font-bold rounded-md border border-emerald-500/20">
+              <span class="material-symbols-outlined text-sm">verified</span> Aprobado INIFAP
+            </span>
           {{else}}
-          <span
-            class="inline-flex items-center gap-1 px-3 py-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-bold rounded-full border border-amber-500/20">
-            <span class="material-symbols-outlined text-sm">pending</span> En Revisión
-          </span>
+            <span class="inline-flex items-center gap-1 px-3 py-1 bg-amber-500/10 text-amber-800 text-xs font-mono font-bold rounded-md border border-amber-500/20">
+              <span class="material-symbols-outlined text-sm">pending</span> En Revisión
+            </span>
           {{/if}}
         </div>
-        <p class="text-lg text-on-surface-variant font-medium">
-          Nombre taxonómico: <span class="italic font-bold text-on-surface">{{crop.scientific_name}}</span>
+        <p class="text-base text-muted-foreground font-medium">
+          Nombre taxonómico: <span class="font-mono italic font-bold text-foreground">{{crop.scientific_name}}</span>
           {{#if crop.botanical_family}}
-          │ Familia: <span class="font-semibold text-primary">{{crop.botanical_family}}</span>
+            │ Familia: <span class="font-semibold text-[#1b4332]">{{crop.botanical_family}}</span>
           {{else}}{{#if crop.family}}
-          │ Familia: <span class="font-semibold text-primary">{{crop.family}}</span>
+            │ Familia: <span class="font-semibold text-[#1b4332]">{{crop.family}}</span>
           {{/if}}{{/if}}
         </p>
       </div>
 
       <div class="flex items-center gap-3">
         {{#if isPrivate}}
-        <a href="/private/crops"
-          class="flex items-center gap-2 px-4 py-2.5 bg-surface-container text-on-surface font-semibold text-xs rounded-xl hover:bg-surface-container-high transition-all">
-          <span class="material-symbols-outlined text-sm">arrow_back</span> Regresar al Panel
-        </a>
+          <a href="/private/crops" class="flex items-center gap-2 px-4 py-2 bg-card border border-border text-foreground font-bold text-xs rounded-md hover:bg-secondary transition-colors shadow-2xs">
+            <span class="material-symbols-outlined text-sm">arrow_back</span> Regresar al Panel
+          </a>
         {{else}}
-        <a href="/crops"
-          class="flex items-center gap-2 px-4 py-2.5 bg-surface-container text-on-surface font-semibold text-xs rounded-xl hover:bg-surface-container-high transition-all">
-          <span class="material-symbols-outlined text-sm">arrow_back</span> Ver Catálogo Completo
-        </a>
+          <a href="/crops" class="flex items-center gap-2 px-4 py-2 bg-card border border-border text-foreground font-bold text-xs rounded-md hover:bg-secondary transition-colors shadow-2xs">
+            <span class="material-symbols-outlined text-sm">arrow_back</span> Ver Catálogo Completo
+          </a>
         {{/if}}
       </div>
     </div>
   </div>
 
   {{! ── HERO BANNER & FOTOGRAFÍA PRINCIPAL ─────────────────────────────── }}
-  <div class="mb-16 grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+  <div class="mb-14 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
     <div class="col-span-1 lg:col-span-7">
-      <div
-        class="relative overflow-hidden rounded-2xl bg-surface-container-low shadow-sm h-[400px] border border-outline-variant/10 group">
-        {{#if primaryImage}}
-        <img src="{{primaryImage}}" alt="{{crop.name}}"
-          class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-          onerror="this.onerror=null; this.src='/images/test/default.png';" />
+      <div class="relative overflow-hidden rounded-lg bg-muted border border-border shadow-2xs h-[380px] group">
+        {{#if crop.image_url}}
+          <img src="{{crop.image_url}}" alt="{{crop.name}}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" onerror="this.onerror=null; this.src='/images/test/default.png';" />
         {{else}}
-        <div class="w-full h-full bg-surface-container-highest flex items-center justify-center">
-          <span class="material-symbols-outlined text-6xl text-on-surface-variant/40">
-            agriculture
-          </span>
-        </div>
-        {{/if}}
-        <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
-        <div class="absolute bottom-0 left-0 right-0 p-6 text-white">
-          <span class="text-xs uppercase tracking-widest font-bold text-emerald-400 block mb-1">Catálogo Fitosanitario
-            INIFAP</span>
-          <h2 class="text-2xl font-headline font-bold">{{#if
-            crop.common_name}}{{crop.common_name}}{{else}}{{crop.name}}{{/if}}</h2>
-          {{#if crop.variety}}
-          <p class="text-xs text-white/80 mt-1 font-medium">Variedad: {{crop.variety}}</p>
+          {{#if crop.images.[0].image_url}}
+            <img src="{{crop.images.[0].image_url}}" alt="{{crop.name}}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" onerror="this.onerror=null; this.src='/images/test/default.png';" />
+          {{else}}
+            <div class="w-full h-full bg-card flex items-center justify-center">
+              <span class="material-symbols-outlined text-6xl text-muted-foreground/40">agriculture</span>
+            </div>
           {{/if}}
-        </div>
+        {{/if}}
+        <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none"></div>
+
+        <!-- Crédito Fotográfico Minimalista -->
+        <span class="absolute left-3 bottom-3 text-mono-label text-[10px] text-white/90 font-mono tracking-wider drop-shadow-xs select-none">
+          ACERVO FOTOGRÁFICO · INIFAP
+        </span>
       </div>
     </div>
 
-    {{! Resumen rápido agronómico }}
+    {{! Resumen agronómico }}
     <div class="col-span-1 lg:col-span-5 flex flex-col gap-4">
-      <div
-        class="bg-surface-container-low p-6 rounded-2xl border border-outline-variant/10 shadow-xs flex-1 flex flex-col justify-between">
+      <div class="bg-card p-6 rounded-lg border border-border shadow-2xs flex-1 flex flex-col justify-between">
         <div>
-          <span class="text-xs font-bold uppercase tracking-widest text-primary block mb-2">Descripción Botánica</span>
-          <p class="text-sm text-on-surface-variant leading-relaxed">
-            {{#if crop.description}}{{crop.description}}{{else}}Descripción en proceso de validación técnica por el
-            comité investigador de INIFAP.{{/if}}
+          <span class="text-mono-label text-muted-foreground font-semibold block mb-2">DESCRIPCIÓN BOTÁNICA Y AGRONÓMICA</span>
+          <p class="text-sm text-foreground leading-relaxed">
+            {{#if crop.description}}{{crop.description}}{{else}}Descripción en proceso de validación técnica por el comité investigador de INIFAP.{{/if}}
           </p>
         </div>
 
-        <div class="grid grid-cols-2 gap-4 mt-6 pt-4 border-t border-outline-variant/10">
+        <div class="grid grid-cols-2 gap-4 mt-6 pt-4 border-t border-border">
           <div>
-            <span class="text-[10px] uppercase font-bold text-on-surface-variant block">Categoría</span>
-            <span class="text-sm font-extrabold text-on-surface capitalize">{{crop.category}}</span>
+            <span class="text-mono-label text-muted-foreground block">Categoría</span>
+            <span class="text-sm font-extrabold text-foreground capitalize">{{crop.category}}</span>
           </div>
           <div>
-            <span class="text-[10px] uppercase font-bold text-on-surface-variant block">Rendimiento Promedio</span>
-            <span class="text-sm font-extrabold text-primary">{{#if
-              crop.average_yield}}{{crop.average_yield}}{{else}}N/D{{/if}}</span>
+            <span class="text-mono-label text-muted-foreground block">Rendimiento Promedio</span>
+            <span class="text-sm font-mono font-bold text-[#1b4332]">{{#if crop.average_yield}}{{crop.average_yield}}{{else}}N/D{{/if}}</span>
           </div>
         </div>
       </div>
 
-      <div class="bg-primary/5 p-6 rounded-2xl border border-primary/20 flex items-center justify-between">
+      <div class="bg-[#1b4332]/5 p-5 rounded-lg border border-[#1b4332]/20 flex items-center justify-between">
         <div class="flex items-center gap-3">
-          <span class="material-symbols-outlined text-primary text-3xl">eco</span>
+          <span class="material-symbols-outlined text-[#1b4332] text-2xl">eco</span>
           <div>
-            <h4 class="text-sm font-bold text-on-surface">Validación Agroclimática</h4>
-            <p class="text-xs text-on-surface-variant">Estándar normativo para producción sustentable.</p>
+            <h4 class="text-xs font-bold text-foreground">Validación Agroclimática Nacional</h4>
+            <p class="text-[11px] text-muted-foreground">Estándar normativo INIFAP para producción sustentable.</p>
           </div>
         </div>
-        <span class="material-symbols-outlined text-primary">verified</span>
+        <span class="material-symbols-outlined text-[#1b4332]">verified</span>
       </div>
     </div>
   </div>
 
   {{! ── FICHA TÉCNICA AGRONÓMICA (5 BLOQUES CLAVE) ─────────────────────── }}
-  <div class="mb-16">
+  <div class="mb-14 max-w-7xl mx-auto">
     <div class="flex items-center justify-between mb-6">
-      <h2 class="text-2xl font-headline font-extrabold tracking-tight text-on-surface">Ficha Técnica Agronómica</h2>
-      <span class="text-xs font-bold uppercase tracking-widest text-primary">Especificaciones Técnicas</span>
+      <h2 class="text-2xl font-headline font-extrabold tracking-tight text-foreground">Ficha Técnica Agronómica</h2>
+      <span class="text-mono-label text-[#1b4332] font-semibold">ESPECIFICACIONES DE CAMPO</span>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
       {{! 1. Ciclo de Crecimiento }}
-      <div
-        class="bg-surface-container-low p-5 rounded-2xl border border-outline-variant/10 hover:border-primary/30 transition-all">
-        <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-3">
-          <span class="material-symbols-outlined">schedule</span>
+      <div class="bg-card p-5 rounded-lg border border-border hover:border-[#1b4332]/40 transition-colors shadow-2xs">
+        <div class="w-8 h-8 rounded-md bg-[#1b4332]/10 text-[#1b4332] flex items-center justify-center mb-3">
+          <span class="material-symbols-outlined text-lg">schedule</span>
         </div>
-        <span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant block mb-1">Ciclo de
-          Crecimiento</span>
-        <p class="text-sm font-bold text-on-surface">
-          {{#if crop.growth_cycle}}{{crop.growth_cycle}}{{else}}{{#if crop.harvest_days}}{{crop.harvest_days}} días
-          ({{crop.cycle}}){{else}}No especificado{{/if}}{{/if}}
+        <span class="text-mono-label text-muted-foreground block mb-1">Ciclo de Crecimiento</span>
+        <p class="text-sm font-bold text-foreground">
+          {{#if crop.growth_cycle}}{{crop.growth_cycle}}{{else}}{{#if crop.harvest_days}}{{crop.harvest_days}} días ({{crop.cycle}}){{else}}No especificado{{/if}}{{/if}}
         </p>
       </div>
 
       {{! 2. Temporada de Siembra }}
-      <div
-        class="bg-surface-container-low p-5 rounded-2xl border border-outline-variant/10 hover:border-primary/30 transition-all">
-        <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-3">
-          <span class="material-symbols-outlined">calendar_month</span>
+      <div class="bg-card p-5 rounded-lg border border-border hover:border-[#1b4332]/40 transition-colors shadow-2xs">
+        <div class="w-8 h-8 rounded-md bg-[#1b4332]/10 text-[#1b4332] flex items-center justify-center mb-3">
+          <span class="material-symbols-outlined text-lg">calendar_month</span>
         </div>
-        <span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant block mb-1">Temporada de
-          Siembra</span>
-        <p class="text-sm font-bold text-on-surface">
-          {{#if crop.planting_season}}{{crop.planting_season}}{{else}}{{#if crop.season}}{{crop.season}}{{else}}Todo el
-          año{{/if}}{{/if}}
+        <span class="text-mono-label text-muted-foreground block mb-1">Temporada de Siembra</span>
+        <p class="text-sm font-bold text-foreground">
+          {{#if crop.planting_season}}{{crop.planting_season}}{{else}}{{#if crop.season}}{{crop.season}}{{else}}Todo el año{{/if}}{{/if}}
         </p>
       </div>
 
       {{! 3. Requerimientos de Suelo }}
-      <div
-        class="bg-surface-container-low p-5 rounded-2xl border border-outline-variant/10 hover:border-primary/30 transition-all">
-        <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-3">
-          <span class="material-symbols-outlined">landscape</span>
+      <div class="bg-card p-5 rounded-lg border border-border hover:border-[#1b4332]/40 transition-colors shadow-2xs">
+        <div class="w-8 h-8 rounded-md bg-[#1b4332]/10 text-[#1b4332] flex items-center justify-center mb-3">
+          <span class="material-symbols-outlined text-lg">landscape</span>
         </div>
-        <span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant block mb-1">Requerimientos
-          de Suelo</span>
-        <p class="text-sm font-bold text-on-surface">
-          {{#if crop.soil_requirements}}{{crop.soil_requirements}}{{else}}{{#if crop.soil_type}}{{crop.soil_type}} (pH
-          {{crop.ph_range}}){{else}}Suelo franco profundo{{/if}}{{/if}}
+        <span class="text-mono-label text-muted-foreground block mb-1">Requerimientos de Suelo</span>
+        <p class="text-sm font-bold text-foreground">
+          {{#if crop.soil_requirements}}{{crop.soil_requirements}}{{else}}{{#if crop.soil_type}}{{crop.soil_type}} (pH {{crop.ph_range}}){{else}}Suelo franco profundo{{/if}}{{/if}}
         </p>
       </div>
 
       {{! 4. Requerimientos Hídricos }}
-      <div
-        class="bg-surface-container-low p-5 rounded-2xl border border-outline-variant/10 hover:border-primary/30 transition-all">
-        <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-3">
-          <span class="material-symbols-outlined">water_drop</span>
+      <div class="bg-card p-5 rounded-lg border border-border hover:border-[#1b4332]/40 transition-colors shadow-2xs">
+        <div class="w-8 h-8 rounded-md bg-[#1b4332]/10 text-[#1b4332] flex items-center justify-center mb-3">
+          <span class="material-symbols-outlined text-lg">water_drop</span>
         </div>
-        <span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant block mb-1">Requerimientos
-          Hídricos</span>
-        <p class="text-sm font-bold text-on-surface">
-          {{#if crop.water_requirements}}{{crop.water_requirements}}{{else}}{{#if
-          crop.water_requirement}}{{crop.water_requirement}} ({{crop.irrigation_type}}){{else}}Moderado{{/if}}{{/if}}
+        <span class="text-mono-label text-muted-foreground block mb-1">Requerimientos Hídricos</span>
+        <p class="text-sm font-bold text-foreground">
+          {{#if crop.water_requirements}}{{crop.water_requirements}}{{else}}{{#if crop.water_requirement}}{{crop.water_requirement}} ({{crop.irrigation_type}}){{else}}Moderado{{/if}}{{/if}}
         </p>
       </div>
 
       {{! 5. Clima Óptimo }}
-      <div
-        class="bg-surface-container-low p-5 rounded-2xl border border-outline-variant/10 hover:border-primary/30 transition-all">
-        <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-3">
-          <span class="material-symbols-outlined">thermostat</span>
+      <div class="bg-card p-5 rounded-lg border border-border hover:border-[#1b4332]/40 transition-colors shadow-2xs">
+        <div class="w-8 h-8 rounded-md bg-[#1b4332]/10 text-[#1b4332] flex items-center justify-center mb-3">
+          <span class="material-symbols-outlined text-lg">thermostat</span>
         </div>
-        <span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant block mb-1">Clima
-          Óptimo</span>
-        <p class="text-sm font-bold text-on-surface">
-          {{#if crop.optimal_climate}}{{crop.optimal_climate}}{{else}}{{#if crop.climate}}{{crop.climate}}
-          ({{crop.min_temperature}}°C - {{crop.max_temperature}}°C){{else}}Templado{{/if}}{{/if}}
+        <span class="text-mono-label text-muted-foreground block mb-1">Clima Óptimo</span>
+        <p class="text-sm font-bold text-foreground">
+          {{#if crop.optimal_climate}}{{crop.optimal_climate}}{{else}}{{#if crop.climate}}{{crop.climate}} ({{crop.min_temperature}}°C - {{crop.max_temperature}}°C){{else}}Templado{{/if}}{{/if}}
         </p>
       </div>
     </div>
   </div>
 
   {{! ── SECCIÓN DE DATOS RELACIONALES (PLAGAS, PREDIOS, AGROQUÍMICOS) ──── }}
-  <div class="space-y-16">
+  <div class="max-w-7xl mx-auto space-y-14">
 
     {{! 🐛 1. PLAGAS ASOCIADAS }}
     <div>
       <div class="flex items-center justify-between mb-6">
         <div>
-          <h3 class="text-2xl font-headline font-extrabold text-on-surface flex items-center gap-2">
-            <span class="material-symbols-outlined text-rose-500">pest_control</span> Plagas Asociadas
+          <h3 class="text-2xl font-headline font-extrabold text-foreground flex items-center gap-2">
+            <span class="material-symbols-outlined text-rose-600">pest_control</span> Plagas Asociadas
           </h3>
-          <p class="text-xs text-on-surface-variant">Amenazas fitosanitarias reportadas para este cultivo.</p>
+          <p class="text-xs text-muted-foreground">Amenazas fitosanitarias reportadas para este cultivo.</p>
         </div>
         {{#if crop.plagues}}
-        <span class="px-3 py-1 bg-rose-500/10 text-rose-600 dark:text-rose-400 text-xs font-bold rounded-full">
-          {{crop.plagues.length}} Plagas Registradas
-        </span>
+          <span class="px-3 py-1 bg-rose-500/10 text-rose-700 text-xs font-mono font-bold rounded-md">
+            {{crop.plagues.length}} Plagas Registradas
+          </span>
         {{/if}}
       </div>
 
       {{#if crop.plagues.length}}
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {{#each crop.plagues}}
-        <div
-          class="bg-surface-container-low p-6 rounded-2xl border border-outline-variant/10 hover:shadow-md transition-all flex flex-col justify-between">
-          <div>
-            <div class="flex items-center justify-between mb-3">
-              <span
-                class="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-rose-500/10 text-rose-600 dark:text-rose-400">
-                {{this.category}}
-              </span>
-              {{#if this.risk_level}}
-              <span class="text-[10px] font-bold uppercase text-on-surface-variant">Riesgo: {{this.risk_level}}</span>
-              {{/if}}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {{#each crop.plagues}}
+            <div class="bg-card p-6 rounded-lg border border-border hover:border-[#1b4332]/40 transition-all flex flex-col justify-between shadow-2xs">
+              <div>
+                <div class="flex items-center justify-between mb-3">
+                  <span class="text-mono-label px-2 py-0.5 rounded bg-rose-500/10 text-rose-700">
+                    {{this.category}}
+                  </span>
+                  {{#if this.risk_level}}
+                    <span class="text-mono-label text-muted-foreground font-bold">Riesgo: {{this.risk_level}}</span>
+                  {{/if}}
+                </div>
+                <h4 class="text-lg font-headline font-bold text-foreground mb-1">{{this.name}}</h4>
+                <p class="font-mono text-xs italic text-muted-foreground mb-3">{{this.scientific_name}}</p>
+                <p class="text-xs text-muted-foreground line-clamp-2 leading-relaxed">{{this.description}}</p>
+              </div>
+
+              <a href="/plagues/{{this.id}}" class="mt-4 inline-flex items-center justify-center gap-1.5 w-full py-2 bg-secondary hover:bg-emerald-100 text-[#1b4332] font-bold text-xs rounded-md transition-colors border border-border">
+                Ver Ficha de Plaga <span class="material-symbols-outlined text-xs">arrow_forward</span>
+              </a>
             </div>
             <h4 class="text-lg font-headline font-bold text-on-surface mb-1">{{this.name}}</h4>
             <p class="text-xs italic text-on-surface-variant mb-3">{{this.scientific_name}}</p>
@@ -270,25 +248,29 @@
         {{/each}}
       </div>
       {{else}}
-      <div class="p-8 bg-surface-container-low rounded-2xl border border-outline-variant/10 text-center">
-        <span class="material-symbols-outlined text-4xl text-on-surface-variant/40 mb-2">shield</span>
-        <p class="text-sm font-bold text-on-surface mb-1">Sin Plagas Fitosanitarias Asociadas</p>
-        <p class="text-xs text-on-surface-variant">Actualmente no hay incidencias de plagas registradas para este
-          cultivo en la base oficial.</p>
-      </div>
+        <div class="p-8 bg-card rounded-lg border border-border text-center shadow-2xs">
+          <span class="material-symbols-outlined text-4xl text-muted-foreground/40 mb-2">shield</span>
+          <p class="text-sm font-bold text-foreground mb-1">Sin Plagas Fitosanitarias Asociadas</p>
+          <p class="text-xs text-muted-foreground">Actualmente no hay incidencias de plagas registradas para este cultivo en la base oficial.</p>
+        </div>
       {{/if}}
     </div>
 
     {{! 🚜 2. PREDIOS ACTIVOS (Solo visible para personal autorizado / INIFAP logueado) }}
     {{#if isPrivate}}
-    <div>
-      <div class="flex items-center justify-between mb-6">
-        <div>
-          <h3 class="text-2xl font-headline font-extrabold text-on-surface flex items-center gap-2">
-            <span class="material-symbols-outlined text-emerald-500">landscape</span> Predios y Terrenos Activos
-          </h3>
-          <p class="text-xs text-on-surface-variant">Parcelas monitoreadas donde actualmente se produce este cultivo.
-          </p>
+      <div>
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <h3 class="text-2xl font-headline font-extrabold text-foreground flex items-center gap-2">
+              <span class="material-symbols-outlined text-emerald-600">landscape</span> Predios y Terrenos Activos
+            </h3>
+            <p class="text-xs text-muted-foreground">Parcelas monitoreadas donde actualmente se produce este cultivo.</p>
+          </div>
+          {{#if crop.farms}}
+            <span class="px-3 py-1 bg-emerald-500/10 text-emerald-800 text-xs font-mono font-bold rounded-md">
+              {{crop.farms.length}} Predios Registrados
+            </span>
+          {{/if}}
         </div>
         {{#if crop.farms}}
         <span class="px-3 py-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold rounded-full">
@@ -297,23 +279,34 @@
         {{/if}}
       </div>
 
-      {{#if crop.farms.length}}
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {{#each crop.farms}}
-        <div
-          class="bg-surface-container-low p-6 rounded-2xl border border-outline-variant/10 hover:shadow-md transition-all flex flex-col justify-between">
-          <div>
-            <div class="flex items-center justify-between mb-3">
-              <span
-                class="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-                {{#if this.farming_type}}{{this.farming_type}}{{else}}Agrícola{{/if}}
-              </span>
-              <span class="text-[10px] font-bold text-on-surface-variant">{{this.size_hectares}} Ha</span>
-            </div>
-            <h4 class="text-lg font-headline font-bold text-on-surface mb-1">{{this.name}}</h4>
-            <p class="text-xs text-on-surface-variant flex items-center gap-1 mb-3">
-              <span class="material-symbols-outlined text-xs">location_on</span> {{this.municipality}}
-            </p>
+        {{#if crop.farms.length}}
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {{#each crop.farms}}
+              <div class="bg-card p-6 rounded-lg border border-border hover:border-[#1b4332]/40 transition-all flex flex-col justify-between shadow-2xs">
+                <div>
+                  <div class="flex items-center justify-between mb-3">
+                    <span class="text-mono-label px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-800">
+                      {{#if this.farming_type}}{{this.farming_type}}{{else}}Agrícola{{/if}}
+                    </span>
+                    <span class="text-mono-label font-bold text-muted-foreground">{{this.size_hectares}} Ha</span>
+                  </div>
+                  <h4 class="text-lg font-headline font-bold text-foreground mb-1">{{this.name}}</h4>
+                  <p class="text-xs text-muted-foreground flex items-center gap-1 mb-3">
+                    <span class="material-symbols-outlined text-xs">location_on</span> {{this.municipality}}
+                  </p>
+                </div>
+
+                <a href="/lands" class="mt-4 inline-flex items-center justify-center gap-1.5 w-full py-2 bg-secondary hover:bg-emerald-100 text-[#1b4332] font-bold text-xs rounded-md transition-colors border border-border">
+                  Ver Mapa de Predios <span class="material-symbols-outlined text-xs">map</span>
+                </a>
+              </div>
+            {{/each}}
+          </div>
+        {{else}}
+          <div class="p-8 bg-card rounded-lg border border-border text-center shadow-2xs">
+            <span class="material-symbols-outlined text-4xl text-muted-foreground/40 mb-2">map</span>
+            <p class="text-sm font-bold text-foreground mb-1">Sin Predios Activos Asignados</p>
+            <p class="text-xs text-muted-foreground">Este cultivo aún no ha sido vinculado a ningún terreno registrado en el módulo de predios.</p>
           </div>
 
           <a href="/lands"
@@ -338,33 +331,39 @@
     <div>
       <div class="flex items-center justify-between mb-6">
         <div>
-          <h3 class="text-2xl font-headline font-extrabold text-on-surface flex items-center gap-2">
-            <span class="material-symbols-outlined text-blue-500">science</span> Agroquímicos e Insumos Compatibles
+          <h3 class="text-2xl font-headline font-extrabold text-foreground flex items-center gap-2">
+            <span class="material-symbols-outlined text-blue-600">science</span> Agroquímicos e Insumos Compatibles
           </h3>
-          <p class="text-xs text-on-surface-variant">Productos fitosanitarios y fertilizantes recomendados por INIFAP.
-          </p>
+          <p class="text-xs text-muted-foreground">Productos fitosanitarios y fertilizantes recomendados por INIFAP.</p>
         </div>
         {{#if crop.products}}
-        <span class="px-3 py-1 bg-blue-500/10 text-blue-600 dark:text-blue-400 text-xs font-bold rounded-full">
-          {{crop.products.length}} Productos Autorizados
-        </span>
+          <span class="px-3 py-1 bg-blue-500/10 text-blue-700 text-xs font-mono font-bold rounded-md">
+            {{crop.products.length}} Productos Autorizados
+          </span>
         {{/if}}
       </div>
 
       {{#if crop.products.length}}
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {{#each crop.products}}
-        <div
-          class="bg-surface-container-low p-6 rounded-2xl border border-outline-variant/10 hover:shadow-md transition-all flex flex-col justify-between">
-          <div>
-            <div class="flex items-center justify-between mb-3">
-              <span
-                class="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400">
-                {{this.category}}
-              </span>
-              {{#if this.validation_status}}
-              <span class="text-[10px] font-bold uppercase text-emerald-500">✓ {{this.validation_status}}</span>
-              {{/if}}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {{#each crop.products}}
+            <div class="bg-card p-6 rounded-lg border border-border hover:border-[#1b4332]/40 transition-all flex flex-col justify-between shadow-2xs">
+              <div>
+                <div class="flex items-center justify-between mb-3">
+                  <span class="text-mono-label px-2 py-0.5 rounded bg-blue-500/10 text-blue-700">
+                    {{this.category}}
+                  </span>
+                  {{#if this.validation_status}}
+                    <span class="text-mono-label text-emerald-700 font-bold">✓ {{this.validation_status}}</span>
+                  {{/if}}
+                </div>
+                <h4 class="text-lg font-headline font-bold text-foreground mb-1">{{this.name}}</h4>
+                <p class="text-xs font-semibold text-[#1b4332] mb-2">Ingrediente Activo: {{this.active_ingredient}}</p>
+                <p class="text-xs text-muted-foreground">Fabricante: {{this.manufacturer}}</p>
+              </div>
+
+              <a href="/products/{{this.id}}" class="mt-4 inline-flex items-center justify-center gap-1.5 w-full py-2 bg-secondary hover:bg-emerald-100 text-[#1b4332] font-bold text-xs rounded-md transition-colors border border-border">
+                Ver Producto <span class="material-symbols-outlined text-xs">arrow_forward</span>
+              </a>
             </div>
             <h4 class="text-lg font-headline font-bold text-on-surface mb-1">{{this.name}}</h4>
             <p class="text-xs font-semibold text-primary mb-2">Ingrediente Activo: {{this.active_ingredient}}</p>
@@ -379,12 +378,11 @@
         {{/each}}
       </div>
       {{else}}
-      <div class="p-8 bg-surface-container-low rounded-2xl border border-outline-variant/10 text-center">
-        <span class="material-symbols-outlined text-4xl text-on-surface-variant/40 mb-2">medical_services</span>
-        <p class="text-sm font-bold text-on-surface mb-1">Sin Agroquímicos Registrados Directamente</p>
-        <p class="text-xs text-on-surface-variant">Consulta el catálogo de insumos de INIFAP para recomendaciones según
-          plaga o deficiencia.</p>
-      </div>
+        <div class="p-8 bg-card rounded-lg border border-border text-center shadow-2xs">
+          <span class="material-symbols-outlined text-4xl text-muted-foreground/40 mb-2">medical_services</span>
+          <p class="text-sm font-bold text-foreground mb-1">Sin Agroquímicos Registrados Directamente</p>
+          <p class="text-xs text-muted-foreground">Consulta el catálogo de insumos de INIFAP para recomendaciones según plaga o deficiencia.</p>
+        </div>
       {{/if}}
     </div>
 

@@ -1,5 +1,6 @@
 export default {
   async up(queryInterface, Sequelize) {
+    await queryInterface.bulkDelete('ActiveIngredients', null, {});
     await queryInterface.bulkInsert(
       'ActiveIngredients',
       [
