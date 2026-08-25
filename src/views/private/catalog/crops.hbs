@@ -139,7 +139,7 @@
 
                             <td class="px-6 py-5">
 
-                                <div class="min-w-[210px]">
+                                <div class="min-w-52.5">
 
                                     <p class="font-bold text-on-surface text-sm">
                                         {{name}}
@@ -543,7 +543,7 @@
             {{#each crops}}
 
             <article
-                class="group bg-surface-container-lowest rounded-xl overflow-hidden editorial-shadow ghost-border flex flex-col hover:translate-y-[-4px] transition-all duration-300">
+                class="group bg-surface-container-lowest rounded-xl overflow-hidden editorial-shadow ghost-border flex flex-col hover:-translate-y-1 transition-all duration-300">
 
                 <!--  IMAGEN-->
                 <div class="relative h-56 overflow-hidden bg-surface-container">
@@ -811,7 +811,7 @@
 
             <!--  AÑADIR CULTIVO-->
             <button type="button" id="btn-add-crop-card"
-                class="group bg-surface-container-lowest rounded-xl overflow-hidden editorial-shadow ghost-border flex flex-col items-center justify-center min-h-[360px] p-8 cursor-pointer border-2 border-dashed border-primary/20 hover:translate-y-[-4px] hover:border-primary/40 transition-all duration-300">
+                class="group bg-surface-container-lowest rounded-xl overflow-hidden editorial-shadow ghost-border flex flex-col items-center justify-center min-h-90 p-8 cursor-pointer border-2 border-dashed border-primary/20 hover:-translate-y-1 hover:border-primary/40 transition-all duration-300">
 
                 <div class="text-center">
 
@@ -848,7 +848,7 @@
 </main>
 
 <!-- MODAL: AÑADIR / EDITAR CULTIVO -->
-<div id="modal-crop" class="fixed inset-0 z-[100] hidden items-center justify-center p-4">
+<div id="modal-crop" class="fixed inset-0 z-100 hidden items-center justify-center p-4">
 
     <!-- FONDO -->
     <div id="modal-crop-backdrop" class="absolute inset-0 bg-black/40 backdrop-blur-sm">
@@ -2089,7 +2089,7 @@
                     <!-- ÁREA DE CARGA -->
 
                     <label for="crop-images"
-                        class="group flex flex-col items-center justify-center w-full min-h-[190px] border-2 border-dashed border-primary/30 rounded-2xl bg-primary/5 hover:bg-primary/10 hover:border-primary/60 transition-all cursor-pointer">
+                        class="group flex flex-col items-center justify-center w-full min-h-47.5 border-2 border-dashed border-primary/30 rounded-2xl bg-primary/5 hover:bg-primary/10 hover:border-primary/60 transition-all cursor-pointer">
 
                         <span
                             class="material-symbols-outlined text-5xl text-primary/50 group-hover:text-primary transition-colors">
@@ -2211,7 +2211,7 @@
 </div>
 {{!-- MODAL ELIMINAR CULTIVO--}}
 
-<div id="modal-delete-crop" class="fixed inset-0 z-[9999] hidden items-center justify-center p-4">
+<div id="modal-delete-crop" class="fixed inset-0 z-9999 hidden items-center justify-center p-4">
 
     {{!-- FONDO OSCURO --}}
     <div id="modal-delete-crop-backdrop" class="absolute inset-0 bg-black/50 backdrop-blur-sm">

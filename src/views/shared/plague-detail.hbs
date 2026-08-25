@@ -58,7 +58,7 @@
 
       {{! Carrusel principal }}
       <div class="col-span-1 lg:col-span-8">
-        <div class="relative overflow-hidden rounded-xl bg-surface-container-low shadow-sm mb-3 h-[500px] group"
+        <div class="relative overflow-hidden rounded-xl bg-surface-container-low shadow-sm mb-3 h-125 group"
           id="hero-carousel">
 
           {{! Slides }}
@@ -311,7 +311,7 @@
           class="w-16 h-16 rounded-full bg-primary text-on-primary flex items-center justify-center text-xl font-headline font-bold mb-6 z-10 shadow-md">
           {{add @index 1}}</div>
         {{#unless @last}}
-        <div class="hidden md:block absolute top-8 left-1/2 w-full h-[2px] bg-primary/20"></div>
+        <div class="hidden md:block absolute top-8 left-1/2 w-full h-0.5 bg-primary/20"></div>
         {{/unless}}
         <h4 class="font-headline font-bold text-lg mb-2">{{this.title}}</h4>
         <p class="text-sm text-on-surface-variant leading-relaxed">{{this.description}}</p>
@@ -395,7 +395,7 @@
           style="scrollbar-width:none;-ms-overflow-style:none;scroll-snap-type:x mandatory;">
           {{! Primer slide: imagen principal de la plaga }}
           {{#if plague.image_url}}
-          <div class="flex-none w-[300px] md:w-[380px]" style="scroll-snap-align:start;">
+          <div class="flex-none w-75 md:w-95" style="scroll-snap-align:start;">
             <div class="overflow-hidden rounded-xl bg-surface-container-highest mb-3 relative"
               style="aspect-ratio:4/3;">
               <img alt="Vista principal de {{plague.name}}"
@@ -413,7 +413,7 @@
           {{/if}}
           {{! Slides adicionales desde PlagueImages }}
           {{#each carouselImages}}
-          <div class="flex-none w-[300px] md:w-[380px]" style="scroll-snap-align:start;">
+          <div class="flex-none w-75 md:w-95" style="scroll-snap-align:start;">
             <div class="overflow-hidden rounded-xl bg-surface-container-highest mb-3 relative"
               style="aspect-ratio:4/3;">
               <img alt="{{this.caption}}"
@@ -429,7 +429,7 @@
           {{/each}}
           {{! Si no hay imágenes adicionales ni imagen principal, mostrar placeholder }}
           {{#unless plague.image_url}}{{#unless carouselImages}}
-          <div class="flex-none w-[300px] md:w-[380px]" style="scroll-snap-align:start;">
+          <div class="flex-none w-75 md:w-95" style="scroll-snap-align:start;">
             <div
               class="overflow-hidden rounded-xl bg-surface-container-highest mb-3 relative flex items-center justify-center"
               style="aspect-ratio:4/3;">

@@ -31,7 +31,7 @@
       </div>
 
       <!-- BARRA PEGAJOSA DE BUSCADOR Y FILTROS CON EFECTO DE FUSIÓN (sticky top-[57px]) -->
-      <div class="sticky top-[57px] z-30 -mx-6 mb-8 border-b border-border bg-background/95 px-6 py-4 backdrop-blur supports-[backdrop-filter]:bg-background/80 shadow-2xs">
+      <div class="sticky top-14.25 z-30 -mx-6 mb-8 border-b border-border bg-background/95 px-6 py-4 backdrop-blur supports-backdrop-filter:bg-background/80 shadow-2xs">
         <form action="/crops" method="GET" id="form-filtros-crops">
           <div class="flex flex-col gap-3 lg:flex-row lg:items-center">
           
@@ -98,7 +98,7 @@
               <div class="h-1 w-full bg-[#1b4332]"></div>
 
               <!-- 2. Marco de Imagen 4:3 con Crédito de Foto Minimalista -->
-              <div class="relative aspect-[4/3] overflow-hidden bg-muted">
+              <div class="relative aspect-4/3 overflow-hidden bg-muted">
                 {{#if image_url}}
                   <img
                     src="{{image_url}}"
@@ -109,7 +109,7 @@
                 {{else}}
                   <img src="/images/test/default.png" alt="Sin imagen" class="size-full object-cover" />
                 {{/if}}
-                <div aria-hidden="true" class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none"></div>
+                <div aria-hidden="true" class="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-black/20 pointer-events-none"></div>
               
                 <!-- Badge Categoría (Top-Left) -->
                 <div class="absolute left-3 top-3 flex items-center gap-1.5 bg-card/90 px-2.5 py-1 backdrop-blur rounded-md border border-border shadow-2xs">
@@ -167,7 +167,7 @@
           <article class="group flex flex-col items-center justify-center p-8 border-2 border-dashed border-border hover:border-[#1b4332]/40 rounded-lg bg-card/60 hover:bg-card transition-all text-center">
             <span class="material-symbols-outlined text-4xl text-[#1b4332]/60 mb-3">add_circle</span>
             <h3 class="text-base font-headline font-bold text-foreground mb-1">¿Nuevo cultivo?</h3>
-            <p class="text-xs text-muted-foreground leading-relaxed mb-5 max-w-[200px]">
+            <p class="text-xs text-muted-foreground leading-relaxed mb-5 max-w-50">
               Colabora con nuestra red científica reportando un nuevo cultivo documentado.
             </p>
             <a href="/private/crops" class="px-4 py-2 bg-secondary hover:bg-emerald-100 text-[#1b4332] text-xs font-bold rounded-md border border-border transition-colors">

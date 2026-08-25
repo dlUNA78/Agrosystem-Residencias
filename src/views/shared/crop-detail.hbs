@@ -73,7 +73,7 @@
   {{! ── HERO BANNER & FOTOGRAFÍA PRINCIPAL ─────────────────────────────── }}
   <div class="mb-14 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
     <div class="col-span-1 lg:col-span-7">
-      <div class="relative overflow-hidden rounded-lg bg-muted border border-border shadow-2xs h-[380px] group">
+      <div class="relative overflow-hidden rounded-lg bg-muted border border-border shadow-2xs h-95 group">
         {{#if crop.image_url}}
           <img src="{{crop.image_url}}" alt="{{crop.name}}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" onerror="this.onerror=null; this.src='/images/test/default.png';" />
         {{else}}
@@ -85,7 +85,7 @@
             </div>
           {{/if}}
         {{/if}}
-        <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none"></div>
+        <div class="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-black/20 pointer-events-none"></div>
 
         <!-- Crédito Fotográfico Minimalista -->
         <span class="absolute left-3 bottom-3 text-mono-label text-[10px] text-white/90 font-mono tracking-wider drop-shadow-xs select-none">

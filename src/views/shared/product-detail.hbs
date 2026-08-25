@@ -64,7 +64,7 @@
   <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 mb-14">
     {{! Imagen del Producto }}
     <div class="col-span-1 lg:col-span-5">
-      <div class="relative overflow-hidden rounded-lg bg-card border border-border shadow-2xs aspect-[4/3] group">
+      <div class="relative overflow-hidden rounded-lg bg-card border border-border shadow-2xs aspect-4/3 group">
         {{#if product.image_url}}
           <img class="w-full h-full object-contain p-6 transition-transform duration-500 group-hover:scale-105"
                src="{{product.image_url}}"
@@ -76,7 +76,7 @@
             <p class="text-xs font-bold">Imagen de producto no disponible</p>
           </div>
         {{/if}}
-        <div aria-hidden="true" class="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none"></div>
+        <div aria-hidden="true" class="absolute inset-0 bg-linear-to-t from-black/50 via-transparent to-transparent pointer-events-none"></div>
 
         <!-- Tag de Registro Oficial Top-Left -->
         <div class="absolute top-3 left-3">

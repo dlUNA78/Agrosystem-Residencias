@@ -66,7 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const ctaCardHtml = existingCta
       ? existingCta.outerHTML
       : `
-      <article id="cta-new-species" class="group bg-surface-container-lowest rounded-xl overflow-hidden editorial-shadow ghost-border flex flex-col hover:translate-y-[-4px] transition-all duration-300 border-2 border-dashed border-primary/20 items-center justify-center p-8">
+      <article id="cta-new-species" class="group bg-surface-container-lowest rounded-xl overflow-hidden editorial-shadow ghost-border flex flex-col hover:-translate-y-1 transition-all duration-300 border-2 border-dashed border-primary/20 items-center justify-center p-8">
         <div class="text-center">
           <span class="material-symbols-outlined text-4xl text-primary/40 mb-4">add_circle</span>
           <h3 class="text-lg font-headline font-bold text-on-surface mb-2">¿Nueva especie?</h3>
@@ -103,9 +103,9 @@ document.addEventListener('DOMContentLoaded', () => {
       article.innerHTML = `
         <div class="h-1 w-full ${riskBarColor}"></div>
 
-        <div class="relative aspect-[4/3] overflow-hidden bg-muted">
+        <div class="relative aspect-4/3 overflow-hidden bg-muted">
           <img class="size-full object-cover transition-transform duration-500 group-hover:scale-105" src="${safeImageUrl}" alt="${safeName}" onerror="this.onerror=null; this.src='/images/test/default.png';" />
-          <div aria-hidden="true" class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none"></div>
+          <div aria-hidden="true" class="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-black/20 pointer-events-none"></div>
         
           <div class="absolute left-3 top-3 flex items-center gap-1.5 bg-card/90 px-2 py-1 backdrop-blur rounded-md border border-border shadow-2xs">
             <span aria-hidden="true" class="inline-block size-1.5 rounded-full ${riskDotColor}"></span>
