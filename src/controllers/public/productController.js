@@ -1,5 +1,5 @@
 import db from '../../models/index.js';
-const { Product, Plague, Crop } = db;
+const { Product, ProductImage, Plague, Crop } = db;
 const { Op } = db.Sequelize;
 
 export const getProductsData = async (req, res) => {
@@ -22,13 +22,27 @@ export const getProductsData = async (req, res) => {
 
     const { count, rows } = await Product.findAndCountAll({
       where,
+      include: [
+        {
+          model: ProductImage,
+          as: 'images',
+          required: false,
+        },
+      ],
       order: [['name', 'ASC']],
       limit,
       offset,
       distinct: true,
     });
 
-    const plainProducts = rows.map((p) => p.toJSON());
+    const plainProducts = rows.map((pRecord) => {
+      const p = pRecord.toJSON();
+      const primaryImg = p.images?.find((i) => i.is_primary) || p.images?.[0];
+      return {
+        ...p,
+        image_url: primaryImg?.image_url || '/images/products/default.png',
+      };
+    });
 
     res.json({
       products: plainProducts,
@@ -58,10 +72,24 @@ export const renderProductsPublic = async (req, res) => {
 
     const products = await Product.findAll({
       where,
+      include: [
+        {
+          model: ProductImage,
+          as: 'images',
+          required: false,
+        },
+      ],
       order: [['name', 'ASC']],
     });
 
-    const plainProducts = products.map((p) => p.toJSON());
+    const plainProducts = products.map((pRecord) => {
+      const p = pRecord.toJSON();
+      const primaryImg = p.images?.find((i) => i.is_primary) || p.images?.[0];
+      return {
+        ...p,
+        image_url: primaryImg?.image_url || '/images/products/default.png',
+      };
+    });
 
     res.render('public/products', {
       pageTitle: 'Catálogo de Agroquímicos y Productos',
@@ -85,25 +113,30 @@ export const renderProductDetail = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const product = await Product.findByPk(id, {
+    const productRecord = await Product.findByPk(id, {
       include: [
+        { model: ProductImage, as: 'images', required: false },
         { model: Plague, as: 'plagues', through: { attributes: [] } },
         { model: Crop, as: 'crops', through: { attributes: [] } },
       ],
     });
 
-    if (!product || !product.status) {
+    if (!productRecord || !productRecord.status) {
       return res.status(404).render('shared/product-detail', {
         pageTitle: 'Producto no encontrado',
         error: 'El producto solicitado no existe o fue deshabilitado.',
       });
     }
 
+    const product = productRecord.toJSON();
+    const primaryImg = product.images?.find((i) => i.is_primary) || product.images?.[0];
+    product.image_url = primaryImg?.image_url || '/images/products/default.png';
+
     res.render('shared/product-detail', {
       pageTitle: product.name,
       activePage: 'products',
       isPrivate: false,
-      product: product.toJSON(),
+      product,
     });
   } catch (error) {
     console.error('Error al renderizar el detalle del producto:', error);

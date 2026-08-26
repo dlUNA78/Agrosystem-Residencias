@@ -6,9 +6,9 @@ export default {
   async up(queryInterface) {
     await queryInterface.bulkDelete('PlagueImages', null, {});
 
-    // Obtener los IDs y la imagen principal de las plagas insertadas
+    // Obtener los IDs y nombres de las plagas insertadas
     const plagues = await queryInterface.sequelize.query(
-      `SELECT id, name, image_url FROM "Plagues" ORDER BY "createdAt" ASC`,
+      `SELECT id, name FROM "Plagues" ORDER BY "createdAt" ASC`,
       { type: queryInterface.sequelize.QueryTypes.SELECT },
     );
 
@@ -19,21 +19,31 @@ export default {
       return;
     }
 
+    const imageMap = {
+      'Cenicilla Polvorienta': '/images/plagas/cenicilla.webp',
+      'Gusano Cogollero': '/images/plagas/gusano-cogollero.webp',
+      'Mosca del Mediterráneo': '/images/plagas/mosca-mediterraneo.webp',
+      'Psílido Asiático de los Cítricos': '/images/plagas/psilido-asiatico.webp',
+      'Pulgón Verde': '/images/plagas/pulgon-verde.webp',
+      'Roya Amarilla del Trigo': '/images/plagas/roya-amarilla.webp',
+      'Tizón Tardío': '/images/plagas/tizon-tardio.webp',
+      'Trips Oriental': '/images/plagas/trips-oriental.webp',
+    };
+
     const images = [];
 
     plagues.forEach((plague) => {
-      // 1. Imagen principal desde la carpeta local /images/plagas/
-      if (plague.image_url) {
-        images.push({
-          plague_id: plague.id,
-          url: plague.image_url,
-          caption: `${plague.name} — Vista principal de muestra en campo`,
-          source: 'Banco de Germoplasma INIFAP',
-          sort_order: 0,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        });
-      }
+      const imageUrl = imageMap[plague.name] || '/images/test/default.png';
+
+      images.push({
+        plague_id: plague.id,
+        url: imageUrl,
+        caption: `${plague.name} — Vista principal de muestra en campo`,
+        source: 'Banco de Germoplasma INIFAP',
+        sort_order: 0,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
     });
 
     if (images.length) {

@@ -6,7 +6,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const privateLayout = path.join(__dirname, '../../views/layouts/private');
 
-const { Product, Plague, Crop } = db;
+const { Product, ProductImage, Plague, Crop } = db;
 
 // ─── LISTAR PRODUCTOS PRIVADOS ───────────────────────────────────────────────
 export const productsPrivate = async (req, res) => {
@@ -33,14 +33,30 @@ export const productsPrivate = async (req, res) => {
 
     const products = await Product.findAll({
       where,
+      include: [
+        {
+          model: ProductImage,
+          as: 'images',
+          required: false,
+        },
+      ],
       order: [['createdAt', 'DESC']],
+    });
+
+    const plainProducts = products.map((pRecord) => {
+      const p = pRecord.toJSON();
+      const primaryImg = p.images?.find((i) => i.is_primary) || p.images?.[0];
+      return {
+        ...p,
+        image_url: primaryImg?.image_url || '/images/products/default.png',
+      };
     });
 
     return res.render('private/catalog/products', {
       layout: privateLayout,
       pageTitle: 'Gestión de Productos Agroquímicos',
       activePage: 'products',
-      products: products.map((p) => p.toJSON()),
+      products: plainProducts,
     });
   } catch (error) {
     console.error('Error al listar productos en panel privado:', error);
@@ -59,14 +75,15 @@ export const getProductDetail = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const product = await Product.findByPk(id, {
+    const productRecord = await Product.findByPk(id, {
       include: [
+        { model: ProductImage, as: 'images', required: false },
         { model: Plague, as: 'plagues', through: { attributes: [] } },
         { model: Crop, as: 'crops', through: { attributes: [] } },
       ],
     });
 
-    if (!product) {
+    if (!productRecord) {
       if (req.xhr || req.headers.accept?.includes('json')) {
         return res
           .status(404)
@@ -74,6 +91,10 @@ export const getProductDetail = async (req, res) => {
       }
       return res.status(404).send('Producto no encontrado');
     }
+
+    const product = productRecord.toJSON();
+    const primaryImg = product.images?.find((i) => i.is_primary) || product.images?.[0];
+    product.image_url = primaryImg?.image_url || '/images/products/default.png';
 
     if (
       req.xhr ||
@@ -89,7 +110,7 @@ export const getProductDetail = async (req, res) => {
       isPrivate: true,
       pageTitle: `Ficha Técnica: ${product.name}`,
       activePage: 'products',
-      product: product.toJSON(),
+      product,
     });
   } catch (error) {
     console.error('Error al obtener el detalle privado del producto:', error);
@@ -119,11 +140,6 @@ export const createProduct = async (req, res) => {
       formulation_type,
       safety_sheet_url,
     } = req.body;
-    let image_url = null;
-
-    if (req.file) {
-      image_url = `/uploads/${req.file.filename}`;
-    }
 
     const newProduct = await Product.create({
       name,
@@ -143,9 +159,19 @@ export const createProduct = async (req, res) => {
         : null,
       formulation_type,
       safety_sheet_url,
-      image_url,
       status: true,
     });
+
+    if (req.file) {
+      const image_url = `/uploads/${req.file.filename}`;
+      await ProductImage.create({
+        product_id: newProduct.id,
+        image_url,
+        original_name: req.file.originalname,
+        is_primary: true,
+        display_order: 1,
+      });
+    }
 
     if (req.xhr || req.headers.accept?.includes('json')) {
       return res.status(201).json({
@@ -176,11 +202,20 @@ export const updateProduct = async (req, res) => {
     }
 
     const updateData = { ...req.body };
-    if (req.file) {
-      updateData.image_url = `/uploads/${req.file.filename}`;
-    }
+    delete updateData.image_url;
 
     await product.update(updateData);
+
+    if (req.file) {
+      const image_url = `/uploads/${req.file.filename}`;
+      await ProductImage.create({
+        product_id: product.id,
+        image_url,
+        original_name: req.file.originalname,
+        is_primary: true,
+        display_order: 1,
+      });
+    }
 
     if (req.xhr || req.headers.accept?.includes('json')) {
       return res.json({

@@ -17,7 +17,6 @@ export default {
         optimal_climate: 'Templado a cálido (18°C a 30°C)',
         region: 'El Bajío',
         state: 'Guanajuato, Michoacán, Sinaloa',
-        image_url: '/images/cultivos/maiz.jpg',
         description: 'Cereal base de la alimentación, cultivado tanto en regadío como en temporal.',
         createdAt: now,
         updatedAt: now
@@ -36,7 +35,6 @@ export default {
         optimal_climate: 'Templado fresco (15°C a 24°C)',
         region: 'Noroeste y Bajío',
         state: 'Sonora, Guanajuato',
-        image_url: '/images/cultivos/trigo.jpg',
         description: 'Gramínea de ciclo invernal indispensable para la industria harinera nacional.',
         createdAt: now,
         updatedAt: now
@@ -55,7 +53,6 @@ export default {
         optimal_climate: 'Cálido subhúmedo (22°C a 34°C)',
         region: 'Tierra Caliente y Costa',
         state: 'Michoacán, Colima',
-        image_url: '/images/cultivos/limon-mexicano.jpg',
         description: 'Frutal cítrico de alto valor comercial con cosechas escalonadas a lo largo de todo el año.',
         createdAt: now,
         updatedAt: now
@@ -74,7 +71,6 @@ export default {
         optimal_climate: 'Cálido a semicálido (20°C a 32°C)',
         region: 'Golfo y Centro',
         state: 'Veracruz, Tamaulipas, Nuevo León',
-        image_url: '/images/cultivos/naranja-dulce.jpg',
         description: 'Cítrico dulce ampliamente cultivado para consumo en fresco y producción de jugo.',
         createdAt: now,
         updatedAt: now
@@ -93,7 +89,6 @@ export default {
         optimal_climate: 'Cálido moderado (18°C a 28°C)',
         region: 'Occidente y Noroeste',
         state: 'Sinaloa, Michoacán, San Luis Potosí',
-        image_url: '/images/cultivos/jitomate.jpg',
         description: 'Solanácea de alta demanda hortícola cultivada a campo abierto y bajo invernadero.',
         createdAt: now,
         updatedAt: now
@@ -112,7 +107,6 @@ export default {
         optimal_climate: 'Templado a templado frío (12°C a 20°C)',
         region: 'Valles Altos',
         state: 'Estado de México, Puebla, Sonora',
-        image_url: '/images/cultivos/papa.jpg',
         description: 'Tubérculo básico de alto rendimiento que requiere suelos sueltos y clima templado.',
         createdAt: now,
         updatedAt: now
@@ -131,7 +125,6 @@ export default {
         optimal_climate: 'Cálido templado (18°C a 30°C)',
         region: 'Bajío y Centro',
         state: 'Puebla, Michoacán, Sinaloa',
-        image_url: '/images/cultivos/calabacita.jpg',
         description: 'Cucurbitácea de ciclo ultracorto y recolección continua de frutos tiernos.',
         createdAt: now,
         updatedAt: now

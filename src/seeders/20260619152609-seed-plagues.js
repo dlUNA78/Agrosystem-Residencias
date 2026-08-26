@@ -11,7 +11,6 @@ export default {
           category: 'Hongos',
           risk_level: 'Medio',
           region: 'Michoacán, Sinaloa',
-          image_url: '/images/plagas/cenicilla.webp',
           description:
             'Enfermedad fúngica que afecta calabacita, pepino y melón, produciendo polvo blanco foliar.',
           symptoms:
@@ -35,7 +34,6 @@ export default {
           category: 'Insectos',
           risk_level: 'Alto',
           region: 'El Bajío, Michoacán, Sinaloa, Veracruz',
-          image_url: '/images/plagas/gusano-cogollero.webp',
           description:
             'Lepidóptero de alta movilidad que devora el cogollo en maizales y sorgo.',
           symptoms:
@@ -62,7 +60,6 @@ export default {
           category: 'Insectos',
           risk_level: 'Alto',
           region: 'Chiapas (Zona de Vigilancia)',
-          image_url: '/images/plagas/mosca-mediterraneo.webp',
           description:
             'Díptico frugívoro cuarentenario de alto impacto comercial en huertos frutícolas.',
           symptoms:
@@ -89,7 +86,6 @@ export default {
           category: 'Insectos',
           risk_level: 'Crítico',
           region: 'Michoacán, Colima, Veracruz, Yucatán',
-          image_url: '/images/plagas/psilido-asiatico.webp',
           description:
             'Hemíptero vector principal de la bacteria Candidatus Liberibacter, causante del HLB.',
           symptoms:
@@ -114,7 +110,6 @@ export default {
           category: 'Insectos',
           risk_level: 'Alto',
           region: 'El Bajío, Sonora, Jalisco, Sinaloa',
-          image_url: '/images/plagas/pulgon-verde.webp',
           description:
             'Áfido chupador que forma colonias densas en espigas, follaje y envés de las hojas.',
           symptoms:
@@ -139,7 +134,6 @@ export default {
           category: 'Hongos',
           risk_level: 'Crítico',
           region: 'El Bajío, Sonora, Valles Altos de México',
-          image_url: '/images/plagas/roya-amarilla.webp',
           description:
             'Hongo biotrófico aerotransportado que afecta principalmente el tejido foliar de cereales.',
           symptoms:
@@ -164,7 +158,6 @@ export default {
           category: 'Hongos',
           risk_level: 'Crítico',
           region: 'Estado de México, Puebla, Michoacán, Sinaloa',
-          image_url: '/images/plagas/tizon-tardio.webp',
           description:
             'Oomiceto fitopatógeno de alta virulencia y rápido avance foliar bajo condiciones húmedas y templadas.',
           symptoms:
@@ -188,7 +181,6 @@ export default {
           category: 'Insectos',
           risk_level: 'Alto',
           region: 'Sinaloa, Baja California, Michoacán, Morelos',
-          image_url: '/images/plagas/trips-oriental.webp',
           description:
             'Tisanóptero raspador-chupador diminuto que daña flores y frutos en desarrollo y transmite tospovirus.',
           symptoms:

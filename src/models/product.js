@@ -23,6 +23,13 @@ export default (sequelize, DataTypes) => {
         otherKey: 'crop_id',
         as: 'crops',
       });
+      // Un producto tiene muchas imágenes de referencia
+      Product.hasMany(models.ProductImage, {
+        foreignKey: 'product_id',
+        as: 'images',
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE',
+      });
     }
   }
 
@@ -37,7 +44,6 @@ export default (sequelize, DataTypes) => {
       expiration_date: DataTypes.DATE,
       target_crops: DataTypes.TEXT,
       description: DataTypes.TEXT,
-      image_url: DataTypes.STRING,
       mode_of_action: DataTypes.STRING,
       hazard_category: DataTypes.STRING,
       suggested_dosage: DataTypes.STRING,
