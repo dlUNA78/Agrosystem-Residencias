@@ -244,9 +244,15 @@ export const renderPlagueDetail = async (req, res) => {
             'name',
             'active_ingredient',
             'manufacturer',
-            'image_url',
             'category',
             'validation_status',
+          ],
+          include: [
+            {
+              model: db.ProductImage,
+              as: 'images',
+              required: false,
+            },
           ],
         },
         {
@@ -258,13 +264,16 @@ export const renderPlagueDetail = async (req, res) => {
     });
 
     if (!plague) {
-      return res.status(404).render('shared/plague-detail', {
-        layout: 'public',
+      return res.status(404).render('public/plagues', {
         pageTitle: 'Plaga no encontrada',
         activePage: 'plagues',
-        isPrivate: false,
-        plague: null,
+        plagues: [],
+        regions: [],
+        totalCount: 0,
+        totalPages: 0,
+        currentPage: 1,
         error: 'La plaga que buscas no existe o no está disponible.',
+        extraScripts: '<script src="/js/public/plagues.js"></script>',
       });
     }
 
@@ -290,16 +299,21 @@ export const renderPlagueDetail = async (req, res) => {
       }));
 
     // Productos relacionados
-    const relatedProducts = (plague.products || []).map((p) => ({
-      id: p.id,
-      name: p.name,
-      activeIngredient: p.active_ingredient,
-      manufacturer: p.manufacturer,
-      imageUrl: p.image_url,
-      image_url: p.image_url,
-      category: p.category,
-      isValidated: p.validation_status === 'Validado',
-    }));
+    const relatedProducts = (plague.products || []).map((p) => {
+      const primaryImg = p.images?.find((i) => i.is_primary) || p.images?.[0];
+      const imgUrl = primaryImg?.image_url || null;
+
+      return {
+        id: p.id,
+        name: p.name,
+        activeIngredient: p.active_ingredient,
+        manufacturer: p.manufacturer,
+        imageUrl: imgUrl,
+        image_url: imgUrl,
+        category: p.category,
+        isValidated: p.validation_status === 'Validado',
+      };
+    });
 
     // Regiones de incidencia con coordenadas para el mapa (desde BD)
     let incidenceRegions = (plague.regions || []).map((region) => {
@@ -371,13 +385,16 @@ export const renderPlagueDetail = async (req, res) => {
         '<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script><script src="/js/public/plague-detail.js"></script>',
     });
   } catch (error) {
-    console.error('Error en renderPlagueDetail:', error);
-    res.status(500).render('shared/plague-detail', {
-      layout: 'public',
+    console.log('=== CATCH ERROR IN RENDER PLAGUE DETAIL ===');
+    console.log(error.message);
+    console.log(error.stack);
+    res.status(500).render('public/plagues', {
       pageTitle: 'Error',
       activePage: 'plagues',
-      isPrivate: false,
-      plague: null,
+      plagues: [],
+      totalCount: 0,
+      totalPages: 0,
+      currentPage: 1,
       error: 'Error al cargar la plaga. Intenta de nuevo.',
     });
   }
