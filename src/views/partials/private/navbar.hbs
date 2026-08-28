@@ -5,10 +5,10 @@
     <div class="flex items-center gap-3">
         <button id="sidebar-toggle-btn" aria-label="Alternar menú lateral"
             class="p-2 rounded-lg text-muted-foreground hover:bg-muted transition-colors active:scale-90 shrink-0 lg:hidden">
-            <span class="material-symbols-outlined text-xl">menu</span>
+            <i data-lucide="menu" class="w-5 h-5"></i>
         </button>
         <div class="flex items-center gap-2 bg-muted/60 border border-border/80 px-3.5 py-1.5 rounded-lg w-64 sm:w-96">
-            <span class="material-symbols-outlined text-muted-foreground text-sm">search</span>
+            <i data-lucide="search" class="w-4 h-4 text-muted-foreground shrink-0"></i>
             <input class="bg-transparent border-none focus:outline-hidden text-xs w-full placeholder:text-muted-foreground"
                 placeholder="Buscar reportes, usuarios o registros..." type="text">
         </div>
@@ -18,7 +18,7 @@
     <div class="flex items-center gap-5">
         <!-- Notificaciones -->
         <button class="relative text-muted-foreground hover:text-foreground transition-colors cursor-pointer p-1.5 rounded-full hover:bg-muted">
-            <span class="material-symbols-outlined text-lg">notifications</span>
+            <i data-lucide="bell" class="w-4.5 h-4.5"></i>
             <span class="absolute top-1 right-1 w-2 h-2 bg-rose-600 rounded-full"></span>
         </button>
 
@@ -44,11 +44,11 @@
                     <p class="text-[10px] text-muted-foreground truncate">{{#if user.email}}{{user.email}}{{else}}admin@agrosystem.com{{/if}}</p>
                 </div>
                 <a href="/private/profile" class="flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-foreground hover:bg-muted transition-colors">
-                    <span class="material-symbols-outlined text-base text-[#1b4332]">person</span>
+                    <i data-lucide="user" class="w-4 h-4 text-[#1b4332]"></i>
                     <span>Mi Perfil</span>
                 </a>
                 <a href="/auth/logout" class="flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 transition-colors">
-                    <span class="material-symbols-outlined text-base">logout</span>
+                    <i data-lucide="log-out" class="w-4 h-4"></i>
                     <span>Cerrar Sesión</span>
                 </a>
             </div>

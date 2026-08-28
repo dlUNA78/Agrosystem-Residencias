@@ -8,6 +8,8 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap"
         rel="stylesheet">
+    <!-- Iconos Lucide (CDN) + Material Symbols como Fallback -->
+    <script src="https://unpkg.com/lucide@latest"></script>
     <link
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
         rel="stylesheet">
@@ -33,11 +35,18 @@
     <div class="fixed bottom-8 right-8 z-50">
         <button
             class="w-14 h-14 bg-primary text-on-primary rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all">
-            <span class="material-symbols-outlined text-3xl" data-icon="terminal">terminal</span>
+            <i data-lucide="terminal" class="w-6 h-6"></i>
         </button>
     </div>
 
     <script src="/js/main.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        });
+    </script>
     {{#if extraScripts}}{{{extraScripts}}}{{/if}}
 </body>
 
