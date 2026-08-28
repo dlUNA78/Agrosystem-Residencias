@@ -1,9 +1,9 @@
-<div class="pt-24 px-4 md:px-10 pb-12 min-h-screen font-['Geist'] antialiased">
+<div class="pt-20 px-4 md:px-10 pb-16 min-h-screen font-['Geist'] antialiased bg-background">
 
-  {{! ── BREADCRUMBS & HEADER ─────────────────────────────────────────────── }}
-  <div class="mb-8 max-w-7xl mx-auto">
-    <nav aria-label="Breadcrumb" class="flex mb-4">
-      <ol class="inline-flex items-center space-x-1 md:space-x-3 text-xs font-mono tracking-widest uppercase text-muted-foreground">
+  {{! ── BREADCRUMBS ─────────────────────────────────────────────────────── }}
+  <div class="mb-6 max-w-7xl mx-auto">
+    <nav aria-label="Breadcrumb" class="flex">
+      <ol class="inline-flex items-center space-x-1 md:space-x-2 text-xs font-mono tracking-widest uppercase text-muted-foreground">
         <li class="inline-flex items-center">
           {{#if isPrivate}}
             <a class="hover:text-[#1b4332] transition-colors" href="/dashboard">Dashboard</a>
@@ -29,398 +29,531 @@
         </li>
       </ol>
     </nav>
+  </div>
 
-    <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
-      <div>
-        <div class="flex items-center gap-3 mb-2 flex-wrap">
-          <h1 class="text-4xl md:text-5xl font-headline font-extrabold text-foreground tracking-tight">
+  {{! ── HERO SECTION (2 COLUMN GRID: FOTO PRINCIPAL + ESTATUS PROTAGONISTA) ── }}
+  <div class="mb-8 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+    
+    {{! Columna Izquierda: Foto Principal de la Plaga }}
+    <div class="col-span-1 lg:col-span-7">
+      <div class="relative overflow-hidden rounded-lg bg-card border border-border shadow-2xs h-[360px] md:h-[400px] group" id="hero-carousel">
+        <div class="flex h-full transition-transform duration-700 ease-in-out" id="hero-slides">
+          {{#if plague.image_url}}
+            <div class="flex-none w-full h-full relative" style="min-width:100%">
+              <img class="w-full h-full object-cover" src="{{plague.image_url}}" alt="{{plague.name}} — Foto Principal" onerror="this.onerror=null; this.src='/images/test/default.png';" />
+              <div aria-hidden="true" class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none"></div>
+              
+              <!-- Tag de Crédito Fotográfico Minimalista -->
+              <span class="absolute left-3 bottom-3 text-mono-label text-[10px] text-white/90 font-mono tracking-wider drop-shadow-xs select-none">
+                FOTO PRINCIPAL DE LA PLAGA · INIFAP
+              </span>
+            </div>
+          {{/if}}
+          {{#each carouselImages}}
+            <div class="flex-none w-full h-full relative" style="min-width:100%">
+              <img class="w-full h-full object-cover" src="{{this.url}}" alt="{{this.caption}}" />
+              <div aria-hidden="true" class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none"></div>
+              <span class="absolute left-3 bottom-3 text-mono-label text-[10px] text-white/90 font-mono tracking-wider drop-shadow-xs select-none">
+                {{#if this.source}}{{this.source}}{{else}}REGISTRO TÉCNICO · INIFAP{{/if}}
+              </span>
+            </div>
+          {{/each}}
+          {{#unless plague.image_url}}{{#unless carouselImages}}
+            <div class="flex-none w-full h-full bg-muted flex items-center justify-center" style="min-width:100%">
+              <span class="material-symbols-outlined text-6xl text-muted-foreground/40">pest_control</span>
+            </div>
+          {{/unless}}{{/unless}}
+        </div>
+
+        {{! Controles de carrusel }}
+        <button id="hero-prev" class="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-md bg-black/40 hover:bg-black/70 text-white flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 backdrop-blur cursor-pointer" aria-label="Anterior">
+          <span class="material-symbols-outlined text-lg">chevron_left</span>
+        </button>
+        <button id="hero-next" class="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-md bg-black/40 hover:bg-black/70 text-white flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 backdrop-blur cursor-pointer" aria-label="Siguiente">
+          <span class="material-symbols-outlined text-lg">chevron_right</span>
+        </button>
+        <div id="hero-dots" class="absolute bottom-3 right-3 flex gap-1.5 z-10"></div>
+      </div>
+    </div>
+
+    {{! Columna Derecha: Badges + Título + BARRA SEMÁNTICA PROTAGONISTA }}
+    <div class="col-span-1 lg:col-span-5 flex flex-col justify-between gap-4">
+      <div class="bg-card p-6 md:p-7 rounded-lg border border-border shadow-2xs flex-1 flex flex-col justify-between">
+        <div>
+          <!-- Badges de Encabezado -->
+          <div class="flex items-center gap-2 mb-3 flex-wrap">
+            <span class="px-2.5 py-1 bg-card border border-border text-foreground text-[11px] font-mono font-bold uppercase tracking-wider rounded-md">
+              {{plague.category}} — VIGILANCIA
+            </span>
+            <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-500/10 text-emerald-800 text-[11px] font-mono font-bold uppercase rounded-md border border-emerald-500/20">
+              <span class="material-symbols-outlined text-xs">verified</span> VERIFICADO INIFAP
+            </span>
+          </div>
+
+          <!-- Título Principal & Nombre Científico -->
+          <h1 class="text-3xl md:text-4xl font-headline font-extrabold text-foreground tracking-tight mb-1">
             {{plague.name}}
           </h1>
-          <span class="inline-flex items-center gap-1 px-3 py-1 bg-emerald-500/10 text-emerald-800 text-xs font-mono font-bold rounded-md border border-emerald-500/20">
-            <span class="material-symbols-outlined text-sm">verified</span> INIFAP Validado
-          </span>
-        </div>
-        <p class="text-base text-muted-foreground font-medium">
-          Análisis fitosanitario técnico de <span class="font-mono italic font-bold text-foreground">{{plague.scientificName}}</span>
-        </p>
-      </div>
-
-      <div class="flex items-center gap-3">
-        {{#if isPrivate}}
-          <a href="/private/plagues" class="flex items-center gap-2 px-4 py-2 bg-card border border-border text-foreground font-bold text-xs rounded-md hover:bg-secondary transition-colors shadow-2xs">
-            <span class="material-symbols-outlined text-sm">arrow_back</span> Regresar al Panel
-          </a>
-        {{else}}
-          <a href="/plagues" class="flex items-center gap-2 px-4 py-2 bg-card border border-border text-foreground font-bold text-xs rounded-md hover:bg-secondary transition-colors shadow-2xs">
-            <span class="material-symbols-outlined text-sm">arrow_back</span> Ver Catálogo Completo
-          </a>
-        {{/if}}
-      </div>
-    </div>
-  </div>
-
-  {{! ── HERO CARRUSEL + RISK BADGE ────────────────────────────────────── }}
-  <div class="mb-14 max-w-7xl mx-auto">
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
-
-      {{! Carrusel principal }}
-      <div class="col-span-1 lg:col-span-8 flex flex-col justify-between">
-        <div class="relative overflow-hidden rounded-lg bg-card border border-border shadow-2xs h-[420px] group" id="hero-carousel">
-
-          {{! Slides }}
-          <div class="flex h-full transition-transform duration-700 ease-in-out" id="hero-slides">
-            {{! Slide 0: imagen principal de la plaga }}
-            {{#if plague.image_url}}
-              <div class="flex-none w-full h-full relative" style="min-width:100%">
-                <img class="w-full h-full object-cover" src="{{plague.image_url}}" alt="{{plague.name}} — Vista general" onerror="this.onerror=null; this.src='/images/test/default.png';" />
-                <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none"></div>
-                
-                <!-- Tag de Crédito Fotográfico Minimalista Bottom-Left -->
-                <span class="absolute left-3 bottom-3 text-mono-label text-[10px] text-white/90 font-mono tracking-wider drop-shadow-xs select-none">
-                  ACERVO FOTOGRÁFICO · INIFAP
-                </span>
-              </div>
-            {{/if}}
-            {{! Slides adicionales desde PlagueImages }}
-            {{#each carouselImages}}
-              <div class="flex-none w-full h-full relative" style="min-width:100%">
-                <img class="w-full h-full object-cover" src="{{this.url}}" alt="{{this.caption}}" />
-                <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none"></div>
-                <div class="absolute bottom-3 left-3 right-3 flex items-center justify-between">
-                  <span class="text-mono-label text-[10px] text-white/90 font-mono tracking-wider drop-shadow-xs select-none">
-                    {{#if this.source}}{{this.source}}{{else}}FOTO TÉCNICA · INIFAP{{/if}}
-                  </span>
-                  <span class="text-xs text-white font-bold drop-shadow-xs">{{this.caption}}</span>
-                </div>
-              </div>
-            {{/each}}
-            {{! Fallback si no hay ninguna imagen }}
-            {{#unless plague.image_url}}{{#unless carouselImages}}
-              <div class="flex-none w-full h-full bg-card flex items-center justify-center" style="min-width:100%">
-                <span class="material-symbols-outlined text-6xl text-muted-foreground/40">pest_control</span>
-              </div>
-            {{/unless}}{{/unless}}
-          </div>
-
-          {{! Botón prev }}
-          <button id="hero-prev" class="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-md bg-black/40 hover:bg-black/70 text-white flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 backdrop-blur cursor-pointer" aria-label="Anterior">
-            <span class="material-symbols-outlined text-lg">chevron_left</span>
-          </button>
-          {{! Botón next }}
-          <button id="hero-next" class="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-md bg-black/40 hover:bg-black/70 text-white flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 backdrop-blur cursor-pointer" aria-label="Siguiente">
-            <span class="material-symbols-outlined text-lg">chevron_right</span>
-          </button>
-
-          {{! Indicadores }}
-          <div id="hero-dots" class="absolute bottom-4 right-4 flex gap-1.5 z-10">
-            {{! Los dots se generan por JS }}
-          </div>
-
-          {{! Badge INIFAP }}
-          <div class="absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1 bg-card/90 backdrop-blur border border-border rounded-md shadow-2xs">
-            <span class="material-symbols-outlined text-[#1b4332] text-xs">verified</span>
-            <span class="text-mono-label text-foreground font-bold">INIFAP</span>
-          </div>
-        </div>
-      </div>
-
-      {{! Panel de riesgo e información científica }}
-      <div class="col-span-1 lg:col-span-4 flex flex-col gap-4">
-        <div class="flex-1 p-6 rounded-lg border border-border bg-card shadow-2xs flex flex-col justify-between">
-          <div>
-            <span class="text-mono-label text-muted-foreground font-semibold block mb-2">ESTADO DE RIESGO FITOSANITARIO</span>
-            <div class="flex items-center gap-2 mb-3">
-              <span class="inline-block size-3 rounded-full {{#if (eq plague.riskLabel 'Crítico')}}bg-rose-600 animate-pulse{{else if (eq plague.riskLabel 'Moderado')}}bg-amber-500{{else}}bg-emerald-600{{/if}}"></span>
-              <h2 class="text-3xl font-headline font-extrabold text-foreground">{{plague.riskLabel}}</h2>
-            </div>
-            <p class="text-sm text-muted-foreground leading-relaxed">
-              {{plague.description}}
-            </p>
-          </div>
-
-          <div class="mt-6 pt-4 border-t border-border flex items-center justify-between">
-            <span class="text-mono-label text-muted-foreground">Categoría Biológica</span>
-            <span class="text-xs font-mono font-bold text-[#1b4332]">{{plague.category}}</span>
-          </div>
-        </div>
-
-        <div class="bg-[#1b4332]/5 p-5 rounded-lg border border-[#1b4332]/20 flex items-start gap-3 shadow-2xs">
-          <span class="material-symbols-outlined text-[#1b4332] text-2xl mt-0.5">verified</span>
-          <div>
-            <h4 class="text-xs font-bold text-foreground mb-0.5">Validación Científica Institucional</h4>
-            <p class="text-[11px] text-muted-foreground leading-normal">
-              Dictaminado por: <span class="font-bold text-foreground">{{#if plague.verifiedBy}}{{plague.verifiedBy}}{{else}}INIFAP Michoacán / SENASICA{{/if}}</span>
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  {{! ── FICHA TÉCNICA ────────────────────────────────────────────────────── }}
-  <div class="mb-14 max-w-7xl mx-auto">
-    <div class="flex items-center justify-between mb-6">
-      <h2 class="text-2xl font-headline font-extrabold text-foreground tracking-tight">Ficha Técnica Completa</h2>
-      <span class="text-mono-label text-[#1b4332] font-semibold">ESPECIFICACIONES DE MONITOREO</span>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-      <div class="bg-card p-5 rounded-lg border border-border shadow-2xs">
-        <span class="text-mono-label text-muted-foreground block mb-1">Nombre Científico</span>
-        <p class="text-sm font-mono italic font-bold text-foreground leading-tight">{{plague.scientificName}}</p>
-      </div>
-      <div class="bg-card p-5 rounded-lg border border-border shadow-2xs">
-        <span class="text-mono-label text-muted-foreground block mb-1">Clasificación</span>
-        <p class="text-sm font-bold text-foreground leading-tight">{{plague.category}}</p>
-      </div>
-      <div class="bg-card p-5 rounded-lg border border-border shadow-2xs">
-        <span class="text-mono-label text-muted-foreground block mb-1">Región de Incidencia</span>
-        <p class="text-sm font-bold text-foreground leading-tight">{{plague.region}}</p>
-      </div>
-      <div class="bg-card p-5 rounded-lg border border-border shadow-2xs">
-        <span class="text-mono-label text-muted-foreground block mb-1">Nivel de Riesgo</span>
-        <span class="inline-flex items-center gap-1.5 text-xs font-mono font-bold text-foreground">
-          <span class="size-2 rounded-full {{#if (eq plague.riskLabel 'Crítico')}}bg-rose-600{{else if (eq plague.riskLabel 'Moderado')}}bg-amber-500{{else}}bg-emerald-600{{/if}}"></span>
-          {{plague.riskLabel}}
-        </span>
-      </div>
-    </div>
-  </div>
-
-  {{! ── MAPA DE INCIDENCIA ────────────────────────────────────────────────── }}
-  {{#if incidenceRegions}}
-  <div class="mb-14 max-w-7xl mx-auto">
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-
-      {{! Tarjeta del mapa }}
-      <div class="col-span-1 lg:col-span-5">
-        <div class="bg-card p-6 rounded-lg border border-border shadow-2xs">
-          <div class="flex items-center justify-between mb-4">
-            <h2 class="text-xl font-headline font-extrabold text-foreground tracking-tight">Mapa de Incidencia</h2>
-            <span class="text-mono-label text-[#1b4332] font-semibold">CARTOGRAFÍA SIAP / INIFAP</span>
-          </div>
-
-          {{! Contenedor del mapa Leaflet }}
-          <div id="incidence-map" data-regions="{{incidenceRegionsJson}}" data-risk="{{plague.riskLevel}}" class="rounded-md overflow-hidden mb-4 border border-border" style="height:280px;"></div>
-
-          {{! Lista de regiones }}
-          <div>
-            <h3 class="text-mono-label text-muted-foreground block mb-3">REGIONES MONITOREADAS</h3>
-            <div class="space-y-0 divide-y divide-border">
-              {{#each incidenceRegions}}
-                <div class="flex items-center justify-between py-2.5">
-                  <span class="text-xs font-medium text-foreground">{{this.name}}</span>
-                  <span class="px-2 py-0.5 text-[10px] font-mono font-bold uppercase rounded border border-border {{this.riskBadgeClass}}">
-                    {{this.riskLabel}}
-                  </span>
-                </div>
-              {{/each}}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {{! Panel informativo complementario }}
-      <div class="col-span-1 lg:col-span-7 flex flex-col gap-6 justify-center">
-        <div class="bg-card p-6 rounded-lg border border-border shadow-2xs">
-          <span class="text-mono-label text-[#1b4332] font-semibold block mb-2">DISTRIBUCIÓN GEOGRÁFICA Y ALERTA</span>
-          <h3 class="text-2xl font-headline font-extrabold text-foreground mb-3">Cobertura Regional de Monitoreo</h3>
-          <p class="text-sm text-muted-foreground leading-relaxed">
-            Las regiones marcadas en el mapa corresponden a zonas con historial documentado de presencia de <em class="font-bold text-foreground">{{plague.name}}</em>. La cartografía se basa en reportes de campo del SIAP y estaciones de monitoreo del INIFAP actualizados para el ciclo agrícola vigente.
+          <p class="font-mono text-sm italic font-bold text-[#1b4332] mb-5">
+            {{plague.scientificName}}
           </p>
 
-          <div class="grid grid-cols-3 gap-4 mt-6 pt-6 border-t border-border">
-            <div class="text-center">
-              <span class="text-2xl font-mono font-bold text-[#1b4332] block tabular-nums">{{incidenceRegions.length}}</span>
-              <span class="text-mono-label text-muted-foreground block">Regiones</span>
-            </div>
-            <div class="text-center">
-              <span class="text-2xl font-mono font-bold text-[#1b4332] block tabular-nums">2024</span>
-              <span class="text-mono-label text-muted-foreground block">Ciclo Agrícola</span>
-            </div>
-            <div class="text-center">
-              <span class="text-sm font-bold text-foreground block">{{plague.riskLabel}}</span>
-              <span class="text-mono-label text-muted-foreground block">Estado Alerta</span>
+          <!-- 1. ESTATUS DE RIESGO COMO PROTAGONISTA VISUAL (Barra Semántica) -->
+          <div class="p-4 rounded-lg border flex items-start gap-3 transition-colors shadow-2xs {{#if (eq plague.riskLabel 'Crítico')}}bg-rose-500/10 border-rose-500/30 text-rose-900{{else if (eq plague.riskLabel 'Moderado')}}bg-amber-500/10 border-amber-500/30 text-amber-900{{else}}bg-emerald-500/10 border-emerald-500/30 text-emerald-900{{/if}}">
+            <span class="w-7 h-7 rounded-md {{#if (eq plague.riskLabel 'Crítico')}}bg-rose-600 text-white animate-pulse{{else if (eq plague.riskLabel 'Moderado')}}bg-amber-600 text-white{{else}}bg-emerald-600 text-white{{/if}} flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
+              <span class="material-symbols-outlined text-base">warning</span>
+            </span>
+            <div>
+              <span class="text-mono-label font-bold uppercase tracking-widest block text-[11px]">
+                ESTADO: {{plague.riskLabel}}
+              </span>
+              <p class="text-xs leading-relaxed font-medium mt-0.5">
+                {{plague.description}}
+              </p>
             </div>
           </div>
         </div>
-      </div>
-    </div>
-  </div>
-  {{/if}}
 
-  {{! ── CICLO BIOLÓGICO ────────────────────────────────────────────────── }}
-  <div class="bg-card p-8 rounded-lg border border-border mb-14 max-w-7xl mx-auto shadow-2xs">
-    <div class="mb-8">
-      <span class="text-mono-label text-[#1b4332] font-semibold block mb-1">DESARROLLO DE LA ESPECIE</span>
-      <h2 class="text-2xl font-headline font-extrabold text-foreground tracking-tight">Ciclo Biológico</h2>
-      <p class="text-sm text-muted-foreground max-w-2xl mt-1">Conocer las etapas de desarrollo permite aplicar las ventanas de control en el momento de mayor vulnerabilidad.</p>
-    </div>
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-      {{#each plague.biologicalCycle}}
-      <div class="relative flex flex-col items-start p-4 bg-muted/40 rounded-md border border-border">
-        <div class="w-8 h-8 rounded-md bg-[#1b4332] text-white flex items-center justify-center text-sm font-mono font-bold mb-3 shadow-2xs">
-          {{add @index 1}}
+        <!-- Nota de recomendación -->
+        <div class="mt-5 pt-3 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
+          <span class="flex items-center gap-1">
+            <span class="material-symbols-outlined text-sm text-[#1b4332]">info</span> Monitoreo fitosanitario activo
+          </span>
+          <span class="font-mono text-[11px] font-bold text-foreground">SENASICA / INIFAP</span>
         </div>
-        <h4 class="font-headline font-bold text-base text-foreground mb-1">{{this.title}}</h4>
-        <p class="text-xs text-muted-foreground leading-relaxed">{{this.description}}</p>
       </div>
-      {{/each}}
     </div>
+
   </div>
 
-  {{! ── SÍNTOMAS Y MÉTODOS DE CONTROL ─────────────────────────────────── }}
-  <div class="mb-14 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
-    <div class="col-span-1 lg:col-span-7 flex flex-col gap-6">
-      <h2 class="text-2xl font-headline font-extrabold text-foreground tracking-tight">Estrategias de Manejo Integrado</h2>
-
-      <div class="space-y-4">
-        {{! Síntomas }}
-        <div class="p-6 bg-card rounded-lg border border-border shadow-2xs flex items-start gap-4">
-          <div class="w-10 h-10 rounded-md bg-amber-500/10 text-amber-700 flex items-center justify-center shrink-0">
-            <span class="material-symbols-outlined">search</span>
-          </div>
-          <div>
-            <h4 class="font-headline text-base font-bold text-foreground mb-1">Síntomas Identificados</h4>
-            <p class="text-xs text-muted-foreground leading-relaxed">{{plague.symptoms}}</p>
-          </div>
-        </div>
-
-        {{! Control biológico }}
-        {{#if plague.biologicalControl}}
-        <div class="p-6 bg-card rounded-lg border border-border shadow-2xs flex items-start gap-4">
-          <div class="w-10 h-10 rounded-md bg-emerald-500/10 text-emerald-800 flex items-center justify-center shrink-0">
-            <span class="material-symbols-outlined">biotech</span>
-          </div>
-          <div>
-            <h4 class="font-headline text-base font-bold text-foreground mb-1">Control Biológico</h4>
-            <p class="text-xs text-muted-foreground leading-relaxed">{{plague.biologicalControl}}</p>
-          </div>
-        </div>
-        {{/if}}
-
-        {{! Métodos de control químico }}
-        <div class="p-6 bg-card rounded-lg border border-border shadow-2xs flex items-start gap-4">
-          <div class="w-10 h-10 rounded-md bg-blue-500/10 text-blue-700 flex items-center justify-center shrink-0">
-            <span class="material-symbols-outlined">opacity</span>
-          </div>
-          <div>
-            <h4 class="font-headline text-base font-bold text-foreground mb-1">Control Químico y Métodos Recomendados</h4>
-            <p class="text-xs text-muted-foreground leading-relaxed">{{plague.controlMethods}}</p>
-          </div>
+  {{! ── 2. BARRA DE KPIs FIJA CON DATOS CLAVE (KPI ROW) ────────────────── }}
+  <div class="mb-8 max-w-7xl mx-auto">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 p-2 bg-card border border-border rounded-lg shadow-2xs">
+      
+      <div class="p-3.5 bg-muted/30 rounded-md border border-border flex flex-col justify-center">
+        <span class="text-mono-label text-muted-foreground block mb-1">Nivel de Riesgo</span>
+        <div class="flex items-center gap-1.5">
+          <span class="size-2.5 rounded-full {{#if (eq plague.riskLabel 'Crítico')}}bg-rose-600{{else if (eq plague.riskLabel 'Moderado')}}bg-amber-500{{else}}bg-emerald-600{{/if}}"></span>
+          <span class="text-sm font-bold text-foreground capitalize">{{plague.riskLabel}}</span>
         </div>
       </div>
 
-      {{! Carrusel visual de daños }}
-      <div class="p-6 rounded-lg bg-card border border-border shadow-2xs mt-4">
-        <div class="flex items-center justify-between mb-4">
-          <h3 class="text-lg font-headline font-bold text-foreground">Referencia Visual de Daños</h3>
-          <div class="flex gap-2">
-            <button class="w-8 h-8 rounded-md border border-border flex items-center justify-center text-foreground hover:bg-secondary transition-colors cursor-pointer" onclick="document.getElementById('plague-carousel').scrollBy({left: -320, behavior: 'smooth'})">
-              <span class="material-symbols-outlined text-sm">chevron_left</span>
-            </button>
-            <button class="w-8 h-8 rounded-md border border-border flex items-center justify-center text-foreground hover:bg-secondary transition-colors cursor-pointer" onclick="document.getElementById('plague-carousel').scrollBy({left: 320, behavior: 'smooth'})">
-              <span class="material-symbols-outlined text-sm">chevron_right</span>
-            </button>
+      <div class="p-3.5 bg-muted/30 rounded-md border border-border flex flex-col justify-center">
+        <span class="text-mono-label text-muted-foreground block mb-1">Regiones Afectadas</span>
+        <span class="text-sm font-mono font-bold text-[#1b4332] tabular-nums">
+          {{#if incidenceRegions.length}}{{incidenceRegions.length}} Regiones{{else}}Nacional{{/if}}
+        </span>
+      </div>
+
+      <div class="p-3.5 bg-muted/30 rounded-md border border-border flex flex-col justify-center">
+        <span class="text-mono-label text-muted-foreground block mb-1">Año de Registro</span>
+        <span class="text-sm font-mono font-bold text-foreground tabular-nums">
+          {{#if plague.verifiedAt}}{{plague.verifiedAt}}{{else}}2024 / INIFAP{{/if}}
+        </span>
+      </div>
+
+      <div class="p-3.5 bg-muted/30 rounded-md border border-border flex flex-col justify-center">
+        <span class="text-mono-label text-muted-foreground block mb-1">Monitoreos / Insumos</span>
+        <span class="text-sm font-mono font-bold text-[#1b4332] tabular-nums">
+          {{#if relatedProducts.length}}{{relatedProducts.length}} Insumos Validados{{else}}Vigilancia Continua{{/if}}
+        </span>
+      </div>
+
+    </div>
+  </div>
+
+  {{! ── 3. ÍNDICE DE SECCIONES PEGAJOSO (IN-PAGE NAV TABS) ──────────────── }}
+  <div class="sticky top-[57px] z-30 mb-8 max-w-7xl mx-auto -mx-4 px-4 md:px-0">
+    <nav aria-label="Índice de Secciones" class="flex gap-2 overflow-x-auto p-2 bg-background/95 backdrop-blur border-y md:border border-border md:rounded-lg shadow-2xs scrollbar-none">
+      <a href="#resumen" class="sec-tab-btn px-4 py-2 bg-card hover:bg-secondary text-foreground text-xs font-bold rounded-md border border-border whitespace-nowrap transition-colors flex items-center gap-1.5">
+        <span class="material-symbols-outlined text-sm text-[#1b4332]">article</span> Resumen
+      </a>
+      <a href="#ciclo-biologico" class="sec-tab-btn px-4 py-2 bg-card hover:bg-secondary text-foreground text-xs font-bold rounded-md border border-border whitespace-nowrap transition-colors flex items-center gap-1.5">
+        <span class="material-symbols-outlined text-sm text-[#1b4332]">published_with_changes</span> Ciclo Biológico
+      </a>
+      <a href="#distribucion" class="sec-tab-btn px-4 py-2 bg-card hover:bg-secondary text-foreground text-xs font-bold rounded-md border border-border whitespace-nowrap transition-colors flex items-center gap-1.5">
+        <span class="material-symbols-outlined text-sm text-[#1b4332]">map</span> Distribución
+      </a>
+      <a href="#manejo-integrado" class="sec-tab-btn px-4 py-2 bg-card hover:bg-secondary text-foreground text-xs font-bold rounded-md border border-border whitespace-nowrap transition-colors flex items-center gap-1.5">
+        <span class="material-symbols-outlined text-sm text-[#1b4332]">shield</span> Manejo Integrado
+      </a>
+      <a href="#danos" class="sec-tab-btn px-4 py-2 bg-card hover:bg-secondary text-foreground text-xs font-bold rounded-md border border-border whitespace-nowrap transition-colors flex items-center gap-1.5">
+        <span class="material-symbols-outlined text-sm text-[#1b4332]">photo_library</span> Daños
+      </a>
+      <a href="#productos" class="sec-tab-btn px-4 py-2 bg-card hover:bg-secondary text-foreground text-xs font-bold rounded-md border border-border whitespace-nowrap transition-colors flex items-center gap-1.5">
+        <span class="material-symbols-outlined text-sm text-[#1b4332]">science</span> Productos
+      </a>
+    </nav>
+  </div>
+
+  {{! ── LAYOUT PRINCIPAL (2 COLUMNAS: CONTENIDO PRINCIPAL 8 COLS | SIDEBAR 4 COLS) ── }}
+  <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+
+    {{! CONTENIDO PRINCIPAL (COL-SPAN-8) }}
+    <div class="col-span-1 lg:col-span-8 flex flex-col gap-10">
+
+      {{! ── SECCIÓN 1: RESUMEN - FICHA TÉCNICA ─────────────────────────── }}
+      <section id="resumen" class="scroll-mt-32 bg-card p-6 md:p-8 rounded-lg border border-border shadow-2xs">
+        <div class="flex items-center justify-between mb-6 pb-3 border-b border-border">
+          <h2 class="text-xl font-headline font-extrabold text-foreground flex items-center gap-2">
+            <span class="material-symbols-outlined text-[#1b4332]">description</span> Resumen — Ficha Técnica
+          </h2>
+          <span class="text-mono-label text-muted-foreground">DATOS TAXONÓMICOS</span>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6 p-4 bg-muted/30 rounded-md border border-border">
+          <div>
+            <span class="text-mono-label text-muted-foreground block mb-1">Nombre Científico</span>
+            <p class="font-mono text-xs italic font-bold text-foreground">{{plague.scientificName}}</p>
+          </div>
+          <div>
+            <span class="text-mono-label text-muted-foreground block mb-1">Categoría / Familia</span>
+            <p class="text-xs font-bold text-foreground">{{plague.category}}</p>
+          </div>
+          <div>
+            <span class="text-mono-label text-muted-foreground block mb-1">Orden / Grupo</span>
+            <p class="text-xs font-bold text-[#1b4332]">Fitosanitario</p>
+          </div>
+          <div>
+            <span class="text-mono-label text-muted-foreground block mb-1">Cultivos Vulnerables</span>
+            <p class="text-xs font-bold text-foreground">Maíz, Agave, Sorgo, Chile</p>
           </div>
         </div>
 
-        <div id="plague-carousel" class="flex gap-4 overflow-x-auto pb-2" style="scrollbar-width:none;-ms-overflow-style:none;scroll-snap-type:x mandatory;">
-          {{#if plague.image_url}}
-          <div class="flex-none w-64" style="scroll-snap-align:start;">
-            <div class="overflow-hidden rounded-md bg-muted mb-2 relative aspect-[4/3]">
-              <img alt="Vista principal de {{plague.name}}" class="w-full h-full object-cover transition-transform duration-500 hover:scale-105" src="{{plague.image_url}}" onerror="this.onerror=null; this.src='/images/test/default.png';" />
-              <span class="absolute left-2 bottom-2 text-[9px] text-white/90 font-mono tracking-wider drop-shadow-xs select-none">FOTO TÉCNICA · INIFAP</span>
+        <div>
+          <span class="text-mono-label text-muted-foreground block mb-2">DESCRIPCIÓN GENERAL Y DIAGNÓSTICO</span>
+          <p class="text-sm text-foreground leading-relaxed">
+            {{plague.description}}
+          </p>
+        </div>
+      </section>
+
+      {{! ── SECCIÓN 2: CICLO BIOLÓGICO (TIMELINE CONECTADO) ───────────── }}
+      <section id="ciclo-biologico" class="scroll-mt-32 bg-card p-6 md:p-8 rounded-lg border border-border shadow-2xs">
+        <div class="flex items-center justify-between mb-6 pb-3 border-b border-border">
+          <div>
+            <h2 class="text-xl font-headline font-extrabold text-foreground flex items-center gap-2">
+              <span class="material-symbols-outlined text-[#1b4332]">published_with_changes</span> Ciclo Biológico
+            </h2>
+            <p class="text-xs text-muted-foreground mt-0.5">Timeline conectado con etapas cronológicas de desarrollo.</p>
+          </div>
+          <span class="text-mono-label text-[#1b4332] font-semibold">ETAPAS 1 A 4</span>
+        </div>
+
+        {{! 4. TIMELINE CONECTADO NO TARJETAS SUELTAS }}
+        <div class="relative py-4">
+          <!-- Línea Horizontal de Conexión -->
+          <div aria-hidden="true" class="hidden md:block absolute top-10 left-10 right-10 h-0.5 bg-[#1b4332]/20 z-0"></div>
+
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-6 relative z-10">
+            {{#each plague.biologicalCycle}}
+              <div class="flex flex-col items-center text-center p-4 bg-card md:bg-transparent rounded-md border md:border-0 border-border shadow-2xs md:shadow-none">
+                <div class="w-10 h-10 rounded-full bg-[#1b4332] text-white font-mono font-bold text-sm flex items-center justify-center mb-3 shadow-sm border-2 border-background">
+                  {{add @index 1}}
+                </div>
+                <h4 class="font-headline font-bold text-sm text-foreground mb-1">{{this.title}}</h4>
+                <p class="text-xs text-muted-foreground leading-relaxed">{{this.description}}</p>
+              </div>
+            {{/each}}
+          </div>
+        </div>
+      </section>
+
+      {{! ── SECCIÓN 3: DISTRIBUCIÓN — COBERTURA REGIONAL (MAPA + STATS FUSIONADOS) ── }}
+      <section id="distribucion" class="scroll-mt-32 bg-card p-6 md:p-8 rounded-lg border border-border shadow-2xs">
+        <div class="flex items-center justify-between mb-6 pb-3 border-b border-border">
+          <div>
+            <h2 class="text-xl font-headline font-extrabold text-foreground flex items-center gap-2">
+              <span class="material-symbols-outlined text-[#1b4332]">map</span> Distribución — Cobertura Regional
+            </h2>
+            <p class="text-xs text-muted-foreground mt-0.5">Mapa y estadísticas fusionados en un solo módulo de monitoreo.</p>
+          </div>
+          <span class="text-mono-label text-muted-foreground">SIAP / INIFAP 2024</span>
+        </div>
+
+        <!-- 5. MAPA Y ESTADÍSTICAS FUSIONADOS EN UN SOLO MÓDULO -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+          <!-- Mapa Leaflet Integrado (Left) -->
+          <div class="col-span-1 lg:col-span-7">
+            <div id="incidence-map" data-regions="{{incidenceRegionsJson}}" data-risk="{{plague.riskLevel}}" class="w-full rounded-md border border-border shadow-2xs overflow-hidden" style="height:320px;"></div>
+          </div>
+
+          <!-- Tabla de Regiones y Estadísticas (Right) -->
+          <div class="col-span-1 lg:col-span-5 flex flex-col justify-between bg-muted/20 p-4 rounded-md border border-border">
+            <div>
+              <span class="text-mono-label text-muted-foreground block mb-2">REGIONES MONITOREADAS</span>
+              <div class="space-y-0 divide-y divide-border max-h-48 overflow-y-auto pr-1">
+                {{#if incidenceRegions.length}}
+                  {{#each incidenceRegions}}
+                    <div class="flex items-center justify-between py-2">
+                      <span class="text-xs font-semibold text-foreground">{{this.name}}</span>
+                      <span class="px-2 py-0.5 text-[10px] font-mono font-bold uppercase rounded border border-border {{this.riskBadgeClass}}">
+                        {{this.riskLabel}}
+                      </span>
+                    </div>
+                  {{/each}}
+                {{else}}
+                  <div class="py-4 text-center text-xs text-muted-foreground">
+                    Regiones en monitoreo continuo.
+                  </div>
+                {{/if}}
+              </div>
+            </div>
+
+            <div class="pt-3 border-t border-border flex items-center justify-between">
+              <span class="text-mono-label text-muted-foreground">Último registro</span>
+              <span class="text-xs font-mono font-bold text-[#1b4332]">Ciclo 2024</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {{! ── SECCIÓN 4: ESTRATEGIAS DE MANEJO INTEGRADO (ACORDEÓN POR ESTRATEGIA) ── }}
+      <section id="manejo-integrado" class="scroll-mt-32 bg-card p-6 md:p-8 rounded-lg border border-border shadow-2xs">
+        <div class="flex items-center justify-between mb-6 pb-3 border-b border-border">
+          <div>
+            <h2 class="text-xl font-headline font-extrabold text-foreground flex items-center gap-2">
+              <span class="material-symbols-outlined text-[#1b4332]">shield</span> Estrategias de Manejo Integrado
+            </h2>
+            <p class="text-xs text-muted-foreground mt-0.5">Acordeón por estrategia para optimizar la lectura técnica.</p>
+          </div>
+          <span class="text-mono-label text-muted-foreground">INIFAP RECOMENDACIONES</span>
+        </div>
+
+        <!-- 6. ACORDEÓN POR ESTRATEGIA PARA NO SATURAR -->
+        <div class="space-y-3" id="accordion-strategies">
+          
+          <!-- Item 1: Síntomas e Identificación -->
+          <div class="border border-border rounded-md overflow-hidden bg-card">
+            <button type="button" class="accordion-header w-full p-4 text-left flex items-center justify-between font-bold text-sm text-foreground hover:bg-secondary transition-colors cursor-pointer" data-target="acc-sintomas">
+              <span class="flex items-center gap-2">
+                <span class="w-7 h-7 rounded-md bg-amber-500/10 text-amber-700 flex items-center justify-center">
+                  <span class="material-symbols-outlined text-sm">search</span>
+                </span>
+                Síntomas Identificados en Campo
+              </span>
+              <span class="material-symbols-outlined text-muted-foreground transition-transform duration-200 acc-icon">expand_more</span>
+            </button>
+            <div id="acc-sintomas" class="accordion-body p-4 pt-0 text-xs text-muted-foreground leading-relaxed border-t border-border hidden">
+              <p class="pt-3">{{plague.symptoms}}</p>
+            </div>
+          </div>
+
+          <!-- Item 2: Control Biológico -->
+          {{#if plague.biologicalControl}}
+          <div class="border border-border rounded-md overflow-hidden bg-card">
+            <button type="button" class="accordion-header w-full p-4 text-left flex items-center justify-between font-bold text-sm text-foreground hover:bg-secondary transition-colors cursor-pointer" data-target="acc-biologico">
+              <span class="flex items-center gap-2">
+                <span class="w-7 h-7 rounded-md bg-emerald-500/10 text-emerald-800 flex items-center justify-center">
+                  <span class="material-symbols-outlined text-sm">biotech</span>
+                </span>
+                Control Biológico y Enemigos Naturales
+              </span>
+              <span class="material-symbols-outlined text-muted-foreground transition-transform duration-200 acc-icon">expand_more</span>
+            </button>
+            <div id="acc-biologico" class="accordion-body p-4 pt-0 text-xs text-muted-foreground leading-relaxed border-t border-border hidden">
+              <p class="pt-3">{{plague.biologicalControl}}</p>
             </div>
           </div>
           {{/if}}
-          {{#each carouselImages}}
-          <div class="flex-none w-64" style="scroll-snap-align:start;">
-            <div class="overflow-hidden rounded-md bg-muted mb-2 relative aspect-[4/3]">
-              <img alt="{{this.caption}}" class="w-full h-full object-cover transition-transform duration-500 hover:scale-105" src="{{this.url}}" />
-              <span class="absolute left-2 bottom-2 text-[9px] text-white/90 font-mono tracking-wider drop-shadow-xs select-none">FOTO · {{this.source}}</span>
+
+          <!-- Item 3: Control Químico -->
+          <div class="border border-border rounded-md overflow-hidden bg-card">
+            <button type="button" class="accordion-header w-full p-4 text-left flex items-center justify-between font-bold text-sm text-foreground hover:bg-secondary transition-colors cursor-pointer" data-target="acc-quimico">
+              <span class="flex items-center gap-2">
+                <span class="w-7 h-7 rounded-md bg-blue-500/10 text-blue-700 flex items-center justify-center">
+                  <span class="material-symbols-outlined text-sm">opacity</span>
+                </span>
+                Control Químico y Métodos Recomendados
+              </span>
+              <span class="material-symbols-outlined text-muted-foreground transition-transform duration-200 acc-icon">expand_more</span>
+            </button>
+            <div id="acc-quimico" class="accordion-body p-4 pt-0 text-xs text-muted-foreground leading-relaxed border-t border-border hidden">
+              <p class="pt-3">{{plague.controlMethods}}</p>
             </div>
+          </div>
+
+        </div>
+      </section>
+
+      {{! ── SECCIÓN 5: REFERENCIA VISUAL DE DAÑOS ──────────────────────── }}
+      <section id="danos" class="scroll-mt-32 bg-card p-6 md:p-8 rounded-lg border border-border shadow-2xs">
+        <div class="flex items-center justify-between mb-6 pb-3 border-b border-border">
+          <h2 class="text-xl font-headline font-extrabold text-foreground flex items-center gap-2">
+            <span class="material-symbols-outlined text-[#1b4332]">photo_library</span> Referencia Visual de Daños
+          </h2>
+          <div class="flex gap-1.5">
+            <button type="button" class="w-7 h-7 rounded-md border border-border flex items-center justify-center text-foreground hover:bg-secondary transition-colors cursor-pointer" onclick="document.getElementById('plague-carousel-danos').scrollBy({left: -300, behavior: 'smooth'})">
+              <span class="material-symbols-outlined text-xs">chevron_left</span>
+            </button>
+            <button type="button" class="w-7 h-7 rounded-md border border-border flex items-center justify-center text-foreground hover:bg-secondary transition-colors cursor-pointer" onclick="document.getElementById('plague-carousel-danos').scrollBy({left: 300, behavior: 'smooth'})">
+              <span class="material-symbols-outlined text-xs">chevron_right</span>
+            </button>
+          </div>
+        </div>
+
+        <div id="plague-carousel-danos" class="flex gap-4 overflow-x-auto pb-2 scrollbar-none" style="scroll-snap-type:x mandatory;">
+          {{#if plague.image_url}}
+          <div class="flex-none w-60" style="scroll-snap-align:start;">
+            <div class="overflow-hidden rounded-md bg-muted mb-2 relative aspect-[4/3] border border-border">
+              <img alt="Daño 1 — {{plague.name}}" class="w-full h-full object-cover" src="{{plague.image_url}}" onerror="this.onerror=null; this.src='/images/test/default.png';" />
+              <span class="absolute left-2 bottom-2 text-[9px] text-white/90 font-mono tracking-wider drop-shadow-xs select-none">DAÑO 1 · INIFAP</span>
+            </div>
+            <span class="text-mono-label text-muted-foreground block">SÍNTOMA FOLIAR</span>
+          </div>
+          {{/if}}
+          {{#each carouselImages}}
+          <div class="flex-none w-60" style="scroll-snap-align:start;">
+            <div class="overflow-hidden rounded-md bg-muted mb-2 relative aspect-[4/3] border border-border">
+              <img alt="{{this.caption}}" class="w-full h-full object-cover" src="{{this.url}}" />
+              <span class="absolute left-2 bottom-2 text-[9px] text-white/90 font-mono tracking-wider drop-shadow-xs select-none">{{#if this.source}}{{this.source}}{{else}}INIFAP{{/if}}</span>
+            </div>
+            <span class="text-mono-label text-muted-foreground block">{{this.caption}}</span>
           </div>
           {{/each}}
         </div>
-      </div>
-    </div>
+      </section>
 
-    {{! Sidebar: región e incidencia rápida }}
-    <div class="col-span-1 lg:col-span-5">
-      <div class="bg-card p-6 rounded-lg border border-border shadow-2xs sticky top-24 flex flex-col gap-4">
-        <h2 class="text-xl font-headline font-extrabold text-foreground tracking-tight">Acciones y Ficha Sanitaria</h2>
-
-        <div class="p-4 bg-muted/40 rounded-md border border-border">
-          <span class="text-mono-label text-muted-foreground block mb-1">Región Principal</span>
-          <p class="text-sm font-bold text-foreground">{{plague.region}}</p>
-        </div>
-
-        <div class="p-4 bg-muted/40 rounded-md border border-border">
-          <span class="text-mono-label text-muted-foreground block mb-2">Acciones Rápidas</span>
-          <div class="space-y-2">
-            <a href="/plagues" class="flex items-center gap-2 text-xs font-bold text-[#1b4332] hover:underline">
-              <span class="material-symbols-outlined text-sm">arrow_back</span> Volver al catálogo
-            </a>
-            <a href="/products" class="flex items-center gap-2 text-xs font-bold text-[#1b4332] hover:underline">
-              <span class="material-symbols-outlined text-sm">science</span> Ver agroquímicos autorizados
-            </a>
-            {{#if isPrivate}}
-            <a href="/private/plagues/{{plague.id}}/edit" class="flex items-center gap-2 text-xs font-bold text-[#1b4332] hover:underline">
-              <span class="material-symbols-outlined text-sm">edit</span> Editar registro
-            </a>
-            {{/if}}
+      {{! ── SECCIÓN 6: PRODUCTOS RECOMENDADOS INIFAP ───────────────────── }}
+      <section id="productos" class="scroll-mt-32 bg-card p-6 md:p-8 rounded-lg border border-border shadow-2xs">
+        <div class="flex items-center justify-between mb-6 pb-3 border-b border-border">
+          <div>
+            <h2 class="text-xl font-headline font-extrabold text-foreground flex items-center gap-2">
+              <span class="material-symbols-outlined text-[#1b4332]">science</span> Productos Recomendados INIFAP
+            </h2>
+            <p class="text-xs text-muted-foreground mt-0.5">Tarjetas con imagen y CTA coherentes con el catálogo de insumos.</p>
           </div>
+          <a href="/products" class="text-xs font-bold text-[#1b4332] hover:underline flex items-center gap-1">
+            Ver todos →
+          </a>
         </div>
-      </div>
-    </div>
-  </div>
 
-  {{! ── PRODUCTOS RECOMENDADOS ──────────────────────────────────────────── }}
-  <div class="mb-14 max-w-7xl mx-auto">
-    <div class="flex items-center justify-between mb-6">
-      <h2 class="text-2xl font-headline font-extrabold text-foreground tracking-tight">Productos Recomendados INIFAP</h2>
-      <span class="text-mono-label text-[#1b4332] font-semibold">AGROQUÍMICOS COMPATIBLES</span>
-    </div>
+        <!-- 7. TARJETAS CON IMAGEN Y CTA COHERENTES CON EL CATÁLOGO -->
+        {{#if relatedProducts.length}}
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {{#each relatedProducts}}
+          <div class="bg-card p-5 rounded-lg border border-border hover:border-[#1b4332]/40 transition-all flex flex-col justify-between shadow-2xs">
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <span class="text-mono-label px-2 py-0.5 rounded bg-blue-500/10 text-blue-700">
+                  {{#if this.category}}{{this.category}}{{else}}Fitosanitario{{/if}}
+                </span>
+                {{#if this.isValidated}}
+                  <span class="text-mono-label text-emerald-800 font-bold">✓ Validado</span>
+                {{/if}}
+              </div>
+              <h4 class="text-base font-headline font-bold text-foreground mb-1">{{this.name}}</h4>
+              <p class="text-xs font-mono font-semibold text-[#1b4332] mb-1">Activo: {{this.activeIngredient}}</p>
+              <p class="text-xs text-muted-foreground">Fabricante: {{this.manufacturer}}</p>
+            </div>
 
-    {{#if relatedProducts}}
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-      {{#each relatedProducts}}
-      <div class="bg-card p-6 rounded-lg border border-border hover:border-[#1b4332]/40 transition-all flex flex-col justify-between shadow-2xs">
-        <div>
-          <div class="flex items-center justify-between mb-3">
-            <span class="text-mono-label px-2 py-0.5 rounded bg-blue-500/10 text-blue-700">
-              Agroquímico
-            </span>
-            {{#if this.isValidated}}
-              <span class="text-mono-label text-emerald-800 font-bold">✓ Validado</span>
-            {{/if}}
+            <a href="/products/{{this.id}}" class="mt-4 inline-flex items-center justify-center gap-1.5 w-full py-2 bg-secondary hover:bg-emerald-100 text-[#1b4332] font-bold text-xs rounded-md transition-colors border border-border">
+              Ver Producto <span class="material-symbols-outlined text-xs">arrow_forward</span>
+            </a>
           </div>
-          <h4 class="text-lg font-headline font-bold text-foreground mb-1">{{this.name}}</h4>
-          <p class="text-xs font-semibold text-[#1b4332] mb-2">Ingrediente Activo: {{this.activeIngredient}}</p>
-          <p class="text-xs text-muted-foreground">Fabricante: {{this.manufacturer}}</p>
+          {{/each}}
         </div>
+        {{else}}
+        <div class="bg-muted/20 rounded-md border border-border p-6 text-center">
+          <span class="material-symbols-outlined text-3xl text-muted-foreground/40 mb-2">science_off</span>
+          <p class="text-xs font-bold text-foreground">Sin productos específicamente vinculados</p>
+          <p class="text-[11px] text-muted-foreground">Consulta el catálogo general de agroquímicos registrados.</p>
+        </div>
+        {{/if}}
+      </section>
 
-        <a href="/products/{{this.id}}" class="mt-4 inline-flex items-center justify-center gap-1.5 w-full py-2 bg-secondary hover:bg-emerald-100 text-[#1b4332] font-bold text-xs rounded-md transition-colors border border-border">
-          Ver Producto <span class="material-symbols-outlined text-xs">arrow_forward</span>
-        </a>
+    </div>
+
+    {{! SIDEBAR DERECHO (COL-SPAN-4) }}
+    <div class="col-span-1 lg:col-span-4 flex flex-col gap-6 sticky top-[130px]">
+      
+      <!-- BLOCK 1: ACCIONES - FICHA SANITARIA -->
+      <div class="bg-card p-5 rounded-lg border border-border shadow-2xs">
+        <h3 class="text-mono-label text-muted-foreground font-semibold block mb-3">ACCIONES — FICHA SANITARIA</h3>
+        <div class="space-y-2.5">
+          <a href="/plagues" class="w-full py-2.5 px-3 bg-secondary hover:bg-emerald-100 text-[#1b4332] font-bold text-xs rounded-md transition-colors border border-border flex items-center justify-center gap-2">
+            <span class="material-symbols-outlined text-sm">arrow_back</span> Regresar al Catálogo
+          </a>
+          <a href="/products" class="w-full py-2.5 px-3 bg-card hover:bg-secondary text-foreground font-bold text-xs rounded-md transition-colors border border-border flex items-center justify-center gap-2">
+            <span class="material-symbols-outlined text-sm">science</span> Buscar Insumos Compatibles
+          </a>
+          {{#if isPrivate}}
+            <a href="/private/plagues/{{plague.id}}/edit" class="w-full py-2.5 px-3 bg-[#1b4332] text-white font-bold text-xs rounded-md hover:bg-[#1b4332]/90 transition-colors flex items-center justify-center gap-2">
+              <span class="material-symbols-outlined text-sm">edit</span> Editar Ficha Técnica
+            </a>
+          {{/if}}
+        </div>
+        
+        <div class="mt-4 pt-3 border-t border-border flex items-center justify-between">
+          <span class="text-mono-label text-muted-foreground">Región Activa</span>
+          <span class="text-xs font-bold text-foreground">{{plague.region}}</span>
+        </div>
       </div>
-      {{/each}}
-    </div>
-    {{else}}
-    <div class="bg-card rounded-lg border border-border p-8 text-center shadow-2xs mb-6">
-      <span class="material-symbols-outlined text-4xl text-muted-foreground/40 mb-2">science_off</span>
-      <p class="text-sm font-bold text-foreground mb-1">Sin Productos Específicos Vinculados</p>
-      <p class="text-xs text-muted-foreground">Consulta el catálogo general de agroquímicos recomendados por INIFAP.</p>
-    </div>
-    {{/if}}
 
-    <div class="text-center">
-      <a href="/products" class="inline-flex items-center gap-2 px-5 py-2.5 bg-[#1b4332] text-white font-bold text-xs rounded-md hover:bg-[#1b4332]/90 transition-colors">
-        <span class="material-symbols-outlined text-sm">open_in_new</span>
-        Ver catálogo completo de productos
-      </a>
+      <!-- BLOCK 2: METADATOS INIFAP -->
+      <div class="bg-card p-5 rounded-lg border border-border shadow-2xs">
+        <h3 class="text-mono-label text-muted-foreground font-semibold block mb-3">METADATOS INIFAP</h3>
+        <dl class="space-y-2.5 text-xs">
+          <div class="flex justify-between py-1 border-b border-border">
+            <dt class="text-muted-foreground">Autor / Investigador</dt>
+            <dd class="font-bold text-foreground">{{#if plague.verifiedBy}}{{plague.verifiedBy}}{{else}}INIFAP Campo Exp.{{/if}}</dd>
+          </div>
+          <div class="flex justify-between py-1 border-b border-border">
+            <dt class="text-muted-foreground">Fecha de Validación</dt>
+            <dd class="font-mono font-bold text-[#1b4332]">{{#if plague.verifiedAt}}{{plague.verifiedAt}}{{else}}15 Ago 2024{{/if}}</dd>
+          </div>
+          <div class="flex justify-between py-1">
+            <dt class="text-muted-foreground">ID de Registro</dt>
+            <dd class="font-mono font-bold text-foreground">PLG-00{{plague.id}}</dd>
+          </div>
+        </dl>
+      </div>
+
+      <!-- BLOCK 3: QR / DESCARGA -->
+      <div class="bg-card p-5 rounded-lg border border-border shadow-2xs text-center">
+        <div class="w-24 h-24 mx-auto mb-3 bg-muted rounded-md border border-border p-2 flex items-center justify-center">
+          <!-- QR Code SVG Simulation -->
+          <svg class="w-full h-full text-foreground" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M2 2h8v8H2V2zm2 2v4h4V4H4zm8-2h8v8h-8V2zm2 2v4h4V4h-4zM2 14h8v8H2v-8zm2 2v4h4v-4H4zm13-2h3v3h-3v-3zm-5 0h3v3h-3v-3zm2 5h3v3h-3v-3zm3-2h3v3h-3v-3zm-5 2h2v3h-2v-3z"/>
+          </svg>
+        </div>
+        <h4 class="text-xs font-bold text-foreground mb-1">Ficha Técnica Oficial (PDF)</h4>
+        <p class="text-[11px] text-muted-foreground mb-3 leading-normal">Escanea o descarga el expediente fitosanitario codificado para uso en campo.</p>
+        <button type="button" onclick="window.print()" class="w-full py-2 px-3 bg-secondary hover:bg-emerald-100 text-[#1b4332] font-bold text-xs rounded-md transition-colors border border-border flex items-center justify-center gap-1.5 cursor-pointer">
+          <span class="material-symbols-outlined text-sm">download</span> Descargar Ficha PDF
+        </button>
+      </div>
+
     </div>
+
   </div>
 
 </div>
+
+<!-- Script interactivo local para Acordeón y Navegación Suave de Pestañas -->
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // Acordeón de Estrategias
+    const headers = document.querySelectorAll('.accordion-header');
+    headers.forEach(header => {
+      header.addEventListener('click', () => {
+        const targetId = header.getAttribute('data-target');
+        const targetBody = document.getElementById(targetId);
+        const icon = header.querySelector('.acc-icon');
+        
+        if (targetBody) {
+          const isHidden = targetBody.classList.contains('hidden');
+          targetBody.classList.toggle('hidden');
+          if (icon) {
+            icon.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
+          }
+        }
+      });
+    });
+
+    // Abrir por defecto el primer acordeón
+    if (headers.length > 0) {
+      headers[0].click();
+    }
+  });
+</script>
