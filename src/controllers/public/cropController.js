@@ -188,6 +188,13 @@ export const renderCropDetail = async (req, res) => {
           model: db.Product,
           as: 'products',
           required: false,
+          include: [
+            {
+              model: db.ProductImage,
+              as: 'images',
+              required: false,
+            },
+          ],
         },
       ],
     });
@@ -216,21 +223,17 @@ export const renderCropDetail = async (req, res) => {
     // ── Normalizar ruta de imagen ─────────────────────────────────────────
     const normalizeImagePath = (imagePath) => {
       if (!imagePath) return null;
-
       let path = String(imagePath).trim();
-
-      // Quitar "/" inicial
       path = path.replace(/^\/+/, '');
-
-      // Quitar "public/" si fue guardado accidentalmente
       path = path.replace(/^public\/+/, '');
-
       return `/${path}`;
     };
 
     // ── Imagen principal ──────────────────────────────────────────────────
     const primaryImage = primaryImg
       ? normalizeImagePath(primaryImg.image_url)
+      : crop.image_url
+      ? normalizeImagePath(crop.image_url)
       : null;
 
     // ── Normalizar imágenes del carrusel ──────────────────────────────────
@@ -239,11 +242,61 @@ export const renderCropDetail = async (req, res) => {
       image_url: normalizeImagePath(image.image_url),
     }));
 
-    // Mantener también las imágenes normalizadas dentro de crop
     crop.images = carouselImages;
+    crop.image_url = primaryImage;
+
+    // ── Enriquecer plagas con temas de riesgo ─────────────────────────────
+    const riskThemes = {
+      Alto: {
+        badgeClass: 'bg-rose-50 text-rose-800 border-rose-200',
+        textClass: 'text-rose-600',
+        label: 'Crítico',
+      },
+      Medio: {
+        badgeClass: 'bg-amber-50 text-amber-800 border-amber-200',
+        textClass: 'text-amber-600',
+        label: 'Moderado',
+      },
+      Bajo: {
+        badgeClass: 'bg-emerald-50 text-emerald-800 border-emerald-200',
+        textClass: 'text-emerald-600',
+        label: 'Bajo',
+      },
+    };
+
+    if (Array.isArray(crop.plagues)) {
+      crop.plagues = crop.plagues.map((p) => {
+        const theme = riskThemes[p.risk_level] || riskThemes.Bajo;
+        return {
+          ...p,
+          riskTheme: theme,
+          riskLabel: theme.label,
+        };
+      });
+    }
+
+    // ── Enriquecer productos con URLs de imágenes ─────────────────────────
+    if (Array.isArray(crop.products)) {
+      crop.products = crop.products.map((prod) => {
+        const primaryProdImg =
+          prod.images?.find((img) => img.is_primary) || prod.images?.[0];
+
+        let imgUrl = primaryProdImg?.image_url || prod.image_url;
+        if (imgUrl) {
+          imgUrl = normalizeImagePath(imgUrl);
+        } else {
+          imgUrl = '/images/products/confidor-350-sc.webp';
+        }
+
+        return {
+          ...prod,
+          image_url: imgUrl,
+        };
+      });
+    }
 
     res.render('shared/crop-detail', {
-      pageTitle: crop.name,
+      pageTitle: crop.name || crop.common_name,
       activePage: 'crops',
       isPrivate: false,
       crop,
