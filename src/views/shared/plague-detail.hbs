@@ -177,28 +177,70 @@
 
     </div>
 
-    {{! ── SECCIÓN 1: CICLO BIOLÓGICO (4 TARJETAS HORIZONTALES) ────────────── }}
+    {{! ── SECCIÓN 1: CICLO BIOLÓGICO (HIGH-FIDELITY WIREFRAME V0.1) ────────────── }}
     <section id="ciclo-biologico" class="scroll-mt-32 mb-10">
       <div class="flex items-center gap-2 mb-4">
-        <span class="material-symbols-outlined text-[#1b4332] text-xl">eco</span>
+        <span class="material-symbols-outlined text-[#1b4332] text-xl">sync</span>
         <h2 class="text-lg font-headline font-bold text-foreground tracking-tight">Ciclo biológico</h2>
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <!-- Barra Superior de Métricas del Ciclo -->
+      <div class="bg-white rounded-xl border border-border p-4 shadow-2xs flex flex-wrap items-center justify-between gap-4 mb-4">
+        <div class="flex items-center gap-2 text-xs font-semibold text-[#1b4332]">
+          <span class="material-symbols-outlined text-base text-emerald-700">sync</span>
+          <span>Ciclo continuo por partenogénesis</span>
+        </div>
+        <div class="flex items-center gap-2 text-xs text-muted-foreground font-medium">
+          <span class="material-symbols-outlined text-base text-muted-foreground">schedule</span>
+          <span>Ciclo completo: <strong class="text-foreground font-bold">30–40 días</strong></span>
+        </div>
+        <div class="flex items-center gap-2 text-xs text-muted-foreground font-medium">
+          <span class="material-symbols-outlined text-base text-muted-foreground">thermostat</span>
+          <span>Hasta <strong class="text-foreground font-bold">20 generaciones/año</strong></span>
+        </div>
+      </div>
+
+      <!-- Grilla de Tarjetas de Etapas (01, 02, 03, 04) -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-2">
         {{#each plague.biologicalCycle}}
-          <div class="bg-white p-5 rounded-xl border border-border shadow-2xs flex flex-col justify-between relative">
-            <div class="flex items-center justify-between mb-3">
-              <div class="w-8 h-8 rounded-full bg-emerald-50 text-emerald-800 flex items-center justify-center border border-emerald-100">
-                <span class="material-symbols-outlined text-sm">nature</span>
-              </div>
-              <span class="font-mono text-xs text-muted-foreground font-bold">0{{add @index 1}}</span>
-            </div>
+          <div class="bg-white p-5 rounded-xl border {{#if this.isControlWindow}}border-2 border-rose-300 shadow-xs{{else}}border-border shadow-2xs{{/if}} flex flex-col justify-between relative transition-all">
             <div>
+              <div class="flex items-center justify-between mb-3">
+                <div class="w-8 h-8 rounded-lg {{#if this.isControlWindow}}bg-rose-50 text-rose-600 border border-rose-100{{else}}bg-emerald-50 text-emerald-800 border border-emerald-100{{/if}} flex items-center justify-center">
+                  <span class="material-symbols-outlined text-base">
+                    {{#if this.icon}}{{this.icon}}{{else if (eq @index 0)}}egg{{else if (eq @index 1)}}bug_report{{else if (eq @index 2)}}eco{{else}}air{{/if}}
+                  </span>
+                </div>
+                <span class="font-mono text-xs {{#if this.isControlWindow}}text-rose-400 font-bold{{else}}text-muted-foreground/60 font-semibold{{/if}}">
+                  {{#if this.step}}{{this.step}}{{else}}0{{add @index 1}}{{/if}}
+                </span>
+              </div>
+
               <h3 class="font-headline font-bold text-sm text-foreground mb-1">{{this.title}}</h3>
               <p class="text-xs text-muted-foreground leading-relaxed">{{this.description}}</p>
             </div>
+
+            <div class="mt-4 pt-3 border-t {{#if this.isControlWindow}}border-rose-100{{else}}border-border/60{{/if}}">
+              <div class="flex items-center gap-1.5 font-mono text-xs {{#if this.isControlWindow}}text-rose-600 font-bold mb-2.5{{else}}text-muted-foreground{{/if}}">
+                <span class="material-symbols-outlined text-sm">schedule</span>
+                <span>{{#if this.duration}}{{this.duration}}{{else}}Variable{{/if}}</span>
+              </div>
+
+              {{#if this.isControlWindow}}
+                <div class="bg-rose-50 text-rose-700 border border-rose-200/60 rounded-full px-2.5 py-1 text-[11px] font-bold flex items-center justify-center gap-1.5 shadow-2xs">
+                  <span class="material-symbols-outlined text-xs">target</span>
+                  <span>Ventana óptima de control</span>
+                </div>
+              {{/if}}
+            </div>
           </div>
         {{/each}}
+      </div>
+
+      <!-- Leyenda inferior de reinicio de ciclo -->
+      <div class="flex items-center justify-end gap-1.5 text-xs text-muted-foreground font-medium pt-1">
+        <span class="material-symbols-outlined text-sm text-muted-foreground">sync</span>
+        <span>Las formas aladas reinician la colonia en nuevos cultivos</span>
       </div>
     </section>
 

@@ -48,27 +48,39 @@ const defaultRisk = {
   bannerTextClass: 'text-emerald-950',
 };
 
-// Pasos genéricos de ciclo biológico (fallback si la BD no tiene datos)
+// Pasos genéricos de ciclo biológico (alineados al wireframe V0.1)
 const defaultCycle = [
   {
+    step: '01',
     title: 'Huevo / Fundación',
-    description:
-      'Fase inicial de desarrollo. En climas fríos el organismo pasa el invierno en forma de huevo o estructuras de resistencia.',
+    description: 'La hembra fundadora inicia la colonia en tejido tierno o estructuras de resistencia.',
+    duration: '3-5 días',
+    icon: 'egg',
+    isControlWindow: false,
   },
   {
-    title: 'Estadio Juvenil',
-    description:
-      'Crecimiento activo y alimentación intensa. El organismo pasa por múltiples instares o mudas antes de alcanzar la madurez.',
+    step: '02',
+    title: 'Ninfa / Juvenil',
+    description: 'Estadios ninfales con alta tasa reproductiva y alimentación intensa.',
+    duration: '7-10 días',
+    icon: 'bug_report',
+    isControlWindow: true,
   },
   {
-    title: 'Adulto Reproductivo',
-    description:
-      'Etapa de reproducción masiva. En condiciones óptimas la población puede multiplicarse exponencialmente en días.',
+    step: '03',
+    title: 'Adulto reproductivo',
+    description: 'Reproducción partenogenética y rápida oviposición en follaje.',
+    duration: '20-25 días',
+    icon: 'eco',
+    isControlWindow: false,
   },
   {
+    step: '04',
     title: 'Dispersión',
-    description:
-      'Formas migratorias o resistentes que permiten la colonización de nuevos hospedantes cuando el recurso actual se agota.',
+    description: 'Formas aladas colonizan cultivos vecinos arrastradas por viento.',
+    duration: 'Variable',
+    icon: 'air',
+    isControlWindow: false,
   },
 ];
 
@@ -306,11 +318,23 @@ export const renderPlagueDetail = async (req, res) => {
 
     const risk = riskMap[plague.risk_level] || defaultRisk;
 
-    // Ciclo biológico: datos de BD o fallback genérico
-    const biologicalCycle =
+    // Ciclo biológico: datos de BD o fallback genérico con metadatos del wireframe V0.1
+    const rawCycle =
       Array.isArray(plague.biological_cycle) && plague.biological_cycle.length
         ? plague.biological_cycle
         : defaultCycle;
+
+    const biologicalCycle = rawCycle.map((stage, idx) => {
+      const fallback = defaultCycle[idx] || defaultCycle[0];
+      return {
+        step: stage.step || `0${idx + 1}`,
+        title: stage.title || fallback.title,
+        description: stage.description || fallback.description,
+        duration: stage.duration || fallback.duration,
+        icon: stage.icon || fallback.icon,
+        isControlWindow: stage.isControlWindow !== undefined ? stage.isControlWindow : idx === 1,
+      };
+    });
 
     // Imágenes del carrusel ordenadas por sort_order
     const carouselImages = (plague.images || [])
