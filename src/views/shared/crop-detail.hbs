@@ -344,28 +344,44 @@
       {{#if crop.plagues.length}}
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {{#each crop.plagues}}
-            <div class="bg-card p-6 rounded-xl border border-border hover:border-[#1b4332]/40 transition-all flex flex-col justify-between shadow-2xs group">
+            <div class="bg-card rounded-xl border border-border hover:border-[#1b4332]/40 transition-all flex flex-col justify-between shadow-2xs group overflow-hidden">
               <div>
-                <div class="flex items-center justify-between mb-3">
-                  <span class="text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-muted text-muted-foreground">
-                    {{#if this.category}}{{this.category}}{{else}}Insecto Plaga{{/if}}
-                  </span>
-                  {{#if this.risk_level}}
-                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold border {{#if this.riskTheme}}{{this.riskTheme.badgeClass}}{{else}}bg-rose-50 text-rose-800 border-rose-200{{/if}}">
-                      <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
-                      Riesgo {{this.risk_level}}
+                <!-- Imagen de la Plaga con Overlay y Badges -->
+                <div class="relative h-44 w-full bg-muted overflow-hidden">
+                  <img src="{{this.image_url}}" alt="{{this.name}}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" onerror="this.onerror=null; this.src='/images/plagas/pulgon-verde.webp';" />
+                  <div class="absolute inset-0 bg-linear-to-t from-black/80 via-black/30 to-transparent pointer-events-none"></div>
+
+                  <!-- Categoría y Riesgo flotantes -->
+                  <div class="absolute top-3 left-3 right-3 flex items-center justify-between gap-2 z-10">
+                    <span class="text-[10px] font-mono font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-black/60 text-white backdrop-blur-xs select-none">
+                      {{#if this.category}}{{this.category}}{{else}}Insecto Plaga{{/if}}
                     </span>
-                  {{/if}}
+                    {{#if this.risk_level}}
+                      <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold border {{#if this.riskTheme}}{{this.riskTheme.badgeClass}}{{else}}bg-rose-50 text-rose-800 border-rose-200{{/if}} shadow-xs">
+                        <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
+                        Riesgo {{this.risk_level}}
+                      </span>
+                    {{/if}}
+                  </div>
+
+                  <!-- Nombre y Especie sobre la imagen -->
+                  <div class="absolute bottom-3 left-3 right-3 z-10">
+                    <h4 class="text-lg font-headline font-bold text-white leading-tight drop-shadow-md group-hover:text-emerald-200 transition-colors">{{this.name}}</h4>
+                    <p class="font-mono text-xs italic text-white/90 drop-shadow-xs">{{this.scientific_name}}</p>
+                  </div>
                 </div>
 
-                <h4 class="text-lg font-headline font-bold text-foreground mb-1 group-hover:text-[#1b4332] transition-colors">{{this.name}}</h4>
-                <p class="font-mono text-xs italic text-muted-foreground mb-3">{{this.scientific_name}}</p>
-                <p class="text-xs text-muted-foreground line-clamp-2 leading-relaxed">{{this.description}}</p>
+                <!-- Descripción Breve -->
+                <div class="p-5">
+                  <p class="text-xs text-muted-foreground line-clamp-2 leading-relaxed">{{this.description}}</p>
+                </div>
               </div>
 
-              <a href="/plagues/{{this.id}}" class="mt-5 inline-flex items-center justify-center gap-2 w-full py-2.5 bg-secondary hover:bg-emerald-100 text-[#1b4332] font-bold text-xs rounded-lg transition-colors border border-border">
-                Ver Ficha Fitosanitaria Completa <span class="material-symbols-outlined text-xs">arrow_forward</span>
-              </a>
+              <div class="px-5 pb-5 pt-0">
+                <a href="/plagues/{{this.id}}" class="inline-flex items-center justify-center gap-2 w-full py-2.5 bg-secondary hover:bg-emerald-100 text-[#1b4332] font-bold text-xs rounded-lg transition-colors border border-border">
+                  Ver Ficha Fitosanitaria Completa <span class="material-symbols-outlined text-xs">arrow_forward</span>
+                </a>
+              </div>
             </div>
           {{/each}}
         </div>

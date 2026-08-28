@@ -178,6 +178,13 @@ export const renderCropDetail = async (req, res) => {
           model: db.Plague,
           as: 'plagues',
           required: false,
+          include: [
+            {
+              model: db.PlagueImage,
+              as: 'images',
+              required: false,
+            },
+          ],
         },
         {
           model: db.Farm,
@@ -245,7 +252,7 @@ export const renderCropDetail = async (req, res) => {
     crop.images = carouselImages;
     crop.image_url = primaryImage;
 
-    // ── Enriquecer plagas con temas de riesgo ─────────────────────────────
+    // ── Enriquecer plagas con temas de riesgo e imágenes ──────────────────
     const riskThemes = {
       Alto: {
         badgeClass: 'bg-rose-50 text-rose-800 border-rose-200',
@@ -264,11 +271,37 @@ export const renderCropDetail = async (req, res) => {
       },
     };
 
+    const plagueFallbackImages = {
+      'Pulgón Verde': '/images/plagas/pulgon-verde.webp',
+      'Gusano Cogollero': '/images/plagas/gusano-cogollero.webp',
+      'Cenicilla': '/images/plagas/cenicilla.webp',
+      'Mosca del Mediterráneo': '/images/plagas/mosca-mediterraneo.webp',
+      'Psílido Asiático': '/images/plagas/psilido-asiatico.webp',
+      'Roya Amarilla': '/images/plagas/roya-amarilla.webp',
+      'Tizón Tardío': '/images/plagas/tizon-tardio.webp',
+      'Trips Oriental': '/images/plagas/trips-oriental.webp',
+    };
+
     if (Array.isArray(crop.plagues)) {
       crop.plagues = crop.plagues.map((p) => {
         const theme = riskThemes[p.risk_level] || riskThemes.Bajo;
+        const primaryPlagueImg =
+          p.images?.find((img) => img.is_primary) || p.images?.[0];
+
+        let imgUrl =
+          primaryPlagueImg?.image_url ||
+          primaryPlagueImg?.url ||
+          p.image_url;
+
+        if (imgUrl) {
+          imgUrl = normalizeImagePath(imgUrl);
+        } else {
+          imgUrl = plagueFallbackImages[p.name] || '/images/plagas/pulgon-verde.webp';
+        }
+
         return {
           ...p,
+          image_url: imgUrl,
           riskTheme: theme,
           riskLabel: theme.label,
         };
