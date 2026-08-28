@@ -6,42 +6,81 @@ const { Plague, PlagueImage, Product, Region } = db;
 const riskMap = {
   Alto: {
     label: 'Crítico',
-    badgeClass: 'bg-error-container text-on-error-container',
+    badgeClass: 'bg-rose-50 text-rose-800 border-rose-200',
     gradientClass: 'bg-linear-to-br from-error-container to-error',
+    alertBgClass: 'bg-rose-50 border-rose-200 text-rose-950',
+    alertIcon: 'warning',
+    alertIconClass: 'text-rose-600',
+    alertBarClass: 'bg-rose-600 w-[85%]',
+    alertText: 'Requiere monitoreo y acción inmediata en zonas hortícolas y cerealeras.',
+    kpiTextClass: 'text-rose-600',
+    bannerClass: 'bg-rose-50 border-rose-200',
+    bannerTagClass: 'text-rose-700',
+    bannerTextClass: 'text-rose-950',
   },
   Medio: {
     label: 'Moderado',
-    badgeClass: 'bg-primary-container text-on-primary-container',
+    badgeClass: 'bg-amber-50 text-amber-800 border-amber-200',
     gradientClass: 'bg-linear-to-br from-primary-container to-primary',
+    alertBgClass: 'bg-amber-50 border-amber-200 text-amber-950',
+    alertIcon: 'warning_amber',
+    alertIconClass: 'text-amber-600',
+    alertBarClass: 'bg-amber-500 w-[50%]',
+    alertText: 'Requiere monitoreo continuo y control fitosanitario preventivo.',
+    kpiTextClass: 'text-amber-600',
+    bannerClass: 'bg-amber-50 border-amber-200',
+    bannerTagClass: 'text-amber-700',
+    bannerTextClass: 'text-amber-950',
   },
 };
 const defaultRisk = {
   label: 'Bajo',
-  badgeClass: 'bg-surface-container-highest text-on-surface-variant',
+  badgeClass: 'bg-emerald-50 text-emerald-800 border-emerald-200',
   gradientClass: 'bg-surface-container-high',
+  alertBgClass: 'bg-emerald-50 border-emerald-200 text-emerald-950',
+  alertIcon: 'check_circle',
+  alertIconClass: 'text-emerald-600',
+  alertBarClass: 'bg-emerald-500 w-[20%]',
+  alertText: 'Bajo impacto fitosanitario. Mantener vigilancia preventiva estándar.',
+  kpiTextClass: 'text-emerald-600',
+  bannerClass: 'bg-emerald-50 border-emerald-200',
+  bannerTagClass: 'text-emerald-700',
+  bannerTextClass: 'text-emerald-950',
 };
 
-// Pasos genéricos de ciclo biológico (fallback si la BD no tiene datos)
+// Pasos genéricos de ciclo biológico (alineados al wireframe V0.1)
 const defaultCycle = [
   {
+    step: '01',
     title: 'Huevo / Fundación',
-    description:
-      'Fase inicial de desarrollo. En climas fríos el organismo pasa el invierno en forma de huevo o estructuras de resistencia.',
+    description: 'La hembra fundadora inicia la colonia en tejido tierno o estructuras de resistencia.',
+    duration: '3-5 días',
+    icon: 'egg',
+    isControlWindow: false,
   },
   {
-    title: 'Estadio Juvenil',
-    description:
-      'Crecimiento activo y alimentación intensa. El organismo pasa por múltiples instares o mudas antes de alcanzar la madurez.',
+    step: '02',
+    title: 'Ninfa / Juvenil',
+    description: 'Estadios ninfales con alta tasa reproductiva y alimentación intensa.',
+    duration: '7-10 días',
+    icon: 'bug_report',
+    isControlWindow: true,
   },
   {
-    title: 'Adulto Reproductivo',
-    description:
-      'Etapa de reproducción masiva. En condiciones óptimas la población puede multiplicarse exponencialmente en días.',
+    step: '03',
+    title: 'Adulto reproductivo',
+    description: 'Reproducción partenogenética y rápida oviposición en follaje.',
+    duration: '20-25 días',
+    icon: 'eco',
+    isControlWindow: false,
   },
   {
+    step: '04',
     title: 'Dispersión',
-    description:
-      'Formas migratorias o resistentes que permiten la colonización de nuevos hospedantes cuando el recurso actual se agota.',
+    description: 'Formas aladas colonizan cultivos vecinos arrastradas por viento.',
+    duration: 'Variable',
+    icon: 'air',
+    isControlWindow: false,
   },
 ];
 
@@ -244,9 +283,15 @@ export const renderPlagueDetail = async (req, res) => {
             'name',
             'active_ingredient',
             'manufacturer',
-            'image_url',
             'category',
             'validation_status',
+          ],
+          include: [
+            {
+              model: db.ProductImage,
+              as: 'images',
+              required: false,
+            },
           ],
         },
         {
@@ -258,23 +303,38 @@ export const renderPlagueDetail = async (req, res) => {
     });
 
     if (!plague) {
-      return res.status(404).render('shared/plague-detail', {
-        layout: 'public',
+      return res.status(404).render('public/plagues', {
         pageTitle: 'Plaga no encontrada',
         activePage: 'plagues',
-        isPrivate: false,
-        plague: null,
+        plagues: [],
+        regions: [],
+        totalCount: 0,
+        totalPages: 0,
+        currentPage: 1,
         error: 'La plaga que buscas no existe o no está disponible.',
+        extraScripts: '<script src="/js/public/plagues.js"></script>',
       });
     }
 
     const risk = riskMap[plague.risk_level] || defaultRisk;
 
-    // Ciclo biológico: datos de BD o fallback genérico
-    const biologicalCycle =
+    // Ciclo biológico: datos de BD o fallback genérico con metadatos del wireframe V0.1
+    const rawCycle =
       Array.isArray(plague.biological_cycle) && plague.biological_cycle.length
         ? plague.biological_cycle
         : defaultCycle;
+
+    const biologicalCycle = rawCycle.map((stage, idx) => {
+      const fallback = defaultCycle[idx] || defaultCycle[0];
+      return {
+        step: stage.step || `0${idx + 1}`,
+        title: stage.title || fallback.title,
+        description: stage.description || fallback.description,
+        duration: stage.duration || fallback.duration,
+        icon: stage.icon || fallback.icon,
+        isControlWindow: stage.isControlWindow !== undefined ? stage.isControlWindow : idx === 1,
+      };
+    });
 
     // Imágenes del carrusel ordenadas por sort_order
     const carouselImages = (plague.images || [])
@@ -290,16 +350,22 @@ export const renderPlagueDetail = async (req, res) => {
       }));
 
     // Productos relacionados
-    const relatedProducts = (plague.products || []).map((p) => ({
-      id: p.id,
-      name: p.name,
-      activeIngredient: p.active_ingredient,
-      manufacturer: p.manufacturer,
-      imageUrl: p.image_url,
-      image_url: p.image_url,
-      category: p.category,
-      isValidated: p.validation_status === 'Validado',
-    }));
+    const relatedProducts = (plague.products || []).map((p) => {
+      const primaryImg = p.images?.find((i) => i.is_primary) || p.images?.[0];
+      const rawUrl = primaryImg?.image_url || '/images/products/confidor-350-sc.webp';
+      const imgUrl = rawUrl.startsWith('http') || rawUrl.startsWith('/') ? rawUrl : `/${rawUrl}`;
+
+      return {
+        id: p.id,
+        name: p.name,
+        activeIngredient: p.active_ingredient,
+        manufacturer: p.manufacturer,
+        imageUrl: imgUrl,
+        image_url: imgUrl,
+        category: p.category,
+        isValidated: p.validation_status === 'Validado',
+      };
+    });
 
     // Regiones de incidencia con coordenadas para el mapa (desde BD)
     let incidenceRegions = (plague.regions || []).map((region) => {
@@ -352,6 +418,7 @@ export const renderPlagueDetail = async (req, res) => {
         riskBadgeClass: risk.badgeClass,
         riskGradientClass: risk.gradientClass,
         riskLevel: plague.risk_level,
+        riskTheme: risk,
         verifiedBy: plague.verified_by || null,
         verifiedAt: plague.verified_at
           ? new Date(plague.verified_at).toLocaleDateString('es-MX', {
@@ -371,13 +438,16 @@ export const renderPlagueDetail = async (req, res) => {
         '<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script><script src="/js/public/plague-detail.js"></script>',
     });
   } catch (error) {
-    console.error('Error en renderPlagueDetail:', error);
-    res.status(500).render('shared/plague-detail', {
-      layout: 'public',
+    console.log('=== CATCH ERROR IN RENDER PLAGUE DETAIL ===');
+    console.log(error.message);
+    console.log(error.stack);
+    res.status(500).render('public/plagues', {
       pageTitle: 'Error',
       activePage: 'plagues',
-      isPrivate: false,
-      plague: null,
+      plagues: [],
+      totalCount: 0,
+      totalPages: 0,
+      currentPage: 1,
       error: 'Error al cargar la plaga. Intenta de nuevo.',
     });
   }

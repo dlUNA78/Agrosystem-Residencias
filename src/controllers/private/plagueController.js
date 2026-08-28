@@ -97,6 +97,29 @@ export const plaguesPrivate = async (req, res) => {
       };
     });
 
+    // CALCULAR ESTADÍSTICAS ADMINISTRATIVAS (KPIS)
+    const totalPlagues = await Plague.count();
+    const activePlagues = await Plague.count({ where: { status: true } });
+    const criticalPlagues = await Plague.count({
+      where: {
+        risk_level: {
+          [Op.or]: ['Crítico', 'Alto', 'critico', 'alto'],
+        },
+      },
+    });
+    const pendingVerification = await Plague.count({
+      where: {
+        [Op.or]: [{ verified_by: null }, { verified_by: '' }],
+      },
+    });
+
+    // RBAC Y ROLES DE USUARIO
+    const currentUser = req.user || { role: 'admin', name: 'Administrador' };
+    const userRole = currentUser.role || 'admin';
+    const canManage = !req.user || ['admin', 'inifap'].includes(userRole);
+    const isAdmin = !req.user || userRole === 'admin';
+    const isInifap = userRole === 'inifap' || userRole === 'admin';
+
     console.log('FILTRO STATUS:', status);
     console.log('PLAGAS ENCONTRADAS:', plagues.length);
 
@@ -104,11 +127,23 @@ export const plaguesPrivate = async (req, res) => {
     return res.render('private/catalog/plagues', {
       layout: privateLayout,
 
-      pageTitle: 'Plagas',
+      pageTitle: 'Gestión Fitosanitaria - Plagas',
 
       activePage: 'plagues',
 
       plagues,
+
+      stats: {
+        totalPlagues,
+        activePlagues,
+        criticalPlagues,
+        pendingVerification,
+      },
+
+      user: currentUser,
+      canManage,
+      isAdmin,
+      isInifap,
 
       // SEARCH BAR REUTILIZABLE
 

@@ -1,244 +1,372 @@
-<div class="pt-24 px-4 md:px-10 pb-12 min-h-screen font-['Geist'] antialiased">
+<div class="min-h-screen font-['Geist'] antialiased bg-background text-foreground">
 
-  {{! ── BREADCRUMB & HEADER ────────────────────────────────────────────────── }}
-  <div class="mb-8 max-w-7xl mx-auto">
-    <nav aria-label="Breadcrumb" class="flex mb-4">
-      <ol class="inline-flex items-center space-x-1 md:space-x-3 text-xs font-mono tracking-widest uppercase text-muted-foreground">
-        <li class="inline-flex items-center">
-          {{#if isPrivate}}
-            <a class="hover:text-[#1b4332] transition-colors" href="/dashboard">Dashboard</a>
-          {{else}}
-            <a class="hover:text-[#1b4332] transition-colors" href="/">Inicio</a>
-          {{/if}}
-        </li>
-        <li>
-          <div class="flex items-center">
-            <span class="material-symbols-outlined text-sm mx-1">chevron_right</span>
+  {{! ── SUB-NAVBAR PEGAJOSO (NAVEGACIÓN RÁPIDA GLASSMORPHIC) ─────────────── }}
+  <header class="sticky top-16 z-30 bg-background/80 backdrop-blur-md border-b border-border shadow-2xs transition-all">
+    <div class="max-w-7xl mx-auto px-4 md:px-10 py-2.5 flex items-center justify-between gap-4 overflow-x-auto no-scrollbar">
+      <nav class="flex items-center gap-1.5 md:gap-3 text-xs font-medium text-muted-foreground whitespace-nowrap">
+        <a href="#resumen" class="px-3 py-1.5 rounded-lg hover:text-foreground hover:bg-muted transition-colors flex items-center gap-1.5 font-bold text-foreground">
+          <span class="material-symbols-outlined text-sm text-[#1b4332]">info</span> Resumen
+        </a>
+        <a href="#ficha-tecnica" class="px-3 py-1.5 rounded-lg hover:text-foreground hover:bg-muted transition-colors flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-sm">science</span> Ficha Técnica
+        </a>
+        <a href="#plagas-objetivo" class="px-3 py-1.5 rounded-lg hover:text-foreground hover:bg-muted transition-colors flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-sm">pest_control</span> Plagas Blanco
+          {{#if product.plagues.length}}<span class="px-1.5 py-0.5 text-[10px] font-mono bg-rose-50 text-rose-700 rounded-full font-bold">{{product.plagues.length}}</span>{{/if}}
+        </a>
+        <a href="#cultivos-autorizados" class="px-3 py-1.5 rounded-lg hover:text-foreground hover:bg-muted transition-colors flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-sm">eco</span> Cultivos Autorizados
+          {{#if product.crops.length}}<span class="px-1.5 py-0.5 text-[10px] font-mono bg-emerald-50 text-emerald-700 rounded-full font-bold">{{product.crops.length}}</span>{{/if}}
+        </a>
+      </nav>
+
+      <div class="flex items-center gap-2 shrink-0">
+        {{#if isPrivate}}
+          <a href="/private/products" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-card border border-border text-foreground font-bold text-xs rounded-md hover:bg-secondary transition-colors shadow-2xs">
+            <span class="material-symbols-outlined text-xs">arrow_back</span> Panel
+          </a>
+        {{else}}
+          <a href="/products" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-card border border-border text-foreground font-bold text-xs rounded-md hover:bg-secondary transition-colors shadow-2xs">
+            <span class="material-symbols-outlined text-xs">arrow_back</span> Catálogo
+          </a>
+        {{/if}}
+      </div>
+    </div>
+  </header>
+
+  <main class="px-4 md:px-10 pt-8 pb-16">
+
+    {{! ── BREADCRUMBS & ENCABEZADO ────────────────────────────────────────── }}
+    <div id="resumen" class="scroll-mt-32 mb-8 max-w-7xl mx-auto">
+      <nav aria-label="Breadcrumb" class="flex mb-4">
+        <ol class="inline-flex items-center space-x-1 md:space-x-3 text-xs font-mono tracking-widest uppercase text-muted-foreground">
+          <li class="inline-flex items-center">
             {{#if isPrivate}}
-              <a class="hover:text-[#1b4332] transition-colors" href="/private/products">Productos</a>
+              <a class="hover:text-[#1b4332] transition-colors" href="/dashboard">Dashboard</a>
             {{else}}
-              <a class="hover:text-[#1b4332] transition-colors" href="/products">Productos</a>
+              <a class="hover:text-[#1b4332] transition-colors" href="/">Inicio</a>
+            {{/if}}
+          </li>
+          <li>
+            <div class="flex items-center">
+              <span class="material-symbols-outlined text-sm mx-1">chevron_right</span>
+              {{#if isPrivate}}
+                <a class="hover:text-[#1b4332] transition-colors" href="/private/products">Productos</a>
+              {{else}}
+                <a class="hover:text-[#1b4332] transition-colors" href="/products">Productos</a>
+              {{/if}}
+            </div>
+          </li>
+          <li aria-current="page">
+            <div class="flex items-center">
+              <span class="material-symbols-outlined text-sm mx-1">chevron_right</span>
+              <span class="text-[#1b4332] font-bold">{{product.name}}</span>
+            </div>
+          </li>
+        </ol>
+      </nav>
+
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div>
+          <div class="flex items-center gap-3 mb-2 flex-wrap">
+            <span class="px-3 py-1 bg-[#1b4332]/10 text-[#1b4332] text-xs font-mono font-bold uppercase rounded-md flex items-center gap-1">
+              <span class="material-symbols-outlined text-sm">science</span> {{#if product.category}}{{product.category}}{{else}}Fitosanitario{{/if}}
+            </span>
+            {{#if product.validation_status}}
+              <span class="px-3 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-mono font-bold uppercase rounded-md flex items-center gap-1">
+                <span class="material-symbols-outlined text-sm text-emerald-600">verified</span> {{product.validation_status}}
+              </span>
+            {{else}}
+              <span class="px-3 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-mono font-bold uppercase rounded-md flex items-center gap-1">
+                <span class="material-symbols-outlined text-sm text-emerald-600">verified</span> Aprobado INIFAP
+              </span>
             {{/if}}
           </div>
-        </li>
-        <li aria-current="page">
-          <div class="flex items-center">
-            <span class="material-symbols-outlined text-sm mx-1">chevron_right</span>
-            <span class="text-[#1b4332] font-bold">{{product.name}}</span>
-          </div>
-        </li>
-      </ol>
-    </nav>
-
-    <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
-      <div>
-        <div class="flex items-center gap-3 mb-2 flex-wrap">
-          <span class="px-3 py-1 bg-[#1b4332]/10 text-[#1b4332] text-xs font-mono font-bold uppercase rounded-md flex items-center gap-1">
-            <span class="material-symbols-outlined text-sm">science</span> {{#if product.category}}{{product.category}}{{else}}Fitosanitario{{/if}}
-          </span>
-          {{#if product.validation_status}}
-            <span class="px-3 py-1 bg-emerald-500/10 text-emerald-800 text-xs font-mono font-bold uppercase rounded-md flex items-center gap-1">
-              <span class="material-symbols-outlined text-sm">verified</span> {{product.validation_status}}
-            </span>
-          {{/if}}
-        </div>
-        <h1 class="text-4xl md:text-5xl font-headline font-extrabold text-foreground tracking-tight mb-1">
-          {{product.name}}
-        </h1>
-        <p class="text-base text-muted-foreground font-medium">
-          Ingrediente Activo: <span class="font-mono font-bold text-[#1b4332]">{{product.active_ingredient}}</span> — <span class="font-bold text-foreground">{{product.manufacturer}}</span>
-        </p>
-      </div>
-
-      {{#if isPrivate}}
-        <div class="flex items-center gap-3">
-          <a href="/private/products/update/{{product.id}}" class="px-4 py-2 bg-card border border-border text-foreground font-bold text-xs rounded-md hover:bg-secondary transition-colors shadow-2xs flex items-center gap-2">
-            <span class="material-symbols-outlined text-sm">edit</span> Editar Producto
-          </a>
-        </div>
-      {{/if}}
-    </div>
-  </div>
-
-  {{! ── HERO & TARJETA PRINCIPAL ────────────────────────────────────────────── }}
-  <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 mb-14">
-    {{! Imagen del Producto }}
-    <div class="col-span-1 lg:col-span-5">
-      <div class="relative overflow-hidden rounded-lg bg-card border border-border shadow-2xs aspect-4/3 group">
-        {{#if product.image_url}}
-          <img class="w-full h-full object-contain p-6 transition-transform duration-500 group-hover:scale-105"
-               src="{{product.image_url}}"
-               alt="{{product.name}}"
-               onerror="this.onerror=null; this.src='/images/test/default.png';" />
-        {{else}}
-          <div class="w-full h-full flex flex-col items-center justify-center bg-muted text-muted-foreground p-8 text-center">
-            <span class="material-symbols-outlined text-6xl mb-2">science</span>
-            <p class="text-xs font-bold">Imagen de producto no disponible</p>
-          </div>
-        {{/if}}
-        <div aria-hidden="true" class="absolute inset-0 bg-linear-to-t from-black/50 via-transparent to-transparent pointer-events-none"></div>
-
-        <!-- Tag de Registro Oficial Top-Left -->
-        <div class="absolute top-3 left-3">
-          <span class="px-2.5 py-1 bg-card/90 backdrop-blur border border-border text-foreground text-[10px] font-mono font-bold uppercase rounded-md shadow-2xs">
-            REG: {{#if product.registration_code}}{{product.registration_code}}{{else}}CICOPLAFEST / INIFAP{{/if}}
-          </span>
-        </div>
-
-        <!-- Crédito Fotográfico Minimalista Bottom-Left -->
-        <span class="absolute left-3 bottom-3 text-mono-label text-[10px] text-white/90 font-mono tracking-wider drop-shadow-xs select-none">
-          ACERVO FOTO · INIFAP
-        </span>
-      </div>
-    </div>
-
-    {{! Resumen y Banda Toxicológica }}
-    <div class="col-span-1 lg:col-span-7 flex flex-col justify-between gap-6">
-      <div class="bg-card p-6 md:p-8 rounded-lg border border-border shadow-2xs flex-1 flex flex-col justify-between">
-        <div>
-          <span class="text-mono-label text-muted-foreground font-semibold block mb-2">DESCRIPCIÓN GENERAL DEL AGROQUÍMICO</span>
-          <p class="text-foreground leading-relaxed text-sm mb-6">
-            {{#if product.description}}{{product.description}}{{else}}Producto fitosanitario registrado en la plataforma institucional del INIFAP para el control agronómico.{{/if}}
+          <h1 class="text-4xl md:text-5xl font-headline font-extrabold text-foreground tracking-tight mb-1">
+            {{product.name}}
+          </h1>
+          <p class="text-base text-muted-foreground font-medium">
+            Ingrediente Activo: <span class="font-mono font-bold text-[#1b4332]">{{product.active_ingredient}}</span>
+            │ Fabricante: <span class="font-bold text-foreground">{{product.manufacturer}}</span>
           </p>
         </div>
 
-        {{! Banda de Clasificación Toxicológica }}
-        <div class="p-5 rounded-lg border border-border bg-secondary/50">
-          <span class="text-mono-label text-muted-foreground block mb-2">CLASIFICACIÓN DE TOXICOLOGÍA (NOM)</span>
-          <div class="flex items-center gap-3">
-            <span class="material-symbols-outlined text-2xl text-amber-600">warning</span>
-            <div>
-              <p class="text-sm font-headline font-bold text-foreground">
-                {{#if product.hazard_category}}{{product.hazard_category}}{{else}}Categoría III — Ligeramente Peligroso (Banda Azul){{/if}}
-              </p>
-              <p class="text-xs text-muted-foreground">Norma Oficial Mexicana de Manejo Seguro de Agroquímicos</p>
+        {{#if isPrivate}}
+          <div class="flex items-center gap-3 shrink-0">
+            <a href="/private/products/update/{{product.id}}" class="px-4 py-2 bg-card border border-border text-foreground font-bold text-xs rounded-md hover:bg-secondary transition-colors shadow-2xs flex items-center gap-2">
+              <span class="material-symbols-outlined text-sm">edit</span> Editar Producto
+            </a>
+          </div>
+        {{/if}}
+      </div>
+    </div>
+
+    {{! ── HERO BANNER & RESUMEN DE AGROQUÍMICO ────────────────────────────── }}
+    <div class="mb-10 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+      <!-- Columna Izquierda: Fotografía/Empaque del Producto -->
+      <div class="col-span-1 lg:col-span-5">
+        <div class="relative overflow-hidden rounded-xl bg-card border border-border shadow-2xs h-80 md:h-95 group flex items-center justify-center p-6">
+          {{#if product.image_url}}
+            <img src="{{product.image_url}}" alt="{{product.name}}" class="max-h-full max-w-full object-contain transition-transform duration-500 group-hover:scale-105" onerror="this.onerror=null; this.src='/images/products/confidor-350-sc.webp';" />
+          {{else}}
+            <div class="w-full h-full flex flex-col items-center justify-center bg-muted text-muted-foreground p-8 text-center">
+              <span class="material-symbols-outlined text-6xl mb-2 text-muted-foreground/40">science</span>
+              <p class="text-xs font-mono">SIN FOTOGRAFÍA REGISTRADA</p>
+            </div>
+          {{/if}}
+          <div class="absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-transparent pointer-events-none"></div>
+
+          <!-- Tag de Registro Oficial Top-Left -->
+          <div class="absolute top-3 left-3">
+            <span class="px-2.5 py-1 bg-card/90 backdrop-blur border border-border text-foreground text-[10px] font-mono font-bold uppercase rounded-md shadow-2xs">
+              REG: {{#if product.registration_code}}{{product.registration_code}}{{else}}CICOPLAFEST / INIFAP{{/if}}
+            </span>
+          </div>
+
+          <!-- Crédito Fotográfico Minimalista Bottom-Left -->
+          <span class="absolute left-3 bottom-3 text-mono-label text-[10px] text-white/90 font-mono tracking-wider drop-shadow-xs select-none bg-black/40 px-2 py-1 rounded backdrop-blur-xs">
+            ACERVO FOTO · INIFAP
+          </span>
+        </div>
+      </div>
+
+      <!-- Columna Derecha: Descripción y Clasificación NOM -->
+      <div class="col-span-1 lg:col-span-7 flex flex-col gap-4">
+        <div class="bg-card p-6 md:p-8 rounded-xl border border-border shadow-2xs flex-1 flex flex-col justify-between">
+          <div>
+            <span class="text-mono-label text-muted-foreground font-bold uppercase block mb-2 tracking-wider">DESCRIPCIÓN GENERAL DEL AGROQUÍMICO</span>
+            <p class="text-sm text-foreground leading-relaxed">
+              {{#if product.description}}{{product.description}}{{else}}Producto fitosanitario registrado en la plataforma institucional del INIFAP para el control agronómico.{{/if}}
+            </p>
+          </div>
+
+          <!-- Banda de Clasificación Toxicológica (NOM) -->
+          <div class="mt-6 pt-5 border-t border-border">
+            <span class="text-mono-label text-muted-foreground block text-[10px] uppercase font-bold mb-2">CLASIFICACIÓN DE TOXICOLOGÍA (NOM)</span>
+            <div class="p-4 rounded-xl border border-amber-200 bg-amber-50/60 flex items-center gap-3">
+              <span class="material-symbols-outlined text-2xl text-amber-600 shrink-0">warning</span>
+              <div>
+                <p class="text-sm font-headline font-bold text-amber-950">
+                  {{#if product.hazard_category}}{{product.hazard_category}}{{else}}Categoría III — Ligeramente Peligroso (Banda Azul){{/if}}
+                </p>
+                <p class="text-xs text-amber-800/80">Norma Oficial Mexicana de Manejo Seguro de Agroquímicos</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {{#if product.safety_sheet_url}}
+          <a href="{{product.safety_sheet_url}}" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-2 p-3.5 bg-secondary hover:bg-emerald-100 text-[#1b4332] font-bold text-xs rounded-xl transition-colors border border-border shadow-2xs">
+            <span class="material-symbols-outlined text-base">picture_as_pdf</span> Descargar Ficha Técnica / Hoja de Seguridad (PDF)
+          </a>
+        {{/if}}
+      </div>
+    </div>
+
+    {{! ── BARRA DE KPIS FITOSANITARIOS (4 TARJETAS TÉCNICAS) ───────────────── }}
+    <section id="ficha-tecnica" class="scroll-mt-32 mb-14 max-w-7xl mx-auto">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h2 class="text-2xl font-headline font-extrabold tracking-tight text-foreground flex items-center gap-2">
+            <span class="material-symbols-outlined text-[#1b4332]">science</span> Ficha Técnica Fitosanitaria
+          </h2>
+          <p class="text-xs text-muted-foreground">Parámetros de dosificación y modo de acción validados por INIFAP.</p>
+        </div>
+        <span class="hidden sm:inline-flex px-3 py-1 bg-emerald-50 text-emerald-800 text-xs font-mono font-bold rounded-md border border-emerald-200">
+          NORMATIVA INIFAP
+        </span>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- KPI 1: Mecanismo de Acción -->
+        <div class="bg-card p-5 rounded-xl border border-border shadow-2xs flex flex-col justify-between">
+          <span class="text-[10px] font-mono font-bold uppercase tracking-widest text-muted-foreground block mb-2">MECANISMO DE ACCIÓN</span>
+          <div class="flex items-center justify-between">
+            <span class="text-base font-headline font-black text-foreground">
+              {{#if product.mode_of_action}}{{product.mode_of_action}}{{else}}Sistémico y de contacto{{/if}}
+            </span>
+            <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-lg">bolt</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- KPI 2: Formulación -->
+        <div class="bg-card p-5 rounded-xl border border-border shadow-2xs flex flex-col justify-between">
+          <span class="text-[10px] font-mono font-bold uppercase tracking-widest text-muted-foreground block mb-2">FORMULACIÓN</span>
+          <div class="flex items-center justify-between">
+            <span class="text-base font-headline font-black text-foreground">
+              {{#if product.formulation_type}}{{product.formulation_type}}{{else}}Suspensión Concentrada (SC){{/if}}
+            </span>
+            <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-lg">view_in_ar</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- KPI 3: Dosis Sugerida -->
+        <div class="bg-card p-5 rounded-xl border border-border shadow-2xs flex flex-col justify-between">
+          <span class="text-[10px] font-mono font-bold uppercase tracking-widest text-muted-foreground block mb-2">DOSIS SUGERIDA</span>
+          <div class="flex items-center justify-between">
+            <span class="text-base font-headline font-black text-[#1b4332] font-mono">
+              {{#if product.suggested_dosage}}{{product.suggested_dosage}}{{else}}350 – 500 ml / Ha{{/if}}
+            </span>
+            <div class="w-8 h-8 rounded-lg bg-cyan-50 text-cyan-700 flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-lg">vaccines</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- KPI 4: Periodo de Carencia -->
+        <div class="bg-card p-5 rounded-xl border border-border shadow-2xs flex flex-col justify-between">
+          <span class="text-[10px] font-mono font-bold uppercase tracking-widest text-muted-foreground block mb-2">PERIODO DE CARENCIA</span>
+          <div class="flex items-center justify-between">
+            <span class="text-base font-headline font-black text-foreground font-mono">
+              {{#if product.safety_interval_days}}{{product.safety_interval_days}} días pre-cosecha{{else}}14 días pre-cosecha{{/if}}
+            </span>
+            <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-lg">event_busy</span>
             </div>
           </div>
         </div>
       </div>
+    </section>
 
-      {{#if product.safety_sheet_url}}
-        <a href="{{product.safety_sheet_url}}" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-2 p-3.5 bg-secondary hover:bg-emerald-100 text-[#1b4332] font-bold text-xs rounded-md transition-colors border border-border shadow-2xs">
-          <span class="material-symbols-outlined text-base">picture_as_pdf</span> Descargar Ficha Técnica / Hoja de Seguridad (PDF)
-        </a>
-      {{/if}}
-    </div>
-  </div>
-
-  {{! ── FICHA TÉCNICA (4 TARJETAS TÉCNICAS) ────────────────────────────────── }}
-  <div class="mb-14 max-w-7xl mx-auto">
-    <h2 class="text-2xl font-headline font-extrabold text-foreground tracking-tight mb-6">Ficha Técnica Fitosanitaria</h2>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-      <div class="bg-card p-5 rounded-lg border border-border shadow-2xs">
-        <span class="material-symbols-outlined text-[#1b4332] mb-2">bolt</span>
-        <span class="text-mono-label text-muted-foreground block mb-1">Mecanismo de Acción</span>
-        <p class="text-sm font-headline font-bold text-foreground">
-          {{#if product.mode_of_action}}{{product.mode_of_action}}{{else}}Sistémico y de contacto{{/if}}
-        </p>
-      </div>
-
-      <div class="bg-card p-5 rounded-lg border border-border shadow-2xs">
-        <span class="material-symbols-outlined text-emerald-600 mb-2">view_in_ar</span>
-        <span class="text-mono-label text-muted-foreground block mb-1">Formulación</span>
-        <p class="text-sm font-headline font-bold text-foreground">
-          {{#if product.formulation_type}}{{product.formulation_type}}{{else}}Suspensión Concentrada (SC){{/if}}
-        </p>
-      </div>
-
-      <div class="bg-card p-5 rounded-lg border border-border shadow-2xs">
-        <span class="material-symbols-outlined text-blue-600 mb-2">vaccines</span>
-        <span class="text-mono-label text-muted-foreground block mb-1">Dosis Sugerida</span>
-        <p class="text-sm font-headline font-bold text-foreground font-mono">
-          {{#if product.suggested_dosage}}{{product.suggested_dosage}}{{else}}350 - 500 ml / ha{{/if}}
-        </p>
-      </div>
-
-      <div class="bg-card p-5 rounded-lg border border-border shadow-2xs">
-        <span class="material-symbols-outlined text-amber-600 mb-2">event_busy</span>
-        <span class="text-mono-label text-muted-foreground block mb-1">Periodo de Carencia</span>
-        <p class="text-sm font-headline font-bold text-foreground font-mono">
-          {{#if product.safety_interval_days}}{{product.safety_interval_days}} días a cosecha{{else}}14 días pre-cosecha{{/if}}
-        </p>
-      </div>
-    </div>
-  </div>
-
-  {{! ── ASOCIACIONES (PLAGAS Y CULTIVOS) ─────────────────────────────────── }}
-  <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 mb-14">
-    {{! 🐛 PLAGAS COMBATIDAS }}
-    <div>
+    {{! ── SECCIÓN 1: PLAGAS BLANCO COMBATIDAS ─────────────────────────────── }}
+    <section id="plagas-objetivo" class="scroll-mt-32 mb-14 max-w-7xl mx-auto">
       <div class="flex items-center justify-between mb-6">
-        <h3 class="text-2xl font-headline font-extrabold text-foreground flex items-center gap-2">
-          <span class="material-symbols-outlined text-rose-600">pest_control</span> Plagas Objetivo Combatidas
-        </h3>
-        {{#if product.plagues}}
-          <span class="px-3 py-1 bg-rose-500/10 text-rose-700 text-xs font-mono font-bold rounded-md">
-            {{product.plagues.length}} Registradas
+        <div>
+          <h3 class="text-2xl font-headline font-extrabold text-foreground flex items-center gap-2">
+            <span class="material-symbols-outlined text-rose-600">pest_control</span> Plagas Blanco Combatidas
+          </h3>
+          <p class="text-xs text-muted-foreground">Organismos nocivos registrados para el control con este producto.</p>
+        </div>
+        {{#if product.plagues.length}}
+          <span class="px-3 py-1 bg-rose-50 text-rose-800 text-xs font-mono font-bold rounded-md border border-rose-200">
+            {{product.plagues.length}} Plagas Registradas
           </span>
         {{/if}}
       </div>
 
       {{#if product.plagues.length}}
-        <div class="space-y-3">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {{#each product.plagues}}
-            <div class="bg-card p-5 rounded-lg border border-border hover:border-[#1b4332]/40 transition-all flex items-center justify-between shadow-2xs">
+            <div class="bg-card rounded-xl border border-border hover:border-[#1b4332]/40 transition-all flex flex-col justify-between shadow-2xs group overflow-hidden">
               <div>
-                <h4 class="text-base font-headline font-bold text-foreground">{{this.name}}</h4>
-                <p class="font-mono text-xs italic text-muted-foreground">{{this.scientific_name}}</p>
+                <!-- Imagen de la Plaga con Overlay y Badges -->
+                <div class="relative h-44 w-full bg-muted overflow-hidden">
+                  <img src="{{this.image_url}}" alt="{{this.name}}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" onerror="this.onerror=null; this.src='/images/plagas/pulgon-verde.webp';" />
+                  <div class="absolute inset-0 bg-linear-to-t from-black/80 via-black/30 to-transparent pointer-events-none"></div>
+
+                  <!-- Categoría y Riesgo flotantes -->
+                  <div class="absolute top-3 left-3 right-3 flex items-center justify-between gap-2 z-10">
+                    <span class="text-[10px] font-mono font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-black/60 text-white backdrop-blur-xs select-none">
+                      {{#if this.category}}{{this.category}}{{else}}Insecto Plaga{{/if}}
+                    </span>
+                    {{#if this.risk_level}}
+                      <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold border {{#if this.riskTheme}}{{this.riskTheme.badgeClass}}{{else}}bg-rose-50 text-rose-800 border-rose-200{{/if}} shadow-xs">
+                        <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
+                        Riesgo {{this.risk_level}}
+                      </span>
+                    {{/if}}
+                  </div>
+
+                  <!-- Nombre y Especie sobre la imagen -->
+                  <div class="absolute bottom-3 left-3 right-3 z-10">
+                    <h4 class="text-lg font-headline font-bold text-white leading-tight drop-shadow-md group-hover:text-emerald-200 transition-colors">{{this.name}}</h4>
+                    <p class="font-mono text-xs italic text-white/90 drop-shadow-xs">{{this.scientific_name}}</p>
+                  </div>
+                </div>
+
+                <!-- Descripción Breve -->
+                <div class="p-5">
+                  <p class="text-xs text-muted-foreground line-clamp-2 leading-relaxed">{{this.description}}</p>
+                </div>
               </div>
-              <a href="/plagues/{{this.id}}" class="px-3.5 py-1.5 bg-secondary hover:bg-emerald-100 text-[#1b4332] font-bold text-xs rounded-md transition-colors flex items-center gap-1 border border-border">
-                Ver Plaga <span class="material-symbols-outlined text-xs">arrow_forward</span>
-              </a>
+
+              <div class="px-5 pb-5 pt-0">
+                <a href="/plagues/{{this.id}}" class="inline-flex items-center justify-center gap-2 w-full py-2.5 bg-secondary hover:bg-emerald-100 text-[#1b4332] font-bold text-xs rounded-lg transition-colors border border-border">
+                  Ver Ficha Fitosanitaria Completa <span class="material-symbols-outlined text-xs">arrow_forward</span>
+                </a>
+              </div>
             </div>
           {{/each}}
         </div>
       {{else}}
-        <div class="p-8 bg-card rounded-lg border border-border text-center shadow-2xs">
+        <div class="p-8 bg-card rounded-xl border border-border text-center shadow-2xs max-w-2xl mx-auto">
           <span class="material-symbols-outlined text-4xl text-muted-foreground/40 mb-2">pest_control_rodent</span>
           <p class="text-sm font-bold text-foreground mb-1">Sin Plagas Específicas Vinculadas</p>
           <p class="text-xs text-muted-foreground">Consulte la etiqueta del fabricante para ver el catálogo ampliado de plagas blanco.</p>
         </div>
       {{/if}}
-    </div>
+    </section>
 
-    {{! 🌾 CULTIVOS AUTORIZADOS }}
-    <div>
+    {{! ── SECCIÓN 2: CULTIVOS AUTORIZADOS ─────────────────────────────────── }}
+    <section id="cultivos-autorizados" class="scroll-mt-32 mb-14 max-w-7xl mx-auto">
       <div class="flex items-center justify-between mb-6">
-        <h3 class="text-2xl font-headline font-extrabold text-foreground flex items-center gap-2">
-          <span class="material-symbols-outlined text-emerald-600">eco</span> Cultivos Autorizados
-        </h3>
-        {{#if product.crops}}
-          <span class="px-3 py-1 bg-emerald-500/10 text-emerald-800 text-xs font-mono font-bold rounded-md">
-            {{product.crops.length}} Cultivos
+        <div>
+          <h3 class="text-2xl font-headline font-extrabold text-foreground flex items-center gap-2">
+            <span class="material-symbols-outlined text-emerald-600">eco</span> Cultivos Autorizados
+          </h3>
+          <p class="text-xs text-muted-foreground">Especies agrícolas habilitadas para la aplicación según registro oficial.</p>
+        </div>
+        {{#if product.crops.length}}
+          <span class="px-3 py-1 bg-emerald-50 text-emerald-800 text-xs font-mono font-bold rounded-md border border-emerald-200">
+            {{product.crops.length}} Cultivos Autorizados
           </span>
         {{/if}}
       </div>
 
       {{#if product.crops.length}}
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {{#each product.crops}}
-            <div class="bg-card p-5 rounded-lg border border-border hover:border-[#1b4332]/40 transition-all flex flex-col justify-between shadow-2xs">
+            <div class="bg-card rounded-xl border border-border hover:border-[#1b4332]/40 transition-all flex flex-col justify-between shadow-2xs group overflow-hidden">
               <div>
-                <span class="text-mono-label text-[#1b4332] block mb-1 capitalize">{{this.category}}</span>
-                <h4 class="text-base font-headline font-bold text-foreground mb-1">{{this.name}}</h4>
-                {{#if this.scientific_name}}
-                  <p class="font-mono text-xs italic text-muted-foreground mb-3">{{this.scientific_name}}</p>
-                {{/if}}
+                <!-- Imagen del Cultivo -->
+                <div class="relative h-44 w-full bg-muted overflow-hidden">
+                  <img src="{{this.image_url}}" alt="{{this.name}}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" onerror="this.onerror=null; this.src='/images/test/default.png';" />
+                  <div class="absolute inset-0 bg-linear-to-t from-black/80 via-black/30 to-transparent pointer-events-none"></div>
+
+                  <!-- Categoría Flotante -->
+                  <div class="absolute top-3 left-3 z-10">
+                    <span class="text-[10px] font-mono font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-black/60 text-white backdrop-blur-xs select-none">
+                      {{#if this.category}}{{this.category}}{{else}}Agrícola{{/if}}
+                    </span>
+                  </div>
+
+                  <!-- Nombre y Especie sobre la imagen -->
+                  <div class="absolute bottom-3 left-3 right-3 z-10">
+                    <h4 class="text-lg font-headline font-bold text-white leading-tight drop-shadow-md group-hover:text-emerald-200 transition-colors">{{this.name}}</h4>
+                    {{#if this.scientific_name}}
+                      <p class="font-mono text-xs italic text-white/90 drop-shadow-xs">{{this.scientific_name}}</p>
+                    {{/if}}
+                  </div>
+                </div>
+
+                <!-- Descripción Breve -->
+                <div class="p-5">
+                  <p class="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                    {{#if this.description}}{{this.description}}{{else}}Cultivo registrado formalmente para la aplicación de este agroquímico.{{/if}}
+                  </p>
+                </div>
               </div>
-              <a href="/crops/{{this.id}}" class="inline-flex items-center justify-center gap-1 w-full py-2 bg-secondary hover:bg-emerald-100 text-[#1b4332] font-bold text-xs rounded-md transition-colors border border-border">
-                Ver Cultivo <span class="material-symbols-outlined text-xs">arrow_forward</span>
-              </a>
+
+              <div class="px-5 pb-5 pt-0">
+                <a href="/crops/{{this.id}}" class="inline-flex items-center justify-center gap-2 w-full py-2.5 bg-secondary hover:bg-emerald-100 text-[#1b4332] font-bold text-xs rounded-lg transition-colors border border-border">
+                  Ver Ficha del Cultivo <span class="material-symbols-outlined text-xs">arrow_forward</span>
+                </a>
+              </div>
             </div>
           {{/each}}
         </div>
       {{else}}
-        <div class="p-8 bg-card rounded-lg border border-border text-center shadow-2xs">
+        <div class="p-8 bg-card rounded-xl border border-border text-center shadow-2xs max-w-2xl mx-auto">
           <span class="material-symbols-outlined text-4xl text-muted-foreground/40 mb-2">agriculture</span>
           <p class="text-sm font-bold text-foreground mb-1">Sin Cultivos Específicos Vinculados</p>
           <p class="text-xs text-muted-foreground">Este insumo puede aplicarse a los cultivos declarados en el registro oficial CICOPLAFEST.</p>
         </div>
       {{/if}}
-    </div>
-  </div>
+    </section>
+
+  </main>
 </div>
