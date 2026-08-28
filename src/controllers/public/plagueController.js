@@ -6,19 +6,46 @@ const { Plague, PlagueImage, Product, Region } = db;
 const riskMap = {
   Alto: {
     label: 'Crítico',
-    badgeClass: 'bg-error-container text-on-error-container',
+    badgeClass: 'bg-rose-50 text-rose-800 border-rose-200',
     gradientClass: 'bg-linear-to-br from-error-container to-error',
+    alertBgClass: 'bg-rose-50 border-rose-200 text-rose-950',
+    alertIcon: 'warning',
+    alertIconClass: 'text-rose-600',
+    alertBarClass: 'bg-rose-600 w-[85%]',
+    alertText: 'Requiere monitoreo y acción inmediata en zonas hortícolas y cerealeras.',
+    kpiTextClass: 'text-rose-600',
+    bannerClass: 'bg-rose-50 border-rose-200',
+    bannerTagClass: 'text-rose-700',
+    bannerTextClass: 'text-rose-950',
   },
   Medio: {
     label: 'Moderado',
-    badgeClass: 'bg-primary-container text-on-primary-container',
+    badgeClass: 'bg-amber-50 text-amber-800 border-amber-200',
     gradientClass: 'bg-linear-to-br from-primary-container to-primary',
+    alertBgClass: 'bg-amber-50 border-amber-200 text-amber-950',
+    alertIcon: 'warning_amber',
+    alertIconClass: 'text-amber-600',
+    alertBarClass: 'bg-amber-500 w-[50%]',
+    alertText: 'Requiere monitoreo continuo y control fitosanitario preventivo.',
+    kpiTextClass: 'text-amber-600',
+    bannerClass: 'bg-amber-50 border-amber-200',
+    bannerTagClass: 'text-amber-700',
+    bannerTextClass: 'text-amber-950',
   },
 };
 const defaultRisk = {
   label: 'Bajo',
-  badgeClass: 'bg-surface-container-highest text-on-surface-variant',
+  badgeClass: 'bg-emerald-50 text-emerald-800 border-emerald-200',
   gradientClass: 'bg-surface-container-high',
+  alertBgClass: 'bg-emerald-50 border-emerald-200 text-emerald-950',
+  alertIcon: 'check_circle',
+  alertIconClass: 'text-emerald-600',
+  alertBarClass: 'bg-emerald-500 w-[20%]',
+  alertText: 'Bajo impacto fitosanitario. Mantener vigilancia preventiva estándar.',
+  kpiTextClass: 'text-emerald-600',
+  bannerClass: 'bg-emerald-50 border-emerald-200',
+  bannerTagClass: 'text-emerald-700',
+  bannerTextClass: 'text-emerald-950',
 };
 
 // Pasos genéricos de ciclo biológico (fallback si la BD no tiene datos)
@@ -301,7 +328,8 @@ export const renderPlagueDetail = async (req, res) => {
     // Productos relacionados
     const relatedProducts = (plague.products || []).map((p) => {
       const primaryImg = p.images?.find((i) => i.is_primary) || p.images?.[0];
-      const imgUrl = primaryImg?.image_url || null;
+      const rawUrl = primaryImg?.image_url || '/images/products/confidor-350-sc.webp';
+      const imgUrl = rawUrl.startsWith('http') || rawUrl.startsWith('/') ? rawUrl : `/${rawUrl}`;
 
       return {
         id: p.id,
@@ -366,6 +394,7 @@ export const renderPlagueDetail = async (req, res) => {
         riskBadgeClass: risk.badgeClass,
         riskGradientClass: risk.gradientClass,
         riskLevel: plague.risk_level,
+        riskTheme: risk,
         verifiedBy: plague.verified_by || null,
         verifiedAt: plague.verified_at
           ? new Date(plague.verified_at).toLocaleDateString('es-MX', {
