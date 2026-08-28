@@ -38,6 +38,10 @@
 
   {{> public/footer}}
 
+  {{#if (eq activePage 'forum')}}
+  {{> public/floating-chat}}
+  {{/if}}
+
   <script src="/js/main.js"></script>
   {{#if (eq activePage 'home')}}
   <script src="/js/public/home-map.js"></script>

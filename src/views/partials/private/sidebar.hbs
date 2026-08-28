@@ -1,58 +1,58 @@
-<!-- Sidebar Lateral (INIFAP Admin Theme - Replicación Exacta Wireframe) -->
+<!-- Sidebar Lateral (INIFAP Admin Theme - Lucide Icons) -->
 <aside id="sidebar"
-    class="h-screen w-64 fixed left-0 top-0 border-r border-border/80 bg-card flex flex-col p-5 font-sans text-foreground antialiased z-50 transition-transform duration-300 ease-in-out overflow-y-auto overscroll-contain shadow-2xs">
+    class="h-screen w-64 fixed left-0 top-0 border-r border-border bg-card flex flex-col p-5 font-sans text-foreground antialiased z-50 transition-transform duration-300 ease-in-out overflow-y-auto overscroll-contain shadow-2xs">
     
     <!-- Branding Header -->
     <div class="flex items-center gap-3 mb-6 pb-4 border-b border-border/60">
         <img src="/images/inifap-Logo.png" alt="INIFAP Logo" class="h-9 w-auto object-contain shrink-0" onerror="this.style.display='none'" />
         <div class="flex-1 min-w-0">
             <h1 class="text-base font-headline font-black text-[#1b4332] leading-tight tracking-tight">INIFAP</h1>
-            <p class="text-[10px] font-mono font-bold uppercase tracking-widest text-[#8fa390]">
+            <p class="text-[10px] font-mono font-bold uppercase tracking-widest text-muted-foreground">
                 ROL · {{#if user.role}}{{user.role}}{{else}}ADMIN{{/if}}
             </p>
         </div>
         <!-- Botón cerrar para vista móvil -->
         <button id="sidebar-close-btn" aria-label="Cerrar menú"
-            class="p-1.5 rounded-lg text-muted-foreground hover:bg-muted transition-colors lg:hidden">
+            class="p-1 rounded-md text-muted-foreground hover:bg-muted transition-colors lg:hidden">
             <i data-lucide="x" class="w-4 h-4"></i>
         </button>
     </div>
 
     <!-- Navegación Categorizada -->
-    <nav class="flex-1 flex flex-col gap-4 text-sm font-medium">
+    <nav class="flex-1 flex flex-col gap-5 text-xs font-medium">
         
         <!-- SECCIÓN 1: OPERACIÓN -->
         <div>
-            <span class="text-[11px] font-mono font-bold text-[#8fa390] uppercase tracking-widest px-3 block mb-2">OPERACIÓN</span>
+            <span class="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-widest px-3 block mb-2">OPERACIÓN</span>
             <div class="space-y-1">
-                <a class="flex items-center gap-3.5 px-3.5 py-2.5 rounded-[14px] transition-all font-semibold text-sm {{#if (eq activePage 'dashboard')}}bg-[#e6f0e6] text-[#1b4332]{{else}}text-[#4a5550] hover:bg-[#f2f6f3] hover:text-[#1b4332]{{/if}}"
+                <a class="flex items-center gap-3 px-3 py-2 rounded-xl transition-colors font-bold {{#if (eq activePage 'dashboard')}}bg-[#e2f1e8] text-[#1b4332]{{else}}text-muted-foreground hover:bg-muted hover:text-foreground{{/if}}"
                     href="/dashboard">
-                    <i data-lucide="layout-grid" class="w-5 h-5 shrink-0"></i>
+                    <i data-lucide="layout-dashboard" class="w-4 h-4 shrink-0"></i>
                     <span>Dashboard</span>
                 </a>
-                <a class="flex items-center gap-3.5 px-3.5 py-2.5 rounded-[14px] transition-all font-semibold text-sm {{#if (eq activePage 'plagues')}}bg-[#e6f0e6] text-[#1b4332]{{else}}text-[#4a5550] hover:bg-[#f2f6f3] hover:text-[#1b4332]{{/if}}"
+                <a class="flex items-center gap-3 px-3 py-2 rounded-xl transition-colors font-bold {{#if (eq activePage 'plagues')}}bg-[#e2f1e8] text-[#1b4332]{{else}}text-muted-foreground hover:bg-muted hover:text-foreground{{/if}}"
                     href="/private/catalog/plagues">
-                    <i data-lucide="bug" class="w-5 h-5 shrink-0"></i>
+                    <i data-lucide="bug" class="w-4 h-4 shrink-0"></i>
                     <span>Plagas</span>
                 </a>
-                <a class="flex items-center gap-3.5 px-3.5 py-2.5 rounded-[14px] transition-all font-semibold text-sm {{#if (eq activePage 'crops')}}bg-[#e6f0e6] text-[#1b4332]{{else}}text-[#4a5550] hover:bg-[#f2f6f3] hover:text-[#1b4332]{{/if}}"
+                <a class="flex items-center gap-3 px-3 py-2 rounded-xl transition-colors font-bold {{#if (eq activePage 'crops')}}bg-[#e2f1e8] text-[#1b4332]{{else}}text-muted-foreground hover:bg-muted hover:text-foreground{{/if}}"
                     href="/private/crops">
-                    <i data-lucide="sprout" class="w-5 h-5 shrink-0"></i>
+                    <i data-lucide="sprout" class="w-4 h-4 shrink-0"></i>
                     <span>Cultivos</span>
                 </a>
-                <a class="flex items-center gap-3.5 px-3.5 py-2.5 rounded-[14px] transition-all font-semibold text-sm {{#if (eq activePage 'lands')}}bg-[#e6f0e6] text-[#1b4332]{{else}}text-[#4a5550] hover:bg-[#f2f6f3] hover:text-[#1b4332]{{/if}}"
+                <a class="flex items-center gap-3 px-3 py-2 rounded-xl transition-colors font-bold {{#if (eq activePage 'lands')}}bg-[#e2f1e8] text-[#1b4332]{{else}}text-muted-foreground hover:bg-muted hover:text-foreground{{/if}}"
                     href="/private/lands">
-                    <i data-lucide="map-pin" class="w-5 h-5 shrink-0"></i>
+                    <i data-lucide="map-pin" class="w-4 h-4 shrink-0"></i>
                     <span>Terrenos</span>
                 </a>
-                <a class="flex items-center gap-3.5 px-3.5 py-2.5 rounded-[14px] transition-all font-semibold text-sm {{#if (eq activePage 'products')}}bg-[#e6f0e6] text-[#1b4332]{{else}}text-[#4a5550] hover:bg-[#f2f6f3] hover:text-[#1b4332]{{/if}}"
+                <a class="flex items-center gap-3 px-3 py-2 rounded-xl transition-colors font-bold {{#if (eq activePage 'products')}}bg-[#e2f1e8] text-[#1b4332]{{else}}text-muted-foreground hover:bg-muted hover:text-foreground{{/if}}"
                     href="/private/products">
-                    <i data-lucide="package" class="w-5 h-5 shrink-0"></i>
+                    <i data-lucide="package" class="w-4 h-4 shrink-0"></i>
                     <span>Productos</span>
                 </a>
-                <a class="flex items-center gap-3.5 px-3.5 py-2.5 rounded-[14px] transition-all font-semibold text-sm {{#if (eq activePage 'ingredients')}}bg-[#e6f0e6] text-[#1b4332]{{else}}text-[#4a5550] hover:bg-[#f2f6f3] hover:text-[#1b4332]{{/if}}"
+                <a class="flex items-center gap-3 px-3 py-2 rounded-xl transition-colors font-bold {{#if (eq activePage 'ingredients')}}bg-[#e2f1e8] text-[#1b4332]{{else}}text-muted-foreground hover:bg-muted hover:text-foreground{{/if}}"
                     href="/private/ingredients">
-                    <i data-lucide="flask-conical" class="w-5 h-5 shrink-0"></i>
+                    <i data-lucide="flask-conical" class="w-4 h-4 shrink-0"></i>
                     <span>Ingredientes Activos</span>
                 </a>
             </div>
@@ -60,23 +60,23 @@
 
         <!-- SECCIÓN 2: COMUNIDAD -->
         <div>
-            <span class="text-[11px] font-mono font-bold text-[#8fa390] uppercase tracking-widest px-3 block mb-2 mt-2">COMUNIDAD</span>
+            <span class="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-widest px-3 block mb-2">COMUNIDAD</span>
             <div class="space-y-1">
                 {{#if (hasRole user 'admin')}}
-                <a class="flex items-center gap-3.5 px-3.5 py-2.5 rounded-[14px] transition-all font-semibold text-sm {{#if (eq activePage 'users')}}bg-[#e6f0e6] text-[#1b4332]{{else}}text-[#4a5550] hover:bg-[#f2f6f3] hover:text-[#1b4332]{{/if}}"
+                <a class="flex items-center gap-3 px-3 py-2 rounded-xl transition-colors font-bold {{#if (eq activePage 'users')}}bg-[#e2f1e8] text-[#1b4332]{{else}}text-muted-foreground hover:bg-muted hover:text-foreground{{/if}}"
                     href="/private/users">
-                    <i data-lucide="users" class="w-5 h-5 shrink-0"></i>
+                    <i data-lucide="users" class="w-4 h-4 shrink-0"></i>
                     <span>Usuarios</span>
                 </a>
                 {{/if}}
-                <a class="flex items-center gap-3.5 px-3.5 py-2.5 rounded-[14px] transition-all font-semibold text-sm {{#if (eq activePage 'forum')}}bg-[#e6f0e6] text-[#1b4332]{{else}}text-[#4a5550] hover:bg-[#f2f6f3] hover:text-[#1b4332]{{/if}}"
+                <a class="flex items-center gap-3 px-3 py-2 rounded-xl transition-colors font-bold {{#if (eq activePage 'forum')}}bg-[#e2f1e8] text-[#1b4332]{{else}}text-muted-foreground hover:bg-muted hover:text-foreground{{/if}}"
                     href="/forum">
-                    <i data-lucide="message-square" class="w-5 h-5 shrink-0"></i>
+                    <i data-lucide="message-square" class="w-4 h-4 shrink-0"></i>
                     <span>Foro</span>
                 </a>
-                <a class="flex items-center gap-3.5 px-3.5 py-2.5 rounded-[14px] transition-all font-semibold text-sm {{#if (eq activePage 'suppliers')}}bg-[#e6f0e6] text-[#1b4332]{{else}}text-[#4a5550] hover:bg-[#f2f6f3] hover:text-[#1b4332]{{/if}}"
+                <a class="flex items-center gap-3 px-3 py-2 rounded-xl transition-colors font-bold {{#if (eq activePage 'suppliers')}}bg-[#e2f1e8] text-[#1b4332]{{else}}text-muted-foreground hover:bg-muted hover:text-foreground{{/if}}"
                     href="/private/suppliers">
-                    <i data-lucide="truck" class="w-5 h-5 shrink-0"></i>
+                    <i data-lucide="truck" class="w-4 h-4 shrink-0"></i>
                     <span>Proveedores</span>
                 </a>
             </div>
@@ -84,23 +84,23 @@
 
         <!-- SECCIÓN 3: SISTEMA -->
         <div>
-            <span class="text-[11px] font-mono font-bold text-[#8fa390] uppercase tracking-widest px-3 block mb-2 mt-2">SISTEMA</span>
+            <span class="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-widest px-3 block mb-2">SISTEMA</span>
             <div class="space-y-1">
-                <a class="flex items-center gap-3.5 px-3.5 py-2.5 rounded-[14px] transition-all font-semibold text-sm {{#if (eq activePage 'reports')}}bg-[#e6f0e6] text-[#1b4332]{{else}}text-[#4a5550] hover:bg-[#f2f6f3] hover:text-[#1b4332]{{/if}}"
+                <a class="flex items-center gap-3 px-3 py-2 rounded-xl transition-colors font-bold {{#if (eq activePage 'reports')}}bg-[#e2f1e8] text-[#1b4332]{{else}}text-muted-foreground hover:bg-muted hover:text-foreground{{/if}}"
                     href="/private/reports">
-                    <i data-lucide="bar-chart-2" class="w-5 h-5 shrink-0"></i>
+                    <i data-lucide="bar-chart-3" class="w-4 h-4 shrink-0"></i>
                     <span>Reportes y Estadísticas</span>
                 </a>
                 {{#if (hasRole user 'admin')}}
-                <a class="flex items-center gap-3.5 px-3.5 py-2.5 rounded-[14px] transition-all font-semibold text-sm {{#if (eq activePage 'audit')}}bg-[#e6f0e6] text-[#1b4332]{{else}}text-[#4a5550] hover:bg-[#f2f6f3] hover:text-[#1b4332]{{/if}}"
+                <a class="flex items-center gap-3 px-3 py-2 rounded-xl transition-colors font-bold {{#if (eq activePage 'audit')}}bg-[#e2f1e8] text-[#1b4332]{{else}}text-muted-foreground hover:bg-muted hover:text-foreground{{/if}}"
                     href="/private/audit">
-                    <i data-lucide="shield-check" class="w-5 h-5 shrink-0"></i>
+                    <i data-lucide="shield-check" class="w-4 h-4 shrink-0"></i>
                     <span>Auditoría</span>
                 </a>
                 {{/if}}
-                <a class="flex items-center gap-3.5 px-3.5 py-2.5 rounded-[14px] transition-all font-semibold text-sm text-[#4a5550] hover:bg-[#f2f6f3] hover:text-[#1b4332]"
+                <a class="flex items-center gap-3 px-3 py-2 rounded-xl transition-colors font-bold text-muted-foreground hover:bg-muted hover:text-foreground"
                     href="#">
-                    <i data-lucide="settings" class="w-5 h-5 shrink-0"></i>
+                    <i data-lucide="settings" class="w-4 h-4 shrink-0"></i>
                     <span>Configuración</span>
                 </a>
             </div>
@@ -109,9 +109,9 @@
         <!-- Footer link a Sitio Público -->
         <div class="mt-auto pt-4 border-t border-border/60">
             <a href="/"
-                class="flex items-center justify-between px-3.5 py-2.5 rounded-[14px] bg-muted/60 border border-border/70 text-[#4a5550] hover:text-[#1b4332] hover:bg-[#f2f6f3] font-semibold transition-all text-xs">
+                class="flex items-center justify-between px-3 py-2.5 rounded-xl bg-muted/60 border border-border text-muted-foreground hover:text-foreground hover:bg-muted font-bold transition-all text-xs">
                 <span>Volver al sitio público</span>
-                <i data-lucide="external-link" class="w-4 h-4 shrink-0"></i>
+                <i data-lucide="external-link" class="w-3.5 h-3.5 shrink-0"></i>
             </a>
         </div>
     </nav>
