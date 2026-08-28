@@ -1,0 +1,135 @@
+<!-- Sección Descubre Contactos Agrícolas e Investigadores (/forum/specialists) -->
+<main class="font-['Geist'] antialiased">
+  <section aria-labelledby="specialists-title" class="bg-background min-h-screen pb-20">
+    <div class="mx-auto max-w-7xl px-6 py-10 md:py-14">
+
+      <!-- Encabezado de la Sección -->
+      <div class="flex flex-col gap-3 border-b border-border pb-8">
+        <p class="text-mono-label text-[#1b4332] font-semibold tracking-wider uppercase">
+          EXPLORACIÓN Y CONEXIÓN AGRÍCOLA · AGROSYSTEM
+        </p>
+        <h1 id="specialists-title" class="text-4xl font-headline font-extrabold leading-[1.05] tracking-tight text-foreground md:text-5xl">
+          Descubre Contactos Fitosanitarios
+        </h1>
+        <p class="max-w-2xl text-sm leading-relaxed text-muted-foreground">
+          Conecta con investigadores del INIFAP, asesores técnicos de campo y productores líderes de tu región para resolver dudas fitosanitarias.
+        </p>
+      </div>
+
+      <!-- PESTAÑAS DE NAVEGACIÓN SUB-FORO -->
+      <div class="mt-6 flex items-center gap-2 border-b border-border text-sm font-semibold">
+        <a href="/forum" class="px-4 py-2.5 text-muted-foreground hover:text-foreground border-b-2 border-transparent transition-colors">
+          💬 Consultas Fitosanitarias
+        </a>
+        <a href="/forum/specialists" class="px-4 py-2.5 text-[#1b4332] border-b-2 border-[#1b4332] font-bold">
+          🔍 Descubre Contactos
+        </a>
+      </div>
+
+      <!-- BARRA DE BUSCADOR Y FILTROS TIPO "DESCUBRE" -->
+      <div class="my-6 border-b border-border bg-background py-2">
+        <div class="flex flex-col gap-3 lg:flex-row lg:items-center">
+
+          <!-- Campo de Búsqueda -->
+          <div class="relative flex-1">
+            <span class="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-lg">search</span>
+            <input
+              type="search"
+              placeholder="Buscar contactos por nombre, cultivo o área de conocimiento…"
+              class="h-10 w-full border border-input bg-card pl-10 pr-4 text-sm rounded-md outline-none transition-all placeholder:text-muted-foreground focus-visible:border-[#1b4332] focus-visible:ring-2 focus-visible:ring-[#1b4332]/20"
+            />
+          </div>
+
+          <!-- Pills de Categoría de Contactos -->
+          <div class="flex items-center gap-2 overflow-x-auto py-1">
+            <button type="button" class="px-3 py-1.5 bg-[#1b4332] text-white text-xs font-bold rounded-full shrink-0">
+              Todos los Contactos
+            </button>
+            <button type="button" class="px-3 py-1.5 bg-card border border-border text-foreground hover:bg-muted text-xs font-semibold rounded-full shrink-0">
+              🔬 Investigadores INIFAP
+            </button>
+            <button type="button" class="px-3 py-1.5 bg-card border border-border text-foreground hover:bg-muted text-xs font-semibold rounded-full shrink-0">
+              🌱 Asesores Técnicos
+            </button>
+            <button type="button" class="px-3 py-1.5 bg-card border border-border text-foreground hover:bg-muted text-xs font-semibold rounded-full shrink-0">
+              🚜 Productores Sinaloa
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- SECCIÓN 1: RECOMENDADOS PARA TI -->
+      <div class="mb-6">
+        <h2 class="text-lg font-headline font-bold text-foreground mb-1">Especialistas Destacados en Sinaloa</h2>
+        <p class="text-xs text-muted-foreground">Investigadores con mayor número de diagnósticos fitosanitarios verificados este ciclo.</p>
+      </div>
+
+      <!-- REJILLA DE TARJETAS TIPO "DESCUBRE / LINKEDIN CARDS" -->
+      <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-2">
+        {{#each specialists}}
+          <article class="border border-border bg-card rounded-lg p-6 shadow-2xs flex flex-col justify-between gap-5 hover:border-[#1b4332]/40 transition-all duration-200">
+            
+            <!-- Cabecera de Tarjeta -->
+            <div class="flex items-start gap-4">
+              <div class="relative shrink-0">
+                <img src="{{this.avatar}}" alt="{{this.name}}" class="size-16 rounded-full object-cover border-2 border-border" />
+                {{#if this.isOnline}}
+                  <span class="absolute bottom-0 right-0 size-4 rounded-full bg-emerald-500 ring-2 ring-card" title="En línea"></span>
+                {{else}}
+                  <span class="absolute bottom-0 right-0 size-4 rounded-full bg-slate-300 dark:bg-slate-700 ring-2 ring-card" title="Fuera de línea"></span>
+                {{/if}}
+              </div>
+
+              <div class="flex flex-col gap-1 min-w-0">
+                <div class="flex flex-wrap items-center gap-2">
+                  <h3 class="text-base font-headline font-bold text-foreground truncate">{{this.name}}</h3>
+                  <span class="px-2 py-0.5 bg-emerald-100 text-emerald-900 text-[10px] font-bold rounded">VERIFICADO</span>
+                </div>
+
+                <span class="text-xs font-semibold text-[#1b4332]">{{this.specialty}}</span>
+                <span class="text-xs font-mono text-muted-foreground flex items-center gap-1">
+                  <span class="material-symbols-outlined text-sm">location_on</span>
+                  {{this.station}}
+                </span>
+              </div>
+            </div>
+
+            <!-- Bio y Enfoque -->
+            <p class="text-xs leading-relaxed text-muted-foreground line-clamp-3">
+              {{this.bio}}
+            </p>
+
+            <div class="flex items-center gap-2 flex-wrap">
+              {{#each this.tags}}
+                <span class="px-2 py-0.5 bg-secondary text-[#1b4332] text-[10px] font-mono font-semibold rounded">#{{this}}</span>
+              {{/each}}
+            </div>
+
+            <!-- Botones de Acción Estilo Contacto -->
+            <div class="flex items-center justify-between border-t border-border pt-4">
+              <span class="text-xs font-mono text-muted-foreground">
+                <strong>{{this.diagnosticsCount}}</strong> dictámenes emitidos
+              </span>
+
+              <div class="flex items-center gap-2">
+                <button type="button" class="px-3 py-1.5 border border-border text-foreground hover:bg-muted text-xs font-semibold rounded-md transition-colors cursor-pointer">
+                  Seguir
+                </button>
+                <button
+                  type="button"
+                  class="btn-open-floating-chat px-4 py-1.5 bg-[#1b4332] hover:bg-[#143326] text-white text-xs font-bold rounded-md shadow-2xs transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+                >
+                  <span class="material-symbols-outlined text-base">chat</span>
+                  Mensaje
+                </button>
+              </div>
+            </div>
+
+          </article>
+        {{/each}}
+      </div>
+
+    </div>
+  </section>
+</main>
