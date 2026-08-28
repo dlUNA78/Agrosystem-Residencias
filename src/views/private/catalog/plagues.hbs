@@ -1,133 +1,147 @@
-<main class="min-h-screen flex flex-col font-sans antialiased text-foreground">
+<!-- Catálogo Privado de Plagas (Tema Institucional INIFAP con Tipografía Geist) -->
+<main class="min-h-screen font-['Geist'] antialiased bg-background text-foreground pb-20">
 
-    <div class="mt-16 p-6 lg:p-10 space-y-8 max-w-7xl mx-auto w-full">
+    <div class="max-w-7xl mx-auto px-4 md:px-10 pt-6 space-y-8">
 
         <!-- ===================================================== -->
-        <!-- HEADER PRINCIPAL DE SECCIÓN -->
+        <!-- ENCABEZADO INSTITUCIONAL INIFAP CON GEIST TYPOGRAPHY -->
         <!-- ===================================================== -->
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-border/60">
-            <div>
-                <div class="flex items-center gap-2 mb-1">
-                    <span class="px-2.5 py-0.5 rounded-full bg-[#e6f0e6] text-[#1b4332] text-[11px] font-mono font-bold uppercase tracking-wider">
-                        Catálogo Fitosanitario
+        <div class="grid gap-8 border-b border-border/80 pb-8 md:grid-cols-[1.7fr_1fr] md:items-end">
+            <div class="flex flex-col gap-2.5">
+                <div class="flex items-center gap-2">
+                    <span class="px-3 py-1 rounded-full bg-[#e6f0e6] text-[#1b4332] text-[11px] font-mono font-bold tracking-wider uppercase">
+                        SISTEMA NACIONAL DE VIGILANCIA FITOSANITARIA · INIFAP
                     </span>
-                    <span class="text-xs text-muted-foreground font-mono">INIFAP Admin</span>
                 </div>
-                <h1 class="text-2xl lg:text-3xl font-headline font-black text-[#1b4332] tracking-tight">
-                    Plagas y Patógenos Agrícolas
+                <h1 class="text-3xl md:text-5xl font-headline font-black tracking-tight text-[#1b4332] leading-none">
+                    Catálogo de Plagas
                 </h1>
-                <p class="text-xs sm:text-sm text-muted-foreground mt-0.5">
-                    Gestión centralizada de plagas, insectos, patógenos y amenazas biológicas monitoreadas.
+                <p class="max-w-xl text-xs md:text-sm leading-relaxed text-muted-foreground">
+                    Base de datos científica de patógenos, insectos y amenazas fitosanitarias verificadas por investigadores del INIFAP.
                 </p>
             </div>
 
-            <!-- Botón Acción Principal -->
-            <div class="flex items-center gap-3">
+            <!-- Panel de Métricas e Integración -->
+            <div class="flex items-center justify-between md:justify-end gap-4">
+                <dl class="grid grid-cols-2 divide-x divide-border/80 border border-border/80 rounded-2xl bg-card shadow-2xs overflow-hidden w-full md:w-auto">
+                    <div class="flex flex-col gap-0.5 p-4 text-center">
+                        <dd class="font-mono text-2xl font-bold text-[#1b4332] tabular-nums">{{plagues.length}}</dd>
+                        <dt class="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground">Especies Registradas</dt>
+                    </div>
+                    <div class="flex flex-col gap-0.5 p-4 text-center">
+                        <dd class="font-mono text-2xl font-bold text-[#1b4332]">100%</dd>
+                        <dt class="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground">Validación INIFAP</dt>
+                    </div>
+                </dl>
+
                 <button type="button" id="btn-add-plague"
-                    class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#1b4332] text-white text-xs font-bold hover:bg-[#2d6a4f] transition-all shadow-sm active:scale-95 cursor-pointer">
+                    class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-[#1b4332] text-white text-xs font-bold hover:bg-[#2d6a4f] transition-all shadow-md active:scale-95 cursor-pointer shrink-0">
                     <i data-lucide="plus" class="w-4 h-4"></i>
-                    <span>Nueva Plaga</span>
+                    <span class="hidden sm:inline">Nueva Plaga</span>
                 </button>
             </div>
         </div>
 
         <!-- ===================================================== -->
-        <!-- BARRA DE CONTROLES: BUSCADOR, FILTROS Y VISTAS -->
+        <!-- BARRA PEGAJOSA DE BUSCADOR Y FILTROS (STICKY GLASS) -->
         <!-- ===================================================== -->
-        <section class="bg-card border border-border/80 rounded-2xl p-4 shadow-2xs flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
-            
-            <!-- Buscador Integrado -->
-            <div class="relative flex-1 min-w-[260px]">
-                <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground"></i>
-                <input id="plague-search" type="text"
-                    class="w-full pl-10 pr-4 py-2.5 bg-muted/50 border border-border/80 rounded-xl text-xs text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all"
-                    placeholder="Buscar por nombre común, científico, región o síntomas..." />
+        <div class="sticky top-16 z-30 -mx-4 md:-mx-10 px-4 md:px-10 py-4 bg-background/90 backdrop-blur-md border-b border-border/80 shadow-2xs">
+            <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+                
+                <!-- Campo de Búsqueda Integrado -->
+                <div class="relative flex-1 min-w-65">
+                    <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground"></i>
+                    <input id="plague-search" type="search"
+                        class="w-full pl-10 pr-4 py-2.5 bg-card border border-input rounded-xl text-xs text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all"
+                        placeholder="Buscar por nombre común, científico, región o síntomas..." />
+                </div>
+
+                <!-- Dropdowns de Filtrado y Vista -->
+                <div class="flex flex-wrap items-center gap-3">
+                    
+                    <!-- Filtro Categoría -->
+                    <div class="relative min-w-[150px]">
+                        <select id="filter-category" data-param="category"
+                            class="filter-select appearance-none w-full bg-card border border-input rounded-xl px-3.5 py-2.5 pr-8 text-xs font-medium text-foreground focus:outline-hidden focus:border-[#1b4332] transition-all cursor-pointer">
+                            <option value="">Categoría · Todas</option>
+                            <option value="Insecto">Insecto</option>
+                            <option value="Hongo">Hongo</option>
+                            <option value="Bacteria">Bacteria</option>
+                            <option value="Virus">Virus</option>
+                            <option value="Ácaro">Ácaro</option>
+                        </select>
+                        <i data-lucide="chevron-down" class="w-3.5 h-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"></i>
+                    </div>
+
+                    <!-- Filtro Estado -->
+                    <div class="relative min-w-[140px]">
+                        <select id="filter-status" data-param="status"
+                            class="filter-select appearance-none w-full bg-card border border-input rounded-xl px-3.5 py-2.5 pr-8 text-xs font-medium text-foreground focus:outline-hidden focus:border-[#1b4332] transition-all cursor-pointer">
+                            <option value="">Estado · Todos</option>
+                            <option value="true">Activas</option>
+                            <option value="false">Inactivas</option>
+                        </select>
+                        <i data-lucide="chevron-down" class="w-3.5 h-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"></i>
+                    </div>
+
+                    <!-- Selector Vista Grilla / Tabla -->
+                    <div class="flex items-center bg-card border border-input rounded-xl p-1 gap-1 shrink-0">
+                        <button type="button" id="view-grid" title="Vista tarjetas"
+                            class="p-2 rounded-lg bg-[#1b4332] text-white transition-all cursor-pointer">
+                            <i data-lucide="layout-grid" class="w-4 h-4"></i>
+                        </button>
+                        <button type="button" id="view-table" title="Vista tabla"
+                            class="p-2 rounded-lg text-muted-foreground hover:text-foreground transition-all cursor-pointer">
+                            <i data-lucide="table-properties" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
             </div>
-
-            <!-- Filtros y Alternador de Vistas -->
-            <div class="flex flex-wrap items-center gap-3">
-                <!-- Filtro Categoría -->
-                <div class="relative">
-                    <select id="filter-category" data-param="category"
-                        class="filter-select appearance-none bg-muted/50 border border-border/80 rounded-xl px-3.5 py-2.5 pr-8 text-xs font-semibold text-foreground focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 transition-all cursor-pointer">
-                        <option value="">Todas las Categorías</option>
-                        <option value="Insecto">Insecto</option>
-                        <option value="Hongo">Hongo</option>
-                        <option value="Bacteria">Bacteria</option>
-                        <option value="Virus">Virus</option>
-                        <option value="Ácaro">Ácaro</option>
-                    </select>
-                    <i data-lucide="chevron-down" class="w-3.5 h-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"></i>
-                </div>
-
-                <!-- Filtro Estado -->
-                <div class="relative">
-                    <select id="filter-status" data-param="status"
-                        class="filter-select appearance-none bg-muted/50 border border-border/80 rounded-xl px-3.5 py-2.5 pr-8 text-xs font-semibold text-foreground focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 transition-all cursor-pointer">
-                        <option value="">Todos los Estados</option>
-                        <option value="true">Activas</option>
-                        <option value="false">Inactivas</option>
-                    </select>
-                    <i data-lucide="chevron-down" class="w-3.5 h-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"></i>
-                </div>
-
-                <!-- Toggle Selector Grilla / Tabla -->
-                <div class="flex items-center bg-muted/60 border border-border/80 rounded-xl p-1 gap-1 shrink-0">
-                    <button type="button" id="view-grid" title="Vista en tarjetas"
-                        class="p-2 rounded-lg bg-[#1b4332] text-white transition-all cursor-pointer">
-                        <i data-lucide="layout-grid" class="w-4 h-4"></i>
-                    </button>
-                    <button type="button" id="view-table" title="Vista en tabla"
-                        class="p-2 rounded-lg text-muted-foreground hover:text-foreground transition-all cursor-pointer">
-                        <i data-lucide="table-properties" class="w-4 h-4"></i>
-                    </button>
-                </div>
-            </div>
-        </section>
+        </div>
 
         <!-- ===================================================== -->
-        <!-- BANNER INFORMATIVO / SUGERENCIAS -->
+        <!-- BANNER DE REPORTES Y SUGERENCIAS FITOSANITARIAS -->
         <!-- ===================================================== -->
-        <section class="bg-gradient-to-r from-[#e6f0e6] to-[#f4f8f5] border border-[#b7e4c7]/60 rounded-2xl p-4 lg:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-2xs">
+        <section class="bg-linear-to-r from-[#e6f0e6] to-[#f2f6f3] border border-[#b7e4c7] rounded-2xl p-4 md:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-2xs">
             <div class="flex items-center gap-3.5">
                 <div class="w-10 h-10 rounded-xl bg-[#1b4332] text-white flex items-center justify-center shrink-0 shadow-2xs">
                     <i data-lucide="message-square" class="w-5 h-5"></i>
                 </div>
                 <div>
-                    <h4 class="text-xs sm:text-sm font-bold text-[#1b4332]">Sugerencias y Reportes de la Comunidad</h4>
+                    <h4 class="text-xs sm:text-sm font-bold text-[#1b4332]">Sugerencias y Reportes Comunitarios</h4>
                     <p class="text-xs text-[#2c3b33] mt-0.5">
-                        Existen <span class="font-bold text-[#1b4332]">24 reportes fitosanitarios</span> pendientes de validación por investigadores INIFAP.
+                        Existen reportes fitosanitarios enviados desde campo pendientes de validación por especialistas.
                     </p>
                 </div>
             </div>
             <a href="/forum"
                 class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-[#b7e4c7] text-[#1b4332] text-xs font-bold hover:bg-[#e6f0e6] transition-all shadow-2xs shrink-0">
-                <span>Revisar reportes</span>
+                <span>Revisar Foro</span>
                 <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
             </a>
         </section>
 
         <!-- ===================================================== -->
-        <!-- VISTA EN GRILLA (CARDS) -->
+        <!-- VISTA DE TARJETAS (GRID VIEW EN GEIST) -->
         <!-- ===================================================== -->
         <section id="plagues-grid-view" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
 
             {{#each plagues}}
-            <article class="group bg-card border border-border/80 rounded-2xl overflow-hidden shadow-2xs flex flex-col hover:border-[#1b4332]/40 hover:shadow-md transition-all duration-300">
+            <article class="group bg-card border border-border/80 rounded-2xl overflow-hidden shadow-2xs flex flex-col hover:border-[#1b4332]/50 hover:shadow-md transition-all duration-300">
                 
-                <!-- Imagen & Badges -->
-                <div class="relative h-48 overflow-hidden bg-muted/60">
+                <!-- Imagen con Overlays de Riesgo y Estado -->
+                <div class="relative h-48 overflow-hidden bg-muted/50">
                     {{#if image_url}}
                     <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         src="{{image_url}}" alt="{{name}}" onerror="this.onerror=null; this.src='/images/test/default.png';">
                     {{else}}
                     <div class="w-full h-full flex flex-col items-center justify-center text-muted-foreground/40 gap-2">
-                        <i data-lucide="bug" class="w-12 h-12 stroke-[1.5]"></i>
+                        <i data-lucide="bug" class="w-10 h-10 stroke-[1.5]"></i>
                         <span class="text-[10px] font-mono uppercase tracking-widest">Sin imagen</span>
                     </div>
                     {{/if}}
 
-                    <!-- Risk Level Badge Overlay -->
+                    <!-- Risk Badge -->
                     {{#if risk_level}}
                     <div class="absolute top-3 left-3">
                         <span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-2xs backdrop-blur-md 
@@ -140,7 +154,7 @@
                     </div>
                     {{/if}}
 
-                    <!-- Status Badge Overlay -->
+                    <!-- Status Badge -->
                     <div class="absolute top-3 right-3">
                         {{#if status}}
                         <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/90 backdrop-blur-md text-[10px] font-bold text-[#1b4332] shadow-2xs">
@@ -156,16 +170,16 @@
                     </div>
                 </div>
 
-                <!-- Contenido -->
+                <!-- Detalles de la Plaga -->
                 <div class="p-5 flex-1 flex flex-col">
                     <div class="flex items-center justify-between gap-2 mb-1.5">
                         <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-[#2d6a4f] bg-[#e6f0e6] px-2 py-0.5 rounded-md">
-                            {{#if category}}{{category}}{{else}}Plaga GENERAL{{/if}}
+                            {{#if category}}{{category}}{{else}}Plaga General{{/if}}
                         </span>
                         {{#if verified_by}}
                         <span class="flex items-center gap-1 text-[10px] text-emerald-700 font-bold" title="Verificado por INIFAP">
                             <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
-                            <span>Verificado</span>
+                            <span>INIFAP</span>
                         </span>
                         {{/if}}
                     </div>
@@ -195,7 +209,7 @@
                         {{/if}}
                     </div>
 
-                    <!-- Acciones Card -->
+                    <!-- Footer Acciones -->
                     <div class="mt-auto pt-3 border-t border-border/60 flex items-center justify-between gap-2">
                         <a href="/private/plagues/{{id}}"
                             class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#e6f0e6] text-[#1b4332] text-xs font-bold hover:bg-[#1b4332] hover:text-white transition-all">
@@ -204,7 +218,6 @@
                         </a>
 
                         <div class="flex items-center gap-1">
-                            <!-- Botón Editar -->
                             <button type="button"
                                 class="btn-edit-plague p-2 rounded-lg text-muted-foreground hover:text-[#1b4332] hover:bg-muted transition-colors cursor-pointer"
                                 title="Editar plaga" data-id="{{id}}" data-name="{{name}}"
@@ -218,7 +231,6 @@
                                 <i data-lucide="edit-2" class="w-4 h-4"></i>
                             </button>
 
-                            <!-- Botón Eliminar -->
                             <button type="button"
                                 class="btn-delete-plague p-2 rounded-lg text-muted-foreground hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
                                 title="Eliminar plaga" data-id="{{id}}" data-name="{{name}}">
@@ -226,7 +238,6 @@
                             </button>
                         </div>
                     </div>
-
                 </div>
             </article>
 
@@ -242,15 +253,15 @@
             </div>
             {{/each}}
 
-            <!-- Tarjeta CTA Nueva Plaga -->
+            <!-- Tarjeta CTA Registrar Nueva Plaga -->
             <button type="button" id="btn-add-plague-card"
-                class="group bg-card/60 hover:bg-card border-2 border-dashed border-border hover:border-[#1b4332]/50 rounded-2xl p-6 min-h-[280px] flex flex-col items-center justify-center text-center transition-all cursor-pointer shadow-2xs hover:shadow-md">
+                class="group bg-card/50 hover:bg-card border-2 border-dashed border-border hover:border-[#1b4332]/50 rounded-2xl p-6 min-h-70 flex flex-col items-center justify-center text-center transition-all cursor-pointer shadow-2xs hover:shadow-md">
                 <div class="w-12 h-12 rounded-2xl bg-[#e6f0e6] text-[#1b4332] group-hover:bg-[#1b4332] group-hover:text-white flex items-center justify-center mb-3 transition-colors">
                     <i data-lucide="plus" class="w-6 h-6"></i>
                 </div>
                 <h3 class="text-sm font-bold text-foreground group-hover:text-[#1b4332] transition-colors">¿Registrar Nueva Plaga?</h3>
                 <p class="text-xs text-muted-foreground mt-1 mb-4 max-w-xs">
-                    Añade un nuevo patógeno o amenazafitosanitaria al catálogo oficial INIFAP.
+                    Añade un nuevo patógeno o amenaza fitosanitaria al catálogo oficial INIFAP.
                 </p>
                 <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#e6f0e6] text-[#1b4332] text-xs font-bold group-hover:bg-[#1b4332] group-hover:text-white transition-colors">
                     <span>Añadir Registro</span>
@@ -260,13 +271,13 @@
         </section>
 
         <!-- ===================================================== -->
-        <!-- VISTA EN TABLA -->
+        <!-- VISTA EN TABLA (TABLE VIEW EN GEIST) -->
         <!-- ===================================================== -->
         <section id="plagues-table-view" style="display:none" class="bg-card border border-border/80 rounded-2xl overflow-hidden shadow-2xs">
             <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
+                <table class="w-full text-left border-collapse font-['Geist']">
                     <thead>
-                        <tr class="bg-muted/60 border-b border-border/80">
+                        <tr class="bg-muted/50 border-b border-border/80">
                             <th class="px-6 py-3.5 text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground">Muestra</th>
                             <th class="px-6 py-3.5 text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground">Plaga / Especie</th>
                             <th class="px-6 py-3.5 text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground">Categoría</th>
@@ -277,9 +288,9 @@
                             <th class="px-6 py-3.5 text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground text-right">Acciones</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-border/60">
+                    <tbody class="divide-y divide-border/60 text-xs">
                         {{#each plagues}}
-                        <tr class="hover:bg-muted/40 transition-colors">
+                        <tr class="hover:bg-muted/30 transition-colors">
                             <td class="px-6 py-4">
                                 {{#if image_url}}
                                 <img src="{{image_url}}" alt="{{name}}" class="w-10 h-10 rounded-xl object-cover border border-border/80" onerror="this.onerror=null; this.src='/images/test/default.png';">
@@ -290,7 +301,7 @@
                                 {{/if}}
                             </td>
                             <td class="px-6 py-4">
-                                <p class="text-xs font-bold text-foreground">{{name}}</p>
+                                <p class="font-bold text-foreground">{{name}}</p>
                                 {{#if scientific_name}}
                                 <p class="text-[11px] italic font-serif text-muted-foreground">{{scientific_name}}</p>
                                 {{/if}}
@@ -313,10 +324,10 @@
                                 <span class="text-xs text-muted-foreground">-</span>
                                 {{/if}}
                             </td>
-                            <td class="px-6 py-4 text-xs text-muted-foreground">
+                            <td class="px-6 py-4 text-muted-foreground">
                                 {{#if region}}{{region}}{{else}}Sin especificar{{/if}}
                             </td>
-                            <td class="px-6 py-4 text-xs text-muted-foreground">
+                            <td class="px-6 py-4 text-muted-foreground">
                                 {{#if verified_by}}
                                 <div class="flex items-center gap-1 text-emerald-700 font-medium">
                                     <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
@@ -378,9 +389,9 @@
 </main>
 
 <!-- ========================================================= -->
-<!-- MODAL ELIMINAR PLAGA -->
+<!-- MODAL ELIMINAR PLAGA EN ESTILO GEIST -->
 <!-- ========================================================= -->
-<div id="modal-delete-plague" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+<div id="modal-delete-plague" class="fixed inset-0 z-50 hidden items-center justify-center p-4 font-['Geist']">
     <div id="modal-delete-plague-backdrop" class="absolute inset-0 bg-black/40 backdrop-blur-xs"></div>
     <div class="relative z-10 w-full max-w-md bg-card border border-border/80 rounded-2xl shadow-xl overflow-hidden">
         <div class="p-6 border-b border-border/60">
@@ -415,9 +426,9 @@
 </div>
 
 <!-- ========================================================= -->
-<!-- MODAL AÑADIR / EDITAR PLAGA -->
+<!-- MODAL AÑADIR / EDITAR PLAGA EN ESTILO GEIST -->
 <!-- ========================================================= -->
-<div id="modal-plague" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+<div id="modal-plague" class="fixed inset-0 z-50 hidden items-center justify-center p-4 font-['Geist']">
     <div id="modal-plague-backdrop" class="absolute inset-0 bg-black/40 backdrop-blur-xs"></div>
     <div class="relative z-10 bg-card border border-border/80 rounded-2xl shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto flex flex-col">
         
@@ -434,28 +445,25 @@
                 </button>
             </div>
 
-            <!-- Campos del Formulario -->
+            <!-- Campos Formulario -->
             <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                 
-                <!-- Nombre Común -->
                 <div>
                     <label class="block font-bold text-foreground mb-1.5">Nombre Común *</label>
                     <input type="text" name="name" required placeholder="Ej. Mosca blanca"
-                        class="w-full bg-muted/40 border border-border/80 rounded-xl px-3.5 py-2.5 text-xs text-foreground focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all">
+                        class="w-full bg-muted/40 border border-input rounded-xl px-3.5 py-2.5 text-xs text-foreground focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all">
                 </div>
 
-                <!-- Nombre Científico -->
                 <div>
                     <label class="block font-bold text-foreground mb-1.5">Nombre Científico *</label>
                     <input type="text" name="scientific_name" required placeholder="Ej. Bemisia tabaci"
-                        class="w-full bg-muted/40 border border-border/80 rounded-xl px-3.5 py-2.5 text-xs italic font-serif text-foreground focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all">
+                        class="w-full bg-muted/40 border border-input rounded-xl px-3.5 py-2.5 text-xs italic font-serif text-foreground focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all">
                 </div>
 
-                <!-- Categoría -->
                 <div>
                     <label class="block font-bold text-foreground mb-1.5">Categoría</label>
                     <select name="category"
-                        class="w-full bg-muted/40 border border-border/80 rounded-xl px-3.5 py-2.5 text-xs text-foreground focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all">
+                        class="w-full bg-muted/40 border border-input rounded-xl px-3.5 py-2.5 text-xs text-foreground focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all">
                         <option value="">Seleccione categoría...</option>
                         <option value="Insecto">Insecto</option>
                         <option value="Hongo">Hongo</option>
@@ -465,18 +473,16 @@
                     </select>
                 </div>
 
-                <!-- Región -->
                 <div>
                     <label class="block font-bold text-foreground mb-1.5">Región Afectada</label>
                     <input type="text" name="region" placeholder="Ej. Centro de México, El Bajío..."
-                        class="w-full bg-muted/40 border border-border/80 rounded-xl px-3.5 py-2.5 text-xs text-foreground focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all">
+                        class="w-full bg-muted/40 border border-input rounded-xl px-3.5 py-2.5 text-xs text-foreground focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all">
                 </div>
 
-                <!-- Nivel de Riesgo -->
                 <div>
                     <label class="block font-bold text-foreground mb-1.5">Nivel de Riesgo</label>
                     <select name="risk_level"
-                        class="w-full bg-muted/40 border border-border/80 rounded-xl px-3.5 py-2.5 text-xs text-foreground focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all">
+                        class="w-full bg-muted/40 border border-input rounded-xl px-3.5 py-2.5 text-xs text-foreground focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all">
                         <option value="Bajo">Bajo</option>
                         <option value="Medio">Medio</option>
                         <option value="Alto">Alto</option>
@@ -484,69 +490,60 @@
                     </select>
                 </div>
 
-                <!-- Estado -->
                 <div>
                     <label class="block font-bold text-foreground mb-1.5">Estado en Catálogo</label>
                     <select name="status"
-                        class="w-full bg-muted/40 border border-border/80 rounded-xl px-3.5 py-2.5 text-xs text-foreground focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all">
+                        class="w-full bg-muted/40 border border-input rounded-xl px-3.5 py-2.5 text-xs text-foreground focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all">
                         <option value="true">Activa</option>
                         <option value="false">Inactiva</option>
                     </select>
                 </div>
 
-                <!-- Descripción -->
                 <div class="md:col-span-2">
                     <label class="block font-bold text-foreground mb-1.5">Descripción de la Plaga</label>
                     <textarea name="description" rows="3" placeholder="Describe las características morfológicas y biológicas..."
-                        class="w-full bg-muted/40 border border-border/80 rounded-xl px-3.5 py-2.5 text-xs text-foreground resize-none focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all"></textarea>
+                        class="w-full bg-muted/40 border border-input rounded-xl px-3.5 py-2.5 text-xs text-foreground resize-none focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all"></textarea>
                 </div>
 
-                <!-- Ciclo Biológico -->
                 <div class="md:col-span-2">
                     <label class="block font-bold text-foreground mb-1.5">Ciclo Biológico</label>
                     <textarea name="biological_cycle" rows="3" placeholder="Describe la duración y etapas del ciclo de vida..."
-                        class="w-full bg-muted/40 border border-border/80 rounded-xl px-3.5 py-2.5 text-xs text-foreground resize-none focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all"></textarea>
+                        class="w-full bg-muted/40 border border-input rounded-xl px-3.5 py-2.5 text-xs text-foreground resize-none focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all"></textarea>
                 </div>
 
-                <!-- Verificado Por -->
                 <div>
                     <label class="block font-bold text-foreground mb-1.5">Verificado Por</label>
                     <input type="text" name="verified_by" placeholder="Ej. INIFAP, Ing. Juan Pérez..."
-                        class="w-full bg-muted/40 border border-border/80 rounded-xl px-3.5 py-2.5 text-xs text-foreground focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all">
+                        class="w-full bg-muted/40 border border-input rounded-xl px-3.5 py-2.5 text-xs text-foreground focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all">
                 </div>
 
-                <!-- Fecha de Verificación -->
                 <div>
                     <label class="block font-bold text-foreground mb-1.5">Fecha de Verificación</label>
                     <input type="date" name="verified_at"
-                        class="w-full bg-muted/40 border border-border/80 rounded-xl px-3.5 py-2.5 text-xs text-foreground focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all">
+                        class="w-full bg-muted/40 border border-input rounded-xl px-3.5 py-2.5 text-xs text-foreground focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all">
                 </div>
 
-                <!-- Síntomas -->
                 <div class="md:col-span-2">
                     <label class="block font-bold text-foreground mb-1.5">Síntomas en el Cultivo</label>
                     <textarea name="symptoms" rows="2" placeholder="Describe las lesiones o síntomas observables..."
-                        class="w-full bg-muted/40 border border-border/80 rounded-xl px-3.5 py-2.5 text-xs text-foreground resize-none focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all"></textarea>
+                        class="w-full bg-muted/40 border border-input rounded-xl px-3.5 py-2.5 text-xs text-foreground resize-none focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all"></textarea>
                 </div>
 
-                <!-- Métodos de Control -->
                 <div>
                     <label class="block font-bold text-foreground mb-1.5">Métodos de Control Químico/Físico</label>
                     <textarea name="control_methods" rows="3" placeholder="Recomendaciones de manejo..."
-                        class="w-full bg-muted/40 border border-border/80 rounded-xl px-3.5 py-2.5 text-xs text-foreground resize-none focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all"></textarea>
+                        class="w-full bg-muted/40 border border-input rounded-xl px-3.5 py-2.5 text-xs text-foreground resize-none focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all"></textarea>
                 </div>
 
-                <!-- Control Biológico -->
                 <div>
                     <label class="block font-bold text-foreground mb-1.5">Control Biológico</label>
                     <textarea name="biological_control" rows="3" placeholder="Organismos o parasitoides recomendados..."
-                        class="w-full bg-muted/40 border border-border/80 rounded-xl px-3.5 py-2.5 text-xs text-foreground resize-none focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all"></textarea>
+                        class="w-full bg-muted/40 border border-input rounded-xl px-3.5 py-2.5 text-xs text-foreground resize-none focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all"></textarea>
                 </div>
 
-                <!-- Carga de Imagen -->
                 <div class="md:col-span-2">
                     <label class="block font-bold text-foreground mb-1.5">Imagen Representativa</label>
-                    <div class="bg-muted/40 border border-border/80 rounded-xl p-4 flex flex-col sm:flex-row items-center gap-4">
+                    <div class="bg-muted/40 border border-input rounded-xl p-4 flex flex-col sm:flex-row items-center gap-4">
                         <img id="plague-preview" class="hidden w-24 h-24 rounded-xl object-cover border border-border/80" alt="Vista previa">
                         <div class="flex-1 w-full">
                             <input id="plague-image" type="file" name="image" accept="image/*"
