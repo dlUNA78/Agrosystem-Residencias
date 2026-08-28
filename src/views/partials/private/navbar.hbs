@@ -1,11 +1,11 @@
 <header id="topnav"
     class="fixed top-0 right-0 h-16 z-40 bg-background/90 backdrop-blur-md flex items-center justify-between px-4 sm:px-8 font-sans text-foreground border-b border-border transition-all duration-300 ease-in-out sidebar-open:w-[calc(100%-16rem)] w-[calc(100%-16rem)]">
 
-    <!-- Buscador Principal -->
+    <!-- Buscador Principal y Toggle Sidebar -->
     <div class="flex items-center gap-3">
-        <button id="sidebar-toggle-btn" aria-label="Alternar menú lateral"
-            class="p-2 rounded-lg text-muted-foreground hover:bg-muted transition-colors active:scale-90 shrink-0 lg:hidden">
-            <i data-lucide="menu" class="w-5 h-5"></i>
+        <button id="sidebar-toggle-btn" aria-label="Alternar menú lateral" title="Alternar menú lateral"
+            class="p-2 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors active:scale-90 shrink-0 cursor-pointer">
+            <i data-lucide="panel-left" class="w-5 h-5"></i>
         </button>
         <div class="flex items-center gap-2 bg-muted/60 border border-border/80 px-3.5 py-1.5 rounded-lg w-64 sm:w-96">
             <i data-lucide="search" class="w-4 h-4 text-muted-foreground shrink-0"></i>

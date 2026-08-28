@@ -2,19 +2,21 @@
 <aside id="sidebar"
     class="h-screen w-64 fixed left-0 top-0 border-r border-border bg-card flex flex-col p-5 font-sans text-foreground antialiased z-50 transition-transform duration-300 ease-in-out overflow-y-auto overscroll-contain shadow-2xs">
     
-    <!-- Branding Header -->
-    <div class="flex items-center gap-3 mb-6 pb-4 border-b border-border/60">
-        <img src="/images/inifap-Logo.png" alt="INIFAP Logo" class="h-9 w-auto object-contain shrink-0" onerror="this.style.display='none'" />
-        <div class="flex-1 min-w-0">
-            <h1 class="text-base font-headline font-black text-[#1b4332] leading-tight tracking-tight">INIFAP</h1>
-            <p class="text-[10px] font-mono font-bold uppercase tracking-widest text-muted-foreground">
-                ROL · {{#if user.role}}{{user.role}}{{else}}ADMIN{{/if}}
-            </p>
+    <!-- Branding Header con botón para retraer -->
+    <div class="flex items-center justify-between mb-6 pb-4 border-b border-border/60">
+        <div class="flex items-center gap-3 min-w-0">
+            <img src="/images/inifap-Logo.png" alt="INIFAP Logo" class="h-9 w-auto object-contain shrink-0" onerror="this.style.display='none'" />
+            <div class="flex-1 min-w-0">
+                <h1 class="text-base font-headline font-black text-[#1b4332] leading-tight tracking-tight">INIFAP</h1>
+                <p class="text-[10px] font-mono font-bold uppercase tracking-widest text-muted-foreground">
+                    ROL · {{#if user.role}}{{user.role}}{{else}}ADMIN{{/if}}
+                </p>
+            </div>
         </div>
-        <!-- Botón cerrar para vista móvil -->
-        <button id="sidebar-close-btn" aria-label="Cerrar menú"
-            class="p-1 rounded-md text-muted-foreground hover:bg-muted transition-colors lg:hidden">
-            <i data-lucide="x" class="w-4 h-4"></i>
+        <!-- Botón retraer menú (Desktop & Móvil) -->
+        <button id="sidebar-close-btn" aria-label="Retraer menú" title="Retraer menú"
+            class="p-1.5 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer shrink-0">
+            <i data-lucide="panel-left-close" class="w-4 h-4"></i>
         </button>
     </div>
 
