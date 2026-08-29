@@ -31,10 +31,6 @@
           href="/products">
           Productos
         </a>
-        <a class="text-sm font-medium transition-colors py-1.5 border-b-2 {{#if (eq activePage 'forum')}}text-[#1b4332] border-[#1b4332] font-semibold{{else}}text-muted-foreground hover:text-foreground border-transparent{{/if}}"
-          href="/forum">
-          Foro
-        </a>
 
         {{#if (canAccessPanel user)}}
         <a class="text-sm font-semibold text-[#1b4332] hover:text-[#133426] transition-colors py-1.5 border-b-2 border-transparent"
@@ -146,8 +142,6 @@
       class="block px-3 py-2 rounded-md text-sm font-medium {{#if (eq activePage 'crops')}}bg-secondary text-[#1b4332] font-semibold{{else}}text-muted-foreground hover:bg-secondary{{/if}}">Cultivos</a>
     <a href="/products"
       class="block px-3 py-2 rounded-md text-sm font-medium {{#if (eq activePage 'products')}}bg-secondary text-[#1b4332] font-semibold{{else}}text-muted-foreground hover:bg-secondary{{/if}}">Productos</a>
-    <a href="/forum"
-      class="block px-3 py-2 rounded-md text-sm font-medium {{#if (eq activePage 'forum')}}bg-secondary text-[#1b4332] font-semibold{{else}}text-muted-foreground hover:bg-secondary{{/if}}">Foro</a>
 
     {{#if (canAccessPanel user)}}
     <a href="/dashboard" class="block px-3 py-2 rounded-md text-sm font-semibold text-[#1b4332] bg-emerald-50">Ir al

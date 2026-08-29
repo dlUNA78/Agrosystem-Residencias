@@ -15,12 +15,6 @@ import {
   renderProductDetail,
   getProductsData,
 } from '../controllers/public/productController.js';
-import {
-  renderForumPublic,
-  renderForumDetailPublic,
-  renderForumSpecialistsPublic,
-  renderForumMessagesPublic,
-} from '../controllers/public/forumController.js';
 
 import { publicRateLimiter } from '../middlewares/rateLimiter.js';
 import { publicReadOnlyGuard } from '../middlewares/publicReadOnlyGuard.js';
@@ -48,11 +42,5 @@ publicRouter.get('/crops/:id', renderCropDetail);
 publicRouter.get('/api/products', getProductsData);
 publicRouter.get('/products', renderProductsPublic);
 publicRouter.get('/products/:id', renderProductDetail);
-
-// Foro público
-publicRouter.get('/forum', renderForumPublic);
-publicRouter.get('/forum/specialists', renderForumSpecialistsPublic);
-publicRouter.get('/forum/messages', (req, res) => res.redirect('/forum'));
-publicRouter.get('/forum/:id', renderForumDetailPublic);
 
 export default publicRouter;
