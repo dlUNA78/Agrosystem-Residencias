@@ -468,14 +468,6 @@ export const renderHomeIndex = (req, res) => {
         'Catálogo con registro sanitario, dosis autorizada e intervalo de seguridad.',
       link: '/products',
     },
-    {
-      count: '3,412',
-      title: 'Foro técnico',
-      subtitle: 'CONSULTAS',
-      description:
-        'Consultas resueltas por investigadores y técnicos de campo certificados.',
-      link: '/forum',
-    },
   ];
 
   res.render('public/home', {

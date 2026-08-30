@@ -6,16 +6,10 @@ import { Router } from 'express';
 // uploadCrop    → imágenes de cultivos (acepta múltiples archivos)
 import { upload, uploadPlague, uploadCrop } from '../middlewares/upload.js';
 
-// ─── Controladores del módulo principal (privateController) ───────────────────
-// Contiene todos los handlers que aún no han sido extraídos a sub-controladores
-import {
-  // Vistas de panel
-  dashboard,
-  ingredientsPrivate,
-  reportsPrivate,
-  // Auditoría
-  auditPrivate,
-} from '../controllers/privateController.js';
+import { dashboard } from '../controllers/private/dashboardController.js';
+import { auditPrivate } from '../controllers/private/auditController.js';
+import { reportsPrivate } from '../controllers/private/reportsController.js';
+import { ingredientsPrivate } from '../controllers/private/ingredientsController.js';
 
 // ─── Controladores del módulo de plagas (sub-controlador modular) ────────────
 import {
@@ -32,7 +26,7 @@ import {
   createSupplier,
   updateSupplier,
   deleteSupplier,
-} from '../controllers/private/provedoresController.js';
+} from '../controllers/private/suppliersController.js';
 
 // ─── Controladores del módulo de cultivos (sub-controlador modular) ────────────
 import {
