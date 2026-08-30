@@ -26,7 +26,7 @@ import {
   createSupplier,
   updateSupplier,
   deleteSupplier,
-} from '../controllers/private/provedoresController.js';
+} from '../controllers/private/suppliersController.js';
 
 // ─── Controladores del módulo de cultivos (sub-controlador modular) ────────────
 import {
