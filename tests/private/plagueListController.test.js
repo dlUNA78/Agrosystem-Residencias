@@ -11,7 +11,10 @@ const plagueRecords = [
       biological_cycle: [
         { title: 'Huevo', description: 'Etapa inicial', duration: '3 días' },
       ],
-      images: [],
+      images: [
+        { url: 'images/plagues/uno.png', sort_order: 0 },
+        { url: '/images/plagues/dos.webp', sort_order: 1 },
+      ],
     }),
   },
 ];
@@ -100,6 +103,12 @@ describe('controlador del listado privado de plagas', () => {
     expect(res.render.mock.calls[0][1].plagues[0].biological_cycle_json).toBe(
       JSON.stringify([
         { title: 'Huevo', description: 'Etapa inicial', duration: '3 días' },
+      ]),
+    );
+    expect(res.render.mock.calls[0][1].plagues[0].images_json).toBe(
+      JSON.stringify([
+        { url: '/images/plagues/uno.png', sort_order: 0 },
+        { url: '/images/plagues/dos.webp', sort_order: 1 },
       ]),
     );
   });

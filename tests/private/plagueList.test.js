@@ -135,4 +135,21 @@ describe('listado privado paginado de plagas', () => {
     expect(clientScript).toContain('addBiologicalStage');
     expect(clientScript).toContain('remove-biological-stage');
   });
+
+  it('permite seleccionar y previsualizar varias imágenes de plaga', () => {
+    const template = fs.readFileSync(
+      new URL('../../src/views/private/catalog/plagues.hbs', import.meta.url),
+      'utf8',
+    );
+    const clientScript = fs.readFileSync(
+      new URL('../../public/js/private/plagues.js', import.meta.url),
+      'utf8',
+    );
+
+    expect(template).toMatch(
+      /<input[^>]+id="plague-images"[^>]+name="images"[^>]+multiple/,
+    );
+    expect(template).toContain('id="plague-image-previews"');
+    expect(clientScript).toContain('renderImagePreviews');
+  });
 });

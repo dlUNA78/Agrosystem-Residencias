@@ -2,11 +2,11 @@ import { Router } from 'express';
 
 // ─── Middlewares de subida de archivos ────────────────────────────────────────
 // upload        → imágenes genéricas (productos)
-// uploadPlague  → imágenes de plagas
+// uploadPlagueImages → imágenes de plagas (acepta múltiples archivos)
 // uploadCrop    → imágenes de cultivos (acepta múltiples archivos)
 import {
   upload,
-  uploadSinglePlagueImage,
+  uploadPlagueImages,
   uploadCrop,
 } from '../middlewares/upload.js';
 import {
@@ -144,13 +144,13 @@ privateRouter.get(
 privateRouter.post(
   '/private/plagues/create',
   requirePlaguePermission(PLAGUE_PERMISSIONS.CREATE),
-  uploadSinglePlagueImage,
+  uploadPlagueImages,
   createPlague,
 );
 privateRouter.post(
   '/private/plagues/update/:id',
   requirePlaguePermission(PLAGUE_PERMISSIONS.EDIT),
-  uploadSinglePlagueImage,
+  uploadPlagueImages,
   updatePlague,
 );
 privateRouter.post(

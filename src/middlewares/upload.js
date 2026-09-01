@@ -90,17 +90,26 @@ export const upload = multer({
 // Upload para plagas
 export const uploadPlague = multer({
   storage: plagueStorage,
-  limits: { ...IMAGE_UPLOAD_LIMITS, files: 1 },
+  limits: IMAGE_UPLOAD_LIMITS,
   fileFilter: imageFileFilter,
 });
 
-export const uploadSinglePlagueImage = (req, res, next) => {
-  uploadPlague.single('image')(req, res, (error) => {
+export const uploadPlagueImages = (req, res, next) => {
+  uploadPlague.array('images', IMAGE_UPLOAD_LIMITS.files)(req, res, (error) => {
     if (error) {
-      const message =
-        error.code === 'LIMIT_FILE_SIZE'
-          ? 'La imagen no puede superar 5 MB.'
-          : error.message;
+      let message = error.message;
+
+      if (error.code === 'LIMIT_FILE_SIZE') {
+        message = 'Cada imagen puede pesar como máximo 5 MB.';
+      }
+
+      if (
+        error.code === 'LIMIT_FILE_COUNT' ||
+        error.code === 'LIMIT_UNEXPECTED_FILE'
+      ) {
+        message = `Puedes subir como máximo ${IMAGE_UPLOAD_LIMITS.files} imágenes por vez.`;
+      }
+
       return res.status(400).send(message);
     }
 

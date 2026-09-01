@@ -320,7 +320,7 @@
                                 data-description="{{description}}" data-symptoms="{{symptoms}}"
                                 data-control-methods="{{control_methods}}"
                                 data-biological-control="{{biological_control}}"
-                                data-biological-cycle="{{biological_cycle_json}}" data-image-url="{{image_url}}">
+                                data-biological-cycle="{{biological_cycle_json}}" data-images="{{images_json}}" data-image-url="{{image_url}}">
                                 <i data-lucide="edit-2" class="w-4 h-4"></i>
                             </button>
                             {{/if}}
@@ -472,7 +472,7 @@
                                         data-description="{{description}}" data-symptoms="{{symptoms}}"
                                         data-control-methods="{{control_methods}}"
                                         data-biological-control="{{biological_control}}"
-                                        data-biological-cycle="{{biological_cycle_json}}" data-image-url="{{image_url}}">
+                                        data-biological-cycle="{{biological_cycle_json}}" data-images="{{images_json}}" data-image-url="{{image_url}}">
                                         <i data-lucide="edit-2" class="w-4 h-4"></i>
                                     </button>
                                     {{/if}}
@@ -717,13 +717,14 @@
                 </div>
 
                 <div class="md:col-span-2">
-                    <label class="block font-bold text-foreground mb-1.5">Imagen Representativa</label>
-                    <div class="bg-muted/40 border border-input rounded-xl p-4 flex flex-col sm:flex-row items-center gap-4">
-                        <img id="plague-preview" class="hidden w-24 h-24 rounded-xl object-cover border border-border/80" alt="Vista previa">
-                        <div class="flex-1 w-full">
-                            <input id="plague-image" type="file" name="image" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                    <label class="block font-bold text-foreground mb-1.5">Galería de imágenes</label>
+                    <div class="bg-muted/40 border border-input rounded-xl p-4 space-y-4">
+                        <div id="plague-image-previews" class="hidden grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5" aria-live="polite"></div>
+                        <div class="w-full">
+                            <input id="plague-images" type="file" name="images" multiple accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
                                 class="block w-full text-xs text-muted-foreground file:mr-4 file:py-2 file:px-3 file:rounded-xl file:border-0 file:bg-[#e6f0e6] file:text-[#1b4332] file:font-bold file:text-xs">
-                            <p class="text-[11px] text-muted-foreground mt-1.5">Formatos permitidos: JPG, PNG o WEBP · máximo 5 MB.</p>
+                            <p class="text-[11px] text-muted-foreground mt-1.5">Selecciona hasta 10 imágenes por vez · JPG, PNG o WEBP · máximo 5 MB cada una.</p>
+                            <p id="plague-existing-images-note" class="hidden text-[11px] text-[#2d6a4f] mt-1">Las imágenes actuales se conservarán; la nueva selección se añadirá al final de la galería.</p>
                         </div>
                     </div>
                 </div>

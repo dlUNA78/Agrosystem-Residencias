@@ -14,8 +14,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const title = document.getElementById('modal-plague-title');
   const btnSave = document.getElementById('btn-save-plague');
 
-  const imageInput = document.getElementById('plague-image');
-  const imagePreview = document.getElementById('plague-preview');
+  const imageInput = document.getElementById('plague-images');
+  const imagePreviews = document.getElementById('plague-image-previews');
+  const existingImagesNote = document.getElementById(
+    'plague-existing-images-note',
+  );
   const exportButton = document.getElementById('btn-export-plagues');
   const biologicalCycleBuilder = document.getElementById(
     'biological-cycle-builder',
@@ -27,6 +30,11 @@ document.addEventListener('DOMContentLoaded', () => {
     'btn-add-biological-stage',
   );
   const maximumBiologicalStages = 20;
+  const maximumImagesPerSelection = 10;
+  const maximumImageSize = 5 * 1024 * 1024;
+  const allowedImageTypes = new Set(['image/jpeg', 'image/png', 'image/webp']);
+  let currentExistingImages = [];
+  let previewObjectUrls = [];
 
   if (exportButton) {
     exportButton.addEventListener('click', () => window.print());
@@ -86,15 +94,107 @@ document.addEventListener('DOMContentLoaded', () => {
 
     modal.classList.remove('flex');
     modal.classList.add('hidden');
+    releaseImagePreviewUrls();
 
     document.body.classList.remove('overflow-hidden');
   }
 
-  function resetImagePreview() {
-    if (!imagePreview) return;
+  function releaseImagePreviewUrls() {
+    previewObjectUrls.forEach((url) => URL.revokeObjectURL(url));
+    previewObjectUrls = [];
+  }
 
-    imagePreview.src = '';
-    imagePreview.classList.add('hidden');
+  function normalizeExistingImages(rawImages, fallbackUrl = '') {
+    if (!rawImages) {
+      return fallbackUrl ? [{ url: fallbackUrl }] : [];
+    }
+
+    try {
+      const parsed =
+        typeof rawImages === 'string' ? JSON.parse(rawImages) : rawImages;
+
+      if (!Array.isArray(parsed)) {
+        return fallbackUrl ? [{ url: fallbackUrl }] : [];
+      }
+
+      return parsed
+        .map((image) => ({
+          url: typeof image === 'string' ? image : image?.url,
+          caption: typeof image === 'object' ? image?.caption : '',
+        }))
+        .filter((image) => image.url);
+    } catch {
+      return fallbackUrl ? [{ url: fallbackUrl }] : [];
+    }
+  }
+
+  function buildImagePreview({ url, label, isNew }) {
+    const figure = document.createElement('figure');
+    figure.className =
+      'overflow-hidden rounded-xl border border-border/80 bg-card';
+
+    const image = document.createElement('img');
+    image.src = url;
+    image.alt = label;
+    image.className = 'h-24 w-full object-cover';
+
+    const caption = document.createElement('figcaption');
+    caption.className =
+      'flex items-center justify-between gap-1 px-2 py-1.5 text-[10px]';
+
+    const name = document.createElement('span');
+    name.className = 'truncate text-muted-foreground';
+    name.textContent = label;
+
+    const status = document.createElement('span');
+    status.className = isNew
+      ? 'shrink-0 font-bold text-[#1b4332]'
+      : 'shrink-0 font-bold text-muted-foreground';
+    status.textContent = isNew ? 'Nueva' : 'Actual';
+
+    caption.append(name, status);
+    figure.append(image, caption);
+
+    return figure;
+  }
+
+  function renderImagePreviews(existingImages = [], newFiles = []) {
+    if (!imagePreviews) return;
+
+    releaseImagePreviewUrls();
+    imagePreviews.replaceChildren();
+
+    existingImages.forEach((image, index) => {
+      imagePreviews.append(
+        buildImagePreview({
+          url: image.url,
+          label: image.caption || `Imagen ${index + 1}`,
+          isNew: false,
+        }),
+      );
+    });
+
+    newFiles.forEach((file) => {
+      const objectUrl = URL.createObjectURL(file);
+      previewObjectUrls.push(objectUrl);
+      imagePreviews.append(
+        buildImagePreview({
+          url: objectUrl,
+          label: file.name,
+          isNew: true,
+        }),
+      );
+    });
+
+    const hasImages = existingImages.length > 0 || newFiles.length > 0;
+    imagePreviews.classList.toggle('hidden', !hasImages);
+    imagePreviews.classList.toggle('grid', hasImages);
+    existingImagesNote?.classList.toggle('hidden', existingImages.length === 0);
+  }
+
+  function resetImagePreviews() {
+    currentExistingImages = [];
+    renderImagePreviews();
   }
 
   function formatHistoricalStageTitle(value) {
@@ -258,7 +358,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Limpiar imagen
-    resetImagePreview();
+    resetImagePreviews();
 
     if (imageInput) {
       imageInput.value = '';
@@ -341,18 +441,9 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
     }
 
-    // MOSTRAR IMAGEN ACTUAL
-    if (imagePreview) {
-      if (data.imageUrl) {
-        imagePreview.src = data.imageUrl.startsWith('/')
-          ? data.imageUrl
-          : `/${data.imageUrl}`;
-
-        imagePreview.classList.remove('hidden');
-      } else {
-        resetImagePreview();
-      }
-    }
+    // MOSTRAR GALERÍA ACTUAL
+    currentExistingImages = normalizeExistingImages(data.images, data.imageUrl);
+    renderImagePreviews(currentExistingImages);
 
     // LIMPIAR INPUT DE ARCHIVO
 
@@ -425,43 +516,39 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // PREVISUALIZACIÓN DE IMAGEN
+  // PREVISUALIZACIÓN DE IMÁGENES
 
   if (imageInput) {
     imageInput.addEventListener('change', function () {
-      const file = this.files[0];
+      const files = Array.from(this.files || []);
 
-      if (!file) {
+      if (files.length === 0) {
+        renderImagePreviews(currentExistingImages);
         return;
       }
 
-      // Validar que sea imagen
-
-      if (!file.type.startsWith('image/')) {
-        alert('Selecciona un archivo de imagen válido.');
-
+      if (files.length > maximumImagesPerSelection) {
+        alert(`Selecciona como máximo ${maximumImagesPerSelection} imágenes.`);
         this.value = '';
-
-        resetImagePreview();
-
+        renderImagePreviews(currentExistingImages);
         return;
       }
 
-      // Liberar URL anterior si existiera
-
-      if (imagePreview && imagePreview.dataset.objectUrl) {
-        URL.revokeObjectURL(imagePreview.dataset.objectUrl);
+      if (files.some((file) => !allowedImageTypes.has(file.type))) {
+        alert('Todas las imágenes deben ser JPG, PNG o WEBP.');
+        this.value = '';
+        renderImagePreviews(currentExistingImages);
+        return;
       }
 
-      const objectUrl = URL.createObjectURL(file);
-
-      if (imagePreview) {
-        imagePreview.src = objectUrl;
-
-        imagePreview.dataset.objectUrl = objectUrl;
-
-        imagePreview.classList.remove('hidden');
+      if (files.some((file) => file.size > maximumImageSize)) {
+        alert('Cada imagen puede pesar como máximo 5 MB.');
+        this.value = '';
+        renderImagePreviews(currentExistingImages);
+        return;
       }
+
+      renderImagePreviews(currentExistingImages, files);
     });
   }
 

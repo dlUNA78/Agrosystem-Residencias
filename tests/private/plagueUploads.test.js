@@ -2,10 +2,13 @@ import { describe, expect, it } from '@jest/globals';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import express from 'express';
+import request from 'supertest';
 
 import {
   IMAGE_UPLOAD_LIMITS,
   ensureImageUploadDirectory,
+  uploadPlagueImages,
   validateImageFile,
 } from '../../src/middlewares/upload.js';
 
@@ -46,6 +49,34 @@ describe('seguridad de imágenes de plagas', () => {
       expect(fs.statSync(directory).isDirectory()).toBe(true);
     } finally {
       fs.rmSync(temporaryPublic, { recursive: true, force: true });
+    }
+  });
+
+  it('acepta varias imágenes de plaga en el mismo formulario', async () => {
+    const app = express();
+    const uploadedPaths = [];
+
+    app.post('/plagues', uploadPlagueImages, (req, res) => {
+      uploadedPaths.push(...req.files.map((file) => file.path));
+      res.json({ files: req.files.map((file) => file.originalname) });
+    });
+
+    try {
+      const response = await request(app)
+        .post('/plagues')
+        .attach('images', Buffer.from('imagen-uno'), {
+          filename: 'uno.png',
+          contentType: 'image/png',
+        })
+        .attach('images', Buffer.from('imagen-dos'), {
+          filename: 'dos.webp',
+          contentType: 'image/webp',
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body.files).toEqual(['uno.png', 'dos.webp']);
+    } finally {
+      uploadedPaths.forEach((filePath) => fs.rmSync(filePath, { force: true }));
     }
   });
 });

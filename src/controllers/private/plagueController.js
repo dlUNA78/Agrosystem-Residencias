@@ -159,18 +159,23 @@ export const plaguesPrivate = async (req, res) => {
       const data = plague.toJSON();
 
       const images = Array.isArray(data.images) ? data.images : [];
+      const normalizedImages = images.map((image) => ({
+        url: `/${String(image.url).replace(/^\/+/, '')}`,
+        ...(image.caption ? { caption: image.caption } : {}),
+        ...(image.source ? { source: image.source } : {}),
+        sort_order: image.sort_order || 0,
+      }));
 
       return {
         ...data,
 
         // Primera imagen para tabla/grid
-        image_url:
-          images.length > 0
-            ? `/${String(images[0].url).replace(/^\/+/, '')}`
-            : null,
+        image_url: normalizedImages.length > 0 ? normalizedImages[0].url : null,
 
         // Todas las imágenes disponibles
         images,
+
+        images_json: JSON.stringify(normalizedImages),
 
         // JSON seguro para reconstruir el editor por etapas en el modal.
         biological_cycle_json: JSON.stringify(data.biological_cycle || []),
@@ -365,21 +370,17 @@ export const createPlague = async (req, res) => {
     );
 
     // ========================================================
-    // GUARDAR IMAGEN EN PlagueImages
+    // GUARDAR IMÁGENES EN PlagueImages
     // ========================================================
 
-    if (req.file) {
-      const imageUrl = `images/plagues/${req.file.filename}`;
-
-      await PlagueImage.create(
-        {
+    if (Array.isArray(req.files) && req.files.length > 0) {
+      await PlagueImage.bulkCreate(
+        req.files.map((file, index) => ({
           plague_id: plague.id,
-          url: imageUrl,
-          sort_order: 0,
-        },
-        {
-          transaction,
-        },
+          url: `images/plagues/${file.filename}`,
+          sort_order: index,
+        })),
+        { transaction },
       );
     }
 
@@ -473,34 +474,22 @@ export const updatePlague = async (req, res) => {
     );
 
     // ========================================================
-    // SI SE SUBIÓ UNA NUEVA IMAGEN
+    // SI SE SUBIERON NUEVAS IMÁGENES, SE AGREGAN A LA GALERÍA
     // ========================================================
 
-    if (req.file) {
-      // El formulario maneja una sola imagen.
-      // Eliminamos la anterior.
-
-      await PlagueImage.destroy({
-        where: {
-          plague_id: plague.id,
-        },
-
+    if (Array.isArray(req.files) && req.files.length > 0) {
+      const existingImageCount = await PlagueImage.count({
+        where: { plague_id: plague.id },
         transaction,
       });
 
-      // Guardamos la nueva
-
-      await PlagueImage.create(
-        {
+      await PlagueImage.bulkCreate(
+        req.files.map((file, index) => ({
           plague_id: plague.id,
-
-          url: `images/plagues/${req.file.filename}`,
-
-          sort_order: 0,
-        },
-        {
-          transaction,
-        },
+          url: `images/plagues/${file.filename}`,
+          sort_order: existingImageCount + index,
+        })),
+        { transaction },
       );
     }
 
