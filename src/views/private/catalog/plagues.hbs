@@ -36,13 +36,13 @@
 
             <!-- Botones de Acción (Protegidos por RBAC) -->
             <div class="flex items-center gap-3 shrink-0">
-                <button type="button" onclick="window.print()"
+                <button type="button" id="btn-export-plagues"
                     class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-border/80 bg-card text-foreground text-xs font-bold hover:bg-muted transition-all shadow-2xs cursor-pointer">
                     <i data-lucide="download" class="w-4 h-4"></i>
                     <span>Exportar Informe</span>
                 </button>
 
-                {{#if canManage}}
+                {{#if permissions.canCreate}}
                 <button type="button" id="btn-add-plague"
                     class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#1b4332] text-white text-xs font-bold hover:bg-[#2d6a4f] transition-all shadow-md active:scale-95 cursor-pointer">
                     <i data-lucide="plus" class="w-4 h-4"></i>
@@ -72,14 +72,14 @@
                 </div>
             </div>
 
-            <!-- KPI 2: Plagas Activas -->
+            <!-- KPI 2: Plagas publicadas -->
             <div class="bg-card border border-border/80 rounded-2xl p-5 shadow-2xs flex items-center justify-between">
                 <div>
-                    <p class="text-[11px] font-mono font-bold uppercase tracking-wider text-muted-foreground">Monitoreo Activo</p>
+                    <p class="text-[11px] font-mono font-bold uppercase tracking-wider text-muted-foreground">Publicadas</p>
                     <h3 class="text-3xl font-headline font-black text-emerald-700 mt-1 tabular-nums">{{stats.activePlagues}}</h3>
                     <p class="text-[11px] text-emerald-700 mt-1 flex items-center gap-1 font-medium">
                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                        <span>Plagas bajo seguimiento</span>
+                        <span>Visibles al público</span>
                     </p>
                 </div>
                 <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center">
@@ -123,12 +123,12 @@
         <!-- BARRA PEGAJOSA DE FILTROS ADMINISTRATIVOS (STICKY GLASS) -->
         <!-- ===================================================== -->
         <div class="sticky top-16 z-30 -mx-4 md:-mx-10 px-4 md:px-10 py-4 bg-background/90 backdrop-blur-md border-b border-border/80 shadow-2xs">
-            <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+            <form id="plague-filter-form" action="/private/plagues" method="GET" class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
                 
                 <!-- Buscador de Administración -->
                 <div class="relative flex-1 min-w-65">
                     <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground"></i>
-                    <input id="plague-search" type="search"
+                    <input id="plague-search" name="search" type="search" value="{{filters.search}}" maxlength="120"
                         class="w-full pl-10 pr-4 py-2.5 bg-card border border-input rounded-xl text-xs text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all"
                         placeholder="Buscar por ID, nombre común, científico, región o síntomas..." />
                 </div>
@@ -138,25 +138,29 @@
                     
                     <!-- Filtro Categoría -->
                     <div class="relative min-w-37.5">
-                        <select id="filter-category" data-param="category"
+                        <select id="filter-category" name="category"
                             class="filter-select appearance-none w-full bg-card border border-input rounded-xl px-3.5 py-2.5 pr-8 text-xs font-medium text-foreground focus:outline-hidden focus:border-[#1b4332] transition-all cursor-pointer">
                             <option value="">Categoría · Todas</option>
-                            <option value="Insecto">Insecto</option>
-                            <option value="Hongo">Hongo</option>
-                            <option value="Bacteria">Bacteria</option>
-                            <option value="Virus">Virus</option>
-                            <option value="Ácaro">Ácaro</option>
+                            <option value="Insecto" {{#if (eq filters.category 'Insecto')}}selected{{/if}}>Insecto</option>
+                            <option value="Hongo" {{#if (eq filters.category 'Hongo')}}selected{{/if}}>Hongo</option>
+                            <option value="Bacteria" {{#if (eq filters.category 'Bacteria')}}selected{{/if}}>Bacteria</option>
+                            <option value="Virus" {{#if (eq filters.category 'Virus')}}selected{{/if}}>Virus</option>
+                            <option value="Ácaro" {{#if (eq filters.category 'Ácaro')}}selected{{/if}}>Ácaro</option>
                         </select>
                         <i data-lucide="chevron-down" class="w-3.5 h-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"></i>
                     </div>
 
                     <!-- Filtro Estatus -->
                     <div class="relative min-w-35">
-                        <select id="filter-status" data-param="status"
+                        <select id="filter-workflow" name="workflow"
                             class="filter-select appearance-none w-full bg-card border border-input rounded-xl px-3.5 py-2.5 pr-8 text-xs font-medium text-foreground focus:outline-hidden focus:border-[#1b4332] transition-all cursor-pointer">
                             <option value="">Estatus · Todos</option>
-                            <option value="true">Activas</option>
-                            <option value="false">Inactivas</option>
+                            <option value="draft" {{#if (eq filters.workflow 'draft')}}selected{{/if}}>Borrador</option>
+                            <option value="in_review" {{#if (eq filters.workflow 'in_review')}}selected{{/if}}>En revisión</option>
+                            <option value="changes_requested" {{#if (eq filters.workflow 'changes_requested')}}selected{{/if}}>Cambios solicitados</option>
+                            <option value="verified" {{#if (eq filters.workflow 'verified')}}selected{{/if}}>Verificada</option>
+                            <option value="published" {{#if (eq filters.workflow 'published')}}selected{{/if}}>Publicada</option>
+                            <option value="archived" {{#if (eq filters.workflow 'archived')}}selected{{/if}}>Archivada</option>
                         </select>
                         <i data-lucide="chevron-down" class="w-3.5 h-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"></i>
                     </div>
@@ -172,8 +176,30 @@
                             <i data-lucide="table-properties" class="w-4 h-4"></i>
                         </button>
                     </div>
+
+                    <button type="submit" class="inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#1b4332] px-4 py-2.5 text-xs font-bold text-white shadow-2xs transition-colors hover:bg-[#2d6a4f]">
+                        <i data-lucide="search" class="h-3.5 w-3.5"></i>
+                        Aplicar
+                    </button>
+
+                    {{#if hasActiveFilters}}
+                    <a href="/private/plagues" class="inline-flex items-center justify-center gap-1.5 rounded-xl border border-border bg-card px-4 py-2.5 text-xs font-bold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
+                        <i data-lucide="x" class="h-3.5 w-3.5"></i>
+                        Limpiar
+                    </a>
+                    {{/if}}
                 </div>
-            </div>
+            </form>
+        </div>
+
+        <div class="flex flex-col gap-1 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+            <p>
+                Mostrando <strong class="text-foreground">{{pagination.fromItem}}–{{pagination.toItem}}</strong>
+                de <strong class="text-foreground">{{pagination.totalItems}}</strong> resultados.
+            </p>
+            {{#if hasActiveFilters}}
+            <p class="font-mono text-[10px] uppercase tracking-wider">Filtros activos</p>
+            {{/if}}
         </div>
 
         <!-- ===================================================== -->
@@ -187,8 +213,12 @@
                 <!-- Imagen con Badges Fitosanitarios -->
                 <div class="relative h-48 overflow-hidden bg-muted/50">
                     {{#if image_url}}
-                    <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        src="{{image_url}}" alt="{{name}}" onerror="this.onerror=null; this.src='/images/test/default.png';">
+                    <img class="plague-list-image w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        src="{{image_url}}" alt="{{name}}">
+                    <div class="plague-image-fallback hidden w-full h-full flex-col items-center justify-center text-muted-foreground/40 gap-2">
+                        <i data-lucide="bug" class="w-10 h-10 stroke-[1.5]"></i>
+                        <span class="text-[10px] font-mono uppercase tracking-widest">Imagen no disponible</span>
+                    </div>
                     {{else}}
                     <div class="w-full h-full flex flex-col items-center justify-center text-muted-foreground/40 gap-2">
                         <i data-lucide="bug" class="w-10 h-10 stroke-[1.5]"></i>
@@ -211,15 +241,23 @@
 
                     <!-- Status Badge -->
                     <div class="absolute top-3 right-3">
-                        {{#if status}}
+                        {{#if (eq workflow_status 'published')}}
                         <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/90 backdrop-blur-md text-[10px] font-bold text-[#1b4332] shadow-2xs">
                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                            Activa
+                            Publicada
                         </span>
+                        {{else if (eq workflow_status 'in_review')}}
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/90 backdrop-blur-md text-[10px] font-bold text-amber-700 shadow-2xs">En revisión</span>
+                        {{else if (eq workflow_status 'verified')}}
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/90 backdrop-blur-md text-[10px] font-bold text-blue-700 shadow-2xs">Verificada</span>
+                        {{else if (eq workflow_status 'changes_requested')}}
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/90 backdrop-blur-md text-[10px] font-bold text-orange-700 shadow-2xs">Cambios solicitados</span>
+                        {{else if (eq workflow_status 'archived')}}
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/90 backdrop-blur-md text-[10px] font-bold text-slate-600 shadow-2xs">Archivada</span>
                         {{else}}
                         <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/90 backdrop-blur-md text-[10px] font-bold text-muted-foreground shadow-2xs">
                             <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
-                            Inactiva
+                            Borrador
                         </span>
                         {{/if}}
                     </div>
@@ -272,28 +310,29 @@
                             <span>Ver Detalles</span>
                         </a>
 
-                        {{#if ../canManage}}
                         <div class="flex items-center gap-1">
+                            {{#if canEditRecord}}
                             <button type="button"
                                 class="btn-edit-plague p-2 rounded-lg text-muted-foreground hover:text-[#1b4332] hover:bg-muted transition-colors cursor-pointer"
                                 title="Editar plaga" data-id="{{id}}" data-name="{{name}}"
                                 data-scientific-name="{{scientific_name}}" data-category="{{category}}"
-                                data-region="{{region}}" data-risk-level="{{risk_level}}" data-status="{{status}}"
+                                data-region="{{region}}" data-risk-level="{{risk_level}}"
                                 data-description="{{description}}" data-symptoms="{{symptoms}}"
                                 data-control-methods="{{control_methods}}"
                                 data-biological-control="{{biological_control}}"
-                                data-biological-cycle="{{biological_cycle}}" data-verified-by="{{verified_by}}"
-                                data-verified-at="{{verified_at}}" data-image-url="{{image_url}}">
+                                data-biological-cycle="{{biological_cycle}}" data-image-url="{{image_url}}">
                                 <i data-lucide="edit-2" class="w-4 h-4"></i>
                             </button>
+                            {{/if}}
 
+                            {{#if ../permissions.canDelete}}
                             <button type="button"
                                 class="btn-delete-plague p-2 rounded-lg text-muted-foreground hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
                                 title="Eliminar plaga" data-id="{{id}}" data-name="{{name}}">
                                 <i data-lucide="trash-2" class="w-4 h-4"></i>
                             </button>
+                            {{/if}}
                         </div>
-                        {{/if}}
                     </div>
                 </div>
             </article>
@@ -310,8 +349,8 @@
             </div>
             {{/each}}
 
-            <!-- CTA Crear Plaga (Solo para roles con permiso canManage) -->
-            {{#if canManage}}
+            <!-- CTA Crear Plaga -->
+            {{#if permissions.canCreate}}
             <button type="button" id="btn-add-plague-card"
                 class="group bg-card/50 hover:bg-card border-2 border-dashed border-border hover:border-[#1b4332]/50 rounded-2xl p-6 min-h-70 flex flex-col items-center justify-center text-center transition-all cursor-pointer shadow-2xs hover:shadow-md">
                 <div class="w-12 h-12 rounded-2xl bg-[#e6f0e6] text-[#1b4332] group-hover:bg-[#1b4332] group-hover:text-white flex items-center justify-center mb-3 transition-colors">
@@ -332,7 +371,7 @@
         <!-- ===================================================== -->
         <!-- VISTA EN TABLA ADMINISTRATIVA (TABLE VIEW EN GEIST) -->
         <!-- ===================================================== -->
-        <section id="plagues-table-view" style="display:none" class="bg-card border border-border/80 rounded-2xl overflow-hidden shadow-2xs">
+        <section id="plagues-table-view" class="hidden bg-card border border-border/80 rounded-2xl overflow-hidden shadow-2xs">
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse font-['Geist']">
                     <thead>
@@ -352,7 +391,10 @@
                         <tr class="hover:bg-muted/30 transition-colors">
                             <td class="px-6 py-4">
                                 {{#if image_url}}
-                                <img src="{{image_url}}" alt="{{name}}" class="w-10 h-10 rounded-xl object-cover border border-border/80" onerror="this.onerror=null; this.src='/images/test/default.png';">
+                                <img src="{{image_url}}" alt="{{name}}" class="plague-list-image w-10 h-10 rounded-xl object-cover border border-border/80">
+                                <div class="plague-image-fallback hidden w-10 h-10 rounded-xl bg-muted items-center justify-center text-muted-foreground">
+                                    <i data-lucide="bug" class="w-5 h-5"></i>
+                                </div>
                                 {{else}}
                                 <div class="w-10 h-10 rounded-xl bg-muted flex items-center justify-center text-muted-foreground">
                                     <i data-lucide="bug" class="w-5 h-5"></i>
@@ -397,15 +439,23 @@
                                 {{/if}}
                             </td>
                             <td class="px-6 py-4 text-center">
-                                {{#if status}}
+                                {{#if (eq workflow_status 'published')}}
                                 <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold">
                                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
-                                    Activa
+                                    Publicada
                                 </span>
+                                {{else if (eq workflow_status 'in_review')}}
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 text-[10px] font-bold">En revisión</span>
+                                {{else if (eq workflow_status 'verified')}}
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 text-[10px] font-bold">Verificada</span>
+                                {{else if (eq workflow_status 'changes_requested')}}
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-orange-50 text-orange-700 text-[10px] font-bold">Cambios solicitados</span>
+                                {{else if (eq workflow_status 'archived')}}
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 text-[10px] font-bold">Archivada</span>
                                 {{else}}
                                 <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 text-[10px] font-bold">
                                     <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
-                                    Inactiva
+                                    Borrador
                                 </span>
                                 {{/if}}
                             </td>
@@ -414,18 +464,19 @@
                                     <a href="/private/plagues/{{id}}" class="p-1.5 rounded-lg text-muted-foreground hover:text-[#1b4332] hover:bg-muted transition-colors" title="Ver detalles">
                                         <i data-lucide="eye" class="w-4 h-4"></i>
                                     </a>
-                                    {{#if ../canManage}}
+                                    {{#if canEditRecord}}
                                     <button type="button" class="btn-edit-plague p-1.5 rounded-lg text-muted-foreground hover:text-[#1b4332] hover:bg-muted transition-colors cursor-pointer"
                                         title="Editar plaga" data-id="{{id}}" data-name="{{name}}"
                                         data-scientific-name="{{scientific_name}}" data-category="{{category}}"
-                                        data-region="{{region}}" data-risk-level="{{risk_level}}" data-status="{{status}}"
+                                        data-region="{{region}}" data-risk-level="{{risk_level}}"
                                         data-description="{{description}}" data-symptoms="{{symptoms}}"
                                         data-control-methods="{{control_methods}}"
                                         data-biological-control="{{biological_control}}"
-                                        data-biological-cycle="{{biological_cycle}}" data-verified-by="{{verified_by}}"
-                                        data-verified-at="{{verified_at}}" data-image-url="{{image_url}}">
+                                        data-biological-cycle="{{biological_cycle}}" data-image-url="{{image_url}}">
                                         <i data-lucide="edit-2" class="w-4 h-4"></i>
                                     </button>
+                                    {{/if}}
+                                    {{#if ../permissions.canDelete}}
                                     <button type="button" class="btn-delete-plague p-1.5 rounded-lg text-muted-foreground hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
                                         title="Eliminar plaga" data-id="{{id}}" data-name="{{name}}">
                                         <i data-lucide="trash-2" class="w-4 h-4"></i>
@@ -446,13 +497,52 @@
             </div>
         </section>
 
+        {{#if pagination.hasMultiplePages}}
+        <nav aria-label="Paginación de plagas" class="flex flex-col items-center justify-between gap-4 rounded-2xl border border-border/80 bg-card px-4 py-3 shadow-2xs sm:flex-row">
+            <p class="text-xs text-muted-foreground">
+                Página <strong class="text-foreground">{{pagination.currentPage}}</strong> de
+                <strong class="text-foreground">{{pagination.totalPages}}</strong>
+            </p>
+
+            <div class="flex items-center gap-1">
+                {{#if pagination.hasPrevPage}}
+                <a href="{{pagination.prevUrl}}" aria-label="Página anterior" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border text-foreground transition-colors hover:bg-muted">
+                    <i data-lucide="chevron-left" class="h-4 w-4"></i>
+                </a>
+                {{else}}
+                <span aria-disabled="true" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border text-muted-foreground opacity-40">
+                    <i data-lucide="chevron-left" class="h-4 w-4"></i>
+                </span>
+                {{/if}}
+
+                {{#each pagination.pages}}
+                    {{#if this.isCurrent}}
+                    <span aria-current="page" class="inline-flex h-9 min-w-9 items-center justify-center rounded-lg bg-[#1b4332] px-2 text-xs font-bold text-white">{{this.number}}</span>
+                    {{else}}
+                    <a href="{{this.url}}" class="inline-flex h-9 min-w-9 items-center justify-center rounded-lg border border-border px-2 text-xs font-bold text-foreground transition-colors hover:bg-muted">{{this.number}}</a>
+                    {{/if}}
+                {{/each}}
+
+                {{#if pagination.hasNextPage}}
+                <a href="{{pagination.nextUrl}}" aria-label="Página siguiente" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border text-foreground transition-colors hover:bg-muted">
+                    <i data-lucide="chevron-right" class="h-4 w-4"></i>
+                </a>
+                {{else}}
+                <span aria-disabled="true" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border text-muted-foreground opacity-40">
+                    <i data-lucide="chevron-right" class="h-4 w-4"></i>
+                </span>
+                {{/if}}
+            </div>
+        </nav>
+        {{/if}}
+
     </div>
 </main>
 
 <!-- ========================================================= -->
-<!-- MODAL ELIMINAR PLAGA (SOLO CANMANAGE) -->
+<!-- MODAL ELIMINAR PLAGA -->
 <!-- ========================================================= -->
-{{#if canManage}}
+{{#if permissions.canDelete}}
 <div id="modal-delete-plague" class="fixed inset-0 z-50 hidden items-center justify-center p-4 font-['Geist']">
     <div id="modal-delete-plague-backdrop" class="absolute inset-0 bg-black/40 backdrop-blur-xs"></div>
     <div class="relative z-10 w-full max-w-md bg-card border border-border/80 rounded-2xl shadow-xl overflow-hidden">
@@ -486,10 +576,12 @@
         </div>
     </div>
 </div>
+{{/if}}
 
 <!-- ========================================================= -->
-<!-- MODAL AÑADIR / EDITAR PLAGA (SOLO CANMANAGE) -->
+<!-- MODAL AÑADIR / EDITAR PLAGA -->
 <!-- ========================================================= -->
+{{#if permissions.canCreate}}
 <div id="modal-plague" class="fixed inset-0 z-50 hidden items-center justify-center p-4 font-['Geist']">
     <div id="modal-plague-backdrop" class="absolute inset-0 bg-black/40 backdrop-blur-xs"></div>
     <div class="relative z-10 bg-card border border-border/80 rounded-2xl shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto flex flex-col">
@@ -552,15 +644,6 @@
                     </select>
                 </div>
 
-                <div>
-                    <label class="block font-bold text-foreground mb-1.5">Estado en Catálogo</label>
-                    <select name="status"
-                        class="w-full bg-muted/40 border border-input rounded-xl px-3.5 py-2.5 text-xs text-foreground focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all">
-                        <option value="true">Activa</option>
-                        <option value="false">Inactiva</option>
-                    </select>
-                </div>
-
                 <div class="md:col-span-2">
                     <label class="block font-bold text-foreground mb-1.5">Descripción de la Plaga</label>
                     <textarea name="description" rows="3" placeholder="Describe las características morfológicas y biológicas..."
@@ -571,18 +654,6 @@
                     <label class="block font-bold text-foreground mb-1.5">Ciclo Biológico</label>
                     <textarea name="biological_cycle" rows="3" placeholder="Describe la duración y etapas del ciclo de vida..."
                         class="w-full bg-muted/40 border border-input rounded-xl px-3.5 py-2.5 text-xs text-foreground resize-none focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all"></textarea>
-                </div>
-
-                <div>
-                    <label class="block font-bold text-foreground mb-1.5">Verificado Por</label>
-                    <input type="text" name="verified_by" placeholder="Ej. INIFAP, Ing. Juan Pérez..."
-                        class="w-full bg-muted/40 border border-input rounded-xl px-3.5 py-2.5 text-xs text-foreground focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all">
-                </div>
-
-                <div>
-                    <label class="block font-bold text-foreground mb-1.5">Fecha de Verificación</label>
-                    <input type="date" name="verified_at"
-                        class="w-full bg-muted/40 border border-input rounded-xl px-3.5 py-2.5 text-xs text-foreground focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all">
                 </div>
 
                 <div class="md:col-span-2">
@@ -608,9 +679,9 @@
                     <div class="bg-muted/40 border border-input rounded-xl p-4 flex flex-col sm:flex-row items-center gap-4">
                         <img id="plague-preview" class="hidden w-24 h-24 rounded-xl object-cover border border-border/80" alt="Vista previa">
                         <div class="flex-1 w-full">
-                            <input id="plague-image" type="file" name="image" accept="image/*"
+                            <input id="plague-image" type="file" name="image" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
                                 class="block w-full text-xs text-muted-foreground file:mr-4 file:py-2 file:px-3 file:rounded-xl file:border-0 file:bg-[#e6f0e6] file:text-[#1b4332] file:font-bold file:text-xs">
-                            <p class="text-[11px] text-muted-foreground mt-1.5">Formatos permitidos: JPG, PNG o WEBP.</p>
+                            <p class="text-[11px] text-muted-foreground mt-1.5">Formatos permitidos: JPG, PNG o WEBP · máximo 5 MB.</p>
                         </div>
                     </div>
                 </div>

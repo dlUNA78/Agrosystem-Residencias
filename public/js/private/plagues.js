@@ -16,6 +16,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const imageInput = document.getElementById('plague-image');
   const imagePreview = document.getElementById('plague-preview');
+  const exportButton = document.getElementById('btn-export-plagues');
+
+  if (exportButton) {
+    exportButton.addEventListener('click', () => window.print());
+  }
+
+  document.querySelectorAll('.plague-list-image').forEach((image) => {
+    image.addEventListener(
+      'error',
+      () => {
+        image.classList.add('hidden');
+        const fallback = image.nextElementSibling;
+
+        if (fallback?.classList.contains('plague-image-fallback')) {
+          fallback.classList.remove('hidden');
+          fallback.classList.add('flex');
+        }
+      },
+      { once: true },
+    );
+  });
 
   // CAMPOS DEL FORMULARIO
 
@@ -29,8 +50,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const inputRiskLevel = form?.querySelector('[name="risk_level"]');
 
-  const inputStatus = form?.querySelector('[name="status"]');
-
   const inputDescription = form?.querySelector('[name="description"]');
 
   const inputSymptoms = form?.querySelector('[name="symptoms"]');
@@ -42,10 +61,6 @@ document.addEventListener('DOMContentLoaded', () => {
   );
 
   const inputBiologicalCycle = form?.querySelector('[name="biological_cycle"]');
-
-  const inputVerifiedBy = form?.querySelector('[name="verified_by"]');
-
-  const inputVerifiedAt = form?.querySelector('[name="verified_at"]');
 
   // FUNCIONES AUXILIARES
 
@@ -145,12 +160,6 @@ document.addEventListener('DOMContentLoaded', () => {
       inputRiskLevel.value = data.riskLevel || '';
     }
 
-    if (inputStatus) {
-      const status = String(data.status).toLowerCase();
-
-      inputStatus.value = status === 'true' ? 'true' : 'false';
-    }
-
     if (inputDescription) {
       inputDescription.value = data.description || '';
     }
@@ -169,14 +178,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (inputBiologicalCycle) {
       inputBiologicalCycle.value = data.biologicalCycle || '';
-    }
-
-    if (inputVerifiedBy) {
-      inputVerifiedBy.value = data.verifiedBy || '';
-    }
-
-    if (inputVerifiedAt) {
-      inputVerifiedAt.value = data.verifiedAt || '';
     }
 
     // CAMBIAR FORM ACTION
@@ -313,61 +314,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // BUSCADOR EN TIEMPO REAL
-  // IMPORTANTE:
-  // Se soportan ambos IDs:
-  //
-  // #plague-search
-  // #search-input
-  //
-  // Esto evita romper el partial reutilizable.
+  // FILTROS DEL LADO DEL SERVIDOR
 
-  const searchInput =
-    document.getElementById('plague-search') ||
-    document.getElementById('search-input');
+  const filterForm = document.getElementById('plague-filter-form');
+  const filterSelects = document.querySelectorAll('.filter-select');
 
-  if (searchInput) {
-    searchInput.addEventListener('input', () => {
-      const search = searchInput.value.toLowerCase().trim();
+  filterSelects.forEach((select) => {
+    select.addEventListener('change', () => filterForm?.requestSubmit());
+  });
 
-      // TABLA
-
-      const rows = document.querySelectorAll('#plagues-table-view tbody tr');
-
-      rows.forEach((row) => {
-        // No ocultar la fila de "no hay registros"
-
-        if (
-          row.querySelector('.btn-edit-plague') ||
-          row.querySelector('.btn-delete-plague')
-        ) {
-          const text = row.textContent.toLowerCase();
-
-          row.style.display = text.includes(search) ? '' : 'none';
-        }
-      });
-
-      // GRID
-
-      const cards = document.querySelectorAll('#plagues-grid-view article');
-
-      cards.forEach((card) => {
-        // La tarjeta "Nueva plaga" nunca se oculta
-
-        if (card.id === 'cta-new-plague' || card.id === 'btn-add-plague-card') {
-          return;
-        }
-
-        const text = card.textContent.toLowerCase();
-
-        card.style.display = text.includes(search) ? '' : '';
-
-        if (search && !text.includes(search)) {
-          card.style.display = 'none';
-        }
-      });
-    });
-  }
   // CAMBIO DE VISTA TABLA / GRID
 
   const tableView = document.getElementById('plagues-table-view');
@@ -380,55 +335,66 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function activateTableView() {
     if (tableView) {
-      tableView.style.display = '';
+      tableView.classList.remove('hidden');
     }
 
     if (gridView) {
-      gridView.style.display = 'none';
+      gridView.classList.add('hidden');
     }
 
     if (btnTable) {
-      btnTable.classList.add('bg-[#43655c]', 'text-white');
+      btnTable.classList.add('bg-[#1b4332]', 'text-white');
 
-      btnTable.classList.remove('text-on-surface-variant');
+      btnTable.classList.remove('text-muted-foreground');
     }
 
     if (btnGrid) {
-      btnGrid.classList.remove('bg-[#43655c]', 'text-white');
+      btnGrid.classList.remove('bg-[#1b4332]', 'text-white');
 
-      btnGrid.classList.add('text-on-surface-variant');
+      btnGrid.classList.add('text-muted-foreground');
     }
   }
 
   function activateGridView() {
     if (tableView) {
-      tableView.style.display = 'none';
+      tableView.classList.add('hidden');
     }
 
     if (gridView) {
-      gridView.style.display = 'grid';
+      gridView.classList.remove('hidden');
     }
 
     if (btnGrid) {
-      btnGrid.classList.add('bg-[#43655c]', 'text-white');
+      btnGrid.classList.add('bg-[#1b4332]', 'text-white');
 
-      btnGrid.classList.remove('text-on-surface-variant');
+      btnGrid.classList.remove('text-muted-foreground');
     }
 
     if (btnTable) {
-      btnTable.classList.remove('bg-[#43655c]', 'text-white');
+      btnTable.classList.remove('bg-[#1b4332]', 'text-white');
 
-      btnTable.classList.add('text-on-surface-variant');
+      btnTable.classList.add('text-muted-foreground');
     }
   }
 
   if (btnTable && btnGrid) {
-    // Vista inicial
-    activateGridView();
+    const preferredView = window.localStorage.getItem('plagues-private-view');
 
-    btnTable.addEventListener('click', activateTableView);
+    if (preferredView === 'table') {
+      activateTableView();
+    } else {
+      activateGridView();
+    }
 
-    btnGrid.addEventListener('click', activateGridView);
+    btnTable.addEventListener('click', () => {
+      activateTableView();
+      window.localStorage.setItem('plagues-private-view', 'table');
+    });
+
+    btnGrid.addEventListener('click', () => {
+      activateGridView();
+      window.localStorage.setItem('plagues-private-view', 'grid');
+    });
   }
 
   // MODAL DE ELIMINACIÓN

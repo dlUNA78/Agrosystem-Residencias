@@ -1,4 +1,5 @@
 import { Model } from 'sequelize';
+import { PLAGUE_WORKFLOW_STATUSES } from '../services/plagueWorkflowService.js';
 
 export default (sequelize, DataTypes) => {
   class Plague extends Model {
@@ -32,6 +33,23 @@ export default (sequelize, DataTypes) => {
         otherKey: 'crop_id',
         as: 'crops',
       });
+
+      Plague.belongsTo(models.User, {
+        foreignKey: 'created_by_user_id',
+        as: 'createdBy',
+      });
+      Plague.belongsTo(models.User, {
+        foreignKey: 'updated_by_user_id',
+        as: 'updatedBy',
+      });
+      Plague.belongsTo(models.User, {
+        foreignKey: 'verified_by_user_id',
+        as: 'verifiedByUser',
+      });
+      Plague.belongsTo(models.User, {
+        foreignKey: 'published_by_user_id',
+        as: 'publishedBy',
+      });
     }
   }
 
@@ -49,6 +67,25 @@ export default (sequelize, DataTypes) => {
       biological_cycle: DataTypes.JSONB,
       verified_by: DataTypes.STRING,
       verified_at: DataTypes.DATE,
+      workflow_status: {
+        type: DataTypes.STRING(32),
+        allowNull: false,
+        defaultValue: PLAGUE_WORKFLOW_STATUSES.DRAFT,
+        validate: {
+          isIn: [Object.values(PLAGUE_WORKFLOW_STATUSES)],
+        },
+      },
+      created_by_user_id: DataTypes.INTEGER,
+      updated_by_user_id: DataTypes.INTEGER,
+      verified_by_user_id: DataTypes.INTEGER,
+      published_by_user_id: DataTypes.INTEGER,
+      published_at: DataTypes.DATE,
+      review_notes: DataTypes.TEXT,
+      is_monitoring_active: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      },
       status: DataTypes.BOOLEAN,
     },
     {

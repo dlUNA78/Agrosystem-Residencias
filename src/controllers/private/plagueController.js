@@ -2,6 +2,25 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 import db from '../../models/index.js';
+import { getPlaguePermissions } from '../../services/plagueAuthorizationService.js';
+import { buildPlagueDetailView } from '../../services/plagueDetailService.js';
+import {
+  PRIVATE_PLAGUE_PAGE_SIZE,
+  buildPrivatePlaguePagination,
+  normalizePrivatePlagueListQuery,
+} from '../../services/plagueListService.js';
+import {
+  buildPlagueRelationEditor,
+  validatePlagueRelationsInput,
+} from '../../services/plagueRelationService.js';
+import { validatePlagueInput } from '../../services/plagueValidationService.js';
+import {
+  PLAGUE_WORKFLOW_ACTIONS,
+  PLAGUE_WORKFLOW_STATUSES,
+  PlagueWorkflowError,
+  isPlagueEditable,
+  transitionPlagueWorkflow,
+} from '../../services/plagueWorkflowService.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -9,13 +28,40 @@ const __dirname = path.dirname(__filename);
 // Ruta absoluta al layout privado
 const privateLayout = path.join(__dirname, '../../views/layouts/private');
 
-const { Plague, PlagueImage } = db;
+const {
+  Plague,
+  PlagueImage,
+  PlagueRegion,
+  Product,
+  ProductImage,
+  Region,
+  Crop,
+  AuditLog,
+} = db;
+
+const getRecordId = (record) => Number(record?.id ?? record?.dataValues?.id);
+
+const findMissingCatalogIds = async (Model, ids, transaction) => {
+  if (ids.length === 0) {
+    return [];
+  }
+
+  const records = await Model.findAll({
+    where: { id: ids },
+    attributes: ['id'],
+    transaction,
+  });
+  const existingIds = new Set(records.map(getRecordId));
+
+  return ids.filter((id) => !existingIds.has(id));
+};
 
 // LISTADO DE PLAGAS
 
 export const plaguesPrivate = async (req, res) => {
   try {
-    const { search = '', category = '', status = '' } = req.query;
+    const query = normalizePrivatePlagueListQuery(req.query);
+    const { search, category, workflow } = query;
 
     const { Op } = db.Sequelize;
 
@@ -42,7 +88,20 @@ export const plaguesPrivate = async (req, res) => {
             [Op.iLike]: `%${searchTerm}%`,
           },
         },
+        {
+          symptoms: {
+            [Op.iLike]: `%${searchTerm}%`,
+          },
+        },
       ];
+
+      if (/^\d+$/.test(searchTerm)) {
+        const searchedId = Number(searchTerm);
+
+        if (Number.isSafeInteger(searchedId) && searchedId > 0) {
+          where[Op.or].push({ id: searchedId });
+        }
+      }
     }
 
     // FILTRO POR CATEGORÍA
@@ -51,20 +110,27 @@ export const plaguesPrivate = async (req, res) => {
       where.category = category;
     }
 
-    // FILTRO POR ESTATUS
+    // FILTRO POR ESTADO EDITORIAL
 
-    if (status === 'true') {
-      where.status = true;
+    if (Object.values(PLAGUE_WORKFLOW_STATUSES).includes(workflow)) {
+      where.workflow_status = workflow;
     }
 
-    if (status === 'false') {
-      where.status = false;
-    }
+    // PAGINACIÓN Y CONSULTA DE PLAGAS + IMÁGENES
 
-    // CONSULTAR PLAGAS + IMÁGENES
+    const filteredCount = await Plague.count({ where });
+    const pagination = buildPrivatePlaguePagination({
+      requestedPage: query.page,
+      totalItems: filteredCount,
+      filters: { search, category, workflow },
+    });
 
     const plagueRecords = await Plague.findAll({
       where,
+
+      limit: PRIVATE_PLAGUE_PAGE_SIZE,
+
+      offset: (pagination.currentPage - 1) * PRIVATE_PLAGUE_PAGE_SIZE,
 
       include: [
         {
@@ -81,6 +147,10 @@ export const plaguesPrivate = async (req, res) => {
 
     // FORMATEAR DATOS PARA HANDLEBARS
 
+    const currentUser = req.user;
+    const userRole = currentUser.role;
+    const permissions = getPlaguePermissions(userRole);
+
     const plagues = plagueRecords.map((plague) => {
       const data = plague.toJSON();
 
@@ -90,16 +160,24 @@ export const plaguesPrivate = async (req, res) => {
         ...data,
 
         // Primera imagen para tabla/grid
-        image_url: images.length > 0 ? images[0].url : null,
+        image_url:
+          images.length > 0
+            ? `/${String(images[0].url).replace(/^\/+/, '')}`
+            : null,
 
         // Todas las imágenes disponibles
         images,
+
+        canEditRecord:
+          permissions.canEdit && isPlagueEditable(data.workflow_status),
       };
     });
 
     // CALCULAR ESTADÍSTICAS ADMINISTRATIVAS (KPIS)
     const totalPlagues = await Plague.count();
-    const activePlagues = await Plague.count({ where: { status: true } });
+    const activePlagues = await Plague.count({
+      where: { workflow_status: PLAGUE_WORKFLOW_STATUSES.PUBLISHED },
+    });
     const criticalPlagues = await Plague.count({
       where: {
         risk_level: {
@@ -108,20 +186,12 @@ export const plaguesPrivate = async (req, res) => {
       },
     });
     const pendingVerification = await Plague.count({
-      where: {
-        [Op.or]: [{ verified_by: null }, { verified_by: '' }],
-      },
+      where: { workflow_status: PLAGUE_WORKFLOW_STATUSES.IN_REVIEW },
     });
 
     // RBAC Y ROLES DE USUARIO
-    const currentUser = req.user || { role: 'admin', name: 'Administrador' };
-    const userRole = currentUser.role || 'admin';
-    const canManage = !req.user || ['admin', 'inifap'].includes(userRole);
-    const isAdmin = !req.user || userRole === 'admin';
+    const isAdmin = userRole === 'admin';
     const isInifap = userRole === 'inifap' || userRole === 'admin';
-
-    console.log('FILTRO STATUS:', status);
-    console.log('PLAGAS ENCONTRADAS:', plagues.length);
 
     // VISTA
     return res.render('private/catalog/plagues', {
@@ -133,6 +203,16 @@ export const plaguesPrivate = async (req, res) => {
 
       plagues,
 
+      filters: {
+        search,
+        category,
+        workflow,
+      },
+
+      hasActiveFilters: Boolean(search || category || workflow),
+
+      pagination,
+
       stats: {
         totalPlagues,
         activePlagues,
@@ -140,8 +220,7 @@ export const plaguesPrivate = async (req, res) => {
         pendingVerification,
       },
 
-      user: currentUser,
-      canManage,
+      permissions,
       isAdmin,
       isInifap,
 
@@ -191,7 +270,7 @@ export const plaguesPrivate = async (req, res) => {
         },
 
         {
-          id: 'filter-status',
+          id: 'filter-workflow',
 
           label: 'Estatus:',
 
@@ -202,13 +281,28 @@ export const plaguesPrivate = async (req, res) => {
             },
 
             {
-              value: 'true',
-              text: 'Activo',
+              value: PLAGUE_WORKFLOW_STATUSES.DRAFT,
+              text: 'Borrador',
             },
 
             {
-              value: 'false',
-              text: 'Inactivo',
+              value: PLAGUE_WORKFLOW_STATUSES.IN_REVIEW,
+              text: 'En revisión',
+            },
+
+            {
+              value: PLAGUE_WORKFLOW_STATUSES.VERIFIED,
+              text: 'Verificada',
+            },
+
+            {
+              value: PLAGUE_WORKFLOW_STATUSES.PUBLISHED,
+              text: 'Publicada',
+            },
+
+            {
+              value: PLAGUE_WORKFLOW_STATUSES.ARCHIVED,
+              text: 'Archivada',
             },
           ],
         },
@@ -235,37 +329,11 @@ export const createPlague = async (req, res) => {
   const transaction = await db.sequelize.transaction();
 
   try {
-    // ========================================================
-    // DEBUG DE ARCHIVO RECIBIDO
-    // ========================================================
+    const validation = validatePlagueInput(req.body);
 
-    console.log('========================================');
-    console.log('ARCHIVO RECIBIDO:', req.file);
-    console.log('BODY RECIBIDO:', req.body);
-    console.log('========================================');
-
-    if (req.file) {
-      console.log('✅ IMAGEN RECIBIDA:', {
-        fieldname: req.file.fieldname,
-        originalname: req.file.originalname,
-        filename: req.file.filename,
-        path: req.file.path,
-      });
-    } else {
-      console.log('⚠️ NO SE RECIBIÓ NINGUNA IMAGEN');
-    }
-
-    // ========================================================
-    // CICLO BIOLÓGICO
-    // ========================================================
-
-    let biological_cycle = null;
-
-    if (req.body.biological_cycle?.trim()) {
-      biological_cycle = req.body.biological_cycle
-        .split('\n')
-        .map((item) => item.trim())
-        .filter(Boolean);
+    if (!validation.isValid) {
+      await transaction.rollback();
+      return res.status(400).send(validation.errors.join(' '));
     }
 
     // ========================================================
@@ -274,41 +342,20 @@ export const createPlague = async (req, res) => {
 
     const plague = await Plague.create(
       {
-        name: req.body.name?.trim(),
+        ...validation.value,
 
-        scientific_name: req.body.scientific_name?.trim() || null,
+        workflow_status: PLAGUE_WORKFLOW_STATUSES.DRAFT,
 
-        category: req.body.category || null,
+        created_by_user_id: req.user.id,
 
-        description: req.body.description?.trim() || null,
+        updated_by_user_id: req.user.id,
 
-        risk_level: req.body.risk_level || null,
-
-        region: req.body.region?.trim() || null,
-
-        symptoms: req.body.symptoms?.trim() || null,
-
-        control_methods: req.body.control_methods?.trim() || null,
-
-        biological_control: req.body.biological_control?.trim() || null,
-
-        biological_cycle,
-
-        verified_by: req.body.verified_by?.trim() || null,
-
-        verified_at: req.body.verified_at || null,
-
-        status:
-          req.body.status === 'true' ||
-          req.body.status === 'on' ||
-          req.body.status === true,
+        status: false,
       },
       {
         transaction,
       },
     );
-
-    console.log('✅ PLAGA CREADA CON ID:', plague.id);
 
     // ========================================================
     // GUARDAR IMAGEN EN PlagueImages
@@ -327,19 +374,25 @@ export const createPlague = async (req, res) => {
           transaction,
         },
       );
-
-      console.log('✅ IMAGEN GUARDADA:', imageUrl);
-    } else {
-      console.log('⚠️ LA PLAGA SE CREÓ SIN IMAGEN');
     }
+
+    await AuditLog.create(
+      {
+        action: 'plague.create',
+        table_name: 'Plagues',
+        record_id: plague.id,
+        old_values: null,
+        new_values: plague.toJSON(),
+        user_id: req.user.id,
+      },
+      { transaction },
+    );
 
     // ========================================================
     // CONFIRMAR TRANSACCIÓN
     // ========================================================
 
     await transaction.commit();
-
-    console.log('✅ PLAGA E IMAGEN GUARDADAS CORRECTAMENTE');
 
     return res.redirect('/private/plagues');
   } catch (error) {
@@ -381,17 +434,20 @@ export const updatePlague = async (req, res) => {
       return res.status(404).send('Plaga no encontrada');
     }
 
-    // ========================================================
-    // CICLO BIOLÓGICO
-    // ========================================================
+    if (!isPlagueEditable(plague.workflow_status)) {
+      await transaction.rollback();
+      return res
+        .status(409)
+        .send('La plaga debe estar en borrador para poder editarse.');
+    }
 
-    let biological_cycle = null;
+    const oldValues = plague.toJSON();
 
-    if (req.body.biological_cycle?.trim()) {
-      biological_cycle = req.body.biological_cycle
-        .split('\n')
-        .map((item) => item.trim())
-        .filter(Boolean);
+    const validation = validatePlagueInput(req.body);
+
+    if (!validation.isValid) {
+      await transaction.rollback();
+      return res.status(400).send(validation.errors.join(' '));
     }
 
     // ========================================================
@@ -400,34 +456,9 @@ export const updatePlague = async (req, res) => {
 
     await plague.update(
       {
-        name: req.body.name?.trim(),
+        ...validation.value,
 
-        scientific_name: req.body.scientific_name?.trim(),
-
-        category: req.body.category || null,
-
-        description: req.body.description?.trim() || null,
-
-        risk_level: req.body.risk_level || null,
-
-        region: req.body.region?.trim() || null,
-
-        symptoms: req.body.symptoms?.trim() || null,
-
-        control_methods: req.body.control_methods?.trim() || null,
-
-        biological_control: req.body.biological_control?.trim() || null,
-
-        biological_cycle,
-
-        verified_by: req.body.verified_by?.trim() || null,
-
-        verified_at: req.body.verified_at || null,
-
-        status:
-          req.body.status === 'true' ||
-          req.body.status === 'on' ||
-          req.body.status === true,
+        updated_by_user_id: req.user.id,
       },
       {
         transaction,
@@ -465,6 +496,18 @@ export const updatePlague = async (req, res) => {
         },
       );
     }
+
+    await AuditLog.create(
+      {
+        action: 'plague.update',
+        table_name: 'Plagues',
+        record_id: plague.id,
+        old_values: oldValues,
+        new_values: plague.toJSON(),
+        user_id: req.user.id,
+      },
+      { transaction },
+    );
 
     await transaction.commit();
 
@@ -506,6 +549,8 @@ export const deletePlague = async (req, res) => {
       return res.status(404).send('Plaga no encontrada');
     }
 
+    const oldValues = plague.toJSON();
+
     // ========================================================
     // ELIMINAR IMÁGENES
     // ========================================================
@@ -526,6 +571,18 @@ export const deletePlague = async (req, res) => {
       transaction,
     });
 
+    await AuditLog.create(
+      {
+        action: 'plague.delete',
+        table_name: 'Plagues',
+        record_id: plague.id,
+        old_values: oldValues,
+        new_values: null,
+        user_id: req.user.id,
+      },
+      { transaction },
+    );
+
     await transaction.commit();
 
     return res.redirect('/private/plagues');
@@ -535,6 +592,233 @@ export const deletePlague = async (req, res) => {
     console.error('Error al eliminar la plaga:', error);
 
     return res.status(500).send('Error al eliminar la plaga');
+  }
+};
+
+// ACTUALIZAR WORKFLOW EDITORIAL
+
+export const updatePlagueWorkflow = async (req, res) => {
+  const { id } = req.params;
+
+  if (!/^\d+$/.test(id) || Number(id) <= 0) {
+    return res.status(400).send('ID de plaga no válido');
+  }
+
+  const transaction = await db.sequelize.transaction();
+
+  try {
+    const plague = await Plague.findByPk(Number(id), {
+      transaction,
+      lock: transaction.LOCK.UPDATE,
+    });
+
+    if (!plague) {
+      await transaction.rollback();
+      return res.status(404).send('Plaga no encontrada');
+    }
+
+    const oldValues = plague.toJSON();
+    const changes = transitionPlagueWorkflow({
+      currentStatus: plague.workflow_status,
+      action: req.body.action,
+      actor: req.user,
+      reviewNotes: req.body.review_notes,
+    });
+
+    if (req.body.action === PLAGUE_WORKFLOW_ACTIONS.VERIFY) {
+      changes.verified_by =
+        req.user.full_name || req.user.email || `Usuario ${req.user.id}`;
+    }
+
+    if (req.body.action === PLAGUE_WORKFLOW_ACTIONS.RESTORE) {
+      changes.verified_by = null;
+    }
+
+    await plague.update(changes, { transaction });
+
+    await AuditLog.create(
+      {
+        action: `plague.${req.body.action}`,
+        table_name: 'Plagues',
+        record_id: plague.id,
+        old_values: oldValues,
+        new_values: { ...oldValues, ...changes },
+        user_id: req.user.id,
+      },
+      { transaction },
+    );
+
+    await transaction.commit();
+    return res.redirect(`/private/plagues/${plague.id}`);
+  } catch (error) {
+    await transaction.rollback();
+
+    if (error instanceof PlagueWorkflowError) {
+      const status =
+        error.code === 'REVIEW_NOTES_REQUIRED' || error.code === 'MISSING_ACTOR'
+          ? 400
+          : 409;
+      return res.status(status).send(error.message);
+    }
+
+    console.error('Error al actualizar el workflow de la plaga:', error);
+    return res.status(500).send('Error al actualizar el estado de la plaga');
+  }
+};
+
+// ACTUALIZAR RELACIONES TÉCNICAS
+
+export const updatePlagueRelations = async (req, res) => {
+  const { id } = req.params;
+
+  if (
+    !/^\d+$/.test(id) ||
+    !Number.isSafeInteger(Number(id)) ||
+    Number(id) <= 0
+  ) {
+    return res.status(400).send('ID de plaga no válido');
+  }
+
+  const validation = validatePlagueRelationsInput(req.body);
+
+  if (!validation.isValid) {
+    return res.status(400).send(validation.errors.join(' '));
+  }
+
+  const plagueId = Number(id);
+  const { productIds, cropIds, regions } = validation.value;
+  const transaction = await db.sequelize.transaction();
+
+  try {
+    const plague = await Plague.findByPk(plagueId, {
+      transaction,
+      lock: transaction.LOCK.UPDATE,
+    });
+
+    if (!plague) {
+      await transaction.rollback();
+      return res.status(404).send('Plaga no encontrada');
+    }
+
+    if (!isPlagueEditable(plague.workflow_status)) {
+      await transaction.rollback();
+      return res
+        .status(409)
+        .send(
+          'Las relaciones solo pueden editarse en borrador o correcciones.',
+        );
+    }
+
+    const missingProducts = await findMissingCatalogIds(
+      Product,
+      productIds,
+      transaction,
+    );
+    if (missingProducts.length > 0) {
+      await transaction.rollback();
+      return res
+        .status(400)
+        .send(
+          `No existen los productos seleccionados: ${missingProducts.join(', ')}.`,
+        );
+    }
+
+    const missingCrops = await findMissingCatalogIds(
+      Crop,
+      cropIds,
+      transaction,
+    );
+    if (missingCrops.length > 0) {
+      await transaction.rollback();
+      return res
+        .status(400)
+        .send(
+          `No existen los cultivos seleccionados: ${missingCrops.join(', ')}.`,
+        );
+    }
+
+    const regionIds = regions.map((region) => region.region_id);
+    const missingRegions = await findMissingCatalogIds(
+      Region,
+      regionIds,
+      transaction,
+    );
+    if (missingRegions.length > 0) {
+      await transaction.rollback();
+      return res
+        .status(400)
+        .send(
+          `No existen las regiones seleccionadas: ${missingRegions.join(', ')}.`,
+        );
+    }
+
+    const currentProducts = await plague.getProducts({
+      attributes: ['id'],
+      joinTableAttributes: [],
+      transaction,
+    });
+    const currentCrops = await plague.getCrops({
+      attributes: ['id'],
+      joinTableAttributes: [],
+      transaction,
+    });
+    const currentRegions = await PlagueRegion.findAll({
+      where: { plague_id: plagueId },
+      attributes: ['region_id', 'risk_level'],
+      order: [['region_id', 'ASC']],
+      raw: true,
+      transaction,
+    });
+
+    const oldValues = {
+      products: currentProducts.map(getRecordId),
+      crops: currentCrops.map(getRecordId),
+      regions: currentRegions.map((region) => ({
+        region_id: Number(region.region_id),
+        risk_level: region.risk_level,
+      })),
+    };
+    const newValues = {
+      products: productIds,
+      crops: cropIds,
+      regions,
+    };
+
+    await plague.setProducts(productIds, { transaction });
+    await plague.setCrops(cropIds, { transaction });
+    await PlagueRegion.destroy({
+      where: { plague_id: plagueId },
+      transaction,
+    });
+
+    if (regions.length > 0) {
+      await PlagueRegion.bulkCreate(
+        regions.map((region) => ({ plague_id: plagueId, ...region })),
+        { transaction },
+      );
+    }
+
+    await plague.update({ updated_by_user_id: req.user.id }, { transaction });
+    await AuditLog.create(
+      {
+        action: 'plague.relations.update',
+        table_name: 'PlagueRelations',
+        record_id: plagueId,
+        old_values: oldValues,
+        new_values: newValues,
+        user_id: req.user.id,
+      },
+      { transaction },
+    );
+
+    await transaction.commit();
+    return res.redirect(`/private/plagues/${plagueId}`);
+  } catch (error) {
+    await transaction.rollback();
+    console.error('Error al actualizar las relaciones de la plaga:', error);
+    return res
+      .status(500)
+      .send('Error al actualizar las relaciones de la plaga');
   }
 };
 
@@ -555,7 +839,7 @@ export const getPlagueDetail = async (req, res) => {
       return res.status(400).send('ID de plaga no válido');
     }
 
-    // Buscar plaga junto con sus imágenes
+    // Buscar el expediente completo con sus relaciones técnicas.
     const plague = await Plague.findByPk(plagueId, {
       include: [
         {
@@ -565,6 +849,30 @@ export const getPlagueDetail = async (req, res) => {
           separate: true,
           order: [['sort_order', 'ASC']],
         },
+        {
+          model: Product,
+          as: 'products',
+          required: false,
+          include: [
+            {
+              model: ProductImage,
+              as: 'images',
+              required: false,
+            },
+          ],
+        },
+        {
+          model: Region,
+          as: 'regions',
+          required: false,
+          through: { attributes: ['risk_level'] },
+        },
+        {
+          model: Crop,
+          as: 'crops',
+          required: false,
+          through: { attributes: [] },
+        },
       ],
     });
 
@@ -573,136 +881,50 @@ export const getPlagueDetail = async (req, res) => {
     }
 
     const plagueData = plague.toJSON();
+    const detail = buildPlagueDetailView(plagueData);
+    const permissions = getPlaguePermissions(req.user.role);
+    const canEditRelations =
+      permissions.canManageRelations &&
+      isPlagueEditable(plagueData.workflow_status);
+    let relationEditor = null;
 
-    // IMÁGENES
+    if (canEditRelations) {
+      const availableProducts = await Product.findAll({
+        attributes: ['id', 'name', 'active_ingredient'],
+        order: [['name', 'ASC']],
+      });
+      const availableCrops = await Crop.findAll({
+        attributes: ['id', 'name', 'scientific_name'],
+        order: [['name', 'ASC']],
+      });
+      const availableRegions = await Region.findAll({
+        attributes: ['id', 'name'],
+        order: [['name', 'ASC']],
+      });
 
-    const images = Array.isArray(plagueData.images) ? plagueData.images : [];
-
-    // Imagen principal
-    const imageUrl =
-      images.length > 0 && images[0].url
-        ? images[0].url.replace(/^\/+/, '')
-        : plagueData.image_url || null;
-
-    // Imágenes para el carrusel
-    const carouselImages = images
-      .filter((image) => image.url)
-      .map((image) => ({
-        url: `/${image.url.replace(/^\/+/, '')}`,
-        caption: image.caption || plagueData.name,
-        source: image.source || 'INIFAP',
-      }));
-
-    // RIESGO
-
-    const riskValue = String(plagueData.risk_level || '')
-      .toLowerCase()
-      .trim();
-
-    let risk;
-
-    switch (riskValue) {
-      case 'critico':
-      case 'crítico':
-        risk = {
-          label: 'Crítico',
-          badgeClass: 'bg-error-container text-on-error-container',
-          gradientClass: 'bg-gradient-to-br from-red-700 to-red-900',
-        };
-        break;
-
-      case 'alto':
-        risk = {
-          label: 'Alto',
-          badgeClass: 'bg-error-container text-on-error-container',
-          gradientClass: 'bg-gradient-to-br from-orange-600 to-red-700',
-        };
-        break;
-
-      case 'moderado':
-      case 'medio':
-        risk = {
-          label: 'Moderado',
-          badgeClass: 'bg-primary-container text-on-primary-container',
-          gradientClass: 'bg-gradient-to-br from-amber-500 to-orange-600',
-        };
-        break;
-
-      case 'bajo':
-        risk = {
-          label: 'Bajo',
-          badgeClass: 'bg-secondary-container text-on-secondary-container',
-          gradientClass: 'bg-gradient-to-br from-green-600 to-emerald-700',
-        };
-        break;
-
-      default:
-        risk = {
-          label: plagueData.risk_level || 'No especificado',
-          badgeClass: 'bg-surface-container-high text-on-surface-variant',
-          gradientClass: 'bg-gradient-to-br from-slate-600 to-slate-800',
-        };
+      relationEditor = buildPlagueRelationEditor({
+        products: availableProducts,
+        crops: availableCrops,
+        regions: availableRegions,
+        selectedProducts: plagueData.products,
+        selectedCrops: plagueData.crops,
+        selectedRegions: plagueData.regions,
+      });
     }
-
-    // OBJETO plague PARA shared/plague-detail.hbs
-
-    const plagueView = {
-      id: plagueData.id,
-      name: plagueData.name,
-
-      scientificName: plagueData.scientific_name,
-
-      category: plagueData.category,
-      description: plagueData.description,
-
-      image_url: imageUrl,
-
-      symptoms: plagueData.symptoms,
-      controlMethods: plagueData.control_methods,
-      biologicalControl: plagueData.biological_control,
-      biologicalCycle: plagueData.biologicalCycle || [],
-
-      region: plagueData.region,
-
-      riskLabel: risk.label,
-      riskBadgeClass: risk.badgeClass,
-      riskGradientClass: risk.gradientClass,
-      riskLevel: plagueData.risk_level,
-
-      verifiedBy: plagueData.verified_by || null,
-
-      verifiedAt: plagueData.verified_at
-        ? new Date(plagueData.verified_at).toLocaleDateString('es-MX', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-          })
-        : null,
-
-      images: carouselImages,
-    };
-
-    // DEBUG
-
-    console.log('ID:', plagueView.id);
-    console.log('Nombre:', plagueView.name);
-    console.log('Nombre científico:', plagueView.scientificName);
-    console.log('Riesgo BD:', plagueView.riskLevel);
-    console.log('Riesgo mostrado:', plagueView.riskLabel);
-    console.log('Imagen:', plagueView.image_url);
-
-    // RENDER
 
     return res.render('shared/plague-detail', {
       layout: privateLayout,
-      pageTitle: `${plagueView.name} - Plagas`,
+      pageTitle: `${detail.plague.name} - Plagas`,
       activePage: 'plagues',
-
-      plague: plagueView,
-
-      carouselImages,
-
       isPrivate: true,
+      permissions,
+      canEditRelations,
+      relationsLocked:
+        permissions.canManageRelations &&
+        !isPlagueEditable(plagueData.workflow_status),
+      relationEditor,
+      ...detail,
+      extraScripts: '<script src="/js/shared/plague-detail.js"></script>',
     });
   } catch (error) {
     console.error('Error al cargar el detalle de la plaga:', error);

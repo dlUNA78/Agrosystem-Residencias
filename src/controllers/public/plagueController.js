@@ -1,6 +1,9 @@
 import db from '../../models/index.js';
 import { Op } from 'sequelize';
-const { Plague, PlagueImage, Product, Region } = db;
+import { buildPlagueDetailView } from '../../services/plagueDetailService.js';
+import { PLAGUE_WORKFLOW_STATUSES } from '../../services/plagueWorkflowService.js';
+
+const { Plague, PlagueImage, Product, Region, Crop } = db;
 
 // ── Mapeo de riesgo (compartido entre ambas funciones) ─────────────────────
 const riskMap = {
@@ -12,7 +15,8 @@ const riskMap = {
     alertIcon: 'warning',
     alertIconClass: 'text-rose-600',
     alertBarClass: 'bg-rose-600 w-[85%]',
-    alertText: 'Requiere monitoreo y acción inmediata en zonas hortícolas y cerealeras.',
+    alertText:
+      'Requiere monitoreo y acción inmediata en zonas hortícolas y cerealeras.',
     kpiTextClass: 'text-rose-600',
     bannerClass: 'bg-rose-50 border-rose-200',
     bannerTagClass: 'text-rose-700',
@@ -26,7 +30,8 @@ const riskMap = {
     alertIcon: 'warning_amber',
     alertIconClass: 'text-amber-600',
     alertBarClass: 'bg-amber-500 w-[50%]',
-    alertText: 'Requiere monitoreo continuo y control fitosanitario preventivo.',
+    alertText:
+      'Requiere monitoreo continuo y control fitosanitario preventivo.',
     kpiTextClass: 'text-amber-600',
     bannerClass: 'bg-amber-50 border-amber-200',
     bannerTagClass: 'text-amber-700',
@@ -41,48 +46,13 @@ const defaultRisk = {
   alertIcon: 'check_circle',
   alertIconClass: 'text-emerald-600',
   alertBarClass: 'bg-emerald-500 w-[20%]',
-  alertText: 'Bajo impacto fitosanitario. Mantener vigilancia preventiva estándar.',
+  alertText:
+    'Bajo impacto fitosanitario. Mantener vigilancia preventiva estándar.',
   kpiTextClass: 'text-emerald-600',
   bannerClass: 'bg-emerald-50 border-emerald-200',
   bannerTagClass: 'text-emerald-700',
   bannerTextClass: 'text-emerald-950',
 };
-
-// Pasos genéricos de ciclo biológico (alineados al wireframe V0.1)
-const defaultCycle = [
-  {
-    step: '01',
-    title: 'Huevo / Fundación',
-    description: 'La hembra fundadora inicia la colonia en tejido tierno o estructuras de resistencia.',
-    duration: '3-5 días',
-    icon: 'egg',
-    isControlWindow: false,
-  },
-  {
-    step: '02',
-    title: 'Ninfa / Juvenil',
-    description: 'Estadios ninfales con alta tasa reproductiva y alimentación intensa.',
-    duration: '7-10 días',
-    icon: 'bug_report',
-    isControlWindow: true,
-  },
-  {
-    step: '03',
-    title: 'Adulto reproductivo',
-    description: 'Reproducción partenogenética y rápida oviposición en follaje.',
-    duration: '20-25 días',
-    icon: 'eco',
-    isControlWindow: false,
-  },
-  {
-    step: '04',
-    title: 'Dispersión',
-    description: 'Formas aladas colonizan cultivos vecinos arrastradas por viento.',
-    duration: 'Variable',
-    icon: 'air',
-    isControlWindow: false,
-  },
-];
 
 // ── GET /api/plagues ───────────────────────────────────────────────────────
 export const getPlaguesData = async (req, res) => {
@@ -99,7 +69,10 @@ export const getPlaguesData = async (req, res) => {
     const currentPage = Math.max(1, parseInt(page, 10) || 1);
     const offset = (currentPage - 1) * limit;
 
-    const where = { status: true };
+    const where = {
+      status: true,
+      workflow_status: PLAGUE_WORKFLOW_STATUSES.PUBLISHED,
+    };
 
     if (search) {
       where[Op.or] = [
@@ -156,7 +129,8 @@ export const getPlaguesData = async (req, res) => {
     const plagues = rows.map((p) => {
       const risk = riskMap[p.risk_level] || defaultRisk;
       const firstImage = p.images?.[0];
-      const imgUrl = p.image_url || firstImage?.url || '/images/test/default.png';
+      const imgUrl =
+        p.image_url || firstImage?.url || '/images/test/default.png';
 
       return {
         id: p.id,
@@ -190,7 +164,10 @@ export const renderPlaguesPublic = async (req, res) => {
     const limit = 8;
 
     const { count, rows } = await Plague.findAndCountAll({
-      where: { status: true },
+      where: {
+        status: true,
+        workflow_status: PLAGUE_WORKFLOW_STATUSES.PUBLISHED,
+      },
 
       include: [
         {
@@ -218,7 +195,8 @@ export const renderPlaguesPublic = async (req, res) => {
     const plagues = rows.map((p) => {
       const risk = riskMap[p.risk_level] || defaultRisk;
       const firstImage = p.images?.[0];
-      const imgUrl = p.image_url || firstImage?.url || '/images/test/default.png';
+      const imgUrl =
+        p.image_url || firstImage?.url || '/images/test/default.png';
 
       return {
         id: p.id,
@@ -267,7 +245,11 @@ export const renderPlaguesPublic = async (req, res) => {
 export const renderPlagueDetail = async (req, res) => {
   try {
     const plague = await Plague.findOne({
-      where: { id: req.params.id, status: true },
+      where: {
+        id: req.params.id,
+        status: true,
+        workflow_status: PLAGUE_WORKFLOW_STATUSES.PUBLISHED,
+      },
       include: [
         {
           model: PlagueImage,
@@ -299,6 +281,11 @@ export const renderPlagueDetail = async (req, res) => {
           as: 'regions',
           through: { attributes: ['risk_level'] },
         },
+        {
+          model: Crop,
+          as: 'crops',
+          through: { attributes: [] },
+        },
       ],
     });
 
@@ -316,126 +303,15 @@ export const renderPlagueDetail = async (req, res) => {
       });
     }
 
-    const risk = riskMap[plague.risk_level] || defaultRisk;
-
-    // Ciclo biológico: datos de BD o fallback genérico con metadatos del wireframe V0.1
-    const rawCycle =
-      Array.isArray(plague.biological_cycle) && plague.biological_cycle.length
-        ? plague.biological_cycle
-        : defaultCycle;
-
-    const biologicalCycle = rawCycle.map((stage, idx) => {
-      const fallback = defaultCycle[idx] || defaultCycle[0];
-      return {
-        step: stage.step || `0${idx + 1}`,
-        title: stage.title || fallback.title,
-        description: stage.description || fallback.description,
-        duration: stage.duration || fallback.duration,
-        icon: stage.icon || fallback.icon,
-        isControlWindow: stage.isControlWindow !== undefined ? stage.isControlWindow : idx === 1,
-      };
-    });
-
-    // Imágenes del carrusel ordenadas por sort_order
-    const carouselImages = (plague.images || [])
-      .sort((a, b) => a.sort_order - b.sort_order)
-      .map((img) => ({
-        url: img.url
-          ? img.url.startsWith('http')
-            ? img.url
-            : `/${img.url.replace(/^\/+/, '')}`
-          : null,
-        caption: img.caption || plague.name,
-        source: img.source || 'Banco de Germoplasma INIFAP',
-      }));
-
-    // Productos relacionados
-    const relatedProducts = (plague.products || []).map((p) => {
-      const primaryImg = p.images?.find((i) => i.is_primary) || p.images?.[0];
-      const rawUrl = primaryImg?.image_url || '/images/products/confidor-350-sc.webp';
-      const imgUrl = rawUrl.startsWith('http') || rawUrl.startsWith('/') ? rawUrl : `/${rawUrl}`;
-
-      return {
-        id: p.id,
-        name: p.name,
-        activeIngredient: p.active_ingredient,
-        manufacturer: p.manufacturer,
-        imageUrl: imgUrl,
-        image_url: imgUrl,
-        category: p.category,
-        isValidated: p.validation_status === 'Validado',
-      };
-    });
-
-    // Regiones de incidencia con coordenadas para el mapa (desde BD)
-    let incidenceRegions = (plague.regions || []).map((region) => {
-      const specificRiskLevel =
-        region.PlagueRegions?.dataValues?.risk_level ||
-        region.PlagueRegions?.risk_level ||
-        plague.risk_level;
-      const specificRisk = riskMap[specificRiskLevel] || defaultRisk;
-
-      return {
-        name: region.name,
-        lat: region.lat,
-        lng: region.lng,
-        hasCoords: true,
-        riskLevel: specificRiskLevel,
-        riskLabel: specificRisk.label,
-        riskBadgeClass: specificRisk.badgeClass,
-      };
-    });
-
-    // Ordenamiento: Alto, Medio, Bajo
-    const riskSortOrder = { Alto: 1, Medio: 2, Bajo: 3 };
-    incidenceRegions.sort((a, b) => {
-      const orderA = riskSortOrder[a.riskLevel] || 4;
-      const orderB = riskSortOrder[b.riskLevel] || 4;
-      return orderA - orderB;
-    });
-
-    const mainImageUrl = plague.image_url || (carouselImages[0]?.url) || '/images/test/default.png';
+    const detail = buildPlagueDetailView(plague.toJSON());
 
     res.render('shared/plague-detail', {
       layout: 'public',
       pageTitle: plague.name,
       activePage: 'plagues',
       isPrivate: false,
-      plague: {
-        id: plague.id,
-        name: plague.name,
-        scientificName: plague.scientific_name,
-        category: plague.category,
-        description: plague.description,
-        image_url: mainImageUrl,
-        imageUrl: mainImageUrl,
-        symptoms: plague.symptoms,
-        controlMethods: plague.control_methods,
-        biologicalControl: plague.biological_control,
-        biologicalCycle,
-        region: plague.region,
-        riskLabel: risk.label,
-        riskBadgeClass: risk.badgeClass,
-        riskGradientClass: risk.gradientClass,
-        riskLevel: plague.risk_level,
-        riskTheme: risk,
-        verifiedBy: plague.verified_by || null,
-        verifiedAt: plague.verified_at
-          ? new Date(plague.verified_at).toLocaleDateString('es-MX', {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
-            })
-          : null,
-      },
-      carouselImages,
-      relatedProducts,
-      incidenceRegions,
-      incidenceRegionsJson: JSON.stringify(incidenceRegions),
-      extraHead:
-        '<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>',
-      extraScripts:
-        '<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script><script src="/js/public/plague-detail.js"></script>',
+      ...detail,
+      extraScripts: '<script src="/js/shared/plague-detail.js"></script>',
     });
   } catch (error) {
     console.log('=== CATCH ERROR IN RENDER PLAGUE DETAIL ===');
