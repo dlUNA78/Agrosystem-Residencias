@@ -62,4 +62,50 @@ describe('validación de entradas de plagas', () => {
       ]),
     );
   });
+
+  it('construye etapas estructuradas desde los bloques interactivos', () => {
+    const result = validatePlagueInput({
+      name: 'Plaga por etapas',
+      scientific_name: 'Gradus interactiva',
+      biological_cycle_title: ['Huevo', 'Larva'],
+      biological_cycle_description: [
+        'Oviposición sobre el follaje',
+        'Periodo de alimentación',
+      ],
+      biological_cycle_duration: ['3 días', '12 días'],
+    });
+
+    expect(result.isValid).toBe(true);
+    expect(result.value.biological_cycle).toEqual([
+      {
+        title: 'Huevo',
+        description: 'Oviposición sobre el follaje',
+        duration: '3 días',
+      },
+      {
+        title: 'Larva',
+        description: 'Periodo de alimentación',
+        duration: '12 días',
+      },
+    ]);
+  });
+
+  it('rechaza bloques sin título y campos de etapa demasiado extensos', () => {
+    const result = validatePlagueInput({
+      name: 'Plaga por etapas',
+      scientific_name: 'Gradus invalida',
+      biological_cycle_title: ['', 'x'.repeat(151)],
+      biological_cycle_description: ['Descripción sin título', ''],
+      biological_cycle_duration: ['', 'y'.repeat(101)],
+    });
+
+    expect(result.isValid).toBe(false);
+    expect(result.errors).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining('título'),
+        expect.stringContaining('150 caracteres'),
+        expect.stringContaining('100 caracteres'),
+      ]),
+    );
+  });
 });

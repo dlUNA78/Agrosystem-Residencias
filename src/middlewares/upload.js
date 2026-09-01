@@ -1,5 +1,11 @@
+import fs from 'node:fs';
 import multer from 'multer';
-import path from 'path';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const currentDirectory = path.dirname(fileURLToPath(import.meta.url));
+const defaultPublicDirectory = path.resolve(currentDirectory, '../../public');
+const allowedImageDirectories = new Set(['products', 'plagues', 'crops']);
 
 export const IMAGE_UPLOAD_LIMITS = Object.freeze({
   fileSize: 5 * 1024 * 1024,
@@ -31,56 +37,48 @@ const imageFileFilter = (_req, file, callback) => {
   }
 };
 
+export const ensureImageUploadDirectory = (
+  imageType,
+  publicDirectory = defaultPublicDirectory,
+) => {
+  if (!allowedImageDirectories.has(imageType)) {
+    throw new Error('Directorio de imágenes no permitido.');
+  }
+
+  const uploadDirectory = path.join(publicDirectory, 'images', imageType);
+  fs.mkdirSync(uploadDirectory, { recursive: true });
+
+  return uploadDirectory;
+};
+
+const createImageStorage = (imageType) =>
+  multer.diskStorage({
+    destination(_req, _file, callback) {
+      try {
+        callback(null, ensureImageUploadDirectory(imageType));
+      } catch (error) {
+        callback(error);
+      }
+    },
+
+    filename(_req, file, callback) {
+      const extension = path.extname(file.originalname).toLowerCase();
+      const fileName = `${Date.now()}-${Math.round(
+        Math.random() * 100000,
+      )}${extension}`;
+
+      callback(null, fileName);
+    },
+  });
+
 // CONFIGURACIÓN PARA PRODUCTOS
-const productStorage = multer.diskStorage({
-  destination(req, file, cb) {
-    cb(null, 'public/images/products');
-  },
-
-  filename(req, file, cb) {
-    const extension = path.extname(file.originalname);
-
-    const fileName = `${Date.now()}-${Math.round(
-      Math.random() * 100000,
-    )}${extension}`;
-
-    cb(null, fileName);
-  },
-});
+const productStorage = createImageStorage('products');
 
 // CONFIGURACIÓN PARA PLAGAS
-const plagueStorage = multer.diskStorage({
-  destination(req, file, cb) {
-    cb(null, 'public/images/plagues');
-  },
-
-  filename(req, file, cb) {
-    const extension = path.extname(file.originalname);
-
-    const fileName = `${Date.now()}-${Math.round(
-      Math.random() * 100000,
-    )}${extension}`;
-
-    cb(null, fileName);
-  },
-});
+const plagueStorage = createImageStorage('plagues');
 
 // CONFIGURACIÓN PARA CULTIVOS
-const cropStorage = multer.diskStorage({
-  destination(req, file, cb) {
-    cb(null, 'public/images/crops');
-  },
-
-  filename(req, file, cb) {
-    const extension = path.extname(file.originalname);
-
-    const fileName = `${Date.now()}-${Math.round(
-      Math.random() * 100000,
-    )}${extension}`;
-
-    cb(null, fileName);
-  },
-});
+const cropStorage = createImageStorage('crops');
 
 // Upload para productos
 export const upload = multer({

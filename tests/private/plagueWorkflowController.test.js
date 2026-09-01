@@ -36,6 +36,7 @@ describe('controlador del workflow de plagas', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     plague.workflow_status = 'verified';
+    plague.created_by_user_id = null;
     plague.toJSON.mockReturnValue({ id: 9, workflow_status: 'verified' });
     mockDb.Plague.findByPk.mockResolvedValue(plague);
   });
@@ -95,5 +96,31 @@ describe('controlador del workflow de plagas', () => {
     expect(transaction.rollback).toHaveBeenCalledTimes(1);
     expect(res.status).toHaveBeenCalledWith(409);
     expect(res.redirect).not.toHaveBeenCalled();
+  });
+
+  it('impide que el autor INIFAP verifique su propia ficha', async () => {
+    plague.workflow_status = 'in_review';
+    plague.created_by_user_id = 12;
+    plague.toJSON.mockReturnValue({
+      id: 9,
+      workflow_status: 'in_review',
+      created_by_user_id: 12,
+    });
+    const req = {
+      params: { id: '9' },
+      body: { action: 'verify' },
+      user: { id: 12, role: 'inifap' },
+    };
+    const res = {
+      redirect: jest.fn(),
+      status: jest.fn().mockReturnThis(),
+      send: jest.fn(),
+    };
+
+    await updatePlagueWorkflow(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(403);
+    expect(plague.update).not.toHaveBeenCalled();
+    expect(transaction.rollback).toHaveBeenCalledTimes(1);
   });
 });

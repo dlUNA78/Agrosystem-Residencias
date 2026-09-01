@@ -2,7 +2,11 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 import db from '../../models/index.js';
-import { getPlaguePermissions } from '../../services/plagueAuthorizationService.js';
+import {
+  canPerformContextualPlagueWorkflowAction,
+  getContextualPlaguePermissions,
+  getPlaguePermissions,
+} from '../../services/plagueAuthorizationService.js';
 import { buildPlagueDetailView } from '../../services/plagueDetailService.js';
 import {
   PRIVATE_PLAGUE_PAGE_SIZE,
@@ -167,6 +171,9 @@ export const plaguesPrivate = async (req, res) => {
 
         // Todas las imágenes disponibles
         images,
+
+        // JSON seguro para reconstruir el editor por etapas en el modal.
+        biological_cycle_json: JSON.stringify(data.biological_cycle || []),
 
         canEditRecord:
           permissions.canEdit && isPlagueEditable(data.workflow_status),
@@ -617,6 +624,20 @@ export const updatePlagueWorkflow = async (req, res) => {
       return res.status(404).send('Plaga no encontrada');
     }
 
+    if (
+      !canPerformContextualPlagueWorkflowAction({
+        role: req.user.role,
+        userId: req.user.id,
+        createdByUserId: plague.created_by_user_id,
+        action: req.body.action,
+      })
+    ) {
+      await transaction.rollback();
+      return res
+        .status(403)
+        .send('No tienes permiso para realizar esta acción editorial.');
+    }
+
     const oldValues = plague.toJSON();
     const changes = transitionPlagueWorkflow({
       currentStatus: plague.workflow_status,
@@ -882,7 +903,11 @@ export const getPlagueDetail = async (req, res) => {
 
     const plagueData = plague.toJSON();
     const detail = buildPlagueDetailView(plagueData);
-    const permissions = getPlaguePermissions(req.user.role);
+    const permissions = getContextualPlaguePermissions({
+      role: req.user.role,
+      userId: req.user.id,
+      createdByUserId: plagueData.created_by_user_id,
+    });
     const canEditRelations =
       permissions.canManageRelations &&
       isPlagueEditable(plagueData.workflow_status);

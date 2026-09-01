@@ -8,6 +8,9 @@ const plagueRecords = [
       id: 13,
       name: 'Roya amarilla',
       workflow_status: 'in_review',
+      biological_cycle: [
+        { title: 'Huevo', description: 'Etapa inicial', duration: '3 días' },
+      ],
       images: [],
     }),
   },
@@ -94,6 +97,11 @@ describe('controlador del listado privado de plagas', () => {
       }),
     );
     expect(res.render.mock.calls[0][1]).not.toHaveProperty('user');
+    expect(res.render.mock.calls[0][1].plagues[0].biological_cycle_json).toBe(
+      JSON.stringify([
+        { title: 'Huevo', description: 'Etapa inicial', duration: '3 días' },
+      ]),
+    );
   });
 
   it('ajusta una página superior al total antes de calcular el offset', async () => {

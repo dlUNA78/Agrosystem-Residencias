@@ -17,6 +17,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const imageInput = document.getElementById('plague-image');
   const imagePreview = document.getElementById('plague-preview');
   const exportButton = document.getElementById('btn-export-plagues');
+  const biologicalCycleBuilder = document.getElementById(
+    'biological-cycle-builder',
+  );
+  const biologicalStageTemplate = document.getElementById(
+    'biological-cycle-stage-template',
+  );
+  const addBiologicalStageButton = document.getElementById(
+    'btn-add-biological-stage',
+  );
+  const maximumBiologicalStages = 20;
 
   if (exportButton) {
     exportButton.addEventListener('click', () => window.print());
@@ -60,8 +70,6 @@ document.addEventListener('DOMContentLoaded', () => {
     '[name="biological_control"]',
   );
 
-  const inputBiologicalCycle = form?.querySelector('[name="biological_cycle"]');
-
   // FUNCIONES AUXILIARES
 
   function showModal() {
@@ -89,12 +97,149 @@ document.addEventListener('DOMContentLoaded', () => {
     imagePreview.classList.add('hidden');
   }
 
+  function formatHistoricalStageTitle(value) {
+    const words = String(value || '')
+      .replaceAll('_', ' ')
+      .trim();
+    return words ? `${words.charAt(0).toUpperCase()}${words.slice(1)}` : '';
+  }
+
+  function normalizeBiologicalStages(rawCycle) {
+    if (!rawCycle) return [];
+
+    let cycle = rawCycle;
+
+    if (typeof cycle === 'string') {
+      try {
+        cycle = JSON.parse(cycle);
+      } catch {
+        return cycle
+          .split(/\r?\n/)
+          .map((title) => ({ title: title.trim() }))
+          .filter((stage) => stage.title);
+      }
+    }
+
+    if (Array.isArray(cycle)) {
+      return cycle
+        .map((stage) => {
+          if (typeof stage === 'string') {
+            return { title: stage, description: '', duration: '' };
+          }
+
+          return {
+            title: stage?.title || stage?.name || stage?.stage || '',
+            description:
+              stage?.description || stage?.details || stage?.detail || '',
+            duration: stage?.duration || stage?.time || '',
+          };
+        })
+        .filter((stage) => stage.title || stage.description || stage.duration);
+    }
+
+    if (cycle && typeof cycle === 'object') {
+      return Object.entries(cycle).map(([stage, duration]) => ({
+        title: formatHistoricalStageTitle(stage),
+        description: '',
+        duration: String(duration || ''),
+      }));
+    }
+
+    return [];
+  }
+
+  function updateBiologicalStageNumbers() {
+    if (!biologicalCycleBuilder) return;
+
+    const stages = biologicalCycleBuilder.querySelectorAll(
+      '[data-biological-stage]',
+    );
+
+    stages.forEach((stage, index) => {
+      const number = stage.querySelector('[data-stage-number]');
+      if (number) number.textContent = String(index + 1);
+    });
+
+    if (addBiologicalStageButton) {
+      const limitReached = stages.length >= maximumBiologicalStages;
+      addBiologicalStageButton.disabled = limitReached;
+      addBiologicalStageButton.classList.toggle('opacity-50', limitReached);
+      addBiologicalStageButton.classList.toggle(
+        'cursor-not-allowed',
+        limitReached,
+      );
+    }
+  }
+
+  function addBiologicalStage(stage = {}) {
+    if (!biologicalCycleBuilder || !biologicalStageTemplate) return;
+
+    const currentStages = biologicalCycleBuilder.querySelectorAll(
+      '[data-biological-stage]',
+    );
+    if (currentStages.length >= maximumBiologicalStages) return;
+
+    const fragment = biologicalStageTemplate.content.cloneNode(true);
+    const stageElement = fragment.querySelector('[data-biological-stage]');
+    const stageTitle = stageElement?.querySelector(
+      '[name="biological_cycle_title[]"]',
+    );
+    const stageDuration = stageElement?.querySelector(
+      '[name="biological_cycle_duration[]"]',
+    );
+    const stageDescription = stageElement?.querySelector(
+      '[name="biological_cycle_description[]"]',
+    );
+    const removeButton = stageElement?.querySelector(
+      '.remove-biological-stage',
+    );
+
+    if (stageTitle) stageTitle.value = stage.title || '';
+    if (stageDuration) stageDuration.value = stage.duration || '';
+    if (stageDescription) stageDescription.value = stage.description || '';
+
+    removeButton?.addEventListener('click', () => {
+      stageElement.remove();
+
+      if (
+        biologicalCycleBuilder.querySelectorAll('[data-biological-stage]')
+          .length === 0
+      ) {
+        addBiologicalStage();
+      }
+
+      updateBiologicalStageNumbers();
+    });
+
+    biologicalCycleBuilder.append(fragment);
+    updateBiologicalStageNumbers();
+    window.lucide?.createIcons();
+  }
+
+  function resetBiologicalCycle(rawCycle = []) {
+    if (!biologicalCycleBuilder) return;
+
+    biologicalCycleBuilder.replaceChildren();
+    const stages = normalizeBiologicalStages(rawCycle).slice(
+      0,
+      maximumBiologicalStages,
+    );
+
+    if (stages.length === 0) {
+      addBiologicalStage();
+      return;
+    }
+
+    stages.forEach((stage) => addBiologicalStage(stage));
+  }
+
   // ABRIR MODAL PARA CREAR
 
   function openCreateModal() {
     if (!form) return;
 
     form.reset();
+    resetBiologicalCycle();
 
     // Acción para CREAR
     form.action = '/private/plagues/create';
@@ -176,9 +321,7 @@ document.addEventListener('DOMContentLoaded', () => {
       inputBiologicalControl.value = data.biologicalControl || '';
     }
 
-    if (inputBiologicalCycle) {
-      inputBiologicalCycle.value = data.biologicalCycle || '';
-    }
+    resetBiologicalCycle(data.biologicalCycle || []);
 
     // CAMBIAR FORM ACTION
     form.action = `/private/plagues/update/${id}`;
@@ -201,7 +344,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // MOSTRAR IMAGEN ACTUAL
     if (imagePreview) {
       if (data.imageUrl) {
-        imagePreview.src = `/${data.imageUrl}`;
+        imagePreview.src = data.imageUrl.startsWith('/')
+          ? data.imageUrl
+          : `/${data.imageUrl}`;
 
         imagePreview.classList.remove('hidden');
       } else {
@@ -233,6 +378,12 @@ document.addEventListener('DOMContentLoaded', () => {
       openCreateModal();
     });
   }
+
+  addBiologicalStageButton?.addEventListener('click', () => {
+    addBiologicalStage();
+  });
+
+  resetBiologicalCycle();
 
   // BOTONES DE EDITAR
 

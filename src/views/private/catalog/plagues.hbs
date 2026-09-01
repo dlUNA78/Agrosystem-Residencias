@@ -320,7 +320,7 @@
                                 data-description="{{description}}" data-symptoms="{{symptoms}}"
                                 data-control-methods="{{control_methods}}"
                                 data-biological-control="{{biological_control}}"
-                                data-biological-cycle="{{biological_cycle}}" data-image-url="{{image_url}}">
+                                data-biological-cycle="{{biological_cycle_json}}" data-image-url="{{image_url}}">
                                 <i data-lucide="edit-2" class="w-4 h-4"></i>
                             </button>
                             {{/if}}
@@ -472,7 +472,7 @@
                                         data-description="{{description}}" data-symptoms="{{symptoms}}"
                                         data-control-methods="{{control_methods}}"
                                         data-biological-control="{{biological_control}}"
-                                        data-biological-cycle="{{biological_cycle}}" data-image-url="{{image_url}}">
+                                        data-biological-cycle="{{biological_cycle_json}}" data-image-url="{{image_url}}">
                                         <i data-lucide="edit-2" class="w-4 h-4"></i>
                                     </button>
                                     {{/if}}
@@ -651,9 +651,51 @@
                 </div>
 
                 <div class="md:col-span-2">
-                    <label class="block font-bold text-foreground mb-1.5">Ciclo Biológico</label>
-                    <textarea name="biological_cycle" rows="3" placeholder="Describe la duración y etapas del ciclo de vida..."
-                        class="w-full bg-muted/40 border border-input rounded-xl px-3.5 py-2.5 text-xs text-foreground resize-none focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all"></textarea>
+                    <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
+                        <div>
+                            <label class="block font-bold text-foreground">Ciclo Biológico</label>
+                            <p class="mt-0.5 text-[11px] text-muted-foreground">Organiza el ciclo en hasta 20 etapas.</p>
+                        </div>
+                        <button type="button" id="btn-add-biological-stage"
+                            class="inline-flex items-center gap-1.5 rounded-xl border border-[#1b4332]/20 bg-[#e6f0e6] px-3 py-2 text-xs font-bold text-[#1b4332] transition-colors hover:bg-[#d8ead8] cursor-pointer">
+                            <i data-lucide="plus" class="h-3.5 w-3.5"></i>
+                            Añadir etapa
+                        </button>
+                    </div>
+
+                    <div id="biological-cycle-builder" class="space-y-3" aria-live="polite"></div>
+
+                    <template id="biological-cycle-stage-template">
+                        <article data-biological-stage class="rounded-2xl border border-border/80 bg-muted/20 p-4">
+                            <div class="mb-3 flex items-center justify-between gap-3">
+                                <div class="flex items-center gap-2">
+                                    <span class="flex h-7 w-7 items-center justify-center rounded-full bg-[#1b4332] text-[11px] font-bold text-white" data-stage-number></span>
+                                    <span class="text-xs font-bold text-foreground">Etapa del ciclo</span>
+                                </div>
+                                <button type="button" class="remove-biological-stage inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-[11px] font-bold text-rose-600 transition-colors hover:bg-rose-50 cursor-pointer" aria-label="Eliminar etapa">
+                                    <i data-lucide="trash-2" class="h-3.5 w-3.5"></i>
+                                    Eliminar
+                                </button>
+                            </div>
+                            <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+                                <div>
+                                    <label class="mb-1 block text-[11px] font-bold text-foreground">Nombre de la etapa</label>
+                                    <input type="text" name="biological_cycle_title[]" maxlength="150" placeholder="Ej. Huevo, larva o adulto"
+                                        class="w-full rounded-xl border border-input bg-card px-3.5 py-2.5 text-xs text-foreground transition-all focus:border-[#1b4332] focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20">
+                                </div>
+                                <div>
+                                    <label class="mb-1 block text-[11px] font-bold text-foreground">Duración estimada</label>
+                                    <input type="text" name="biological_cycle_duration[]" maxlength="100" placeholder="Ej. 3 a 5 días"
+                                        class="w-full rounded-xl border border-input bg-card px-3.5 py-2.5 text-xs text-foreground transition-all focus:border-[#1b4332] focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20">
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label class="mb-1 block text-[11px] font-bold text-foreground">Descripción</label>
+                                    <textarea name="biological_cycle_description[]" maxlength="500" rows="2" placeholder="Describe qué ocurre durante esta etapa..."
+                                        class="w-full resize-none rounded-xl border border-input bg-card px-3.5 py-2.5 text-xs text-foreground transition-all focus:border-[#1b4332] focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20"></textarea>
+                                </div>
+                            </div>
+                        </article>
+                    </template>
                 </div>
 
                 <div class="md:col-span-2">

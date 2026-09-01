@@ -2,6 +2,7 @@ import { describe, expect, it, jest } from '@jest/globals';
 
 import {
   PLAGUE_PERMISSIONS,
+  getContextualPlaguePermissions,
   getPlaguePermissions,
   getRequiredPlaguePermissionForWorkflowAction,
   hasPlaguePermission,
@@ -13,10 +14,39 @@ import {
 import { PLAGUE_WORKFLOW_ACTIONS } from '../../src/services/plagueWorkflowService.js';
 
 describe('RBAC del módulo privado de plagas', () => {
-  it('permite al administrador administrar todo el ciclo de vida', () => {
+  it('separa la publicación administrativa de la verificación técnica', () => {
     const permissions = getPlaguePermissions('admin');
 
-    expect(Object.values(permissions).every(Boolean)).toBe(true);
+    expect(permissions).toEqual({
+      canViewPrivate: true,
+      canCreate: true,
+      canEdit: true,
+      canManageRelations: true,
+      canSubmitReview: true,
+      canVerify: false,
+      canPublish: true,
+      canArchive: true,
+      canRestore: true,
+      canDelete: true,
+    });
+  });
+
+  it('permite enviar al autor INIFAP y revisar sólo a otro investigador', () => {
+    const authorPermissions = getContextualPlaguePermissions({
+      role: 'inifap',
+      userId: 12,
+      createdByUserId: 12,
+    });
+    const reviewerPermissions = getContextualPlaguePermissions({
+      role: 'inifap',
+      userId: 27,
+      createdByUserId: 12,
+    });
+
+    expect(authorPermissions.canSubmitReview).toBe(true);
+    expect(authorPermissions.canVerify).toBe(false);
+    expect(reviewerPermissions.canSubmitReview).toBe(false);
+    expect(reviewerPermissions.canVerify).toBe(true);
   });
 
   it('permite al personal INIFAP editar y verificar, pero no publicar ni eliminar', () => {
@@ -122,6 +152,24 @@ describe('RBAC del módulo privado de plagas', () => {
     expect(allowedNext).toHaveBeenCalledTimes(1);
     expect(deniedNext).not.toHaveBeenCalled();
     expect(deniedResponse.status).toHaveBeenCalledWith(403);
+  });
+
+  it('bloquea que un administrador realice la verificación técnica', () => {
+    const req = {
+      user: { role: 'admin' },
+      body: { action: PLAGUE_WORKFLOW_ACTIONS.VERIFY },
+      headers: {},
+    };
+    const res = {
+      status: jest.fn().mockReturnThis(),
+      send: jest.fn(),
+    };
+    const next = jest.fn();
+
+    requirePlagueWorkflowPermission(req, res, next);
+
+    expect(next).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(403);
   });
 
   it('responde 400 cuando la acción del workflow no existe', () => {

@@ -22,6 +22,92 @@ const normalizeText = (value) => {
   return String(value).replaceAll('\0', '').trim();
 };
 
+const toArray = (value) => {
+  if (value === undefined || value === null) return [];
+  return Array.isArray(value) ? value : [value];
+};
+
+const buildBiologicalCycle = (input, errors) => {
+  const structuredFields = [
+    'biological_cycle_title',
+    'biological_cycle_description',
+    'biological_cycle_duration',
+  ];
+  const hasStructuredCycle = structuredFields.some(
+    (field) => input[field] !== undefined,
+  );
+
+  if (!hasStructuredCycle) {
+    const rawCycle = normalizeText(input.biological_cycle);
+    const legacyCycle = rawCycle
+      ? rawCycle
+          .split(/\r?\n/)
+          .map((stage) => stage.trim())
+          .filter(Boolean)
+      : [];
+
+    if (legacyCycle.length > 20) {
+      errors.push('El ciclo biológico no puede exceder 20 etapas.');
+    }
+
+    if (legacyCycle.some((stage) => stage.length > 500)) {
+      errors.push('Cada etapa del ciclo debe tener máximo 500 caracteres.');
+    }
+
+    return legacyCycle;
+  }
+
+  const titles = toArray(input.biological_cycle_title);
+  const descriptions = toArray(input.biological_cycle_description);
+  const durations = toArray(input.biological_cycle_duration);
+  const stageCount = Math.max(
+    titles.length,
+    descriptions.length,
+    durations.length,
+  );
+  const stages = [];
+
+  for (let index = 0; index < stageCount; index += 1) {
+    const title = normalizeText(titles[index]);
+    const description = normalizeText(descriptions[index]);
+    const duration = normalizeText(durations[index]);
+
+    if (!title && !description && !duration) {
+      continue;
+    }
+
+    if (!title) {
+      errors.push('Cada etapa del ciclo biológico requiere un título.');
+    }
+
+    if (title.length > 150) {
+      errors.push('El título de cada etapa no puede exceder 150 caracteres.');
+    }
+
+    if (description.length > 500) {
+      errors.push(
+        'La descripción de cada etapa no puede exceder 500 caracteres.',
+      );
+    }
+
+    if (duration.length > 100) {
+      errors.push('La duración de cada etapa no puede exceder 100 caracteres.');
+    }
+
+    stages.push({
+      title,
+      description: description || null,
+      duration: duration || null,
+    });
+  }
+
+  if (stages.length > 20) {
+    errors.push('El ciclo biológico no puede exceder 20 etapas.');
+  }
+
+  return stages;
+};
+
 export const validatePlagueInput = (input = {}) => {
   const errors = [];
 
@@ -55,21 +141,7 @@ export const validatePlagueInput = (input = {}) => {
     errors.push('El nivel de riesgo seleccionado no es válido.');
   }
 
-  const rawCycle = normalizeText(input.biological_cycle);
-  const biologicalCycle = rawCycle
-    ? rawCycle
-        .split(/\r?\n/)
-        .map((stage) => stage.trim())
-        .filter(Boolean)
-    : [];
-
-  if (biologicalCycle.length > 20) {
-    errors.push('El ciclo biológico no puede exceder 20 etapas.');
-  }
-
-  if (biologicalCycle.some((stage) => stage.length > 500)) {
-    errors.push('Cada etapa del ciclo debe tener máximo 500 caracteres.');
-  }
+  const biologicalCycle = buildBiologicalCycle(input, errors);
 
   const description = readText('description', 'descripción', 5000);
   const region = readText('region', 'región', 250);

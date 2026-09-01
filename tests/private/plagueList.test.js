@@ -117,4 +117,22 @@ describe('listado privado paginado de plagas', () => {
     expect(navbar).not.toMatch(/Administrador Principal|admin@agrosystem\.com/);
     expect(sidebar).not.toMatch(/\{\{else\}\}ADMIN/);
   });
+
+  it('presenta el ciclo biológico como bloques administrados por JS externo', () => {
+    const template = fs.readFileSync(
+      new URL('../../src/views/private/catalog/plagues.hbs', import.meta.url),
+      'utf8',
+    );
+    const clientScript = fs.readFileSync(
+      new URL('../../public/js/private/plagues.js', import.meta.url),
+      'utf8',
+    );
+
+    expect(template).toContain('id="biological-cycle-builder"');
+    expect(template).toContain('id="btn-add-biological-stage"');
+    expect(template).toContain('id="biological-cycle-stage-template"');
+    expect(template).not.toMatch(/<textarea[^>]+name="biological_cycle"/);
+    expect(clientScript).toContain('addBiologicalStage');
+    expect(clientScript).toContain('remove-biological-stage');
+  });
 });

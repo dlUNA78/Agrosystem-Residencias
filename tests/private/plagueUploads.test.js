@@ -1,7 +1,11 @@
 import { describe, expect, it } from '@jest/globals';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 
 import {
   IMAGE_UPLOAD_LIMITS,
+  ensureImageUploadDirectory,
   validateImageFile,
 } from '../../src/middlewares/upload.js';
 
@@ -28,5 +32,20 @@ describe('seguridad de imágenes de plagas', () => {
     expect(() => validateImageFile({ originalname, mimetype })).toThrow(
       /JPG, PNG o WEBP/,
     );
+  });
+
+  it('crea recursivamente la carpeta de plagas en cualquier clon', () => {
+    const temporaryPublic = fs.mkdtempSync(
+      path.join(os.tmpdir(), 'agrosystem-upload-'),
+    );
+
+    try {
+      const directory = ensureImageUploadDirectory('plagues', temporaryPublic);
+
+      expect(directory).toBe(path.join(temporaryPublic, 'images', 'plagues'));
+      expect(fs.statSync(directory).isDirectory()).toBe(true);
+    } finally {
+      fs.rmSync(temporaryPublic, { recursive: true, force: true });
+    }
   });
 });
