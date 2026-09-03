@@ -18,6 +18,28 @@ jobs:
     name: Tests, lint and format
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: agrosystem_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ${{ github.run_id }}
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      NODE_ENV: test
+      SESSION_SECRET: ${{ github.sha }}
+      DB_HOST: localhost
+      DB_PORT: 5432
+      DB_NAME: agrosystem_test
+      DB_USER: postgres
+      DB_PASS: ${{ github.run_id }}
 
     steps:
       - name: Checkout repository
@@ -34,6 +56,11 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Prepare test database
+        run: |
+          pnpm exec sequelize-cli db:migrate
+          pnpm exec sequelize-cli db:seed:all
 
       - name: Run quality checks
         run: pnpm run quality
