@@ -136,7 +136,7 @@ Estas reglas aplican a código, migraciones, vistas, scripts, pruebas y document
 
 ## 14. Formato, lint y calidad automática
 
-- Prettier DEBE cubrir JavaScript, JSON, Markdown, CSS y Handlebars mediante configuración compatible.
+- Prettier DEBE cubrir JavaScript, JSON, Markdown y CSS. DEBERÍA cubrir Handlebars sólo después de validar su compatibilidad en un PR dedicado; mientras tanto, las vistas `.hbs` pueden permanecer excluidas y deben conservar convenciones manuales consistentes.
 - ESLint DEBE usar una única configuración activa. Las reglas documentadas, incluida complejidad, deben existir en esa configuración.
 - Las advertencias de ESLint cuentan como fallos en CI.
 - `format` PUEDE escribir cambios localmente; CI sólo verifica mediante `format:check`.
