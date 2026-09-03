@@ -87,7 +87,9 @@ document.addEventListener('DOMContentLoaded', () => {
       article.className =
         'group flex flex-col border border-border bg-card transition-all duration-200 hover:border-[#1b4332]/40 rounded-lg overflow-hidden shadow-2xs hover:shadow-md';
 
-      const safeImageUrl = encodeURI(plague.imageUrl || plague.image_url || '/images/test/default.png');
+      const safeImageUrl = encodeURI(
+        plague.imageUrl || plague.image_url || '/images/test/default.png',
+      );
       const safeName = escapeHTML(plague.name);
       const safeCategory = escapeHTML(plague.category);
       const safeScientificName = escapeHTML(plague.scientificName);
@@ -95,10 +97,20 @@ document.addEventListener('DOMContentLoaded', () => {
       const safeRiskLabel = escapeHTML(plague.riskLabel || 'Bajo');
       const safeId = escapeHTML(plague.id.toString());
 
-      const isCritical = safeRiskLabel === 'Crítico' || safeRiskLabel === 'Alto';
-      const isModerate = safeRiskLabel === 'Moderado' || safeRiskLabel === 'Medio';
-      const riskBarColor = isCritical ? 'bg-rose-600' : isModerate ? 'bg-amber-500' : 'bg-emerald-600';
-      const riskDotColor = isCritical ? 'bg-rose-600 animate-pulse' : isModerate ? 'bg-amber-500' : 'bg-emerald-600';
+      const isCritical =
+        safeRiskLabel === 'Crítico' || safeRiskLabel === 'Alto';
+      const isModerate =
+        safeRiskLabel === 'Moderado' || safeRiskLabel === 'Medio';
+      const riskBarColor = isCritical
+        ? 'bg-rose-600'
+        : isModerate
+          ? 'bg-amber-500'
+          : 'bg-emerald-600';
+      const riskDotColor = isCritical
+        ? 'bg-rose-600 animate-pulse'
+        : isModerate
+          ? 'bg-amber-500'
+          : 'bg-emerald-600';
 
       article.innerHTML = `
         <div class="h-1 w-full ${riskBarColor}"></div>

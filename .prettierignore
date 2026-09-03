@@ -5,3 +5,8 @@ src/views/**/*.hbs
 # Ignorar archivos estáticos minificados
 public/**/*.min.css
 public/**/*.min.js
+
+# Artefactos generados o administrados por otras herramientas
+public/css/style.css
+pnpm-lock.yaml
+src/data/mexico-states.json

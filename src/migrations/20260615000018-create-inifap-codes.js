@@ -53,7 +53,7 @@ export default {
     await queryInterface.addIndex('InifapCodes', ['is_used']);
   },
 
-  async down(queryInterface, Sequelize) {
+  async down(queryInterface, _Sequelize) {
     await queryInterface.dropTable('InifapCodes');
   },
 };

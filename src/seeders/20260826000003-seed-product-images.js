@@ -23,7 +23,8 @@ export default {
     const images = [];
 
     products.forEach((product) => {
-      const primaryUrl = imageMap[product.name] || '/images/products/default.png';
+      const primaryUrl =
+        imageMap[product.name] || '/images/products/default.png';
 
       images.push({
         product_id: product.id,

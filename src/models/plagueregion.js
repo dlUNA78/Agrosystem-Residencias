@@ -2,7 +2,7 @@ import { Model } from 'sequelize';
 
 export default (sequelize, DataTypes) => {
   class PlagueRegion extends Model {
-    static associate(models) {
+    static associate(_models) {
       // Define associations here if needed
     }
   }

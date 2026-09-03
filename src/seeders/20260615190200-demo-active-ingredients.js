@@ -1,5 +1,5 @@
 export default {
-  async up(queryInterface, Sequelize) {
+  async up(queryInterface, _Sequelize) {
     await queryInterface.bulkDelete('ActiveIngredients', null, {});
     await queryInterface.bulkInsert(
       'ActiveIngredients',
@@ -25,7 +25,7 @@ export default {
     );
   },
 
-  async down(queryInterface, Sequelize) {
+  async down(queryInterface, _Sequelize) {
     await queryInterface.bulkDelete('ActiveIngredients', null, {});
   },
 };

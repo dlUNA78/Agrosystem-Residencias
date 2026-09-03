@@ -26,14 +26,11 @@ document.addEventListener('DOMContentLoaded', function () {
       5,
     );
 
-    L.tileLayer(
-      'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-      {
-        attribution:
-          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-        maxZoom: 19,
-      },
-    ).addTo(landsMap);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      maxZoom: 19,
+    }).addTo(landsMap);
 
     // Forzar re-cálculo del tamaño por si el sidebar causa un reflow al cargar
     setTimeout(() => landsMap.invalidateSize(), 200);
@@ -125,14 +122,11 @@ document.addEventListener('DOMContentLoaded', function () {
         fadeAnimation: true,
       }).setView([19.432608, -99.133209], 5);
 
-      L.tileLayer(
-        'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-        {
-          attribution:
-            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-          maxZoom: 19,
-        },
-      ).addTo(farmMap);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        maxZoom: 19,
+      }).addTo(farmMap);
 
       // ── Evento clic: colocar/mover marcador y actualizar inputs ocultos ──
       farmMap.on('click', function (e) {

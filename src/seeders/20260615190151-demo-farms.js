@@ -1,5 +1,5 @@
 export default {
-  async up(queryInterface, Sequelize) {
+  async up(queryInterface, _Sequelize) {
     await queryInterface.bulkDelete('Farms', null, {});
     const users = await queryInterface.sequelize.query(
       `SELECT id FROM "Users";`,
@@ -34,7 +34,7 @@ export default {
     );
   },
 
-  async down(queryInterface, Sequelize) {
+  async down(queryInterface, _Sequelize) {
     await queryInterface.bulkDelete('Farms', null, {});
   },
 };
