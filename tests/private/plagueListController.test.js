@@ -2,20 +2,22 @@ import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 
 const opOr = Symbol('or');
 const opILike = Symbol('iLike');
+const defaultPlagueData = {
+  id: 13,
+  name: 'Roya amarilla',
+  workflow_status: 'in_review',
+  biological_cycle: [
+    { title: 'Huevo', description: 'Etapa inicial', duration: '3 días' },
+  ],
+  images: [
+    { url: 'images/plagues/uno.png', sort_order: 0 },
+    { url: '/images/plagues/dos.webp', sort_order: 1 },
+  ],
+};
+let plagueRecordData = defaultPlagueData;
 const plagueRecords = [
   {
-    toJSON: () => ({
-      id: 13,
-      name: 'Roya amarilla',
-      workflow_status: 'in_review',
-      biological_cycle: [
-        { title: 'Huevo', description: 'Etapa inicial', duration: '3 días' },
-      ],
-      images: [
-        { url: 'images/plagues/uno.png', sort_order: 0 },
-        { url: '/images/plagues/dos.webp', sort_order: 1 },
-      ],
-    }),
+    toJSON: () => plagueRecordData,
   },
 ];
 
@@ -47,6 +49,7 @@ describe('controlador del listado privado de plagas', () => {
     jest.clearAllMocks();
     mockDb.Plague.count.mockResolvedValue(25);
     mockDb.Plague.findAll.mockResolvedValue(plagueRecords);
+    plagueRecordData = defaultPlagueData;
   });
 
   it('consulta solo la página solicitada y conserva filtros en la vista', async () => {
@@ -136,5 +139,31 @@ describe('controlador del listado privado de plagas', () => {
         pagination: expect.objectContaining({ currentPage: 2, totalPages: 2 }),
       }),
     );
+  });
+
+  it('muestra edición sólo al autor INIFAP de un borrador', async () => {
+    plagueRecordData = {
+      ...defaultPlagueData,
+      workflow_status: 'draft',
+      created_by_user_id: 12,
+    };
+    const buildRequest = (id) => ({ query: {}, user: { id, role: 'inifap' } });
+    const buildResponse = () => ({
+      render: jest.fn(),
+      status: jest.fn().mockReturnThis(),
+      send: jest.fn(),
+    });
+    const reviewerResponse = buildResponse();
+    const authorResponse = buildResponse();
+
+    await plaguesPrivate(buildRequest(27), reviewerResponse);
+    await plaguesPrivate(buildRequest(12), authorResponse);
+
+    expect(
+      reviewerResponse.render.mock.calls[0][1].plagues[0].canEditRecord,
+    ).toBe(false);
+    expect(
+      authorResponse.render.mock.calls[0][1].plagues[0].canEditRecord,
+    ).toBe(true);
   });
 });

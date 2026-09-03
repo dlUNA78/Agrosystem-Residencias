@@ -9,6 +9,7 @@ const transaction = {
 const plague = {
   id: 9,
   workflow_status: 'draft',
+  created_by_user_id: 12,
   getProducts: jest.fn(async () => [{ id: 1 }]),
   getCrops: jest.fn(async () => [{ id: 6 }]),
   setProducts: jest.fn(),
@@ -58,6 +59,7 @@ describe('controlador de relaciones de plagas', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     plague.workflow_status = 'draft';
+    plague.created_by_user_id = 12;
     mockDb.Plague.findByPk.mockResolvedValue(plague);
     mockDb.Product.findAll.mockResolvedValue([{ id: 2 }, { id: 5 }]);
     mockDb.Crop.findAll.mockResolvedValue([{ id: 8 }]);
@@ -150,6 +152,21 @@ describe('controlador de relaciones de plagas', () => {
     expect(res.status).toHaveBeenCalledWith(409);
     expect(plague.setProducts).not.toHaveBeenCalled();
     expect(mockDb.AuditLog.create).not.toHaveBeenCalled();
+    expect(transaction.rollback).toHaveBeenCalledTimes(1);
+  });
+
+  it('impide que otro INIFAP modifique las relaciones del autor', async () => {
+    const req = {
+      params: { id: '9' },
+      body: {},
+      user: { id: 27, role: 'inifap' },
+    };
+    const res = buildResponse();
+
+    await updatePlagueRelations(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(403);
+    expect(plague.setProducts).not.toHaveBeenCalled();
     expect(transaction.rollback).toHaveBeenCalledTimes(1);
   });
 });
