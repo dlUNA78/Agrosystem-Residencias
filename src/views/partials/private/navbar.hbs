@@ -25,23 +25,23 @@
         <!-- Dropdown Usuario -->
         <div class="flex items-center gap-3 cursor-pointer relative group py-1">
             <div class="text-right hidden sm:block">
-                <p class="text-xs font-bold leading-tight text-foreground">{{#if user.full_name}}{{user.full_name}}{{else}}Administrador Principal{{/if}}</p>
-                <p class="text-[10px] text-muted-foreground font-mono leading-tight">{{#if user.email}}{{user.email}}{{else}}admin@agrosystem.com{{/if}}</p>
+                <p class="text-xs font-bold leading-tight text-foreground">{{#if user.full_name}}{{user.full_name}}{{else}}Usuario autenticado{{/if}}</p>
+                <p class="text-[10px] text-muted-foreground font-mono leading-tight">{{#if user.email}}{{user.email}}{{else}}Correo no disponible{{/if}}</p>
             </div>
 
             {{#if user.photo_url}}
                 <img alt="{{user.full_name}}" class="w-8 h-8 rounded-full object-cover border border-border shadow-2xs" src="{{user.photo_url}}">
             {{else}}
                 <div class="w-8 h-8 rounded-full bg-[#a3b18a] text-white flex items-center justify-center font-mono font-bold text-xs shadow-2xs">
-                    {{#if user}}{{userInitial user}}{{else}}AP{{/if}}
+                    {{#if user}}{{userInitial user}}{{else}}U{{/if}}
                 </div>
             {{/if}}
 
             <!-- Menu desplegable -->
             <div class="absolute right-0 top-11 w-52 bg-card rounded-xl shadow-lg py-2 border border-border hidden group-hover:block transition-all z-50">
                 <div class="px-4 py-2 border-b border-border sm:hidden">
-                    <p class="text-xs font-bold truncate">{{#if user.full_name}}{{user.full_name}}{{else}}Administrador Principal{{/if}}</p>
-                    <p class="text-[10px] text-muted-foreground truncate">{{#if user.email}}{{user.email}}{{else}}admin@agrosystem.com{{/if}}</p>
+                    <p class="text-xs font-bold truncate">{{#if user.full_name}}{{user.full_name}}{{else}}Usuario autenticado{{/if}}</p>
+                    <p class="text-[10px] text-muted-foreground truncate">{{#if user.email}}{{user.email}}{{else}}Correo no disponible{{/if}}</p>
                 </div>
                 <a href="/private/profile" class="flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-foreground hover:bg-muted transition-colors">
                     <i data-lucide="user" class="w-4 h-4 text-[#1b4332]"></i>

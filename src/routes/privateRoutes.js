@@ -2,9 +2,18 @@ import { Router } from 'express';
 
 // ─── Middlewares de subida de archivos ────────────────────────────────────────
 // upload        → imágenes genéricas (productos)
-// uploadPlague  → imágenes de plagas
+// uploadPlagueImages → imágenes de plagas (acepta múltiples archivos)
 // uploadCrop    → imágenes de cultivos (acepta múltiples archivos)
-import { upload, uploadPlague, uploadCrop } from '../middlewares/upload.js';
+import {
+  upload,
+  uploadPlagueImages,
+  uploadCrop,
+} from '../middlewares/upload.js';
+import {
+  requirePlaguePermission,
+  requirePlagueWorkflowPermission,
+} from '../middlewares/plagueAuthorizationMiddleware.js';
+import { PLAGUE_PERMISSIONS } from '../services/plagueAuthorizationService.js';
 
 import { dashboard } from '../controllers/private/dashboardController.js';
 import { auditPrivate } from '../controllers/private/auditController.js';
@@ -18,6 +27,8 @@ import {
   createPlague,
   updatePlague,
   deletePlague,
+  updatePlagueWorkflow,
+  updatePlagueRelations,
 } from '../controllers/private/plagueController.js';
 
 // ─── Controladores del módulo de proveedores (sub-controlador modular) ────────
@@ -115,20 +126,48 @@ privateRouter.post('/lands/create', createFarmPrivate); // Crear nueva parcela
 // ══════════════════════════════════════════════════════════════════════════════
 // MÓDULO: PLAGAS
 // ══════════════════════════════════════════════════════════════════════════════
-privateRouter.get('/private/plagues', plaguesPrivate); // Lista todas las plagas
-privateRouter.get('/private/catalog/plagues', plaguesPrivate); // Alias catálogo plagas
-privateRouter.get('/private/plagues/:id', getPlagueDetail); // Detalle de una plaga específica
+privateRouter.get(
+  '/private/plagues',
+  requirePlaguePermission(PLAGUE_PERMISSIONS.VIEW_PRIVATE),
+  plaguesPrivate,
+); // Lista todas las plagas
+privateRouter.get(
+  '/private/catalog/plagues',
+  requirePlaguePermission(PLAGUE_PERMISSIONS.VIEW_PRIVATE),
+  plaguesPrivate,
+); // Alias catálogo plagas
+privateRouter.get(
+  '/private/plagues/:id',
+  requirePlaguePermission(PLAGUE_PERMISSIONS.VIEW_PRIVATE),
+  getPlagueDetail,
+); // Detalle de una plaga específica
 privateRouter.post(
   '/private/plagues/create',
-  uploadPlague.single('image'),
+  requirePlaguePermission(PLAGUE_PERMISSIONS.CREATE),
+  uploadPlagueImages,
   createPlague,
 );
 privateRouter.post(
   '/private/plagues/update/:id',
-  uploadPlague.single('image'),
+  requirePlaguePermission(PLAGUE_PERMISSIONS.EDIT),
+  uploadPlagueImages,
   updatePlague,
 );
-privateRouter.post('/private/plagues/delete/:id', deletePlague); // Eliminar plaga
+privateRouter.post(
+  '/private/plagues/delete/:id',
+  requirePlaguePermission(PLAGUE_PERMISSIONS.DELETE),
+  deletePlague,
+); // Eliminar plaga
+privateRouter.post(
+  '/private/plagues/:id/workflow',
+  requirePlagueWorkflowPermission,
+  updatePlagueWorkflow,
+);
+privateRouter.post(
+  '/private/plagues/:id/relations',
+  requirePlaguePermission(PLAGUE_PERMISSIONS.MANAGE_RELATIONS),
+  updatePlagueRelations,
+);
 
 // ══════════════════════════════════════════════════════════════════════════════
 // MÓDULO: PRODUCTOS AGROQUÍMICOS

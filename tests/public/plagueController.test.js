@@ -8,7 +8,9 @@ describe('🧪 Suite de Pruebas Públicas - Módulo de Plagas', () => {
   let samplePlague;
 
   beforeAll(async () => {
-    samplePlague = await Plague.findOne({ where: { status: true } });
+    samplePlague = await Plague.findOne({
+      where: { status: true, workflow_status: 'published' },
+    });
     if (!samplePlague) {
       samplePlague = await Plague.create({
         name: 'Plaga Test QA',
@@ -17,6 +19,7 @@ describe('🧪 Suite de Pruebas Públicas - Módulo de Plagas', () => {
         description: 'Plaga creada para suite estricta de QA',
         risk_level: 'Alto',
         status: true,
+        workflow_status: 'published',
       });
     }
   });
@@ -122,6 +125,7 @@ describe('🧪 Suite de Pruebas Públicas - Módulo de Plagas', () => {
         name: 'Plaga Inactiva QA Test',
         scientific_name: 'Inactivus test',
         status: false,
+        workflow_status: 'archived',
       });
 
       const response = await request(app).get('/api/plagues');
@@ -130,6 +134,21 @@ describe('🧪 Suite de Pruebas Públicas - Módulo de Plagas', () => {
       expect(found).toBeUndefined();
 
       await inactive.destroy();
+    });
+
+    it('un borrador nunca debe mostrarse aunque el booleano legado esté activo', async () => {
+      const draft = await Plague.create({
+        name: 'Borrador QA Test',
+        scientific_name: 'Draftus test',
+        status: true,
+        workflow_status: 'draft',
+      });
+
+      const response = await request(app).get('/api/plagues');
+      const found = response.body.plagues.find((p) => p.id === draft.id);
+
+      expect(found).toBeUndefined();
+      await draft.destroy();
     });
   });
 });

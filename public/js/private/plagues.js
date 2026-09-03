@@ -14,8 +14,47 @@ document.addEventListener('DOMContentLoaded', () => {
   const title = document.getElementById('modal-plague-title');
   const btnSave = document.getElementById('btn-save-plague');
 
-  const imageInput = document.getElementById('plague-image');
-  const imagePreview = document.getElementById('plague-preview');
+  const imageInput = document.getElementById('plague-images');
+  const imagePreviews = document.getElementById('plague-image-previews');
+  const existingImagesNote = document.getElementById(
+    'plague-existing-images-note',
+  );
+  const exportButton = document.getElementById('btn-export-plagues');
+  const biologicalCycleBuilder = document.getElementById(
+    'biological-cycle-builder',
+  );
+  const biologicalStageTemplate = document.getElementById(
+    'biological-cycle-stage-template',
+  );
+  const addBiologicalStageButton = document.getElementById(
+    'btn-add-biological-stage',
+  );
+  const maximumBiologicalStages = 20;
+  const maximumImagesPerSelection = 10;
+  const maximumImageSize = 5 * 1024 * 1024;
+  const allowedImageTypes = new Set(['image/jpeg', 'image/png', 'image/webp']);
+  let currentExistingImages = [];
+  let previewObjectUrls = [];
+
+  if (exportButton) {
+    exportButton.addEventListener('click', () => window.print());
+  }
+
+  document.querySelectorAll('.plague-list-image').forEach((image) => {
+    image.addEventListener(
+      'error',
+      () => {
+        image.classList.add('hidden');
+        const fallback = image.nextElementSibling;
+
+        if (fallback?.classList.contains('plague-image-fallback')) {
+          fallback.classList.remove('hidden');
+          fallback.classList.add('flex');
+        }
+      },
+      { once: true },
+    );
+  });
 
   // CAMPOS DEL FORMULARIO
 
@@ -29,8 +68,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const inputRiskLevel = form?.querySelector('[name="risk_level"]');
 
-  const inputStatus = form?.querySelector('[name="status"]');
-
   const inputDescription = form?.querySelector('[name="description"]');
 
   const inputSymptoms = form?.querySelector('[name="symptoms"]');
@@ -40,12 +77,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const inputBiologicalControl = form?.querySelector(
     '[name="biological_control"]',
   );
-
-  const inputBiologicalCycle = form?.querySelector('[name="biological_cycle"]');
-
-  const inputVerifiedBy = form?.querySelector('[name="verified_by"]');
-
-  const inputVerifiedAt = form?.querySelector('[name="verified_at"]');
 
   // FUNCIONES AUXILIARES
 
@@ -63,15 +94,243 @@ document.addEventListener('DOMContentLoaded', () => {
 
     modal.classList.remove('flex');
     modal.classList.add('hidden');
+    releaseImagePreviewUrls();
 
     document.body.classList.remove('overflow-hidden');
   }
 
-  function resetImagePreview() {
-    if (!imagePreview) return;
+  function releaseImagePreviewUrls() {
+    previewObjectUrls.forEach((url) => URL.revokeObjectURL(url));
+    previewObjectUrls = [];
+  }
 
-    imagePreview.src = '';
-    imagePreview.classList.add('hidden');
+  function normalizeExistingImages(rawImages, fallbackUrl = '') {
+    if (!rawImages) {
+      return fallbackUrl ? [{ url: fallbackUrl }] : [];
+    }
+
+    try {
+      const parsed =
+        typeof rawImages === 'string' ? JSON.parse(rawImages) : rawImages;
+
+      if (!Array.isArray(parsed)) {
+        return fallbackUrl ? [{ url: fallbackUrl }] : [];
+      }
+
+      return parsed
+        .map((image) => ({
+          url: typeof image === 'string' ? image : image?.url,
+          caption: typeof image === 'object' ? image?.caption : '',
+        }))
+        .filter((image) => image.url);
+    } catch {
+      return fallbackUrl ? [{ url: fallbackUrl }] : [];
+    }
+  }
+
+  function buildImagePreview({ url, label, isNew }) {
+    const figure = document.createElement('figure');
+    figure.className =
+      'overflow-hidden rounded-xl border border-border/80 bg-card';
+
+    const image = document.createElement('img');
+    image.src = url;
+    image.alt = label;
+    image.className = 'h-24 w-full object-cover';
+
+    const caption = document.createElement('figcaption');
+    caption.className =
+      'flex items-center justify-between gap-1 px-2 py-1.5 text-[10px]';
+
+    const name = document.createElement('span');
+    name.className = 'truncate text-muted-foreground';
+    name.textContent = label;
+
+    const status = document.createElement('span');
+    status.className = isNew
+      ? 'shrink-0 font-bold text-[#1b4332]'
+      : 'shrink-0 font-bold text-muted-foreground';
+    status.textContent = isNew ? 'Nueva' : 'Actual';
+
+    caption.append(name, status);
+    figure.append(image, caption);
+
+    return figure;
+  }
+
+  function renderImagePreviews(existingImages = [], newFiles = []) {
+    if (!imagePreviews) return;
+
+    releaseImagePreviewUrls();
+    imagePreviews.replaceChildren();
+
+    existingImages.forEach((image, index) => {
+      imagePreviews.append(
+        buildImagePreview({
+          url: image.url,
+          label: image.caption || `Imagen ${index + 1}`,
+          isNew: false,
+        }),
+      );
+    });
+
+    newFiles.forEach((file) => {
+      const objectUrl = URL.createObjectURL(file);
+      previewObjectUrls.push(objectUrl);
+      imagePreviews.append(
+        buildImagePreview({
+          url: objectUrl,
+          label: file.name,
+          isNew: true,
+        }),
+      );
+    });
+
+    const hasImages = existingImages.length > 0 || newFiles.length > 0;
+    imagePreviews.classList.toggle('hidden', !hasImages);
+    imagePreviews.classList.toggle('grid', hasImages);
+    existingImagesNote?.classList.toggle('hidden', existingImages.length === 0);
+  }
+
+  function resetImagePreviews() {
+    currentExistingImages = [];
+    renderImagePreviews();
+  }
+
+  function formatHistoricalStageTitle(value) {
+    const words = String(value || '')
+      .replaceAll('_', ' ')
+      .trim();
+    return words ? `${words.charAt(0).toUpperCase()}${words.slice(1)}` : '';
+  }
+
+  function normalizeBiologicalStages(rawCycle) {
+    if (!rawCycle) return [];
+
+    let cycle = rawCycle;
+
+    if (typeof cycle === 'string') {
+      try {
+        cycle = JSON.parse(cycle);
+      } catch {
+        return cycle
+          .split(/\r?\n/)
+          .map((title) => ({ title: title.trim() }))
+          .filter((stage) => stage.title);
+      }
+    }
+
+    if (Array.isArray(cycle)) {
+      return cycle
+        .map((stage) => {
+          if (typeof stage === 'string') {
+            return { title: stage, description: '', duration: '' };
+          }
+
+          return {
+            title: stage?.title || stage?.name || stage?.stage || '',
+            description:
+              stage?.description || stage?.details || stage?.detail || '',
+            duration: stage?.duration || stage?.time || '',
+          };
+        })
+        .filter((stage) => stage.title || stage.description || stage.duration);
+    }
+
+    if (cycle && typeof cycle === 'object') {
+      return Object.entries(cycle).map(([stage, duration]) => ({
+        title: formatHistoricalStageTitle(stage),
+        description: '',
+        duration: String(duration || ''),
+      }));
+    }
+
+    return [];
+  }
+
+  function updateBiologicalStageNumbers() {
+    if (!biologicalCycleBuilder) return;
+
+    const stages = biologicalCycleBuilder.querySelectorAll(
+      '[data-biological-stage]',
+    );
+
+    stages.forEach((stage, index) => {
+      const number = stage.querySelector('[data-stage-number]');
+      if (number) number.textContent = String(index + 1);
+    });
+
+    if (addBiologicalStageButton) {
+      const limitReached = stages.length >= maximumBiologicalStages;
+      addBiologicalStageButton.disabled = limitReached;
+      addBiologicalStageButton.classList.toggle('opacity-50', limitReached);
+      addBiologicalStageButton.classList.toggle(
+        'cursor-not-allowed',
+        limitReached,
+      );
+    }
+  }
+
+  function addBiologicalStage(stage = {}) {
+    if (!biologicalCycleBuilder || !biologicalStageTemplate) return;
+
+    const currentStages = biologicalCycleBuilder.querySelectorAll(
+      '[data-biological-stage]',
+    );
+    if (currentStages.length >= maximumBiologicalStages) return;
+
+    const fragment = biologicalStageTemplate.content.cloneNode(true);
+    const stageElement = fragment.querySelector('[data-biological-stage]');
+    const stageTitle = stageElement?.querySelector(
+      '[name="biological_cycle_title[]"]',
+    );
+    const stageDuration = stageElement?.querySelector(
+      '[name="biological_cycle_duration[]"]',
+    );
+    const stageDescription = stageElement?.querySelector(
+      '[name="biological_cycle_description[]"]',
+    );
+    const removeButton = stageElement?.querySelector(
+      '.remove-biological-stage',
+    );
+
+    if (stageTitle) stageTitle.value = stage.title || '';
+    if (stageDuration) stageDuration.value = stage.duration || '';
+    if (stageDescription) stageDescription.value = stage.description || '';
+
+    removeButton?.addEventListener('click', () => {
+      stageElement.remove();
+
+      if (
+        biologicalCycleBuilder.querySelectorAll('[data-biological-stage]')
+          .length === 0
+      ) {
+        addBiologicalStage();
+      }
+
+      updateBiologicalStageNumbers();
+    });
+
+    biologicalCycleBuilder.append(fragment);
+    updateBiologicalStageNumbers();
+    window.lucide?.createIcons();
+  }
+
+  function resetBiologicalCycle(rawCycle = []) {
+    if (!biologicalCycleBuilder) return;
+
+    biologicalCycleBuilder.replaceChildren();
+    const stages = normalizeBiologicalStages(rawCycle).slice(
+      0,
+      maximumBiologicalStages,
+    );
+
+    if (stages.length === 0) {
+      addBiologicalStage();
+      return;
+    }
+
+    stages.forEach((stage) => addBiologicalStage(stage));
   }
 
   // ABRIR MODAL PARA CREAR
@@ -80,6 +339,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!form) return;
 
     form.reset();
+    resetBiologicalCycle();
 
     // Acción para CREAR
     form.action = '/private/plagues/create';
@@ -98,7 +358,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Limpiar imagen
-    resetImagePreview();
+    resetImagePreviews();
 
     if (imageInput) {
       imageInput.value = '';
@@ -145,12 +405,6 @@ document.addEventListener('DOMContentLoaded', () => {
       inputRiskLevel.value = data.riskLevel || '';
     }
 
-    if (inputStatus) {
-      const status = String(data.status).toLowerCase();
-
-      inputStatus.value = status === 'true' ? 'true' : 'false';
-    }
-
     if (inputDescription) {
       inputDescription.value = data.description || '';
     }
@@ -167,17 +421,7 @@ document.addEventListener('DOMContentLoaded', () => {
       inputBiologicalControl.value = data.biologicalControl || '';
     }
 
-    if (inputBiologicalCycle) {
-      inputBiologicalCycle.value = data.biologicalCycle || '';
-    }
-
-    if (inputVerifiedBy) {
-      inputVerifiedBy.value = data.verifiedBy || '';
-    }
-
-    if (inputVerifiedAt) {
-      inputVerifiedAt.value = data.verifiedAt || '';
-    }
+    resetBiologicalCycle(data.biologicalCycle || []);
 
     // CAMBIAR FORM ACTION
     form.action = `/private/plagues/update/${id}`;
@@ -197,16 +441,9 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
     }
 
-    // MOSTRAR IMAGEN ACTUAL
-    if (imagePreview) {
-      if (data.imageUrl) {
-        imagePreview.src = `/${data.imageUrl}`;
-
-        imagePreview.classList.remove('hidden');
-      } else {
-        resetImagePreview();
-      }
-    }
+    // MOSTRAR GALERÍA ACTUAL
+    currentExistingImages = normalizeExistingImages(data.images, data.imageUrl);
+    renderImagePreviews(currentExistingImages);
 
     // LIMPIAR INPUT DE ARCHIVO
 
@@ -232,6 +469,12 @@ document.addEventListener('DOMContentLoaded', () => {
       openCreateModal();
     });
   }
+
+  addBiologicalStageButton?.addEventListener('click', () => {
+    addBiologicalStage();
+  });
+
+  resetBiologicalCycle();
 
   // BOTONES DE EDITAR
 
@@ -273,101 +516,51 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // PREVISUALIZACIÓN DE IMAGEN
+  // PREVISUALIZACIÓN DE IMÁGENES
 
   if (imageInput) {
     imageInput.addEventListener('change', function () {
-      const file = this.files[0];
+      const files = Array.from(this.files || []);
 
-      if (!file) {
+      if (files.length === 0) {
+        renderImagePreviews(currentExistingImages);
         return;
       }
 
-      // Validar que sea imagen
-
-      if (!file.type.startsWith('image/')) {
-        alert('Selecciona un archivo de imagen válido.');
-
+      if (files.length > maximumImagesPerSelection) {
+        alert(`Selecciona como máximo ${maximumImagesPerSelection} imágenes.`);
         this.value = '';
-
-        resetImagePreview();
-
+        renderImagePreviews(currentExistingImages);
         return;
       }
 
-      // Liberar URL anterior si existiera
-
-      if (imagePreview && imagePreview.dataset.objectUrl) {
-        URL.revokeObjectURL(imagePreview.dataset.objectUrl);
+      if (files.some((file) => !allowedImageTypes.has(file.type))) {
+        alert('Todas las imágenes deben ser JPG, PNG o WEBP.');
+        this.value = '';
+        renderImagePreviews(currentExistingImages);
+        return;
       }
 
-      const objectUrl = URL.createObjectURL(file);
-
-      if (imagePreview) {
-        imagePreview.src = objectUrl;
-
-        imagePreview.dataset.objectUrl = objectUrl;
-
-        imagePreview.classList.remove('hidden');
+      if (files.some((file) => file.size > maximumImageSize)) {
+        alert('Cada imagen puede pesar como máximo 5 MB.');
+        this.value = '';
+        renderImagePreviews(currentExistingImages);
+        return;
       }
+
+      renderImagePreviews(currentExistingImages, files);
     });
   }
 
-  // BUSCADOR EN TIEMPO REAL
-  // IMPORTANTE:
-  // Se soportan ambos IDs:
-  //
-  // #plague-search
-  // #search-input
-  //
-  // Esto evita romper el partial reutilizable.
+  // FILTROS DEL LADO DEL SERVIDOR
 
-  const searchInput =
-    document.getElementById('plague-search') ||
-    document.getElementById('search-input');
+  const filterForm = document.getElementById('plague-filter-form');
+  const filterSelects = document.querySelectorAll('.filter-select');
 
-  if (searchInput) {
-    searchInput.addEventListener('input', () => {
-      const search = searchInput.value.toLowerCase().trim();
+  filterSelects.forEach((select) => {
+    select.addEventListener('change', () => filterForm?.requestSubmit());
+  });
 
-      // TABLA
-
-      const rows = document.querySelectorAll('#plagues-table-view tbody tr');
-
-      rows.forEach((row) => {
-        // No ocultar la fila de "no hay registros"
-
-        if (
-          row.querySelector('.btn-edit-plague') ||
-          row.querySelector('.btn-delete-plague')
-        ) {
-          const text = row.textContent.toLowerCase();
-
-          row.style.display = text.includes(search) ? '' : 'none';
-        }
-      });
-
-      // GRID
-
-      const cards = document.querySelectorAll('#plagues-grid-view article');
-
-      cards.forEach((card) => {
-        // La tarjeta "Nueva plaga" nunca se oculta
-
-        if (card.id === 'cta-new-plague' || card.id === 'btn-add-plague-card') {
-          return;
-        }
-
-        const text = card.textContent.toLowerCase();
-
-        card.style.display = text.includes(search) ? '' : '';
-
-        if (search && !text.includes(search)) {
-          card.style.display = 'none';
-        }
-      });
-    });
-  }
   // CAMBIO DE VISTA TABLA / GRID
 
   const tableView = document.getElementById('plagues-table-view');
@@ -380,55 +573,66 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function activateTableView() {
     if (tableView) {
-      tableView.style.display = '';
+      tableView.classList.remove('hidden');
     }
 
     if (gridView) {
-      gridView.style.display = 'none';
+      gridView.classList.add('hidden');
     }
 
     if (btnTable) {
-      btnTable.classList.add('bg-[#43655c]', 'text-white');
+      btnTable.classList.add('bg-[#1b4332]', 'text-white');
 
-      btnTable.classList.remove('text-on-surface-variant');
+      btnTable.classList.remove('text-muted-foreground');
     }
 
     if (btnGrid) {
-      btnGrid.classList.remove('bg-[#43655c]', 'text-white');
+      btnGrid.classList.remove('bg-[#1b4332]', 'text-white');
 
-      btnGrid.classList.add('text-on-surface-variant');
+      btnGrid.classList.add('text-muted-foreground');
     }
   }
 
   function activateGridView() {
     if (tableView) {
-      tableView.style.display = 'none';
+      tableView.classList.add('hidden');
     }
 
     if (gridView) {
-      gridView.style.display = 'grid';
+      gridView.classList.remove('hidden');
     }
 
     if (btnGrid) {
-      btnGrid.classList.add('bg-[#43655c]', 'text-white');
+      btnGrid.classList.add('bg-[#1b4332]', 'text-white');
 
-      btnGrid.classList.remove('text-on-surface-variant');
+      btnGrid.classList.remove('text-muted-foreground');
     }
 
     if (btnTable) {
-      btnTable.classList.remove('bg-[#43655c]', 'text-white');
+      btnTable.classList.remove('bg-[#1b4332]', 'text-white');
 
-      btnTable.classList.add('text-on-surface-variant');
+      btnTable.classList.add('text-muted-foreground');
     }
   }
 
   if (btnTable && btnGrid) {
-    // Vista inicial
-    activateGridView();
+    const preferredView = window.localStorage.getItem('plagues-private-view');
 
-    btnTable.addEventListener('click', activateTableView);
+    if (preferredView === 'table') {
+      activateTableView();
+    } else {
+      activateGridView();
+    }
 
-    btnGrid.addEventListener('click', activateGridView);
+    btnTable.addEventListener('click', () => {
+      activateTableView();
+      window.localStorage.setItem('plagues-private-view', 'table');
+    });
+
+    btnGrid.addEventListener('click', () => {
+      activateGridView();
+      window.localStorage.setItem('plagues-private-view', 'grid');
+    });
   }
 
   // MODAL DE ELIMINACIÓN

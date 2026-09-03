@@ -2,205 +2,211 @@ export default {
   async up(queryInterface) {
     const now = new Date();
     await queryInterface.bulkDelete('Plagues', null, {});
+    const plagues = [
+      {
+        name: 'Cenicilla Polvorienta',
+        scientific_name: 'Erysiphe cichoracearum',
+        category: 'Hongos',
+        risk_level: 'Medio',
+        region: 'Michoacán, Sinaloa',
+        description:
+          'Enfermedad fúngica que afecta calabacita, pepino y melón, produciendo polvo blanco foliar.',
+        symptoms:
+          'Polvo blanco harinoso en haz y envés de hojas, deformación de brotes y caída prematura de hojas.',
+        control_methods:
+          'Aplicación de azufre mojable preventivo y triazoles en infecciones avanzadas.',
+        biological_control: 'Ampelomyces quisqualis, Bacillus subtilis.',
+        biological_cycle: JSON.stringify({
+          conidias: '5-7 dias',
+          cleistotecios: 'invernantes',
+        }),
+        verified_by: 'INIFAP Michoacán',
+        verified_at: now,
+        status: true,
+        createdAt: now,
+        updatedAt: now,
+      },
+      {
+        name: 'Gusano Cogollero',
+        scientific_name: 'Spodoptera frugiperda',
+        category: 'Insectos',
+        risk_level: 'Alto',
+        region: 'El Bajío, Michoacán, Sinaloa, Veracruz',
+        description:
+          'Lepidóptero de alta movilidad que devora el cogollo en maizales y sorgo.',
+        symptoms:
+          'Perforaciones irregulares en hojas jóvenes, excrementos acumulados en el cogollo y raspado foliar.',
+        control_methods:
+          'Monitoreo de adultos con trampas de feromonas y aplicaciones dirigidas al cogollo.',
+        biological_control:
+          'Bacillus thuringiensis, Trichogramma spp., Doru taeniatum.',
+        biological_cycle: JSON.stringify({
+          huevo: '2-4 dias',
+          larva: '14-22 dias',
+          pupa: '8-12 dias',
+          adulto: '10-21 dias',
+        }),
+        verified_by: 'INIFAP Michoacán',
+        verified_at: now,
+        status: true,
+        createdAt: now,
+        updatedAt: now,
+      },
+      {
+        name: 'Mosca del Mediterráneo',
+        scientific_name: 'Ceratitis capitata',
+        category: 'Insectos',
+        risk_level: 'Alto',
+        region: 'Chiapas (Zona de Vigilancia)',
+        description:
+          'Díptico frugívoro cuarentenario de alto impacto comercial en huertos frutícolas.',
+        symptoms:
+          'Punturas de oviposición en frutos, pudrición interna por galerías de larvas y caída prematura de fruto.',
+        control_methods:
+          'Trampeo de detección con Trimedlure, aspersión de cebos tóxicos específicos y destrucción de frutos caídos.',
+        biological_control:
+          'Técnica del Insecto Estéril (TIE), Diachasmimorpha longicaudata.',
+        biological_cycle: JSON.stringify({
+          huevo: '2-4 dias',
+          larva: '9-11 dias',
+          pupa: '9-11 dias',
+          adulto: '30-60 dias',
+        }),
+        verified_by: 'SENASICA / INIFAP',
+        verified_at: now,
+        status: true,
+        createdAt: now,
+        updatedAt: now,
+      },
+      {
+        name: 'Psílido Asiático de los Cítricos',
+        scientific_name: 'Diaphorina citri',
+        category: 'Insectos',
+        risk_level: 'Crítico',
+        region: 'Michoacán, Colima, Veracruz, Yucatán',
+        description:
+          'Hemíptero vector principal de la bacteria Candidatus Liberibacter, causante del HLB.',
+        symptoms:
+          'Deformación y enroscamiento de brotes tiernos, secreciones cerosas blanquecinas y presencia de fumagina.',
+        control_methods:
+          'Monitoreo de brotes vegetativos, control químico coordinado en ventanas regionales y poda sanitaria.',
+        biological_control: 'Tamarixia radiata, Chrysoperla carnea.',
+        biological_cycle: JSON.stringify({
+          huevo: '4 dias',
+          ninfa: '12-15 dias',
+          adulto: '30-40 dias',
+        }),
+        verified_by: 'INIFAP Michoacán',
+        verified_at: now,
+        status: true,
+        createdAt: now,
+        updatedAt: now,
+      },
+      {
+        name: 'Pulgón Verde',
+        scientific_name: 'Schizaphis graminum',
+        category: 'Insectos',
+        risk_level: 'Alto',
+        region: 'El Bajío, Sonora, Jalisco, Sinaloa',
+        description:
+          'Áfido chupador que forma colonias densas en espigas, follaje y envés de las hojas.',
+        symptoms:
+          'Manchas cloróticas por toxinas salivares, enrollamiento de hojas, debilitamiento general y secreción de melaza.',
+        control_methods:
+          'Ajuste de fertilización nitrogenada, rotación con insecticidas sistémicos y conservación de fauna benéfica.',
+        biological_control:
+          'Coccinella septempunctata, Chrysoperla comanche, Lysiphlebus testaceipes.',
+        biological_cycle: JSON.stringify({
+          ninfa: '7-10 dias',
+          adulto: '20-30 dias',
+        }),
+        verified_by: 'INIFAP Michoacán',
+        verified_at: now,
+        status: true,
+        createdAt: now,
+        updatedAt: now,
+      },
+      {
+        name: 'Roya Amarilla del Trigo',
+        scientific_name: 'Puccinia striiformis',
+        category: 'Hongos',
+        risk_level: 'Crítico',
+        region: 'El Bajío, Sonora, Valles Altos de México',
+        description:
+          'Hongo biotrófico aerotransportado que afecta principalmente el tejido foliar de cereales.',
+        symptoms:
+          'Rayas paralelas longitudinales de pústulas amarillas (uredinios) con polvo amarillo en el haz foliar.',
+        control_methods:
+          'Uso de variedades resistentes; aspersiones preventivas con triazoles al detectar los primeros focos.',
+        biological_control:
+          'Bacillus amyloliquefaciens, extractos botánicos de Melaleuca alternifolia.',
+        biological_cycle: JSON.stringify({
+          urediniospora: '8-12 dias',
+          esporulacion: '14-21 dias',
+        }),
+        verified_by: 'INIFAP Michoacán',
+        verified_at: now,
+        status: true,
+        createdAt: now,
+        updatedAt: now,
+      },
+      {
+        name: 'Tizón Tardío',
+        scientific_name: 'Phytophthora infestans',
+        category: 'Hongos',
+        risk_level: 'Crítico',
+        region: 'Estado de México, Puebla, Michoacán, Sinaloa',
+        description:
+          'Oomiceto fitopatógeno de alta virulencia y rápido avance foliar bajo condiciones húmedas y templadas.',
+        symptoms:
+          'Lesiones irregulares acuosas marrón oscuro en hojas y tallos; halo clorótico y vellosidad blanca en envés.',
+        control_methods:
+          'Destrucción de restos de cosecha, ventilación de cultivos y aplicaciones combinadas sistémicas/contacto.',
+        biological_control: 'Trichoderma harzianum, Bacillus subtilis.',
+        biological_cycle: JSON.stringify({
+          esporangio: '2-4 dias',
+          lesion_activa: '4-6 dias',
+        }),
+        verified_by: 'INIFAP Michoacán',
+        verified_at: now,
+        status: true,
+        createdAt: now,
+        updatedAt: now,
+      },
+      {
+        name: 'Trips Oriental',
+        scientific_name: 'Frankliniella occidentalis',
+        category: 'Insectos',
+        risk_level: 'Alto',
+        region: 'Sinaloa, Baja California, Michoacán, Morelos',
+        description:
+          'Tisanóptero raspador-chupador diminuto que daña flores y frutos en desarrollo y transmite tospovirus.',
+        symptoms:
+          'Plateado y moteado en hojas, aborto de flores y deformaciones cicatrizadas en frutos jóvenes.',
+        control_methods:
+          'Colocación de trampas cromáticas azules/amarillas y rotación de espinosinas con aceites vegetales.',
+        biological_control: 'Orius insidiosus, Amblyseius swirskii.',
+        biological_cycle: JSON.stringify({
+          huevo: '3-5 dias',
+          larva: '6-8 dias',
+          pseudopupa: '3-4 dias',
+          adulto: '15-30 dias',
+        }),
+        verified_by: 'INIFAP Michoacán',
+        verified_at: now,
+        status: true,
+        createdAt: now,
+        updatedAt: now,
+      },
+    ];
+
     await queryInterface.bulkInsert(
       'Plagues',
-      [
-        {
-          name: 'Cenicilla Polvorienta',
-          scientific_name: 'Erysiphe cichoracearum',
-          category: 'Hongos',
-          risk_level: 'Medio',
-          region: 'Michoacán, Sinaloa',
-          description:
-            'Enfermedad fúngica que afecta calabacita, pepino y melón, produciendo polvo blanco foliar.',
-          symptoms:
-            'Polvo blanco harinoso en haz y envés de hojas, deformación de brotes y caída prematura de hojas.',
-          control_methods:
-            'Aplicación de azufre mojable preventivo y triazoles en infecciones avanzadas.',
-          biological_control: 'Ampelomyces quisqualis, Bacillus subtilis.',
-          biological_cycle: JSON.stringify({
-            conidias: '5-7 dias',
-            cleistotecios: 'invernantes',
-          }),
-          verified_by: 'INIFAP Michoacán',
-          verified_at: now,
-          status: true,
-          createdAt: now,
-          updatedAt: now,
-        },
-        {
-          name: 'Gusano Cogollero',
-          scientific_name: 'Spodoptera frugiperda',
-          category: 'Insectos',
-          risk_level: 'Alto',
-          region: 'El Bajío, Michoacán, Sinaloa, Veracruz',
-          description:
-            'Lepidóptero de alta movilidad que devora el cogollo en maizales y sorgo.',
-          symptoms:
-            'Perforaciones irregulares en hojas jóvenes, excrementos acumulados en el cogollo y raspado foliar.',
-          control_methods:
-            'Monitoreo de adultos con trampas de feromonas y aplicaciones dirigidas al cogollo.',
-          biological_control:
-            'Bacillus thuringiensis, Trichogramma spp., Doru taeniatum.',
-          biological_cycle: JSON.stringify({
-            huevo: '2-4 dias',
-            larva: '14-22 dias',
-            pupa: '8-12 dias',
-            adulto: '10-21 dias',
-          }),
-          verified_by: 'INIFAP Michoacán',
-          verified_at: now,
-          status: true,
-          createdAt: now,
-          updatedAt: now,
-        },
-        {
-          name: 'Mosca del Mediterráneo',
-          scientific_name: 'Ceratitis capitata',
-          category: 'Insectos',
-          risk_level: 'Alto',
-          region: 'Chiapas (Zona de Vigilancia)',
-          description:
-            'Díptico frugívoro cuarentenario de alto impacto comercial en huertos frutícolas.',
-          symptoms:
-            'Punturas de oviposición en frutos, pudrición interna por galerías de larvas y caída prematura de fruto.',
-          control_methods:
-            'Trampeo de detección con Trimedlure, aspersión de cebos tóxicos específicos y destrucción de frutos caídos.',
-          biological_control:
-            'Técnica del Insecto Estéril (TIE), Diachasmimorpha longicaudata.',
-          biological_cycle: JSON.stringify({
-            huevo: '2-4 dias',
-            larva: '9-11 dias',
-            pupa: '9-11 dias',
-            adulto: '30-60 dias',
-          }),
-          verified_by: 'SENASICA / INIFAP',
-          verified_at: now,
-          status: true,
-          createdAt: now,
-          updatedAt: now,
-        },
-        {
-          name: 'Psílido Asiático de los Cítricos',
-          scientific_name: 'Diaphorina citri',
-          category: 'Insectos',
-          risk_level: 'Crítico',
-          region: 'Michoacán, Colima, Veracruz, Yucatán',
-          description:
-            'Hemíptero vector principal de la bacteria Candidatus Liberibacter, causante del HLB.',
-          symptoms:
-            'Deformación y enroscamiento de brotes tiernos, secreciones cerosas blanquecinas y presencia de fumagina.',
-          control_methods:
-            'Monitoreo de brotes vegetativos, control químico coordinado en ventanas regionales y poda sanitaria.',
-          biological_control: 'Tamarixia radiata, Chrysoperla carnea.',
-          biological_cycle: JSON.stringify({
-            huevo: '4 dias',
-            ninfa: '12-15 dias',
-            adulto: '30-40 dias',
-          }),
-          verified_by: 'INIFAP Michoacán',
-          verified_at: now,
-          status: true,
-          createdAt: now,
-          updatedAt: now,
-        },
-        {
-          name: 'Pulgón Verde',
-          scientific_name: 'Schizaphis graminum',
-          category: 'Insectos',
-          risk_level: 'Alto',
-          region: 'El Bajío, Sonora, Jalisco, Sinaloa',
-          description:
-            'Áfido chupador que forma colonias densas en espigas, follaje y envés de las hojas.',
-          symptoms:
-            'Manchas cloróticas por toxinas salivares, enrollamiento de hojas, debilitamiento general y secreción de melaza.',
-          control_methods:
-            'Ajuste de fertilización nitrogenada, rotación con insecticidas sistémicos y conservación de fauna benéfica.',
-          biological_control:
-            'Coccinella septempunctata, Chrysoperla comanche, Lysiphlebus testaceipes.',
-          biological_cycle: JSON.stringify({
-            ninfa: '7-10 dias',
-            adulto: '20-30 dias',
-          }),
-          verified_by: 'INIFAP Michoacán',
-          verified_at: now,
-          status: true,
-          createdAt: now,
-          updatedAt: now,
-        },
-        {
-          name: 'Roya Amarilla del Trigo',
-          scientific_name: 'Puccinia striiformis',
-          category: 'Hongos',
-          risk_level: 'Crítico',
-          region: 'El Bajío, Sonora, Valles Altos de México',
-          description:
-            'Hongo biotrófico aerotransportado que afecta principalmente el tejido foliar de cereales.',
-          symptoms:
-            'Rayas paralelas longitudinales de pústulas amarillas (uredinios) con polvo amarillo en el haz foliar.',
-          control_methods:
-            'Uso de variedades resistentes; aspersiones preventivas con triazoles al detectar los primeros focos.',
-          biological_control:
-            'Bacillus amyloliquefaciens, extractos botánicos de Melaleuca alternifolia.',
-          biological_cycle: JSON.stringify({
-            urediniospora: '8-12 dias',
-            esporulacion: '14-21 dias',
-          }),
-          verified_by: 'INIFAP Michoacán',
-          verified_at: now,
-          status: true,
-          createdAt: now,
-          updatedAt: now,
-        },
-        {
-          name: 'Tizón Tardío',
-          scientific_name: 'Phytophthora infestans',
-          category: 'Hongos',
-          risk_level: 'Crítico',
-          region: 'Estado de México, Puebla, Michoacán, Sinaloa',
-          description:
-            'Oomiceto fitopatógeno de alta virulencia y rápido avance foliar bajo condiciones húmedas y templadas.',
-          symptoms:
-            'Lesiones irregulares acuosas marrón oscuro en hojas y tallos; halo clorótico y vellosidad blanca en envés.',
-          control_methods:
-            'Destrucción de restos de cosecha, ventilación de cultivos y aplicaciones combinadas sistémicas/contacto.',
-          biological_control: 'Trichoderma harzianum, Bacillus subtilis.',
-          biological_cycle: JSON.stringify({
-            esporangio: '2-4 dias',
-            lesion_activa: '4-6 dias',
-          }),
-          verified_by: 'INIFAP Michoacán',
-          verified_at: now,
-          status: true,
-          createdAt: now,
-          updatedAt: now,
-        },
-        {
-          name: 'Trips Oriental',
-          scientific_name: 'Frankliniella occidentalis',
-          category: 'Insectos',
-          risk_level: 'Alto',
-          region: 'Sinaloa, Baja California, Michoacán, Morelos',
-          description:
-            'Tisanóptero raspador-chupador diminuto que daña flores y frutos en desarrollo y transmite tospovirus.',
-          symptoms:
-            'Plateado y moteado en hojas, aborto de flores y deformaciones cicatrizadas en frutos jóvenes.',
-          control_methods:
-            'Colocación de trampas cromáticas azules/amarillas y rotación de espinosinas con aceites vegetales.',
-          biological_control: 'Orius insidiosus, Amblyseius swirskii.',
-          biological_cycle: JSON.stringify({
-            huevo: '3-5 dias',
-            larva: '6-8 dias',
-            pseudopupa: '3-4 dias',
-            adulto: '15-30 dias',
-          }),
-          verified_by: 'INIFAP Michoacán',
-          verified_at: now,
-          status: true,
-          createdAt: now,
-          updatedAt: now,
-        },
-      ],
+      plagues.map((plague) => ({
+        ...plague,
+        workflow_status: 'published',
+        published_at: now,
+      })),
       {},
     );
   },
