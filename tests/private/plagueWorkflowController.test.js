@@ -6,10 +6,25 @@ const transaction = {
   rollback: jest.fn(),
 };
 
+const readyPlagueData = {
+  id: 9,
+  workflow_status: 'verified',
+  name: 'Gusano cogollero',
+  scientific_name: 'Spodoptera frugiperda',
+  category: 'Insecto',
+  risk_level: 'Alto',
+  description: 'Descripción técnica.',
+  symptoms: 'Daño foliar.',
+  control_methods: 'Manejo integrado.',
+  biological_cycle: [{ title: 'Larva' }],
+};
+
 const plague = {
   id: 9,
   workflow_status: 'verified',
-  toJSON: jest.fn(() => ({ id: 9, workflow_status: 'verified' })),
+  toJSON: jest.fn(() => readyPlagueData),
+  countCrops: jest.fn(async () => 1),
+  countRegions: jest.fn(async () => 1),
   update: jest.fn(),
 };
 
@@ -17,7 +32,11 @@ const mockDb = {
   sequelize: { transaction: jest.fn(async () => transaction) },
   Sequelize: { Op: {} },
   Plague: { findByPk: jest.fn(async () => plague) },
-  PlagueImage: { create: jest.fn(), destroy: jest.fn() },
+  PlagueImage: {
+    count: jest.fn(async () => 1),
+    create: jest.fn(),
+    destroy: jest.fn(),
+  },
   Product: {},
   ProductImage: {},
   Region: {},
@@ -37,7 +56,10 @@ describe('controlador del workflow de plagas', () => {
     jest.clearAllMocks();
     plague.workflow_status = 'verified';
     plague.created_by_user_id = null;
-    plague.toJSON.mockReturnValue({ id: 9, workflow_status: 'verified' });
+    plague.toJSON.mockReturnValue(readyPlagueData);
+    plague.countCrops.mockResolvedValue(1);
+    plague.countRegions.mockResolvedValue(1);
+    mockDb.PlagueImage.count.mockResolvedValue(1);
     mockDb.Plague.findByPk.mockResolvedValue(plague);
   });
 
@@ -120,6 +142,37 @@ describe('controlador del workflow de plagas', () => {
     await updatePlagueWorkflow(req, res);
 
     expect(res.status).toHaveBeenCalledWith(403);
+    expect(plague.update).not.toHaveBeenCalled();
+    expect(transaction.rollback).toHaveBeenCalledTimes(1);
+  });
+
+  it('impide publicar una ficha que perdió requisitos obligatorios', async () => {
+    plague.toJSON.mockReturnValue({
+      id: 9,
+      workflow_status: 'verified',
+      name: 'Ficha incompleta',
+      scientific_name: 'Species incompleta',
+    });
+    mockDb.PlagueImage.count.mockResolvedValue(0);
+    plague.countCrops.mockResolvedValue(0);
+    plague.countRegions.mockResolvedValue(0);
+    const req = {
+      params: { id: '9' },
+      body: { action: 'publish' },
+      user: { id: 1, role: 'admin' },
+    };
+    const res = {
+      redirect: jest.fn(),
+      status: jest.fn().mockReturnThis(),
+      send: jest.fn(),
+    };
+
+    await updatePlagueWorkflow(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(409);
+    expect(res.send).toHaveBeenCalledWith(
+      expect.stringContaining('incompleta'),
+    );
     expect(plague.update).not.toHaveBeenCalled();
     expect(transaction.rollback).toHaveBeenCalledTimes(1);
   });

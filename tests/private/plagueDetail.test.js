@@ -150,6 +150,18 @@ describe('detalle privado de plagas con datos verificables', () => {
     expect(template).not.toMatch(/<script\b|<style\b|\sonclick=|\sonerror=/i);
   });
 
+  it('muestra el checklist editorial antes de enviar o publicar', () => {
+    const template = fs.readFileSync(
+      new URL('../../src/views/shared/plague-detail.hbs', import.meta.url),
+      'utf8',
+    );
+
+    expect(template).toContain('id="publication-checklist"');
+    expect(template).toContain('readiness.items');
+    expect(template).toContain('readiness.isReady');
+    expect(template).toContain('Requisitos para revisión y publicación');
+  });
+
   it('no inyecta fallbacks científicos ni dependencias CDN desde el controlador público', () => {
     const controller = fs.readFileSync(
       new URL(

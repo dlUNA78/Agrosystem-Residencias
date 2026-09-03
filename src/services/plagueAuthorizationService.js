@@ -100,6 +100,8 @@ export const getContextualPlaguePermissions = ({
 
   return {
     ...permissions,
+    canEdit: permissions.canEdit && isAuthor,
+    canManageRelations: permissions.canManageRelations && isAuthor,
     canSubmitReview: permissions.canSubmitReview && isAuthor,
     canVerify: permissions.canVerify && hasKnownAuthor && !isAuthor,
   };

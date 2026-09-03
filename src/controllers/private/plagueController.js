@@ -17,6 +17,10 @@ import {
   buildPlagueRelationEditor,
   validatePlagueRelationsInput,
 } from '../../services/plagueRelationService.js';
+import {
+  buildPlaguePublicationReadiness,
+  requiresPlagueReadiness,
+} from '../../services/plagueReadinessService.js';
 import { validatePlagueInput } from '../../services/plagueValidationService.js';
 import {
   PLAGUE_WORKFLOW_ACTIONS,
@@ -44,6 +48,23 @@ const {
 } = db;
 
 const getRecordId = (record) => Number(record?.id ?? record?.dataValues?.id);
+
+const getWorkflowReadiness = async (plague, transaction) => {
+  const [imageCount, cropCount, regionCount] = await Promise.all([
+    PlagueImage.count({
+      where: { plague_id: plague.id },
+      transaction,
+    }),
+    plague.countCrops({ transaction }),
+    plague.countRegions({ transaction }),
+  ]);
+
+  return buildPlaguePublicationReadiness(plague.toJSON(), {
+    imageCount,
+    cropCount,
+    regionCount,
+  });
+};
 
 const findMissingCatalogIds = async (Model, ids, transaction) => {
   if (ids.length === 0) {
@@ -165,6 +186,11 @@ export const plaguesPrivate = async (req, res) => {
         ...(image.source ? { source: image.source } : {}),
         sort_order: image.sort_order || 0,
       }));
+      const recordPermissions = getContextualPlaguePermissions({
+        role: userRole,
+        userId: currentUser.id,
+        createdByUserId: data.created_by_user_id,
+      });
 
       return {
         ...data,
@@ -181,7 +207,7 @@ export const plaguesPrivate = async (req, res) => {
         biological_cycle_json: JSON.stringify(data.biological_cycle || []),
 
         canEditRecord:
-          permissions.canEdit && isPlagueEditable(data.workflow_status),
+          recordPermissions.canEdit && isPlagueEditable(data.workflow_status),
       };
     });
 
@@ -442,6 +468,19 @@ export const updatePlague = async (req, res) => {
       return res.status(404).send('Plaga no encontrada');
     }
 
+    const recordPermissions = getContextualPlaguePermissions({
+      role: req.user.role,
+      userId: req.user.id,
+      createdByUserId: plague.created_by_user_id,
+    });
+
+    if (!recordPermissions.canEdit) {
+      await transaction.rollback();
+      return res
+        .status(403)
+        .send('Sólo el autor o un administrador puede editar esta plaga.');
+    }
+
     if (!isPlagueEditable(plague.workflow_status)) {
       await transaction.rollback();
       return res
@@ -635,6 +674,19 @@ export const updatePlagueWorkflow = async (req, res) => {
       reviewNotes: req.body.review_notes,
     });
 
+    if (requiresPlagueReadiness(req.body.action)) {
+      const readiness = await getWorkflowReadiness(plague, transaction);
+
+      if (!readiness.isReady) {
+        await transaction.rollback();
+        return res
+          .status(409)
+          .send(
+            `La ficha está incompleta. Completa: ${readiness.missingItems.join(', ')}.`,
+          );
+      }
+    }
+
     if (req.body.action === PLAGUE_WORKFLOW_ACTIONS.VERIFY) {
       changes.verified_by =
         req.user.full_name || req.user.email || `Usuario ${req.user.id}`;
@@ -708,6 +760,21 @@ export const updatePlagueRelations = async (req, res) => {
     if (!plague) {
       await transaction.rollback();
       return res.status(404).send('Plaga no encontrada');
+    }
+
+    const recordPermissions = getContextualPlaguePermissions({
+      role: req.user.role,
+      userId: req.user.id,
+      createdByUserId: plague.created_by_user_id,
+    });
+
+    if (!recordPermissions.canManageRelations) {
+      await transaction.rollback();
+      return res
+        .status(403)
+        .send(
+          'Sólo el autor o un administrador puede modificar estas relaciones.',
+        );
     }
 
     if (!isPlagueEditable(plague.workflow_status)) {
@@ -892,14 +959,15 @@ export const getPlagueDetail = async (req, res) => {
 
     const plagueData = plague.toJSON();
     const detail = buildPlagueDetailView(plagueData);
+    const readiness = buildPlaguePublicationReadiness(plagueData);
     const permissions = getContextualPlaguePermissions({
       role: req.user.role,
       userId: req.user.id,
       createdByUserId: plagueData.created_by_user_id,
     });
-    const canEditRelations =
-      permissions.canManageRelations &&
-      isPlagueEditable(plagueData.workflow_status);
+    const rolePermissions = getPlaguePermissions(req.user.role);
+    const editableStatus = isPlagueEditable(plagueData.workflow_status);
+    const canEditRelations = permissions.canManageRelations && editableStatus;
     let relationEditor = null;
 
     if (canEditRelations) {
@@ -932,10 +1000,13 @@ export const getPlagueDetail = async (req, res) => {
       activePage: 'plagues',
       isPrivate: true,
       permissions,
+      readiness,
       canEditRelations,
-      relationsLocked:
-        permissions.canManageRelations &&
-        !isPlagueEditable(plagueData.workflow_status),
+      relationsLocked: rolePermissions.canManageRelations && !editableStatus,
+      relationsOwnershipRestricted:
+        rolePermissions.canManageRelations &&
+        editableStatus &&
+        !permissions.canManageRelations,
       relationEditor,
       ...detail,
       extraScripts: '<script src="/js/shared/plague-detail.js"></script>',

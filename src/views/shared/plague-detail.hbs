@@ -101,19 +101,27 @@
           <div class="flex flex-wrap items-center gap-2">
             {{#if (eq plague.workflowStatus 'draft')}}
               {{#if permissions.canSubmitReview}}
-                <form method="POST" action="/private/plagues/{{plague.id}}/workflow">
-                  <input type="hidden" name="action" value="submit_review" />
-                  <button type="submit" class="rounded-lg bg-[#1b4332] px-4 py-2 text-xs font-bold text-white hover:bg-[#2d6a4f]">Enviar a revisión</button>
-                </form>
+                {{#if readiness.isReady}}
+                  <form method="POST" action="/private/plagues/{{plague.id}}/workflow">
+                    <input type="hidden" name="action" value="submit_review" />
+                    <button type="submit" class="rounded-lg bg-[#1b4332] px-4 py-2 text-xs font-bold text-white hover:bg-[#2d6a4f]">Enviar a revisión</button>
+                  </form>
+                {{else}}
+                  <button type="button" disabled class="cursor-not-allowed rounded-lg bg-muted px-4 py-2 text-xs font-bold text-muted-foreground opacity-70">Completa el checklist para enviar</button>
+                {{/if}}
               {{/if}}
             {{/if}}
 
             {{#if (eq plague.workflowStatus 'changes_requested')}}
               {{#if permissions.canSubmitReview}}
-                <form method="POST" action="/private/plagues/{{plague.id}}/workflow">
-                  <input type="hidden" name="action" value="submit_review" />
-                  <button type="submit" class="rounded-lg bg-[#1b4332] px-4 py-2 text-xs font-bold text-white hover:bg-[#2d6a4f]">Reenviar a revisión</button>
-                </form>
+                {{#if readiness.isReady}}
+                  <form method="POST" action="/private/plagues/{{plague.id}}/workflow">
+                    <input type="hidden" name="action" value="submit_review" />
+                    <button type="submit" class="rounded-lg bg-[#1b4332] px-4 py-2 text-xs font-bold text-white hover:bg-[#2d6a4f]">Reenviar a revisión</button>
+                  </form>
+                {{else}}
+                  <button type="button" disabled class="cursor-not-allowed rounded-lg bg-muted px-4 py-2 text-xs font-bold text-muted-foreground opacity-70">Completa el checklist para reenviar</button>
+                {{/if}}
               {{/if}}
             {{/if}}
 
@@ -124,19 +132,27 @@
                   <input type="text" name="review_notes" required maxlength="500" placeholder="Observaciones requeridas" class="rounded-lg border border-input bg-background px-3 py-2 text-xs" />
                   <button type="submit" class="rounded-lg border border-amber-300 bg-amber-50 px-4 py-2 text-xs font-bold text-amber-800 hover:bg-amber-100">Solicitar cambios</button>
                 </form>
-                <form method="POST" action="/private/plagues/{{plague.id}}/workflow">
-                  <input type="hidden" name="action" value="verify" />
-                  <button type="submit" class="rounded-lg bg-[#1b4332] px-4 py-2 text-xs font-bold text-white hover:bg-[#2d6a4f]">Verificar</button>
-                </form>
+                {{#if readiness.isReady}}
+                  <form method="POST" action="/private/plagues/{{plague.id}}/workflow">
+                    <input type="hidden" name="action" value="verify" />
+                    <button type="submit" class="rounded-lg bg-[#1b4332] px-4 py-2 text-xs font-bold text-white hover:bg-[#2d6a4f]">Verificar</button>
+                  </form>
+                {{else}}
+                  <button type="button" disabled class="cursor-not-allowed rounded-lg bg-muted px-4 py-2 text-xs font-bold text-muted-foreground opacity-70">Ficha incompleta</button>
+                {{/if}}
               {{/if}}
             {{/if}}
 
             {{#if (eq plague.workflowStatus 'verified')}}
               {{#if permissions.canPublish}}
-                <form method="POST" action="/private/plagues/{{plague.id}}/workflow">
-                  <input type="hidden" name="action" value="publish" />
-                  <button type="submit" class="rounded-lg bg-[#1b4332] px-4 py-2 text-xs font-bold text-white hover:bg-[#2d6a4f]">Publicar</button>
-                </form>
+                {{#if readiness.isReady}}
+                  <form method="POST" action="/private/plagues/{{plague.id}}/workflow">
+                    <input type="hidden" name="action" value="publish" />
+                    <button type="submit" class="rounded-lg bg-[#1b4332] px-4 py-2 text-xs font-bold text-white hover:bg-[#2d6a4f]">Publicar</button>
+                  </form>
+                {{else}}
+                  <button type="button" disabled class="cursor-not-allowed rounded-lg bg-muted px-4 py-2 text-xs font-bold text-muted-foreground opacity-70">Ficha incompleta</button>
+                {{/if}}
               {{/if}}
             {{/if}}
 
@@ -158,6 +174,43 @@
               {{/if}}
             {{/if}}
           </div>
+        </div>
+      </section>
+    {{/if}}
+
+    {{#if isPrivate}}
+      <section id="publication-checklist" class="mb-6 rounded-xl border border-border bg-white p-5 shadow-2xs">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <span class="text-[10px] font-mono font-bold uppercase tracking-widest text-muted-foreground">Control de calidad</span>
+            <h2 class="mt-1 text-base font-headline font-bold text-foreground">Requisitos para revisión y publicación</h2>
+            <p class="mt-1 text-xs text-muted-foreground">La ficha debe cumplir todos los requisitos antes de verificarse o hacerse pública.</p>
+          </div>
+          {{#if readiness.isReady}}
+            <span class="inline-flex w-fit items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-800">
+              <span class="material-symbols-outlined text-sm">task_alt</span>
+              Lista para revisión
+            </span>
+          {{else}}
+            <span class="inline-flex w-fit items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-800">
+              <span class="material-symbols-outlined text-sm">pending_actions</span>
+              {{readiness.completeCount}} de {{readiness.totalCount}} completos
+            </span>
+          {{/if}}
+        </div>
+
+        <div class="mt-4 grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
+          {{#each readiness.items}}
+            <div class="flex items-start gap-3 rounded-lg border p-3 {{#if this.complete}}border-emerald-100 bg-emerald-50/60{{else}}border-amber-100 bg-amber-50/60{{/if}}">
+              <span class="material-symbols-outlined mt-0.5 text-base {{#if this.complete}}text-emerald-700{{else}}text-amber-600{{/if}}">
+                {{#if this.complete}}check_circle{{else}}radio_button_unchecked{{/if}}
+              </span>
+              <div>
+                <p class="text-xs font-bold text-foreground">{{this.label}}</p>
+                <p class="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">{{this.hint}}</p>
+              </div>
+            </div>
+          {{/each}}
         </div>
       </section>
     {{/if}}
@@ -252,6 +305,10 @@
           {{#if relationsLocked}}
             <p class="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4 text-xs leading-relaxed text-amber-900">
               Para modificar las relaciones, la ficha debe volver a borrador o recibir una solicitud de correcciones.
+            </p>
+          {{else if relationsOwnershipRestricted}}
+            <p class="mt-4 rounded-lg border border-sky-200 bg-sky-50 p-4 text-xs leading-relaxed text-sky-900">
+              Estás consultando el expediente de otro autor. Sólo su autor o un administrador puede modificar las relaciones técnicas.
             </p>
           {{/if}}
         {{/if}}

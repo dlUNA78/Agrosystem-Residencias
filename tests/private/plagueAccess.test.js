@@ -45,8 +45,24 @@ describe('RBAC del módulo privado de plagas', () => {
 
     expect(authorPermissions.canSubmitReview).toBe(true);
     expect(authorPermissions.canVerify).toBe(false);
+    expect(authorPermissions.canEdit).toBe(true);
+    expect(authorPermissions.canManageRelations).toBe(true);
     expect(reviewerPermissions.canSubmitReview).toBe(false);
     expect(reviewerPermissions.canVerify).toBe(true);
+    expect(reviewerPermissions.canEdit).toBe(false);
+    expect(reviewerPermissions.canManageRelations).toBe(false);
+  });
+
+  it('reserva al administrador los registros sin autor conocido', () => {
+    const permissions = getContextualPlaguePermissions({
+      role: 'inifap',
+      userId: 12,
+      createdByUserId: null,
+    });
+
+    expect(permissions.canEdit).toBe(false);
+    expect(permissions.canManageRelations).toBe(false);
+    expect(permissions.canSubmitReview).toBe(false);
   });
 
   it('permite al personal INIFAP editar y verificar, pero no publicar ni eliminar', () => {

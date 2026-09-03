@@ -8,6 +8,7 @@ const transaction = {
 const plague = {
   id: 41,
   workflow_status: 'draft',
+  created_by_user_id: 12,
   toJSON: jest.fn(() => ({ id: 41, workflow_status: 'draft' })),
   update: jest.fn(),
 };
@@ -60,6 +61,7 @@ describe('controlador de imágenes múltiples de plagas', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     plague.workflow_status = 'draft';
+    plague.created_by_user_id = 12;
     mockDb.Plague.create.mockResolvedValue(plague);
     mockDb.Plague.findByPk.mockResolvedValue(plague);
     mockDb.PlagueImage.count.mockResolvedValue(2);
@@ -125,5 +127,21 @@ describe('controlador de imágenes múltiples de plagas', () => {
       { transaction },
     );
     expect(transaction.commit).toHaveBeenCalledTimes(1);
+  });
+
+  it('impide que otro INIFAP edite el expediente del autor', async () => {
+    const req = {
+      params: { id: '41' },
+      body: validBody,
+      files: [],
+      user: { id: 27, role: 'inifap' },
+    };
+    const res = buildResponse();
+
+    await updatePlague(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(403);
+    expect(plague.update).not.toHaveBeenCalled();
+    expect(transaction.rollback).toHaveBeenCalledTimes(1);
   });
 });
