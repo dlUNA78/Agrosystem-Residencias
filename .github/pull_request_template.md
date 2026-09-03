@@ -53,9 +53,10 @@ pnpm exec prettier --check .
 
 <!-- Indica riesgos conocidos y cómo revertir el cambio. -->
 
-## Revisión cruzada
+## Aprobación y merge
 
-- [ ] El PR fue revisado y aprobado por una persona distinta al autor.
+- [ ] El responsable del proyecto revisó el alcance y autorizó el merge.
+- [ ] Solicité revisión independiente si el cambio es de alto riesgo, o documenté por qué no es necesaria.
 - [ ] Todas las conversaciones quedaron resueltas.
 - [ ] Las verificaciones requeridas finalizaron correctamente.
-- [ ] La persona revisora, no la autora, realizará el merge.
+- [ ] El responsable del proyecto realizará o delegará el merge.

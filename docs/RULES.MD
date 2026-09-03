@@ -158,10 +158,11 @@ Estas reglas aplican a código, migraciones, vistas, scripts, pruebas y document
 - Cada cambio se desarrolla en una rama independiente creada desde `main` actualizado.
 - Los commits usan prefijos semánticos: `feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:` o `style:`.
 - Todo PR DEBE describir alcance, riesgos, migraciones, dependencias, pruebas automáticas y validación manual.
-- Todo PR DEBE tener al menos una aprobación de una persona distinta al autor.
+- El responsable del proyecto es la autoridad final para aceptar y fusionar cambios; GitHub no necesita una aprobación de otra persona.
+- Una revisión independiente DEBERÍA solicitarse para cambios de alto riesgo, especialmente autenticación, RBAC, migraciones destructivas, exposición pública de datos, secretos y dependencias críticas.
 - Las verificaciones requeridas DEBEN terminar correctamente antes del merge.
-- Los administradores no deben omitir revisión ni verificaciones salvo incidente urgente. El bypass requiere una explicación pública y un PR posterior de revisión.
-- Quien implementa no fusiona su propio PR. La segunda integrante revisa y realiza el merge.
+- El responsable del proyecto PUEDE fusionar su propio PR después de revisar el diff y confirmar el checklist.
+- Los administradores no deben omitir verificaciones automáticas salvo incidente urgente. El bypass requiere una explicación pública y un PR posterior de regularización.
 - Los PR deben ser acotados; cambios de documentación, tooling, seguridad y funcionalidad se separan cuando puedan revisarse independientemente.
 
 ## 16. Flujo obligatorio de modificación
@@ -175,6 +176,6 @@ Estas reglas aplican a código, migraciones, vistas, scripts, pruebas y document
 7. Realizar la validación manual proporcional al riesgo.
 8. Revisar `git diff` para evitar secretos, archivos generados o cambios fuera de alcance.
 9. Abrir el PR usando la plantilla del repositorio.
-10. Esperar verificaciones y revisión cruzada; la persona revisora realiza el merge.
+10. Esperar las verificaciones, completar el checklist y obtener la autorización del responsable del proyecto antes del merge.
 
 No se declara una tarea terminada si alguno de los pasos aplicables falla. Si existe un bloqueo externo, se documenta con evidencia y no se presenta el cambio como completado.
