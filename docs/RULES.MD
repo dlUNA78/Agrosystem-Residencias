@@ -1,98 +1,180 @@
-## 1. Arquitectura y Organización de Código (MVC)
+# Reglas de ingeniería y colaboración
 
-- **Estricto patrón MVC:** El proyecto debe respetar la separación entre Modelos, Vistas y Controladores.
-- **Principio de Responsabilidad Única:** Cada archivo debe cumplir una sola función. Si un archivo empieza a crecer excesivamente, sus funciones deben desglosarse en utilidades, helpers o middlewares independientes.
-- **Cero código espagueti en Vistas:** Queda prohibido escribir lógica de JS del cliente dentro de los archivos `.hbs`. El JS de frontend vivirá en su carpeta correspondiente (`public/js/public/`, `public/js/private/` o `public/js/shared/`) y se enlazará al final del HTML.
+**Versión:** 2.0
 
-## 2. Reglas de Diseño, Interfaz (UI) y UX
+**Estado:** propuesta de gobernanza
 
-- **TailwindCSS v4:** Todos los estilos deben construirse utilizando únicamente las clases del compilador de Tailwind v4.
-- **Fidelidad al Design System:** Se deben respetar estrictamente los colores, tipografías y componentes definidos en la guía de diseño (`Design.md`).
-- **Gestión de Librerías UI:** Todo componente de terceros (tablas avanzadas, modales, iconos) **debe instalarse como dependencia con pnpm**.
-  - ❌ _Prohibido:_ Pegar links de CDNs (`<link>` o `<script>`) en el HTML sin aprobación.
-  - ✅ Al hacer un Commit o Pull Request que añada librerías, se debe **subrayar/destacar** el paquete instalado en la descripción.
+**Documento relacionado:** [Matriz RBAC](./RBAC.MD)
 
-## 3. Gestor de Paquetes (Estándar pnpm)
+## 1. Alcance y lenguaje normativo
 
-- **Uso exclusivo de pnpm:** Todo el equipo instalará y ejecutará comandos usando `pnpm` (ej. `pnpm add <paquete>`, `pnpm dev`).
-- **Prohibido subir lockfiles cruzados:** Queda estrictamente prohibido subir `package-lock.json` o `yarn.lock`. El único archivo de bloqueo permitido en el repositorio es `pnpm-lock.yaml`.
+Estas reglas aplican a código, migraciones, vistas, scripts, pruebas y documentación del repositorio.
 
-## 4. Base de Datos (Sequelize ORM)
+- **DEBE / NO DEBE:** requisito obligatorio para aprobar y fusionar un PR.
+- **DEBERÍA:** práctica recomendada que puede omitirse si el PR documenta la razón.
+- **PUEDE:** alternativa permitida.
+- Si una regla entra en conflicto con la implementación actual, la desviación existente no se replica. Se crea una tarea de regularización y el código nuevo sigue esta versión.
+- Una excepción temporal DEBE quedar explicada en el PR, incluir su riesgo y tener una tarea de seguimiento.
 
-- **Cero cambios manuales en SQL:** Prohibido crear tablas o alterar columnas desde pgAdmin o consola SQL. Todo cambio estructural debe realizarse a través de **Migraciones de Sequelize**.
-- **Sincronización:** Antes de programar o tras descargar (`git pull`) cambios del repositorio, se debe ejecutar `pnpm exec sequelize-cli db:migrate` para sincronizar la base local.
+## 2. Arquitectura y responsabilidades
 
-## 5. Convenciones de Nomenclatura (Naming Conventions)
+- El proyecto DEBE conservar una arquitectura MVC extendida con servicios, middlewares, validadores y utilidades.
+- Los controladores DEBEN orquestar la petición y la respuesta. La autorización contextual, validación reutilizable, transformación de datos y reglas de negocio DEBEN vivir en módulos dedicados cuando no sean triviales.
+- Los modelos Sequelize DEBEN concentrar definición, asociaciones y comportamiento propio de la entidad; no deben renderizar vistas ni depender de Express.
+- Las vistas `.hbs` DEBEN limitarse a presentación y condicionales simples. No se permite lógica de negocio ni JavaScript ejecutable dentro de ellas.
+- Todo JavaScript del navegador DEBE vivir en `public/js/public/`, `public/js/private/` o `public/js/shared/`.
+- Un archivo que mezcle varias responsabilidades DEBE dividirse. Como señal de revisión, todo controlador o servicio mayor a 300 líneas y toda vista mayor a 500 líneas DEBE justificar por qué no se descompone.
 
-- **Modelos:** Singular y PascalCase (Ej. `User.js`, `Plague.js`).
-- **Controladores y Rutas:** camelCase (Ej. `userController.js`, `farmRoutes.js`).
-- **Vistas (.hbs) y URLs:** kebab-case en minúsculas (Ej. `vista-perfil.hbs`, URL: `/registrar-cultivo`).
+## 3. Interfaz, Tailwind y dependencias visuales
 
-## 6. Seguridad y Variables de Entorno (.env)
+- Tailwind CSS v4 es la herramienta principal para estilos de interfaz.
+- Los tokens y estilos base PUEDEN definirse mediante `@theme`, `@layer` y `@utility` en `public/css/input.css`.
+- CSS personalizado sólo se permite para comportamientos que no sean razonables con utilidades, como mapas, gráficas o estados calculados. La excepción DEBE estar acotada y comentada.
+- No se permiten atributos `style` estáticos. Para valores calculados en tiempo de ejecución se DEBERÍA usar una variable CSS con valor validado.
+- No se permiten manejadores inline como `onclick`, `onchange`, `onsubmit` u `onerror`.
+- Las librerías UI DEBEN instalarse con `pnpm` e importarse desde el proyecto. No se permiten scripts o estilos UI desde CDN.
+- Fuentes, mapas, imágenes u otros recursos remotos DEBEN estar documentados, usar proveedores aprobados y ser compatibles con la política CSP.
+- Las imágenes dinámicas DEBEN declarar texto alternativo, dimensiones o proporción y `object-cover`/`object-contain` según corresponda.
 
-- **Protección de credenciales:** El archivo `.env` nunca debe subirse a GitHub (debe estar en `.gitignore`).
-- **Actualización de plantilla:** Si se añade una nueva variable de entorno (ej. API Key de mapas), se debe agregar la llave vacía en `.env.example` para que el resto del equipo la configure.
+## 4. Gestor de paquetes y entorno de ejecución
 
-## 7. Manejo de Errores
+- Se usa exclusivamente `pnpm`.
+- El único lockfile permitido es `pnpm-lock.yaml`; no se versionan `package-lock.json` ni `yarn.lock`.
+- Las versiones de Node y pnpm DEBERÍAN fijarse en el repositorio para que desarrollo y CI usen el mismo entorno.
+- Todo script de instalación de una dependencia DEBE revisarse y quedar aprobado explícitamente en la configuración de pnpm.
+- Un PR que agregue o actualice dependencias DEBE explicar el propósito, el paquete afectado y cualquier script de build autorizado.
 
-- **Cero bloques `catch` vacíos:** Todo bloque `try...catch` debe registrar el error (`console.error(error)`) y mostrar una vista de error o alerta clara al usuario. Ninguna petición debe quedarse en espera infinita.
+## 5. Base de datos y Sequelize
 
-## 8. Commits Semánticos
+- Todo cambio estructural DEBE realizarse mediante una migración Sequelize versionada.
+- No se permite crear o alterar tablas manualmente, mediante `sequelize.sync({ alter: true })` ni durante el arranque de la aplicación.
+- Esto incluye tablas auxiliares como sesiones, auditoría y relaciones.
+- Cada migración DEBE implementar un `down` coherente y revisarse considerando datos existentes.
+- Los seeders se limitan a datos; PUEDEN usar consultas de lectura para resolver relaciones.
+- Tras actualizar el repositorio se DEBE ejecutar:
 
-Todos los mensajes de commit deben usar prefijos estandarizados:
+  ```bash
+  pnpm exec sequelize-cli db:migrate
+  ```
 
-- `feat:` Nuevas funcionalidades (Ej: _feat: agrega módulo de plagas e instala tabla UI_).
-- `fix:` Corrección de errores (Ej: _fix: corrige error de sesión en el login_).
-- `style:` Cambios visuales/CSS sin afectar la lógica (Ej: _style: actualiza botones según Design.md_).
+- Si el PR modifica el esquema, DEBE incluir pruebas o evidencia de migración desde el estado anterior y, cuando sea seguro, de reversión.
 
-## 9. Recursos y Vistas Compartidas (`shared/`)
+## 6. Convenciones de nombres
 
-- **Principio DRY (Don't Repeat Yourself):** Las vistas, componentes o JS de cliente que se utilicen tanto en la zona Pública como en la Privada (ej. catálogo de plagas, buscador) deben centralizarse en la carpeta `shared/`.
-- **Control por permisos:** Las diferencias visuales entre público y privado dentro de la vista compartida se manejarán mediante condicionales en Handlebars (`{{#if user.isAdmin}}...{{/if}}`).
+- Clases y modelos Sequelize: singular y PascalCase, por ejemplo `PlagueImage`.
+- Archivos JavaScript: lower camelCase, por ejemplo `plagueImage.js`, `plagueController.js` y `privateRoutes.js`.
+- Vistas, parciales y URLs: kebab-case en minúsculas, por ejemplo `plague-detail.hbs` y `/private/plagues/:id`.
+- Tablas y columnas mantienen la convención ya establecida por sus migraciones; cualquier cambio requiere migración.
+- Los nombres DEBEN describir el dominio. No se mezclan `pest` y `plague` para la misma entidad salvo compatibilidad temporal documentada.
 
-## 10. Flujo de Trabajo en Git (Branching & PRs)
+## 7. Variables de entorno y secretos
 
-- **Prohibido el commit directo a `main`:** Queda prohibido hacer `git push` directo sobre la rama principal.
-- **Feature Branches:** Cada funcionalidad o corrección se trabajará en una rama independiente (Ej: `feature/devA-lands` o `feature/devB-plagues`).
-- **Pull Requests (PR):** Al finalizar una tarea, se abrirá un PR en GitHub y el otro integrante del equipo deberá revisar el código antes de hacer el Merge.
+- `.env` nunca se versiona.
+- Toda variable nueva DEBE agregarse sin secretos a `.env.example`.
+- Las llaves usan `UPPER_SNAKE_CASE`.
+- La aplicación DEBE fallar al iniciar si falta una variable crítica; no se permiten secretos ni credenciales por defecto.
+- Logs, errores, fixtures, capturas y descripciones de PR NO DEBEN exponer contraseñas, tokens, cadenas de conexión ni códigos de acceso.
 
-## 11. Validación y Sanitización de Datos (Backend)
+## 8. Autenticación, autorización y RBAC
 
-- **Validación del lado del servidor:** Nunca confiar únicamente en la validación HTML (`required`, `type="email"`). Todos los datos recibidos en `req.body` y `req.params` deben ser validados y sanitizados en el controlador antes de interactuar con el modelo de Sequelize.
+- La política oficial de permisos se define en [RBAC.MD](./RBAC.MD).
+- Toda ruta privada DEBE verificar autenticación y autorización en el servidor.
+- Ocultar un botón en Handlebars mejora la experiencia, pero NO constituye una medida de seguridad.
+- Las vistas compartidas DEBEN recibir capacidades calculadas por backend (`canEdit`, `canVerify`, `canPublish`) en lugar de deducir permisos a partir del rol.
+- Las acciones sobre un registro DEBEN validar también propiedad, estado del workflow y separación entre autor y revisor.
+- Las rutas administrativas DEBEN usar un middleware explícito de administrador, incluso cuando el enlace sólo sea visible para ese rol.
+- Los listados y detalles públicos DEBEN consultar únicamente registros publicados o aprobados. Un ID conocido no debe permitir abrir un borrador.
+- El estado activo o suspendido de la cuenta DEBE comprobarse antes de autorizar el acceso.
 
-## 12. Formateo Automático de Código (Linting & Prettier)
+## 9. Validación y persistencia
 
-- **Estandarización de formato:** Se usará la extensión **Prettier** en VS Code con la opción _"Format on Save"_ activada en ambas computadoras. Esto garantiza que comillas, sangrías y espacios se mantengan idénticos independientemente de quién escriba el código.
+- No se confía en validaciones HTML ni en datos enviados por el cliente.
+- `req.body`, `req.params` y `req.query` DEBEN normalizarse y validarse antes de interactuar con Sequelize.
+- La validación PUEDE vivir en un servicio o middleware; el controlador conserva la responsabilidad de responder con el código apropiado.
+- Sólo se persisten campos incluidos en una lista permitida. Está prohibido pasar `req.body` completo o usar asignación masiva sin filtrar.
+- IDs, enumeraciones, URLs, fechas, números y límites de paginación DEBEN validarse y acotarse.
+- Las operaciones que modifican una entidad y sus relaciones o archivos DEBEN usar una transacción o una estrategia de compensación.
+- Los errores esperables de entrada deben producir `400`; ausencia, `404`; falta de autenticación, `401` o redirección; falta de permiso, `403`; conflictos de estado, `409`.
 
-## 13. Optimización de Archivos e Imágenes
+## 10. Seguridad web
 
-- **Límite de peso en Backend:** Al configurar cargas de archivos (con `multer` o similares), se establecerá un peso máximo (ej. máximo 2MB a 5MB por imagen).
-- **Consistencia de interfaz:** En las plantillas `.hbs`, todas las imágenes cargadas dinámicamente deberán incluir clases de Tailwind como `object-cover` y proporciones definidas (`aspect-square`, `w-full`) para evitar romper el diseño visual.
+- Toda operación que cambie estado DEBE usar un método no seguro (`POST`, `PUT`, `PATCH` o `DELETE`) y protección CSRF.
+- El cierre de sesión DEBE realizarse mediante `POST` con CSRF.
+- Las cookies de sesión DEBEN usar `httpOnly`, `sameSite`, `secure` en producción y una duración explícita.
+- El identificador de sesión DEBE regenerarse al iniciar sesión y al elevar privilegios.
+- Helmet y una Content Security Policy DEBEN mantenerse activados. Toda excepción de CSP debe ser específica y documentada.
+- Los mensajes enviados al cliente no deben revelar detalles internos, consultas, rutas físicas ni secretos.
+- Los eventos de creación, cambio de estado, publicación, eliminación y administración de usuarios DEBEN registrarse en auditoría.
+- Los endpoints sensibles DEBEN tener rate limiting apto para el entorno de despliegue; una implementación en memoria sólo es aceptable en desarrollo.
 
-### 🛡️ PROTOCOLO ESTRICTO DE MODIFICACIÓN DE CÓDIGO (Reglas para el Agente)
+## 11. Recursos y vistas compartidas
 
-CADA VEZ que modifiques, crees o elimines código en este repositorio, ESTÁS OBLIGADO a seguir este flujo secuencial. Está estrictamente prohibido dar por terminada una tarea sin antes completar todos estos pasos con éxito.
+- La presentación o interacción reutilizada entre la zona pública y privada DEBE centralizarse en `src/views/shared/`, `src/views/partials/` o `public/js/shared/`.
+- No se duplica una ficha completa para cambiar únicamente acciones privadas.
+- El backend DEBE entregar un view model apropiado al contexto. La vista no debe conocer campos sensibles o estados que el público no pueda consultar.
+- Archivos obsoletos o sin referencias DEBEN eliminarse en el mismo PR que completa su reemplazo.
 
-**PASO 1: Escribir o Actualizar Pruebas Primero (TDD)**
+## 12. Carga y ciclo de vida de archivos
 
-- Antes de modificar o crear lógica de negocio (controladores, modelos de Sequelize, rutas), debes crear o actualizar la prueba unitaria en la carpeta `/tests` utilizando Jest.
+- Las imágenes aceptadas son JPG, PNG o WEBP, con un máximo de 5 MB por archivo y 10 archivos por operación, salvo una excepción justificada.
+- Se DEBE validar extensión, MIME y firma real del archivo.
+- Los nombres almacenados DEBEN generarse en el servidor y las rutas destino deben estar limitadas a directorios permitidos.
+- La aplicación DEBE crear de forma segura los directorios esperados.
+- Si falla la transacción de base de datos, los archivos recién escritos DEBEN eliminarse.
+- Al reemplazar o eliminar registros debe existir una política explícita para archivos huérfanos.
+- Las rutas guardadas en la base DEBEN coincidir con la ubicación pública real y no contener rutas absolutas del sistema operativo.
 
-**PASO 2: Desarrollo del Código Fuente**
+## 13. Pruebas
 
-- Escribe el código necesario en el sistema para cumplir con los requerimientos, enfocado en hacer que la prueba del Paso 1 sea exitosa.
+- Para lógica de negocio nueva o corregida, primero se agrega o actualiza una prueba que reproduzca el comportamiento esperado.
+- Se requieren pruebas unitarias para servicios y validadores, e integración para rutas, persistencia, permisos y workflows.
+- Cada mutación privada DEBE probar al menos: usuario no autenticado, rol no permitido, propietario permitido, no propietario rechazado y estado inválido.
+- Cada detalle público DEBE probar que un registro no publicado responde como inexistente.
+- Las pruebas no usan la base de producción ni dependen del orden de ejecución.
+- Un PR no se considera validado sólo porque Jest no encontró pruebas; CI DEBE exigir una suite real.
+- La cobertura es una señal, no un sustituto de escenarios. Los umbrales se definirán en la configuración de calidad del repositorio.
 
-**PASO 3: Bucle de Ejecución y Auto-Sanación (Crítico)**
+## 14. Formato, lint y calidad automática
 
-- Abre la terminal integrada y ejecuta obligatoriamente: `pnpm run test`
-- **SI HAY ERRORES:** Lee el log de error en la terminal (`stderr`), analiza la falla, corrige tu propio código fuente y vuelve a ejecutar `pnpm run test`.
-- **PROHIBICIÓN:** No te detengas, no dejes código roto y no pidas intervención humana si una prueba falla. Quedarás en este bucle hasta que la consola devuelva un resultado exitoso (verde).
+- Prettier DEBE cubrir JavaScript, JSON, Markdown, CSS y Handlebars mediante configuración compatible.
+- ESLint DEBE usar una única configuración activa. Las reglas documentadas, incluida complejidad, deben existir en esa configuración.
+- Las advertencias de ESLint cuentan como fallos en CI.
+- `format` PUEDE escribir cambios localmente; CI sólo verifica mediante `format:check`.
+- Antes de solicitar revisión, el autor DEBE ejecutar los comandos definidos en `package.json` para pruebas, lint y formato.
+- Hasta que se agreguen los scripts de calidad definitivos, la verificación transitoria es:
 
-**PASO 4: Calidad y Formato (Linting)**
+  ```bash
+  pnpm run test
+  pnpm run lint -- --max-warnings=0
+  pnpm exec prettier --check .
+  ```
 
-- Una vez que las pruebas pasen, ejecuta en la terminal: `pnpm run format`
-- Luego, ejecuta: `pnpm run lint`
-- Si ESLint arroja advertencias o errores (por ejemplo, complejidad ciclomática mayor a 10, o variables no utilizadas), debes reestructurar tu código para solucionarlos.
+- El PR de automatización inmediatamente posterior a esta propuesta DEBE crear `format:check` y alinear estos comandos con CI.
+- Excepción de adopción: este PR de gobernanza PUEDE validar únicamente los documentos modificados y registrar las fallas globales heredadas. No se fusionará otro PR funcional hasta que el PR de baseline deje las verificaciones globales en verde.
 
-**PASO 5: Cierre de la Tarea**
+## 15. Commits, ramas y Pull Requests
 
-- Solo cuando los comandos `pnpm run test` y `pnpm run lint` se ejecuten limpiamente y sin errores, puedes detenerte y notificar que la modificación ha sido completada de manera segura.
+- No se hacen commits ni pushes directos a `main`.
+- Cada cambio se desarrolla en una rama independiente creada desde `main` actualizado.
+- Los commits usan prefijos semánticos: `feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:` o `style:`.
+- Todo PR DEBE describir alcance, riesgos, migraciones, dependencias, pruebas automáticas y validación manual.
+- Todo PR DEBE tener al menos una aprobación de una persona distinta al autor.
+- Las verificaciones requeridas DEBEN terminar correctamente antes del merge.
+- Los administradores no deben omitir revisión ni verificaciones salvo incidente urgente. El bypass requiere una explicación pública y un PR posterior de revisión.
+- Quien implementa no fusiona su propio PR. La segunda integrante revisa y realiza el merge.
+- Los PR deben ser acotados; cambios de documentación, tooling, seguridad y funcionalidad se separan cuando puedan revisarse independientemente.
+
+## 16. Flujo obligatorio de modificación
+
+1. Actualizar `main` y crear una rama específica.
+2. Leer estas reglas y la matriz RBAC; declarar el alcance del cambio.
+3. Para lógica de negocio, crear o actualizar primero las pruebas.
+4. Implementar el cambio respetando arquitectura, validación y autorización.
+5. Crear y ejecutar migraciones cuando cambie el esquema.
+6. Ejecutar pruebas, lint y formato hasta obtener resultados limpios.
+7. Realizar la validación manual proporcional al riesgo.
+8. Revisar `git diff` para evitar secretos, archivos generados o cambios fuera de alcance.
+9. Abrir el PR usando la plantilla del repositorio.
+10. Esperar verificaciones y revisión cruzada; la persona revisora realiza el merge.
+
+No se declara una tarea terminada si alguno de los pasos aplicables falla. Si existe un bloqueo externo, se documenta con evidencia y no se presenta el cambio como completado.
