@@ -1,4 +1,3 @@
-
 # Guía de Tipografías y Especificación Tipográfica (fonts.md)
 
 Este documento detalla el **sistema tipográfico completo** del proyecto **AgroSystem INIFAP**, especificando las familias de fuentes utilizadas, las opciones de importación web para tu proyecto **Express + HBS + Tailwind v4**, la configuración de variables CSS y la **matriz de uso sección por sección**.
@@ -9,10 +8,10 @@ Este documento detalla el **sistema tipográfico completo** del proyecto **AgroS
 
 El diseño se basa en una combinación tipográfica técnica de alto contraste: una fuente Sans-serif moderna y limpia para el contenido general, y una fuente Monospaced (monoespaciada) para datos numéricos, códigos, etiquetas micro-técnicas y nombres científicos.
 
-| Tipo de Fuente             | Familia Original (v0) | Alternativa Recomendada (Google Fonts)               | Uso Principal                                                                                                                                           |
-| :------------------------- | :-------------------- | :--------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Principal (Sans)** | `Geist Sans`        | `Inter` / `Outfit` / `Roboto`                  | Títulos principales, subtítulos, textos de párrafo, navegación, botones y descripciones.                                                            |
-| **Técnica (Mono)**  | `Geist Mono`        | `JetBrains Mono` / `Fira Code` / `Roboto Mono` | Números tabulares, folios, fechas, datos numéricos de mapas/métricas, etiquetas técnicas (`.text-mono-label`) y nombres científicos en itálica. |
+| Tipo de Fuente       | Familia Original (v0) | Alternativa Recomendada (Google Fonts)         | Uso Principal                                                                                                                                   |
+| :------------------- | :-------------------- | :--------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Principal (Sans)** | `Geist Sans`          | `Inter` / `Outfit` / `Roboto`                  | Títulos principales, subtítulos, textos de párrafo, navegación, botones y descripciones.                                                        |
+| **Técnica (Mono)**   | `Geist Mono`          | `JetBrains Mono` / `Fira Code` / `Roboto Mono` | Números tabulares, folios, fechas, datos numéricos de mapas/métricas, etiquetas técnicas (`.text-mono-label`) y nombres científicos en itálica. |
 
 ---
 
@@ -24,9 +23,12 @@ Agrega el siguiente bloque de enlaces `<link>` dentro de la etiqueta `<head>` de
 
 ```html
 <!-- Importación de Google Fonts: Geist Sans y Geist Mono (o Inter y JetBrains Mono) -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Geist:wght@400;500;600;700&display=swap"
+  rel="stylesheet"
+/>
 ```
 
 ---
@@ -142,11 +144,11 @@ A continuación se desglosa exactamente qué fuente, tamaño, peso y clases util
 
 ## 4. Resumen de Clases de Tailwind CSS v4 para Fuentes
 
-| Propósito                             | Clases de Tailwind v4            | Efecto Tipográfico                                                                        |
-| :------------------------------------- | :------------------------------- | :----------------------------------------------------------------------------------------- |
-| **Fuente Sans Por Defecto**      | `font-sans`                    | Aplica la familia`Geist` o `Inter`.                                                    |
-| **Fuente Monoespaciada**         | `font-mono`                    | Aplica la familia`Geist Mono` o `JetBrains Mono`.                                      |
-| **Etiqueta Micro-Técnica**      | `text-mono-label`              | Fuente Mono, 11px (0.6875rem), mayúsculas y espaciado amplio (`letter-spacing: 0.1em`). |
-| **Nombre Científico**           | `font-mono italic`             | Fuente Mono en itálica para términos en latín (ej.*Spodoptera frugiperda*).           |
-| **Cifras Alineadas / Tabulares** | `tabular-nums`                 | Garantiza que los números (0-9) tengan el mismo ancho visual en tablas y contadores.      |
-| **Títulos de Alto Impacto**     | `font-semibold tracking-tight` | Peso 600 con espaciado entre letras ligeramente contraído para estética moderna.         |
+| Propósito                        | Clases de Tailwind v4          | Efecto Tipográfico                                                                      |
+| :------------------------------- | :----------------------------- | :-------------------------------------------------------------------------------------- |
+| **Fuente Sans Por Defecto**      | `font-sans`                    | Aplica la familia`Geist` o `Inter`.                                                     |
+| **Fuente Monoespaciada**         | `font-mono`                    | Aplica la familia`Geist Mono` o `JetBrains Mono`.                                       |
+| **Etiqueta Micro-Técnica**       | `text-mono-label`              | Fuente Mono, 11px (0.6875rem), mayúsculas y espaciado amplio (`letter-spacing: 0.1em`). |
+| **Nombre Científico**            | `font-mono italic`             | Fuente Mono en itálica para términos en latín (ej._Spodoptera frugiperda_).             |
+| **Cifras Alineadas / Tabulares** | `tabular-nums`                 | Garantiza que los números (0-9) tengan el mismo ancho visual en tablas y contadores.    |
+| **Títulos de Alto Impacto**      | `font-semibold tracking-tight` | Peso 600 con espaciado entre letras ligeramente contraído para estética moderna.        |

@@ -240,8 +240,8 @@ export const renderCropDetail = async (req, res) => {
     const primaryImage = primaryImg
       ? normalizeImagePath(primaryImg.image_url)
       : crop.image_url
-      ? normalizeImagePath(crop.image_url)
-      : null;
+        ? normalizeImagePath(crop.image_url)
+        : null;
 
     // ── Normalizar imágenes del carrusel ──────────────────────────────────
     const carouselImages = (crop.images || []).map((image) => ({
@@ -274,7 +274,7 @@ export const renderCropDetail = async (req, res) => {
     const plagueFallbackImages = {
       'Pulgón Verde': '/images/plagas/pulgon-verde.webp',
       'Gusano Cogollero': '/images/plagas/gusano-cogollero.webp',
-      'Cenicilla': '/images/plagas/cenicilla.webp',
+      Cenicilla: '/images/plagas/cenicilla.webp',
       'Mosca del Mediterráneo': '/images/plagas/mosca-mediterraneo.webp',
       'Psílido Asiático': '/images/plagas/psilido-asiatico.webp',
       'Roya Amarilla': '/images/plagas/roya-amarilla.webp',
@@ -289,14 +289,13 @@ export const renderCropDetail = async (req, res) => {
           p.images?.find((img) => img.is_primary) || p.images?.[0];
 
         let imgUrl =
-          primaryPlagueImg?.image_url ||
-          primaryPlagueImg?.url ||
-          p.image_url;
+          primaryPlagueImg?.image_url || primaryPlagueImg?.url || p.image_url;
 
         if (imgUrl) {
           imgUrl = normalizeImagePath(imgUrl);
         } else {
-          imgUrl = plagueFallbackImages[p.name] || '/images/plagas/pulgon-verde.webp';
+          imgUrl =
+            plagueFallbackImages[p.name] || '/images/plagas/pulgon-verde.webp';
         }
 
         return {

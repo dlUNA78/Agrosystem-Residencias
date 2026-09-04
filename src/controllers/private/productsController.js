@@ -93,7 +93,8 @@ export const getProductDetail = async (req, res) => {
     }
 
     const product = productRecord.toJSON();
-    const primaryImg = product.images?.find((i) => i.is_primary) || product.images?.[0];
+    const primaryImg =
+      product.images?.find((i) => i.is_primary) || product.images?.[0];
     product.image_url = primaryImg?.image_url || '/images/products/default.png';
 
     if (

@@ -4,19 +4,19 @@ export default {
 
     const crops = await queryInterface.sequelize.query(
       `SELECT id, name FROM "Crops" ORDER BY id ASC`,
-      { type: queryInterface.sequelize.QueryTypes.SELECT }
+      { type: queryInterface.sequelize.QueryTypes.SELECT },
     );
 
     if (!crops.length) return;
 
     const imageMap = {
-      'Maíz': '/images/cultivos/maiz.jpg',
-      'Trigo': '/images/cultivos/trigo.jpg',
+      Maíz: '/images/cultivos/maiz.jpg',
+      Trigo: '/images/cultivos/trigo.jpg',
       'Limón Mexicano': '/images/cultivos/limon-mexicano.jpg',
       'Naranja Dulce': '/images/cultivos/naranja-dulce.jpg',
-      'Jitomate': '/images/cultivos/jitomate.jpg',
-      'Papa': '/images/cultivos/papa.jpg',
-      'Calabacita': '/images/cultivos/calabacita.jpg'
+      Jitomate: '/images/cultivos/jitomate.jpg',
+      Papa: '/images/cultivos/papa.jpg',
+      Calabacita: '/images/cultivos/calabacita.jpg',
     };
 
     const images = [];
@@ -31,7 +31,7 @@ export default {
         is_primary: true,
         display_order: 1,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       });
 
       images.push({
@@ -41,7 +41,7 @@ export default {
         is_primary: false,
         display_order: 2,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       });
     });
 
@@ -50,5 +50,5 @@ export default {
 
   async down(queryInterface) {
     await queryInterface.bulkDelete('CropImages', null, {});
-  }
+  },
 };

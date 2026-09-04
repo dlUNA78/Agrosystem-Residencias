@@ -134,7 +134,9 @@
     applyState(animate);
     try {
       localStorage.setItem(STORAGE_KEY, open ? '1' : '0');
-    } catch (_) {}
+    } catch {
+      // El almacenamiento puede estar bloqueado; el estado en memoria continúa funcionando.
+    }
   }
 
   function toggleSidebar() {
@@ -147,7 +149,9 @@
     let saved = null;
     try {
       saved = localStorage.getItem(STORAGE_KEY);
-    } catch (_) {}
+    } catch {
+      // El almacenamiento puede estar bloqueado; se utiliza el estado predeterminado.
+    }
 
     if (saved === null) {
       // Por defecto: abierto en desktop, cerrado en móvil

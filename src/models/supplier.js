@@ -2,7 +2,7 @@ import { Model } from 'sequelize';
 
 export default (sequelize, DataTypes) => {
   class Supplier extends Model {
-    static associate(models) {
+    static associate(_models) {
       // Las asociaciones se agregarán después si son necesarias
     }
   }

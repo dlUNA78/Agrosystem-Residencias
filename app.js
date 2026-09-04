@@ -12,13 +12,10 @@ import configurePassport from './src/config/passport.js';
 
 // Importar la instancia de Sequelize
 import sequelize from './src/config/database.js';
-import db from './src/models/index.js';
 import publicRoutes from './src/routes/publicRoutes.js';
 import privateRoutes from './src/routes/privateRoutes.js';
 import authRoutes from './src/routes/auth.js';
 import { seedDefaultUsers } from './src/scripts/seedDefaultUsers.js';
-
-const { User } = db;
 
 // __dirname no existe en ES Modules — lo reconstruimos
 const __filename = fileURLToPath(import.meta.url);

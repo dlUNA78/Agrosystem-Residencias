@@ -53,13 +53,13 @@
   color-scheme: light;
 
   --background: oklch(0.985 0.002 240);
-  --foreground: oklch(0.20 0.012 250);
+  --foreground: oklch(0.2 0.012 250);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.20 0.012 250);
+  --card-foreground: oklch(0.2 0.012 250);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.20 0.012 250);
+  --popover-foreground: oklch(0.2 0.012 250);
 
-  --primary: oklch(0.28 0.070 150);
+  --primary: oklch(0.28 0.07 150);
   --primary-foreground: oklch(0.985 0.002 240);
 
   --secondary: oklch(0.96 0.003 250);
@@ -72,20 +72,20 @@
   --destructive: oklch(0.512 0.185 27);
   --border: oklch(0.91 0.004 250);
   --input: oklch(0.91 0.004 250);
-  --ring: oklch(0.28 0.070 150);
+  --ring: oklch(0.28 0.07 150);
 
   /* Paleta OKLCH para Nivel de Riesgo de Plagas */
-  --risk-critico: oklch(0.512 0.185 27);     /* Rojo crítico */
-  --risk-alto: oklch(0.705 0.155 62);       /* Naranja advertencia */
-  --risk-moderado: oklch(0.545 0.072 155);   /* Verde medio */
-  --risk-bajo: oklch(0.6 0.011 250);         /* Gris neutro */
+  --risk-critico: oklch(0.512 0.185 27); /* Rojo crítico */
+  --risk-alto: oklch(0.705 0.155 62); /* Naranja advertencia */
+  --risk-moderado: oklch(0.545 0.072 155); /* Verde medio */
+  --risk-bajo: oklch(0.6 0.011 250); /* Gris neutro */
 
   /* Paleta de tonos verdes idéntica al prototipo v0 de la Imagen 1 */
   --level-0: oklch(0.965 0.005 145);
-  --level-1: oklch(0.780 0.048 145);
-  --level-2: oklch(0.580 0.082 145);
-  --level-3: oklch(0.380 0.095 145);
-  --level-4: oklch(0.240 0.075 145);
+  --level-1: oklch(0.78 0.048 145);
+  --level-2: oklch(0.58 0.082 145);
+  --level-3: oklch(0.38 0.095 145);
+  --level-4: oklch(0.24 0.075 145);
 
   --radius: 0.25rem;
 }

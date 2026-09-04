@@ -23,7 +23,8 @@ export default {
       'Cenicilla Polvorienta': '/images/plagas/cenicilla.webp',
       'Gusano Cogollero': '/images/plagas/gusano-cogollero.webp',
       'Mosca del Mediterráneo': '/images/plagas/mosca-mediterraneo.webp',
-      'Psílido Asiático de los Cítricos': '/images/plagas/psilido-asiatico.webp',
+      'Psílido Asiático de los Cítricos':
+        '/images/plagas/psilido-asiatico.webp',
       'Pulgón Verde': '/images/plagas/pulgon-verde.webp',
       'Roya Amarilla del Trigo': '/images/plagas/roya-amarilla.webp',
       'Tizón Tardío': '/images/plagas/tizon-tardio.webp',

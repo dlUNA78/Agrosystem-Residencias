@@ -86,7 +86,7 @@ export const authController = {
     });
   },
 
-  processUpgrade: async (req, res) => {
+  processUpgrade: async (req, res, next) => {
     // Helper para renderizar errores sin duplicar código
     const renderError = (message) =>
       res.status(401).render('auth/upgrade', {

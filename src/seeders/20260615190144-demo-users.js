@@ -1,7 +1,7 @@
 import bcrypt from 'bcrypt';
 
 export default {
-  async up(queryInterface, Sequelize) {
+  async up(queryInterface, _Sequelize) {
     await queryInterface.bulkDelete('Users', null, {});
 
     const defaultPassword = await bcrypt.hash('123456', 10);
@@ -110,7 +110,7 @@ export default {
     );
   },
 
-  async down(queryInterface, Sequelize) {
+  async down(queryInterface, _Sequelize) {
     await queryInterface.bulkDelete('Users', null, {});
   },
 };

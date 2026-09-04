@@ -1,4 +1,3 @@
-
 # Guía Técnica de Portabilidad y Diseño: Sección Catálogo de Plagas (`/plagas`)
 
 ## De React/Next.js a Express.js + Handlebars (HBS) + Tailwind CSS v4
@@ -18,30 +17,30 @@ Para garantizar la fidelidad 1:1, a continuación se desglosa la **fuente exacta
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
-| Elemento UI en`/plagas`                                | Familia Tipográfica | Peso / Estilo            | Tamaño / Interlineado | Clases de Tailwind v4                                                   |
-| :------------------------------------------------------- | :------------------- | :----------------------- | :--------------------- | :---------------------------------------------------------------------- |
-| **Top Banner "INIFAP"**                            | `Geist Mono`       | Regular · Uppercase     | 11px (`0.6875rem`)   | `text-mono-label opacity-90`                                          |
-| **Título Marca "AgroSystem INIFAP"**              | `Geist Sans`       | Semi-bold (600)          | 14px (`0.875rem`)    | `text-sm font-semibold tracking-tight`                                |
-| **Subtítulo Marca**                               | `Geist Mono`       | Regular · Uppercase     | 11px (`0.6875rem`)   | `text-mono-label text-muted-foreground`                               |
-| **Enlace Navbar Activo ("Plagas")**                | `Geist Sans`       | Medium (500)             | 14px (`0.875rem`)    | `rounded-full bg-primary text-sm font-medium text-primary-foreground` |
-| **Enlaces Navbar Inactivos**                       | `Geist Sans`       | Regular (400)            | 14px (`0.875rem`)    | `rounded-full text-sm text-muted-foreground hover:bg-muted`           |
-| **Subtítulo de Sección ("Base de datos...")**    | `Geist Mono`       | Regular · Uppercase     | 11px (`0.6875rem`)   | `text-mono-label text-primary`                                        |
-| **Título H1 ("Catálogo de Plagas")**             | `Geist Sans`       | Semi-bold (600)          | 36px–48px             | `text-4xl font-semibold leading-[1.05] tracking-tight md:text-5xl`    |
-| **Párrafo Descriptivo de Entrada**                | `Geist Sans`       | Regular (400)            | 14px (`0.875rem`)    | `max-w-xl text-sm leading-relaxed text-muted-foreground`              |
-| **Cifras de Métricas (`8`, `3`)**             | `Geist Mono`       | Medium (500) · Tabular  | 30px (`1.875rem`)    | `font-mono text-3xl font-medium tabular-nums`                         |
-| **Etiqueta Métricas ("Especies...")**             | `Geist Mono`       | Regular · Uppercase     | 11px (`0.6875rem`)   | `text-mono-label text-muted-foreground`                               |
-| **Input de Búsqueda (Placeholder/Texto)**         | `Geist Sans`       | Regular (400)            | 14px (`0.875rem`)    | `text-sm placeholder:text-muted-foreground`                           |
-| **Dropdowns Select (`Categoría`, `Región`)** | `Geist Sans`       | Regular (400)            | 14px (`0.875rem`)    | `text-sm text-foreground`                                             |
-| **Contador de Especies Encontradas**               | `Geist Mono`       | Regular · Uppercase     | 11px (`0.6875rem`)   | `text-mono-label text-muted-foreground`                               |
-| **Boton "Limpiar Filtros"**                        | `Geist Sans`       | Medium (500)             | 12px (`0.75rem`)     | `text-xs font-medium text-primary`                                    |
-| **Badge de Riesgo en Tarjeta**                     | `Geist Mono`       | Regular · Uppercase     | 11px (`0.6875rem`)   | `text-mono-label text-foreground`                                     |
-| **Taxonomía ("INSECTO — HEMIPTERA:...")**        | `Geist Mono`       | Regular · Uppercase     | 11px (`0.6875rem`)   | `text-mono-label text-muted-foreground`                               |
-| **Nombre Común de Plaga H3**                      | `Geist Sans`       | Semi-bold (600)          | 18px (`1.125rem`)    | `text-lg font-semibold leading-tight tracking-tight`                  |
-| **Nombre Científico (*Schizaphis...*)**         | `Geist Mono`       | **Itálica** (400) | 12px (`0.75rem`)     | `font-mono text-xs italic text-muted-foreground`                      |
-| **Descripción de Plaga (3 líneas)**              | `Geist Sans`       | Regular (400)            | 14px (`0.875rem`)    | `line-clamp-3 text-sm leading-relaxed text-muted-foreground`          |
-| **Chips/Tags de Cultivos**                         | `Geist Sans`       | Regular (400)            | 12px (`0.75rem`)     | `text-xs text-muted-foreground border border-border`                  |
-| **Etiqueta "Umbral Económico"**                   | `Geist Mono`       | Regular · Uppercase     | 11px (`0.6875rem`)   | `text-mono-label text-muted-foreground`                               |
-| **Valor de Umbral Económico**                     | `Geist Sans`       | Medium (500)             | 12px (`0.75rem`)     | `text-xs font-medium`                                                 |
+| Elemento UI en`/plagas`                       | Familia Tipográfica | Peso / Estilo          | Tamaño / Interlineado | Clases de Tailwind v4                                                 |
+| :-------------------------------------------- | :------------------ | :--------------------- | :-------------------- | :-------------------------------------------------------------------- |
+| **Top Banner "INIFAP"**                       | `Geist Mono`        | Regular · Uppercase    | 11px (`0.6875rem`)    | `text-mono-label opacity-90`                                          |
+| **Título Marca "AgroSystem INIFAP"**          | `Geist Sans`        | Semi-bold (600)        | 14px (`0.875rem`)     | `text-sm font-semibold tracking-tight`                                |
+| **Subtítulo Marca**                           | `Geist Mono`        | Regular · Uppercase    | 11px (`0.6875rem`)    | `text-mono-label text-muted-foreground`                               |
+| **Enlace Navbar Activo ("Plagas")**           | `Geist Sans`        | Medium (500)           | 14px (`0.875rem`)     | `rounded-full bg-primary text-sm font-medium text-primary-foreground` |
+| **Enlaces Navbar Inactivos**                  | `Geist Sans`        | Regular (400)          | 14px (`0.875rem`)     | `rounded-full text-sm text-muted-foreground hover:bg-muted`           |
+| **Subtítulo de Sección ("Base de datos...")** | `Geist Mono`        | Regular · Uppercase    | 11px (`0.6875rem`)    | `text-mono-label text-primary`                                        |
+| **Título H1 ("Catálogo de Plagas")**          | `Geist Sans`        | Semi-bold (600)        | 36px–48px             | `text-4xl font-semibold leading-[1.05] tracking-tight md:text-5xl`    |
+| **Párrafo Descriptivo de Entrada**            | `Geist Sans`        | Regular (400)          | 14px (`0.875rem`)     | `max-w-xl text-sm leading-relaxed text-muted-foreground`              |
+| **Cifras de Métricas (`8`, `3`)**             | `Geist Mono`        | Medium (500) · Tabular | 30px (`1.875rem`)     | `font-mono text-3xl font-medium tabular-nums`                         |
+| **Etiqueta Métricas ("Especies...")**         | `Geist Mono`        | Regular · Uppercase    | 11px (`0.6875rem`)    | `text-mono-label text-muted-foreground`                               |
+| **Input de Búsqueda (Placeholder/Texto)**     | `Geist Sans`        | Regular (400)          | 14px (`0.875rem`)     | `text-sm placeholder:text-muted-foreground`                           |
+| **Dropdowns Select (`Categoría`, `Región`)**  | `Geist Sans`        | Regular (400)          | 14px (`0.875rem`)     | `text-sm text-foreground`                                             |
+| **Contador de Especies Encontradas**          | `Geist Mono`        | Regular · Uppercase    | 11px (`0.6875rem`)    | `text-mono-label text-muted-foreground`                               |
+| **Boton "Limpiar Filtros"**                   | `Geist Sans`        | Medium (500)           | 12px (`0.75rem`)      | `text-xs font-medium text-primary`                                    |
+| **Badge de Riesgo en Tarjeta**                | `Geist Mono`        | Regular · Uppercase    | 11px (`0.6875rem`)    | `text-mono-label text-foreground`                                     |
+| **Taxonomía ("INSECTO — HEMIPTERA:...")**     | `Geist Mono`        | Regular · Uppercase    | 11px (`0.6875rem`)    | `text-mono-label text-muted-foreground`                               |
+| **Nombre Común de Plaga H3**                  | `Geist Sans`        | Semi-bold (600)        | 18px (`1.125rem`)     | `text-lg font-semibold leading-tight tracking-tight`                  |
+| **Nombre Científico (_Schizaphis..._)**       | `Geist Mono`        | **Itálica** (400)      | 12px (`0.75rem`)      | `font-mono text-xs italic text-muted-foreground`                      |
+| **Descripción de Plaga (3 líneas)**           | `Geist Sans`        | Regular (400)          | 14px (`0.875rem`)     | `line-clamp-3 text-sm leading-relaxed text-muted-foreground`          |
+| **Chips/Tags de Cultivos**                    | `Geist Sans`        | Regular (400)          | 12px (`0.75rem`)      | `text-xs text-muted-foreground border border-border`                  |
+| **Etiqueta "Umbral Económico"**               | `Geist Mono`        | Regular · Uppercase    | 11px (`0.6875rem`)    | `text-mono-label text-muted-foreground`                               |
+| **Valor de Umbral Económico**                 | `Geist Sans`        | Medium (500)           | 12px (`0.75rem`)      | `text-xs font-medium`                                                 |
 
 ---
 
@@ -64,7 +63,7 @@ El secreto del diseño radica en la interacción entre **dos elementos pegajosos
    - Ocupa una altura fija de **$104\text{px}$** al desplazarse por la pantalla.
 2. **Barra de Búsqueda y Filtros (`PestCatalog`)**:
    - `sticky top-[104px] z-30 -mx-6 mb-8 border-b border-border bg-background/95 px-6 py-4 backdrop-blur supports-[backdrop-filter]:bg-background/80`
-   - Al hacer *scroll down*, la barra de filtros sube hasta encontrar la parte inferior del Navbar ($104\text{px}$). En ese momento se detiene y se acopla justo debajo, creando una doble cabecera de cristal translúcido continuo ("efecto fusión").
+   - Al hacer _scroll down_, la barra de filtros sube hasta encontrar la parte inferior del Navbar ($104\text{px}$). En ese momento se detiene y se acopla justo debajo, creando una doble cabecera de cristal translúcido continuo ("efecto fusión").
 
 ---
 
@@ -110,10 +109,10 @@ Asegúrate de agregar los tokens de riesgo específicos del catálogo en tu CSS 
   --muted-foreground: oklch(0.518 0.011 250);
 
   /* Paleta OKLCH para Nivel de Riesgo de Plagas */
-  --risk-critico: oklch(0.512 0.185 27);     /* Rojo crítico */
-  --risk-alto: oklch(0.705 0.155 62);       /* Naranja advertencia */
-  --risk-moderado: oklch(0.545 0.072 155);   /* Verde medio */
-  --risk-bajo: oklch(0.6 0.011 250);         /* Gris neutro */
+  --risk-critico: oklch(0.512 0.185 27); /* Rojo crítico */
+  --risk-alto: oklch(0.705 0.155 62); /* Naranja advertencia */
+  --risk-moderado: oklch(0.545 0.072 155); /* Verde medio */
+  --risk-bajo: oklch(0.6 0.011 250); /* Gris neutro */
 
   --radius: 0.25rem;
 }
@@ -150,7 +149,7 @@ exports.renderPlagas = (req, res) => {
         p.cientifico.toLowerCase().includes(term) ||
         p.familia.toLowerCase().includes(term) ||
         p.orden.toLowerCase().includes(term) ||
-        p.cultivos.some((c) => c.toLowerCase().includes(term))
+        p.cultivos.some((c) => c.toLowerCase().includes(term)),
     );
   }
 
@@ -167,8 +166,15 @@ exports.renderPlagas = (req, res) => {
     resultados = resultados.filter((p) => p.riesgo === riesgo);
   }
 
-  const totalCriticas = agroData.plagas.filter((p) => p.riesgo === 'crítico').length;
-  const tieneFiltros = Boolean(q || (categoria && categoria !== 'Todas') || (region && region !== 'todas') || (riesgo && riesgo !== 'todos'));
+  const totalCriticas = agroData.plagas.filter(
+    (p) => p.riesgo === 'crítico',
+  ).length;
+  const tieneFiltros = Boolean(
+    q ||
+    (categoria && categoria !== 'Todas') ||
+    (region && region !== 'todas') ||
+    (riesgo && riesgo !== 'todos'),
+  );
 
   res.render('plagas', {
     title: 'Catálogo de Plagas · AgroSystem INIFAP',
@@ -235,7 +241,7 @@ exports.renderPlagas = (req, res) => {
 <main>
   <section aria-labelledby="catalogo-title" class="bg-background">
     <div class="mx-auto max-w-7xl px-6 py-12 md:py-16">
-    
+
       <!-- Encabezado de la Sección -->
       <div class="grid gap-8 border-b border-border pb-10 md:grid-cols-[1.7fr_1fr] md:items-end">
         <div class="flex flex-col gap-4">
@@ -264,7 +270,7 @@ exports.renderPlagas = (req, res) => {
       <div class="sticky top-[104px] z-30 -mx-6 mb-8 border-b border-border bg-background/95 px-6 py-4 backdrop-blur supports-[backdrop-filter]:bg-background/80">
         <form action="/plagas" method="GET" id="form-filtros">
           <div class="flex flex-col gap-3 lg:flex-row lg:items-center">
-          
+
             <!-- Campo de Búsqueda -->
             <div class="relative flex-1">
               <svg class="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
@@ -280,7 +286,7 @@ exports.renderPlagas = (req, res) => {
 
             <!-- Dropdowns de Filtrado -->
             <div class="grid grid-cols-1 gap-3 sm:grid-cols-3 lg:w-auto lg:flex">
-            
+
               <!-- Filtro Categoría -->
               <div class="relative lg:w-40">
                 <select name="categoria" onchange="document.getElementById('form-filtros').submit()" class="h-10 w-full appearance-none border border-input bg-background px-3 pr-8 text-sm outline-none transition-colors focus-visible:border-primary">
@@ -338,7 +344,7 @@ exports.renderPlagas = (req, res) => {
         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {{#each plagas}}
             <article class="group flex flex-col border border-border bg-card transition-colors hover:border-primary/40">
-            
+
               <!-- 1. Barra de Nivel de Riesgo Superior -->
               <div class="h-1 w-full {{#if (eq this.riesgo 'crítico')}}bg-risk-critico{{else if (eq this.riesgo 'alto')}}bg-risk-alto{{else if (eq this.riesgo 'moderado')}}bg-risk-moderado{{else}}bg-risk-bajo{{/if}}"></div>
 
@@ -351,7 +357,7 @@ exports.renderPlagas = (req, res) => {
                 />
                 <div aria-hidden="true" class="absolute inset-0 bg-primary opacity-55 mix-blend-color"></div>
                 <div aria-hidden="true" class="absolute inset-0 bg-gradient-to-t from-primary/70 via-transparent to-transparent"></div>
-              
+
                 <!-- Badge de Riesgo (Top-Left) -->
                 <div class="absolute left-3 top-3 flex items-center gap-1.5 bg-card/90 px-2 py-1 backdrop-blur">
                   <span aria-hidden="true" class="inline-block size-1.5 rounded-full {{#if (eq this.riesgo 'crítico')}}bg-risk-critico{{else if (eq this.riesgo 'alto')}}bg-risk-alto{{else if (eq this.riesgo 'moderado')}}bg-risk-moderado{{else}}bg-risk-bajo{{/if}}"></span>
@@ -361,7 +367,7 @@ exports.renderPlagas = (req, res) => {
 
               <!-- 3. Contenido de la Tarjeta -->
               <div class="flex flex-1 flex-col gap-3 p-5">
-              
+
                 <!-- Taxonomía -->
                 <p class="text-mono-label text-muted-foreground">
                   {{this.categoria}} — {{this.orden}}: {{this.familia}}
@@ -426,8 +432,8 @@ exports.renderPlagas = (req, res) => {
 
 ## 5. Checklist de Verificación para Portabilidad 1:1
 
-- [X] **Tipografía Geist Sans / Mono**: Aplicada rigurosamente a títulos H1, sub-etiquetas `.text-mono-label`, nombres científicos en itálica monoespaciada y cifras numéricas.
-- [X] **Fusión Sticky (`top-[104px]`)**: Barra de filtros anclada justo debajo del Navbar pegajoso con traslucidez `backdrop-blur`.
-- [X] **Tokens OKLCH**: Paleta `--risk-critico`, `--risk-alto`, `--risk-moderado`, `--risk-bajo` en franja superior e insignias.
-- [X] **Tratamiento de Imagen de Plaga**: Escala de grises con tinte verde INIFAP (`grayscale contrast-[1.05] bg-primary opacity-55 mix-blend-color`).
-- [X] **Lógica de Filtros**: Integrada al controlador Express para responder dinámicamente mediante `req.query`.
+- [x] **Tipografía Geist Sans / Mono**: Aplicada rigurosamente a títulos H1, sub-etiquetas `.text-mono-label`, nombres científicos en itálica monoespaciada y cifras numéricas.
+- [x] **Fusión Sticky (`top-[104px]`)**: Barra de filtros anclada justo debajo del Navbar pegajoso con traslucidez `backdrop-blur`.
+- [x] **Tokens OKLCH**: Paleta `--risk-critico`, `--risk-alto`, `--risk-moderado`, `--risk-bajo` en franja superior e insignias.
+- [x] **Tratamiento de Imagen de Plaga**: Escala de grises con tinte verde INIFAP (`grayscale contrast-[1.05] bg-primary opacity-55 mix-blend-color`).
+- [x] **Lógica de Filtros**: Integrada al controlador Express para responder dinámicamente mediante `req.query`.

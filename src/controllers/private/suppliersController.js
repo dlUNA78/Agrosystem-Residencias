@@ -9,8 +9,6 @@ const __dirname = path.dirname(__filename);
 // Ruta absoluta al layout privado
 const privateLayout = path.join(__dirname, '../../views/layouts/private');
 
-const { Supplier } = db;
-
 export const suppliersPrivate = async (req, res) => {
   try {
     // =========================================
