@@ -10,12 +10,14 @@ import connectPgSimple from 'connect-pg-simple';
 import helmet from 'helmet';
 import configurePassport from './src/config/passport.js';
 
-// Importar la instancia de Sequelize
-import sequelize from './src/config/database.js';
+// Reutilizar la misma instancia de Sequelize que utilizan los modelos.
+import db from './src/models/index.js';
 import publicRoutes from './src/routes/publicRoutes.js';
 import privateRoutes from './src/routes/privateRoutes.js';
 import authRoutes from './src/routes/auth.js';
 import { seedDefaultUsers } from './src/scripts/seedDefaultUsers.js';
+
+const { sequelize } = db;
 
 // __dirname no existe en ES Modules — lo reconstruimos
 const __filename = fileURLToPath(import.meta.url);
@@ -59,8 +61,8 @@ app.use(
 // ─── POOL DE CONEXIÓN COMPARTIDO (pg) ─────────────────────────────────────
 // connect-pg-simple necesita un cliente `pg` crudo, no una instancia Sequelize.
 // En vez de duplicar credenciales manualmente, construimos un Pool una sola
-// vez aquí, usando las mismas variables de entorno que ya usa Sequelize en
-// src/config/database.js. Si la contraseña de BD cambia, sólo se edita el .env.
+// vez aquí, usando las mismas variables de entorno que Sequelize. Si la
+// contraseña de BD cambia, sólo se edita el .env.
 const pgPool = new pg.Pool({
   host: process.env.DB_HOST,
   port: process.env.DB_PORT,
@@ -68,6 +70,16 @@ const pgPool = new pg.Pool({
   user: process.env.DB_USER,
   password: process.env.DB_PASS,
 });
+
+let closeAppResourcesPromise;
+
+export const closeAppResources = () => {
+  if (!closeAppResourcesPromise) {
+    closeAppResourcesPromise = Promise.all([pgPool.end(), sequelize.close()]);
+  }
+
+  return closeAppResourcesPromise;
+};
 
 // Configuración de Handlebars
 app.engine(
@@ -190,8 +202,7 @@ const PgSession = connectPgSimple(session);
 app.use(
   session({
     // Reutilizamos el pool de pg en vez de pasar credenciales sueltas.
-    // Esto elimina la duplicación con src/config/database.js y garantiza
-    // que ambas conexiones (Sequelize y sesiones) siempre usan la misma fuente.
+    // Esto garantiza que Sequelize y las sesiones usen la misma configuración.
     store: new PgSession({
       pool: pgPool,
       // 🛡️ Magia de dev: Esto crea la tabla "session" automáticamente en PostgreSQL si no existe

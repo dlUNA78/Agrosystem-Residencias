@@ -1,10 +1,12 @@
-import { describe, it, expect } from '@jest/globals';
+import { afterAll, describe, it, expect } from '@jest/globals';
 import request from 'supertest';
-import app from '../../app.js';
+import app, { closeAppResources } from '../../app.js';
 import db from '../../src/models/index.js';
 import bcrypt from 'bcrypt';
 
 const { User } = db;
+
+afterAll(closeAppResources);
 
 describe('🔑 Pruebas de Flujo Completo de Inicio de Sesión (Login Flow)', () => {
   it('Debe iniciar sesión correctamente con credenciales válidas y mantener la cookie de sesión', async () => {

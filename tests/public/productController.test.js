@@ -1,9 +1,11 @@
 import request from 'supertest';
-import app from '../../app.js';
+import app, { closeAppResources } from '../../app.js';
 import db from '../../src/models/index.js';
 import { calculateFinalPrice } from '../../src/utils/productCalculations.js';
 
 const { Product } = db;
+
+afterAll(closeAppResources);
 
 describe('🧪 Suite de Pruebas Públicas - Módulo de Productos Fitosanitarios', () => {
   let sampleProduct;

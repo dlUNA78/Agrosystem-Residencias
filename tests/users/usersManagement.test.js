@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import request from 'supertest';
 import bcrypt from 'bcrypt';
-import app from '../../app.js';
+import app, { closeAppResources } from '../../app.js';
 import db from '../../src/models/index.js';
 
 const { User } = db;
@@ -61,6 +61,7 @@ describe('👥 Módulo de Gestión de Usuarios (CRUD + RBAC Admin + Perfil)', ()
       await User.destroy({ where: { id: testCreatedUserId } });
     }
     await User.destroy({ where: { email: 'usertest_crud@agrosystem.com' } });
+    await closeAppResources();
   });
 
   const getAdminAgent = async () => {
