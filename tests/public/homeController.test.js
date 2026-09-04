@@ -1,5 +1,7 @@
 import request from 'supertest';
-import app from '../../app.js';
+import app, { closeAppResources } from '../../app.js';
+
+afterAll(closeAppResources);
 
 describe('🧪 Suite de Pruebas Públicas - Módulo Home Index', () => {
   it('GET / debe retornar 200 OK y la vista del inicio institucional', async () => {

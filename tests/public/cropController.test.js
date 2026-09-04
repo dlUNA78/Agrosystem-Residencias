@@ -1,8 +1,10 @@
 import request from 'supertest';
-import app from '../../app.js';
+import app, { closeAppResources } from '../../app.js';
 import db from '../../src/models/index.js';
 
 const { Crop } = db;
+
+afterAll(closeAppResources);
 
 describe('🧪 Suite de Pruebas Públicas - Módulo de Cultivos', () => {
   let sampleCrop;

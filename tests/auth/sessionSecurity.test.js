@@ -1,10 +1,12 @@
-import { jest, describe, it, expect } from '@jest/globals';
+import { afterAll, jest, describe, it, expect } from '@jest/globals';
 import request from 'supertest';
-import app from '../../app.js';
+import app, { closeAppResources } from '../../app.js';
 import {
   authLimiter,
   upgradeLimiter,
 } from '../../src/middlewares/rateLimiter.js';
+
+afterAll(closeAppResources);
 
 describe('🛡️ Pruebas de Seguridad de Sesión y Rate Limiting (Pasos 3 y 4)', () => {
   it('1. Debe aplicar Rate Limiting en Login (authLimiter) tras superar 5 intentos', () => {

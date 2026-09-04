@@ -1,8 +1,10 @@
 import request from 'supertest';
-import app from '../../app.js';
+import app, { closeAppResources } from '../../app.js';
 import db from '../../src/models/index.js';
 
 const { Plague } = db;
+
+afterAll(closeAppResources);
 
 describe('🧪 Suite de Pruebas Públicas - Módulo de Plagas', () => {
   let samplePlague;

@@ -1,6 +1,8 @@
-import { jest, describe, it, expect } from '@jest/globals';
+import { afterAll, jest, describe, it, expect } from '@jest/globals';
 import request from 'supertest';
-import app from '../../app.js';
+import app, { closeAppResources } from '../../app.js';
+
+afterAll(closeAppResources);
 
 describe('🔒 Pruebas de Sanitización de Sesión de Usuario (Paso 1)', () => {
   it('1. Debe asegurar que las respuestas HTTP de auth no contengan datos sensibles como password_hash', async () => {
