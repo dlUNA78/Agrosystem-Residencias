@@ -3,17 +3,22 @@ import { Router } from 'express';
 // ─── Middlewares de subida de archivos ────────────────────────────────────────
 // upload        → imágenes genéricas (productos)
 // uploadPlagueImages → imágenes de plagas (acepta múltiples archivos)
-// uploadCrop    → imágenes de cultivos (acepta múltiples archivos)
+// uploadCropImages → imágenes de cultivos (acepta múltiples archivos)
 import {
   upload,
   uploadPlagueImages,
-  uploadCrop,
+  uploadCropImages,
 } from '../middlewares/upload.js';
 import {
   requirePlaguePermission,
   requirePlagueWorkflowPermission,
 } from '../middlewares/plagueAuthorizationMiddleware.js';
 import { PLAGUE_PERMISSIONS } from '../services/plagueAuthorizationService.js';
+import {
+  requireCropPermission,
+  requireCropWorkflowPermission,
+} from '../middlewares/cropAuthorizationMiddleware.js';
+import { CROP_PERMISSIONS } from '../services/cropAuthorizationService.js';
 
 import { dashboard } from '../controllers/private/dashboardController.js';
 import { auditPrivate } from '../controllers/private/auditController.js';
@@ -46,6 +51,7 @@ import {
   createCrop,
   updateCrop,
   deleteCrop,
+  updateCropWorkflow,
 } from '../controllers/private/cropsController.js';
 
 // ─── Controladores del módulo de productos (sub-controlador modular) ────────────
@@ -100,20 +106,43 @@ privateRouter.get('/dashboard', dashboard);
 // ══════════════════════════════════════════════════════════════════════════════
 // MÓDULO: CULTIVOS
 // ══════════════════════════════════════════════════════════════════════════════
-privateRouter.get('/private/crops', cropsPrivate); // Lista todos los cultivos
-privateRouter.get('/private/catalog/crops', cropsPrivate); // Alias catálogo cultivos
-privateRouter.get('/private/crops/:id', getCropDetail); // Detalle de un cultivo por ID
+privateRouter.get(
+  '/private/crops',
+  requireCropPermission(CROP_PERMISSIONS.VIEW_PRIVATE),
+  cropsPrivate,
+); // Lista todos los cultivos
+privateRouter.get(
+  '/private/catalog/crops',
+  requireCropPermission(CROP_PERMISSIONS.VIEW_PRIVATE),
+  cropsPrivate,
+); // Alias catálogo cultivos
+privateRouter.get(
+  '/private/crops/:id',
+  requireCropPermission(CROP_PERMISSIONS.VIEW_PRIVATE),
+  getCropDetail,
+); // Detalle de un cultivo por ID
 privateRouter.post(
   '/private/crops/create',
-  uploadCrop.array('images', 10),
+  requireCropPermission(CROP_PERMISSIONS.CREATE),
+  uploadCropImages,
   createCrop,
 ); // Crear cultivo (hasta 10 imágenes)
 privateRouter.post(
   '/private/crops/update/:id',
-  uploadCrop.array('images', 10),
+  requireCropPermission(CROP_PERMISSIONS.EDIT),
+  uploadCropImages,
   updateCrop,
 ); // Actualizar cultivo
-privateRouter.post('/private/crops/delete/:id', deleteCrop); // Eliminar cultivo
+privateRouter.post(
+  '/private/crops/delete/:id',
+  requireCropPermission(CROP_PERMISSIONS.DELETE),
+  deleteCrop,
+); // Eliminar cultivo
+privateRouter.post(
+  '/private/crops/:id/workflow',
+  requireCropWorkflowPermission,
+  updateCropWorkflow,
+);
 
 // ══════════════════════════════════════════════════════════════════════════════
 // MÓDULO: PARCELAS / GRANJAS

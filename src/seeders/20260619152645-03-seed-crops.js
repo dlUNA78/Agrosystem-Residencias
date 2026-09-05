@@ -145,7 +145,11 @@ export default {
           createdAt: now,
           updatedAt: now,
         },
-      ],
+      ].map((crop) => ({
+        ...crop,
+        workflow_status: 'published',
+        published_at: now,
+      })),
       {},
     );
   },
