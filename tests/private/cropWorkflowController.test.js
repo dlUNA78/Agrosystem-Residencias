@@ -68,6 +68,7 @@ const validBody = {
   name: 'Maíz',
   scientific_name: 'Zea mays',
   category: 'Granos y Cereales',
+  region: 'centro',
 };
 
 describe('controladores editoriales de cultivos', () => {

@@ -1,3 +1,6 @@
+import { initializeCropFormValidation } from './crop-form-validation.js';
+import { showAppNotification } from '../shared/notifications.js';
+
 // MODAL CULTIVOS
 {
   // ELEMENTOS DEL MODAL
@@ -6,6 +9,8 @@
   const modalTitle = document.getElementById('modal-crop-title');
 
   const cropForm = document.getElementById('crop-form');
+
+  const cropFormValidation = initializeCropFormValidation(cropForm);
 
   // BOTONES
 
@@ -33,6 +38,8 @@
     // Limpiar formulario
 
     cropForm.reset();
+
+    cropFormValidation?.reset();
 
     // Restaurar action original
 
@@ -304,12 +311,18 @@
 
       loadExistingImages(crop.images);
 
+      cropFormValidation?.reset();
+
       // ABRIR MODAL
       openModal();
     } catch (error) {
       console.error('ERROR AL CARGAR CULTIVO:', error);
 
-      alert('No se pudo cargar la información del cultivo');
+      showAppNotification({
+        type: 'error',
+        title: 'No se pudo abrir el cultivo',
+        message: 'Intenta nuevamente o recarga la página.',
+      });
     }
   });
 

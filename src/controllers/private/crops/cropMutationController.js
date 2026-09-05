@@ -24,13 +24,49 @@ const rollbackWithUploads = async (transaction, files) => {
   await cleanupUploadedCropFiles(files);
 };
 
+const wantsJsonResponse = (req) =>
+  String(req.get?.('accept') || req.headers?.accept || '').includes(
+    'application/json',
+  );
+
+const respondMutationError = (req, res, status, message, validation = {}) => {
+  if (wantsJsonResponse(req)) {
+    return res.status(status).json({
+      success: false,
+      message,
+      errors: validation.errors || [message],
+      fieldErrors: validation.fieldErrors || {},
+    });
+  }
+
+  return res.status(status).send(message);
+};
+
+const respondMutationSuccess = (req, res, message) => {
+  if (wantsJsonResponse(req)) {
+    return res.json({
+      success: true,
+      message,
+      redirect: '/private/crops',
+    });
+  }
+
+  return res.redirect('/private/crops');
+};
+
 export const createCrop = async (req, res) => {
   const files = Array.isArray(req.files) ? req.files : [];
   const validation = validateCropInput(req.body);
 
   if (!validation.isValid) {
     await cleanupUploadedCropFiles(files);
-    return res.status(400).send(validation.errors.join(' '));
+    return respondMutationError(
+      req,
+      res,
+      400,
+      'Revisa los datos marcados antes de guardar el cultivo.',
+      validation,
+    );
   }
 
   const transaction = await db.sequelize.transaction();
@@ -67,11 +103,16 @@ export const createCrop = async (req, res) => {
     );
 
     await transaction.commit();
-    return res.redirect('/private/crops');
+    return respondMutationSuccess(req, res, 'Cultivo creado correctamente.');
   } catch (error) {
     await rollbackWithUploads(transaction, files);
     console.error('Error al crear el cultivo:', error);
-    return res.status(500).send('Error al crear el cultivo');
+    return respondMutationError(
+      req,
+      res,
+      500,
+      'No se pudo crear el cultivo. Intenta nuevamente.',
+    );
   }
 };
 
@@ -81,13 +122,19 @@ export const updateCrop = async (req, res) => {
 
   if (!cropId) {
     await cleanupUploadedCropFiles(files);
-    return res.status(400).send('ID de cultivo no válido');
+    return respondMutationError(req, res, 400, 'ID de cultivo no válido.');
   }
 
   const validation = validateCropInput(req.body);
   if (!validation.isValid) {
     await cleanupUploadedCropFiles(files);
-    return res.status(400).send(validation.errors.join(' '));
+    return respondMutationError(
+      req,
+      res,
+      400,
+      'Revisa los datos marcados antes de guardar el cultivo.',
+      validation,
+    );
   }
 
   const transaction = await db.sequelize.transaction();
@@ -100,7 +147,7 @@ export const updateCrop = async (req, res) => {
 
     if (!crop) {
       await rollbackWithUploads(transaction, files);
-      return res.status(404).send('Cultivo no encontrado');
+      return respondMutationError(req, res, 404, 'Cultivo no encontrado.');
     }
 
     const permissions = getContextualCropPermissions({
@@ -111,16 +158,22 @@ export const updateCrop = async (req, res) => {
 
     if (!permissions.canEdit) {
       await rollbackWithUploads(transaction, files);
-      return res
-        .status(403)
-        .send('Sólo el autor o un administrador puede editar este cultivo.');
+      return respondMutationError(
+        req,
+        res,
+        403,
+        'Sólo el autor o un administrador puede editar este cultivo.',
+      );
     }
 
     if (!isCropEditable(crop.workflow_status)) {
       await rollbackWithUploads(transaction, files);
-      return res
-        .status(409)
-        .send('El cultivo debe estar en borrador para poder editarse.');
+      return respondMutationError(
+        req,
+        res,
+        409,
+        'El cultivo debe estar en borrador para poder editarse.',
+      );
     }
 
     const oldValues = crop.toJSON();
@@ -158,11 +211,20 @@ export const updateCrop = async (req, res) => {
     );
 
     await transaction.commit();
-    return res.redirect('/private/crops');
+    return respondMutationSuccess(
+      req,
+      res,
+      'Cultivo actualizado correctamente.',
+    );
   } catch (error) {
     await rollbackWithUploads(transaction, files);
     console.error('Error al actualizar el cultivo:', error);
-    return res.status(500).send('Error al actualizar el cultivo');
+    return respondMutationError(
+      req,
+      res,
+      500,
+      'No se pudo actualizar el cultivo. Intenta nuevamente.',
+    );
   }
 };
 

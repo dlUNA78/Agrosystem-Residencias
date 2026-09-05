@@ -25,12 +25,12 @@ const completeCropData = {
   scientific_name: 'Workflow routes crop',
   category: 'Granos y Cereales',
   description: 'Ficha completa para validar el flujo de rutas.',
-  region: 'El Bajío',
-  climate: 'Templado',
-  soil_type: 'Franco',
-  cycle: 'Anual',
-  season: 'Primavera-Verano',
-  water_requirement: 'Medio',
+  region: 'centro',
+  climate: 'templado',
+  soil_type: 'franco',
+  cycle: 'medio',
+  season: 'primavera-verano',
+  water_requirement: 'medio',
 };
 
 const login = async (user) => {
@@ -143,6 +143,7 @@ describe('rutas privadas del workflow de cultivos', () => {
       name: 'Cultivo Creado por Ruta',
       scientific_name: 'Created route crop',
       category: 'Hortalizas',
+      region: 'centro',
       status: 'aprobado',
       workflow_status: 'published',
     });
@@ -160,6 +161,34 @@ describe('rutas privadas del workflow de cultivos', () => {
     } finally {
       if (createdCrop) await createdCrop.destroy();
     }
+  });
+
+  it('devuelve errores por campo sin salir del modal cuando se solicita JSON', async () => {
+    const response = await authorAgent
+      .post('/private/crops/create')
+      .set('Accept', 'application/json')
+      .send({
+        name: 'Cultivo Inválido por Ruta',
+        scientific_name: 'Invalidus crop',
+        category: 'Hortalizas',
+        region: 'centro',
+        harvest_days: '999999999999',
+        climate: 'clima-falsificado',
+      });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual(
+      expect.objectContaining({
+        success: false,
+        fieldErrors: expect.objectContaining({
+          harvest_days: expect.any(Array),
+          climate: expect.any(Array),
+        }),
+      }),
+    );
+    expect(
+      await Crop.findOne({ where: { name: 'Cultivo Inválido por Ruta' } }),
+    ).toBeNull();
   });
 
   it('permite editar al autor y rechaza a otro INIFAP', async () => {

@@ -696,10 +696,22 @@
 
 
         <!-- FORMULARIO -->
-        <form id="crop-form" method="POST" action="/private/crops/create" enctype="multipart/form-data">
+        <form id="crop-form" method="POST" action="/private/crops/create" enctype="multipart/form-data" novalidate>
 
 
             <div class="p-6 space-y-10">
+
+                <div id="crop-form-validation-summary" role="alert" aria-live="assertive" tabindex="-1"
+                    class="hidden rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-destructive">
+                    <div class="flex items-start gap-3">
+                        <span class="material-symbols-outlined mt-0.5" aria-hidden="true">error</span>
+                        <div>
+                            <p class="text-sm font-bold">Revisa la información capturada</p>
+                            <p class="mt-1 text-xs">Corrige los campos marcados antes de guardar el cultivo.</p>
+                            <ul id="crop-form-validation-errors" class="mt-2 list-disc space-y-1 pl-5 text-xs"></ul>
+                        </div>
+                    </div>
+                </div>
 
 
                 <!-- ================================================= -->
@@ -741,7 +753,8 @@
 
                             </label>
 
-                            <input type="text" id="crop-name" name="name" required placeholder="Ej. Maíz Blanco"
+                            <input type="text" id="crop-name" name="name" required maxlength="150"
+                                placeholder="Ej. Maíz Blanco"
                                 class="w-full px-4 py-3 rounded-xl border border-outline-variant/30 bg-surface-container-low/30 focus:outline-none focus:ring-2 focus:ring-primary/30">
 
                         </div>
@@ -757,6 +770,7 @@
                             </label>
 
                             <input type="text" id="crop-scientific-name" name="scientific_name" required
+                                maxlength="150" data-crop-format="scientific-name"
                                 placeholder="Ej. Zea mays"
                                 class="w-full px-4 py-3 rounded-xl border border-outline-variant/30 bg-surface-container-low/30 focus:outline-none focus:ring-2 focus:ring-primary/30">
 
@@ -833,7 +847,7 @@
 
                             </label>
 
-                            <input type="text" id="crop-family" name="family" placeholder="Ej. Poaceae"
+                            <input type="text" id="crop-family" name="family" maxlength="100" placeholder="Ej. Poaceae"
                                 class="w-full px-4 py-3 rounded-xl border border-outline-variant/30 bg-surface-container-low/30">
 
                         </div>
@@ -848,7 +862,7 @@
 
                             </label>
 
-                            <input type="text" id="crop-genus" name="genus" placeholder="Ej. Zea"
+                            <input type="text" id="crop-genus" name="genus" maxlength="100" placeholder="Ej. Zea"
                                 class="w-full px-4 py-3 rounded-xl border border-outline-variant/30 bg-surface-container-low/30">
 
                         </div>
@@ -863,7 +877,8 @@
 
                             </label>
 
-                            <input type="text" id="crop-variety" name="variety" placeholder="Ej. Maíz Blanco Criollo"
+                            <input type="text" id="crop-variety" name="variety" maxlength="150"
+                                placeholder="Ej. Maíz Blanco Criollo"
                                 class="w-full px-4 py-3 rounded-xl border border-outline-variant/30 bg-surface-container-low/30">
 
                         </div>
@@ -961,7 +976,8 @@
 
                             </label>
 
-                            <input type="text" id="crop-state" name="state" placeholder="Ej. Colima, Jalisco, Michoacán"
+                            <input type="text" id="crop-state" name="state" maxlength="150"
+                                placeholder="Ej. Colima, Jalisco, Michoacán"
                                 class="w-full px-4 py-3 rounded-xl border border-outline-variant/30 bg-surface-container-low/30">
 
                         </div>
@@ -976,7 +992,8 @@
 
                             </label>
 
-                            <input type="number" id="crop-min-altitude" name="min_altitude" min="0" placeholder="Ej. 0"
+                            <input type="number" id="crop-min-altitude" name="min_altitude" min="0" max="5000"
+                                step="1" placeholder="Ej. 0"
                                 class="w-full px-4 py-3 rounded-xl border border-outline-variant/30 bg-surface-container-low/30">
 
                         </div>
@@ -991,7 +1008,7 @@
 
                             </label>
 
-                            <input type="number" id="crop-max-altitude" name="max_altitude" min="0"
+                            <input type="number" id="crop-max-altitude" name="max_altitude" min="0" max="5000" step="1"
                                 placeholder="Ej. 1800"
                                 class="w-full px-4 py-3 rounded-xl border border-outline-variant/30 bg-surface-container-low/30">
 
@@ -1090,7 +1107,8 @@
 
                             </label>
 
-                            <input type="number" id="crop-min-temperature" name="min_temperature" step="0.1"
+                            <input type="number" id="crop-min-temperature" name="min_temperature" min="-20" max="60"
+                                step="0.1"
                                 placeholder="Ej. 18"
                                 class="w-full px-4 py-3 rounded-xl border border-outline-variant/30 bg-surface-container-low/30">
 
@@ -1106,7 +1124,8 @@
 
                             </label>
 
-                            <input type="number" id="crop-max-temperature" name="max_temperature" step="0.1"
+                            <input type="number" id="crop-max-temperature" name="max_temperature" min="-20" max="60"
+                                step="0.1"
                                 placeholder="Ej. 32"
                                 class="w-full px-4 py-3 rounded-xl border border-outline-variant/30 bg-surface-container-low/30">
 
@@ -1122,7 +1141,7 @@
 
                             </label>
 
-                            <input type="number" id="crop-min-rainfall" name="min_rainfall" min="0"
+                            <input type="number" id="crop-min-rainfall" name="min_rainfall" min="0" max="10000" step="1"
                                 placeholder="Ej. 600"
                                 class="w-full px-4 py-3 rounded-xl border border-outline-variant/30 bg-surface-container-low/30">
 
@@ -1138,7 +1157,7 @@
 
                             </label>
 
-                            <input type="number" id="crop-max-rainfall" name="max_rainfall" min="0"
+                            <input type="number" id="crop-max-rainfall" name="max_rainfall" min="0" max="10000" step="1"
                                 placeholder="Ej. 1200"
                                 class="w-full px-4 py-3 rounded-xl border border-outline-variant/30 bg-surface-container-low/30">
 
@@ -1266,7 +1285,8 @@
 
                             </label>
 
-                            <input type="text" id="crop-ph" name="ph_range" placeholder="Ej. 5.5 - 7.0"
+                            <input type="text" id="crop-ph" name="ph_range" maxlength="20" inputmode="decimal"
+                                data-crop-format="ph" placeholder="Ej. 5.5 - 7.0"
                                 class="w-full px-4 py-3 rounded-xl border border-outline-variant/30 bg-surface-container-low/30">
 
                         </div>
@@ -1467,9 +1487,11 @@
 
                             </label>
 
-                            <input type="number" id="crop-harvest-days" name="harvest_days" min="1"
+                            <input type="number" id="crop-harvest-days" name="harvest_days" min="1" max="3650" step="1"
                                 placeholder="Ej. 120"
                                 class="w-full px-4 py-3 rounded-xl border border-outline-variant/30 bg-surface-container-low/30">
+
+                            <p class="mt-1 text-[10px] text-on-surface-variant">Ingresa un valor entre 1 y 3650 días.</p>
 
                         </div>
 
@@ -1483,7 +1505,8 @@
 
                             </label>
 
-                            <input type="text" id="crop-yield" name="average_yield" placeholder="Ej. 8 toneladas/ha"
+                            <input type="text" id="crop-yield" name="average_yield" maxlength="100"
+                                data-crop-format="quantity" placeholder="Ej. 8 toneladas/ha"
                                 class="w-full px-4 py-3 rounded-xl border border-outline-variant/30 bg-surface-container-low/30">
 
                         </div>
@@ -1498,7 +1521,8 @@
 
                             </label>
 
-                            <input type="text" id="crop-density" name="planting_density"
+                            <input type="text" id="crop-density" name="planting_density" maxlength="100"
+                                data-crop-format="quantity"
                                 placeholder="Ej. 60,000 plantas/ha"
                                 class="w-full px-4 py-3 rounded-xl border border-outline-variant/30 bg-surface-container-low/30">
 
@@ -1514,7 +1538,8 @@
 
                             </label>
 
-                            <input type="text" id="crop-depth" name="planting_depth" placeholder="Ej. 5 cm"
+                            <input type="text" id="crop-depth" name="planting_depth" maxlength="100"
+                                data-crop-format="quantity" placeholder="Ej. 5 cm"
                                 class="w-full px-4 py-3 rounded-xl border border-outline-variant/30 bg-surface-container-low/30">
 
                         </div>
@@ -1708,7 +1733,7 @@
 
                             </label>
 
-                            <input type="text" id="crop-nutrients" name="nutrients"
+                            <input type="text" id="crop-nutrients" name="nutrients" maxlength="500"
                                 placeholder="Ej. Nitrógeno, fósforo y potasio"
                                 class="w-full px-4 py-3 rounded-xl border border-outline-variant/30 bg-surface-container-low/30">
 
@@ -1724,7 +1749,7 @@
 
                             </label>
 
-                            <input type="text" id="crop-fertilization" name="fertilization"
+                            <input type="text" id="crop-fertilization" name="fertilization" maxlength="500"
                                 placeholder="Ej. Fertilización balanceada NPK"
                                 class="w-full px-4 py-3 rounded-xl border border-outline-variant/30 bg-surface-container-low/30">
 
@@ -1836,7 +1861,8 @@
 
                             </label>
 
-                            <textarea id="crop-description" name="description" rows="4"
+                            <textarea id="crop-description" name="description" rows="4" maxlength="5000"
+                                data-character-counter
                                 placeholder="Describe las características principales del cultivo..."
                                 class="w-full px-4 py-3 rounded-xl border border-outline-variant/30 bg-surface-container-low/30 resize-none"></textarea>
 
@@ -1852,7 +1878,8 @@
 
                             </label>
 
-                            <textarea id="crop-observations" name="observations" rows="4"
+                            <textarea id="crop-observations" name="observations" rows="4" maxlength="3000"
+                                data-character-counter
                                 placeholder="Agrega recomendaciones, observaciones o información importante..."
                                 class="w-full px-4 py-3 rounded-xl border border-outline-variant/30 bg-surface-container-low/30 resize-none"></textarea>
 
@@ -1925,7 +1952,7 @@
 
                         <!-- INPUT PARA MÚLTIPLES IMÁGENES -->
 
-                        <input type="file" id="crop-images" name="images"
+                        <input type="file" id="crop-images" name="images" data-max-files="10" data-max-file-size="5242880"
                             accept="image/jpeg,image/jpg,image/png,image/webp" multiple class="hidden">
 
                     </label>
