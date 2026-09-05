@@ -1,4 +1,5 @@
 import { Model } from 'sequelize';
+import { CROP_WORKFLOW_STATUSES } from '../services/cropWorkflowService.js';
 
 export default (sequelize, DataTypes) => {
   class Crop extends Model {
@@ -33,6 +34,23 @@ export default (sequelize, DataTypes) => {
         foreignKey: 'crop_id',
         otherKey: 'product_id',
         as: 'products',
+      });
+
+      Crop.belongsTo(models.User, {
+        foreignKey: 'created_by_user_id',
+        as: 'createdBy',
+      });
+      Crop.belongsTo(models.User, {
+        foreignKey: 'updated_by_user_id',
+        as: 'updatedBy',
+      });
+      Crop.belongsTo(models.User, {
+        foreignKey: 'verified_by_user_id',
+        as: 'verifiedBy',
+      });
+      Crop.belongsTo(models.User, {
+        foreignKey: 'published_by_user_id',
+        as: 'publishedBy',
       });
     }
   }
@@ -264,6 +282,21 @@ export default (sequelize, DataTypes) => {
         allowNull: false,
         defaultValue: 'pendiente',
       },
+      workflow_status: {
+        type: DataTypes.STRING(32),
+        allowNull: false,
+        defaultValue: CROP_WORKFLOW_STATUSES.DRAFT,
+        validate: {
+          isIn: [Object.values(CROP_WORKFLOW_STATUSES)],
+        },
+      },
+      created_by_user_id: DataTypes.INTEGER,
+      updated_by_user_id: DataTypes.INTEGER,
+      verified_by_user_id: DataTypes.INTEGER,
+      published_by_user_id: DataTypes.INTEGER,
+      verified_at: DataTypes.DATE,
+      published_at: DataTypes.DATE,
+      review_notes: DataTypes.TEXT,
     },
     {
       sequelize,

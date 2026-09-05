@@ -1,0 +1,25 @@
+{{#if (eq workflow_status 'published')}}
+  <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-[10px] font-bold uppercase text-emerald-700">
+    <span class="material-symbols-outlined text-xs">public</span> Publicado
+  </span>
+{{else if (eq workflow_status 'in_review')}}
+  <span class="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-[10px] font-bold uppercase text-amber-700">
+    <span class="material-symbols-outlined text-xs">rate_review</span> En revisión
+  </span>
+{{else if (eq workflow_status 'changes_requested')}}
+  <span class="inline-flex items-center gap-1.5 rounded-full bg-orange-50 px-3 py-1 text-[10px] font-bold uppercase text-orange-700">
+    <span class="material-symbols-outlined text-xs">edit_note</span> Cambios solicitados
+  </span>
+{{else if (eq workflow_status 'verified')}}
+  <span class="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1 text-[10px] font-bold uppercase text-blue-700">
+    <span class="material-symbols-outlined text-xs">verified</span> Verificado
+  </span>
+{{else if (eq workflow_status 'archived')}}
+  <span class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-[10px] font-bold uppercase text-slate-600">
+    <span class="material-symbols-outlined text-xs">archive</span> Archivado
+  </span>
+{{else}}
+  <span class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-[10px] font-bold uppercase text-slate-600">
+    <span class="material-symbols-outlined text-xs">draft</span> Borrador
+  </span>
+{{/if}}

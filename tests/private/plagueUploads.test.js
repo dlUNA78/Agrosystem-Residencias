@@ -10,7 +10,13 @@ import {
   ensureImageUploadDirectory,
   uploadPlagueImages,
   validateImageFile,
+  validateImageSignature,
 } from '../../src/middlewares/upload.js';
+
+const pngImage = Buffer.from([
+  0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00,
+]);
+const webpImage = Buffer.from('RIFF0000WEBP', 'ascii');
 
 describe('seguridad de imágenes de plagas', () => {
   it('limita cada imagen a 5 MB', () => {
@@ -52,6 +58,28 @@ describe('seguridad de imágenes de plagas', () => {
     }
   });
 
+  it('valida la firma binaria real de la imagen', async () => {
+    const temporaryDirectory = fs.mkdtempSync(
+      path.join(os.tmpdir(), 'agrosystem-signature-'),
+    );
+    const validPath = path.join(temporaryDirectory, 'valid.png');
+    const forgedPath = path.join(temporaryDirectory, 'forged.png');
+
+    try {
+      fs.writeFileSync(validPath, pngImage);
+      fs.writeFileSync(forgedPath, Buffer.from('no-es-una-imagen'));
+
+      await expect(
+        validateImageSignature(validPath, 'image/png'),
+      ).resolves.toBe(true);
+      await expect(
+        validateImageSignature(forgedPath, 'image/png'),
+      ).rejects.toThrow(/contenido real/i);
+    } finally {
+      fs.rmSync(temporaryDirectory, { recursive: true, force: true });
+    }
+  });
+
   it('acepta varias imágenes de plaga en el mismo formulario', async () => {
     const app = express();
     const uploadedPaths = [];
@@ -64,11 +92,11 @@ describe('seguridad de imágenes de plagas', () => {
     try {
       const response = await request(app)
         .post('/plagues')
-        .attach('images', Buffer.from('imagen-uno'), {
+        .attach('images', pngImage, {
           filename: 'uno.png',
           contentType: 'image/png',
         })
-        .attach('images', Buffer.from('imagen-dos'), {
+        .attach('images', webpImage, {
           filename: 'dos.webp',
           contentType: 'image/webp',
         });

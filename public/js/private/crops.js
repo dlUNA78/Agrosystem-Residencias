@@ -1,5 +1,5 @@
 // MODAL CULTIVOS
-(function () {
+{
   // ELEMENTOS DEL MODAL
   const modalCrop = document.getElementById('modal-crop');
 
@@ -124,6 +124,32 @@
     element.value = value ?? '';
   }
 
+  function appendImagePreview({ source, label, isNew = false }) {
+    if (!imagePreview || !source) return;
+
+    const preview = document.createElement('div');
+    preview.className =
+      'relative aspect-square rounded-xl overflow-hidden border border-outline-variant/30 bg-surface-container-low';
+
+    const image = document.createElement('img');
+    image.src = source;
+    image.alt = label || 'Imagen del cultivo';
+    image.className = 'w-full h-full object-cover';
+    image.addEventListener('error', () => {
+      if (image.src.endsWith('/images/test/default.png')) return;
+      image.src = '/images/test/default.png';
+    });
+    preview.appendChild(image);
+
+    const caption = document.createElement('div');
+    caption.className = isNew
+      ? 'absolute top-2 right-2 px-2 py-1 rounded-md bg-primary text-white text-[10px]'
+      : 'absolute bottom-0 left-0 right-0 bg-black/60 text-white text-[10px] px-2 py-1 truncate';
+    caption.textContent = isNew ? 'Nueva' : label || 'Imagen';
+    preview.appendChild(caption);
+    imagePreview.appendChild(preview);
+  }
+
   // CARGAR IMÁGENES EXISTENTES
 
   function loadExistingImages(images) {
@@ -135,29 +161,11 @@
       return;
     }
 
-    images.forEach(function (image) {
-      const preview = document.createElement('div');
-
-      preview.className =
-        'relative aspect-square rounded-xl overflow-hidden border border-outline-variant/30 bg-surface-container-low';
-
-      preview.innerHTML = `
-
-                <img
-                    src="/${image.image_url}"
-                    class="w-full h-full object-cover"
-                    alt="${image.original_name || 'Imagen del cultivo'}">
-
-                <div
-                    class="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-[10px] px-2 py-1 truncate">
-
-                    ${image.original_name || 'Imagen'}
-
-                </div>
-
-            `;
-
-      imagePreview.appendChild(preview);
+    images.forEach((image) => {
+      appendImagePreview({
+        source: image.image_url,
+        label: image.original_name || 'Imagen del cultivo',
+      });
     });
   }
 
@@ -179,7 +187,9 @@
     try {
       // OBTENER CULTIVO
 
-      const response = await fetch(`/private/crops/${cropId}`);
+      const response = await fetch(`/private/crops/${cropId}`, {
+        headers: { Accept: 'application/json' },
+      });
 
       const data = await response.json();
 
@@ -188,8 +198,6 @@
       }
 
       const crop = data.crop;
-
-      console.log('CULTIVO PARA EDITAR:', crop);
 
       // CAMBIAR TÍTULO
 
@@ -292,9 +300,6 @@
 
       setValue('crop-observations', crop.observations);
 
-      // ESTADO
-      setValue('crop-status', crop.status);
-
       // CARGAR IMÁGENES
 
       loadExistingImages(crop.images);
@@ -326,27 +331,11 @@
         const reader = new FileReader();
 
         reader.onload = function (event) {
-          const preview = document.createElement('div');
-
-          preview.className =
-            'relative aspect-square rounded-xl overflow-hidden border border-outline-variant/30 bg-surface-container-low';
-
-          preview.innerHTML = `
-
-                                    <img
-                                        src="${event.target.result}"
-                                        class="w-full h-full object-cover">
-
-                                    <div
-                                        class="absolute top-2 right-2 px-2 py-1 rounded-md bg-primary text-white text-[10px]">
-
-                                        Nueva
-
-                                    </div>
-
-                                `;
-
-          imagePreview.appendChild(preview);
+          appendImagePreview({
+            source: event.target.result,
+            label: file.name,
+            isNew: true,
+          });
         };
 
         reader.readAsDataURL(file);
@@ -378,9 +367,9 @@
     // TABLA
 
     btnTable.addEventListener('click', function () {
-      tableView.style.display = '';
+      tableView.classList.remove('hidden');
 
-      gridView.style.display = 'none';
+      gridView.classList.add('hidden');
 
       btnTable.classList.add('bg-[#43655c]', 'text-white');
 
@@ -394,9 +383,9 @@
     // GRID
 
     btnGrid.addEventListener('click', function () {
-      tableView.style.display = 'none';
+      tableView.classList.add('hidden');
 
-      gridView.style.display = 'grid';
+      gridView.classList.remove('hidden');
 
       btnGrid.classList.add('bg-[#43655c]', 'text-white');
 
@@ -438,20 +427,22 @@
 
   // CERRAR MODAL
   function closeDeleteCropModal() {
+    if (!modalDeleteCrop) return;
     modalDeleteCrop.classList.add('hidden');
     modalDeleteCrop.classList.remove('flex');
   }
 
   // BOTÓN CANCELAR
-  modalDeleteCropCancel.addEventListener('click', closeDeleteCropModal);
+  modalDeleteCropCancel?.addEventListener('click', closeDeleteCropModal);
 
   // CLIC EN EL FONDO
-  modalDeleteCropBackdrop.addEventListener('click', closeDeleteCropModal);
+  modalDeleteCropBackdrop?.addEventListener('click', closeDeleteCropModal);
 
   // TECLA ESC
   document.addEventListener('keydown', function (event) {
     if (
       event.key === 'Escape' &&
+      modalDeleteCrop &&
       !modalDeleteCrop.classList.contains('hidden')
     ) {
       closeDeleteCropModal();
@@ -473,20 +464,18 @@
       rows.forEach((row) => {
         const text = row.textContent.toLowerCase();
 
-        row.style.display = text.includes(search) ? '' : 'none';
+        row.classList.toggle('hidden', !text.includes(search));
       });
 
       // TARJETAS DEL GRID
 
-      const cards = document.querySelectorAll(
-        '#crops-grid-view > div:not(#btn-add-crop-card)',
-      );
+      const cards = document.querySelectorAll('#crops-grid-view > article');
 
       cards.forEach((card) => {
         const text = card.textContent.toLowerCase();
 
-        card.style.display = text.includes(search) ? '' : 'none';
+        card.classList.toggle('hidden', !text.includes(search));
       });
     });
   }
-})();
+}

@@ -6,45 +6,31 @@
 
 
 
-        <!-- Info Panel -->
-        <div class="bg-emerald-50 border border-emerald-100 p-4 rounded-xl flex items-center justify-between shadow-sm">
-            <div class="flex items-center gap-3">
-                <div class="bg-emerald-100 p-2 rounded-full">
-                    <span class="material-symbols-outlined text-emerald-700" data-icon="eco">eco</span>
-                </div>
-                <p class="text-emerald-900 font-medium text-sm tracking-tight">Hay <span class="font-bold">8
-                        cultivos</span> pendientes de validación taxonómica por el equipo técnico.</p>
+        <section class="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label="Resumen editorial de cultivos">
+            <div class="rounded-xl border border-outline-variant/10 bg-surface-container-lowest p-4 shadow-sm">
+                <p class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Resultados</p>
+                <p class="mt-1 text-2xl font-black text-on-surface">{{stats.total}}</p>
             </div>
-            <button
-                class="bg-white text-emerald-800 border border-emerald-200 px-5 py-2 rounded-lg text-xs font-bold hover:bg-emerald-100 transition-colors">
-                Revisar Cultivos
-            </button>
-        </div>
-
-        <!-- Alert Panel -->
-        <div
-            class="bg-blue-50 border border-blue-100 p-4 rounded-xl flex flex-wrap items-center justify-between gap-3 shadow-sm">
-            <div class="flex items-center gap-3">
-                <div class="bg-blue-100 p-2 rounded-full">
-                    <span class="material-symbols-outlined text-blue-700" data-icon="info">info</span>
-                </div>
-                <p class="text-blue-900 font-medium text-sm tracking-tight">
-                    Tienes <span class="font-bold">2 solicitudes</span> de nuevos cultivos pendientes de revisión
-                    técnica.
-                </p>
-            </div>
-            <button
-                class="bg-white text-blue-800 border border-blue-200 px-5 py-2 rounded-lg text-xs font-bold hover:bg-blue-100 transition-colors">
-                Revisar solicitudes
-            </button>
-        </div>
+            <a href="/private/crops?workflow=in_review" class="rounded-xl border border-amber-100 bg-amber-50 p-4 shadow-sm hover:bg-amber-100">
+                <p class="text-[10px] font-bold uppercase tracking-widest text-amber-800">En revisión</p>
+                <p class="mt-1 text-2xl font-black text-amber-900">{{stats.inReview}}</p>
+            </a>
+            <a href="/private/crops?workflow=changes_requested" class="rounded-xl border border-orange-100 bg-orange-50 p-4 shadow-sm hover:bg-orange-100">
+                <p class="text-[10px] font-bold uppercase tracking-widest text-orange-800">Con cambios</p>
+                <p class="mt-1 text-2xl font-black text-orange-900">{{stats.changesRequested}}</p>
+            </a>
+            <a href="/private/crops?workflow=published" class="rounded-xl border border-emerald-100 bg-emerald-50 p-4 shadow-sm hover:bg-emerald-100">
+                <p class="text-[10px] font-bold uppercase tracking-widest text-emerald-800">Publicados</p>
+                <p class="mt-1 text-2xl font-black text-emerald-900">{{stats.published}}</p>
+            </a>
+        </section>
 
         {{!-- ══════════════════════════════════════════════════════════════
         TABLE VIEW
         ══════════════════════════════════════════════════════════════ --}}
 
-        <div id="crops-table-view" style="display:none"
-            class="bg-surface-container-lowest rounded-2xl shadow-sm overflow-hidden border border-outline-variant/10">
+        <div id="crops-table-view"
+            class="hidden bg-surface-container-lowest rounded-2xl shadow-sm overflow-hidden border border-outline-variant/10">
 
             <div class="overflow-x-auto">
 
@@ -119,7 +105,7 @@
                                     {{#if image_url}}
 
                                     <img src="{{image_url}}" alt="{{name}}" class="w-full h-full object-cover"
-                                        onerror="this.onerror=null; this.src='/images/test/default.png';">
+                                        data-fallback-src="/images/test/default.png">
 
                                     {{else}}
 
@@ -293,66 +279,7 @@
 
                             <td class="px-6 py-5 text-center">
 
-                                {{#if (eq status "aprobado")}}
-
-                                <span class="inline-flex items-center gap-1
-                                                 px-3 py-1
-                                                 rounded-full
-                                                 bg-emerald-50
-                                                 text-emerald-700
-                                                 text-[10px]
-                                                 font-bold
-                                                 uppercase">
-
-                                    <span class="material-symbols-outlined text-xs">
-                                        check_circle
-                                    </span>
-
-                                    Aprobado
-
-                                </span>
-
-
-                                {{else if (eq status "rechazado")}}
-
-                                <span class="inline-flex items-center gap-1
-                                                 px-3 py-1
-                                                 rounded-full
-                                                 bg-red-50
-                                                 text-red-700
-                                                 text-[10px]
-                                                 font-bold
-                                                 uppercase">
-
-                                    <span class="material-symbols-outlined text-xs">
-                                        cancel
-                                    </span>
-
-                                    Rechazado
-
-                                </span>
-
-
-                                {{else}}
-
-                                <span class="inline-flex items-center gap-1
-                                                 px-3 py-1
-                                                 rounded-full
-                                                 bg-amber-50
-                                                 text-amber-700
-                                                 text-[10px]
-                                                 font-bold
-                                                 uppercase">
-
-                                    <span class="material-symbols-outlined text-xs">
-                                        schedule
-                                    </span>
-
-                                    Pendiente
-
-                                </span>
-
-                                {{/if}}
+                                {{> private/crop-workflow-badge}}
 
                             </td>
 
@@ -381,7 +308,7 @@
 
                                     </a>
 
-                                    {{!-- EDITAR --}}
+                                    {{#if canEditRecord}}
                                     <button type="button"
                                         class="edit-crop-btn p-2 rounded-lg hover:bg-blue-50 text-on-surface-variant hover:text-blue-700  transition-colors"
                                         title="Editar cultivo" data-id="{{id}}">
@@ -390,10 +317,11 @@
                                         </span>
 
                                     </button>
+                                    {{/if}}
 
 
                                     {{!-- ELIMINAR --}}
-                                    {{#if (hasRole user 'admin')}}
+                                    {{#if canDeleteRecord}}
                                     <button type="button" class="delete-crop-btn
                                                p-2
                                                rounded-lg
@@ -463,75 +391,6 @@
             </div>
 
 
-            {{!-- PAGINACIÓN --}}
-            <div class="px-8 py-6
-                bg-surface-container-low/30
-                border-t
-                border-outline-variant/10
-                flex
-                items-center
-                justify-between">
-
-                <p class="text-xs font-medium text-on-surface-variant">
-
-                    Mostrando
-
-                    <span class="font-bold text-on-surface">
-                        {{crops.length}}
-                    </span>
-
-                    cultivos
-
-                </p>
-
-
-                <div class="flex gap-2">
-
-                    <button type="button" class="px-5 py-2
-                       rounded-lg
-                       bg-surface-container-highest/50
-                       text-on-surface
-                       text-xs
-                       font-bold hover:bg-surface-container-highest
-                       transition-colors
-                       flex
-                       items-center
-                       gap-2">
-
-                        <span class="material-symbols-outlined text-sm">
-                            chevron_left
-                        </span>
-
-                        Anterior
-
-                    </button>
-
-
-                    <button type="button" class="px-5 py-2
-                       rounded-lg
-                       bg-[#43655c]
-                       text-white
-                       text-xs
-                       font-bold
-                       hover:bg-[#354f47]
-                       transition-colors
-                       flex
-                       items-center
-                       gap-2
-                       shadow-sm">
-
-                        Siguiente
-
-                        <span class="material-symbols-outlined text-sm">
-                            chevron_right
-                        </span>
-
-                    </button>
-
-                </div>
-
-            </div>
-
         </div>
 
 
@@ -550,41 +409,14 @@
 
                     <img src="{{#if image_url}}{{image_url}}{{else}}/images/test/default.png{{/if}}" alt="{{name}}"
                         class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                        onerror="this.onerror=null; this.src='/images/test/default.png';">
+                        data-fallback-src="/images/test/default.png">
 
                     <!-- ══════════════════════════════════════════════════
                      ESTADO
                      ══════════════════════════════════════════════════ -->
-                    {{#if status}}
-
                     <div class="absolute top-4 left-4">
-
-                        {{#if (eq status "aprobado")}}
-
-                        <span
-                            class="px-2 py-1 rounded bg-primary-container text-on-primary-container text-[10px] font-bold uppercase tracking-wider">
-                            Aprobado
-                        </span>
-
-                        {{else if (eq status "rechazado")}}
-
-                        <span
-                            class="px-2 py-1 rounded bg-error-container text-on-error-container text-[10px] font-bold uppercase tracking-wider">
-                            Rechazado
-                        </span>
-
-                        {{else}}
-
-                        <span
-                            class="px-2 py-1 rounded bg-surface-container-high text-on-surface-variant text-[10px] font-bold uppercase tracking-wider">
-                            Pendiente
-                        </span>
-
-                        {{/if}}
-
+                        {{> private/crop-workflow-badge}}
                     </div>
-
-                    {{/if}}
 
                 </div>
 
@@ -691,40 +523,7 @@
                     <div class="mt-auto pt-4 border-t border-surface-container flex justify-between items-center gap-3">
 
                         <!-- ESTADO -->
-                        {{#if status}}
-
-                        <span class="inline-flex items-center gap-1.5 text-xs font-bold text-primary">
-
-                            <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
-
-                            {{#if (eq status "aprobado")}}
-
-                            Aprobado
-
-                            {{else if (eq status "rechazado")}}
-
-                            Rechazado
-
-                            {{else}}
-
-                            Pendiente
-
-                            {{/if}}
-
-                        </span>
-
-                        {{else}}
-
-                        <span class="inline-flex items-center gap-1.5 text-xs font-bold text-on-surface-variant">
-
-                            <span class="w-1.5 h-1.5 rounded-full bg-on-surface-variant">
-                            </span>
-
-                            Sin estado
-
-                        </span>
-
-                        {{/if}}
+                        {{> private/crop-workflow-badge}}
 
 
                         <!-- BOTONES -->
@@ -746,7 +545,7 @@
                             </a>
 
 
-                            <!-- EDITAR -->
+                            {{#if canEditRecord}}
                             <button type="button"
                                 class="edit-crop-btn inline-flex items-center justify-center w-9 h-9 rounded-xl bg-surface-container text-primary hover:bg-primary-container hover:text-on-primary-container transition-all active:scale-95"
                                 title="Editar cultivo" data-id="{{id}}">
@@ -756,10 +555,11 @@
                                 </span>
 
                             </button>
+                            {{/if}}
 
 
                             <!-- ELIMINAR -->
-                            {{#if (hasRole user 'admin')}}
+                            {{#if canDeleteRecord}}
 
                             <button type="button"
                                 class="delete-crop-btn inline-flex items-center justify-center w-9 h-9 rounded-lg bg-surface-container text-error hover:bg-error-container transition-all active:scale-95"
@@ -809,7 +609,7 @@
             {{/if}}
 
 
-            <!--  AÑADIR CULTIVO-->
+            {{#if permissions.canCreate}}
             <button type="button" id="btn-add-crop-card"
                 class="group bg-surface-container-lowest rounded-xl overflow-hidden editorial-shadow ghost-border flex flex-col items-center justify-center min-h-90 p-8 cursor-pointer border-2 border-dashed border-primary/20 hover:-translate-y-1 hover:border-primary/40 transition-all duration-300">
 
@@ -842,12 +642,15 @@
                 </div>
 
             </button>
+            {{/if}}
 
         </section>
+        {{> private/crop-pagination}}
     </div>
 </main>
 
 <!-- MODAL: AÑADIR / EDITAR CULTIVO -->
+{{#if permissions.canEdit}}
 <div id="modal-crop" class="fixed inset-0 z-100 hidden items-center justify-center p-4">
 
     <!-- FONDO -->
@@ -976,43 +779,43 @@
                                     Seleccionar categoría
                                 </option>
 
-                                <option value="cereal">
-                                    Cereal
+                                <option value="Granos y Cereales">
+                                    Granos y Cereales
                                 </option>
 
-                                <option value="frutal">
-                                    Frutal
+                                <option value="Frutales">
+                                    Frutales
                                 </option>
 
-                                <option value="hortaliza">
-                                    Hortaliza
+                                <option value="Hortalizas">
+                                    Hortalizas
                                 </option>
 
-                                <option value="leguminosa">
-                                    Leguminosa
+                                <option value="Leguminosas">
+                                    Leguminosas
                                 </option>
 
-                                <option value="oleaginosa">
-                                    Oleaginosa
+                                <option value="Oleaginosas">
+                                    Oleaginosas
                                 </option>
 
-                                <option value="tuberculo">
-                                    Tubérculo
+                                <option value="Tubérculos">
+                                    Tubérculos
                                 </option>
 
-                                <option value="forrajera">
-                                    Forrajera
+                                <option value="Forrajeras">
+                                    Forrajeras
                                 </option>
 
-                                <option value="ornamental">
-                                    Ornamental
+                                <option value="Ornamentales">
+                                    Ornamentales
                                 </option>
 
-                                <option value="industrial">
-                                    Industrial
+                                <option value="Industriales">
+                                    Industriales
                                 </option>
 
-                                <option value="otro">
+                                <option value="Otro">
                                     Otro
                                 </option>
 
@@ -2138,44 +1941,6 @@
                 </section>
 
 
-                <!-- ================================================= -->
-                <!-- 10. ESTADO -->
-                <!-- ================================================= -->
-
-                <section>
-
-                    <div class="flex items-center gap-2 mb-5">
-
-                        <span class="material-symbols-outlined text-primary">
-                            verified
-                        </span>
-
-                        <h4 class="font-bold text-[#0F2E2E]">
-                            Estado del cultivo
-                        </h4>
-
-                    </div>
-
-
-                    <select id="crop-status" name="status"
-                        class="w-full px-4 py-3 rounded-xl border border-outline-variant/30 bg-surface-container-low/30">
-
-                        <option value="pendiente">
-                            Pendiente de validación
-                        </option>
-
-                        <option value="aprobado">
-                            Aprobado
-                        </option>
-
-                        <option value="rechazado">
-                            Rechazado
-                        </option>
-
-                    </select>
-
-                </section>
-
             </div>
 
 
@@ -2209,8 +1974,10 @@
     </div>
 
 </div>
+{{/if}}
 {{!-- MODAL ELIMINAR CULTIVO--}}
 
+{{#if permissions.canDelete}}
 <div id="modal-delete-crop" class="fixed inset-0 z-9999 hidden items-center justify-center p-4">
 
     {{!-- FONDO OSCURO --}}
@@ -2349,4 +2116,6 @@
     </div>
 
 </div>
-<script src="/js/private/crops.js"></script>
+{{/if}}
+<script type="module" src="/js/private/crops.js"></script>
+<script src="/js/shared/image-fallback.js"></script>

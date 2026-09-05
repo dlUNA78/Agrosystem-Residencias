@@ -1,0 +1,21 @@
+{{#if pagination.hasMultiplePages}}
+  <nav class="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-outline-variant/10 bg-surface-container-lowest px-6 py-4" aria-label="Paginación de cultivos">
+    <p class="text-xs font-medium text-on-surface-variant">
+      Mostrando {{pagination.fromItem}}–{{pagination.toItem}} de
+      <span class="font-bold text-on-surface">{{pagination.totalItems}}</span>
+    </p>
+    <div class="flex items-center gap-2">
+      {{#if pagination.hasPrevPage}}
+        <a href="{{pagination.prevUrl}}" class="rounded-lg bg-surface-container px-3 py-2 text-xs font-bold text-on-surface hover:bg-surface-container-high">Anterior</a>
+      {{/if}}
+      {{#each pagination.pages}}
+        <a href="{{this.url}}" class="rounded-lg px-3 py-2 text-xs font-bold {{#if this.isCurrent}}bg-[#43655c] text-white{{else}}bg-surface-container text-on-surface hover:bg-surface-container-high{{/if}}" {{#if this.isCurrent}}aria-current="page"{{/if}}>
+          {{this.number}}
+        </a>
+      {{/each}}
+      {{#if pagination.hasNextPage}}
+        <a href="{{pagination.nextUrl}}" class="rounded-lg bg-surface-container px-3 py-2 text-xs font-bold text-on-surface hover:bg-surface-container-high">Siguiente</a>
+      {{/if}}
+    </div>
+  </nav>
+{{/if}}
