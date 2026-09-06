@@ -1,0 +1,43 @@
+<section id="crops-grid-view" aria-label="Cultivos en tarjetas" class="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+  {{#each crops}}
+    <article class="group flex min-w-0 flex-col overflow-hidden rounded-2xl border border-border/80 bg-card shadow-2xs transition hover:border-primary/50 hover:shadow-md">
+      <div class="relative aspect-[16/9] overflow-hidden bg-muted">
+        {{#if image_url}}
+          <img src="{{image_url}}" alt="{{name}}" loading="lazy" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" data-fallback-src="/images/test/default.png">
+        {{else}}
+          <div class="flex h-full items-center justify-center gap-2 text-muted-foreground">
+            <span class="inline-flex shrink-0 text-4xl" aria-hidden="true">{{> private/crops/icon name="grass"}}</span>
+            <span class="font-mono text-[10px] uppercase tracking-widest">Sin imagen</span>
+          </div>
+        {{/if}}
+        <div class="absolute left-3 top-3 rounded-full bg-card/95 shadow-2xs">{{> private/crop-workflow-badge}}</div>
+      </div>
+      <div class="flex flex-1 flex-col p-5">
+        <p class="mb-2 font-mono text-[10px] font-bold uppercase tracking-wider text-primary">{{category}}</p>
+        <h2 class="break-words text-lg font-bold leading-tight text-foreground"><a href="/private/crops/{{id}}" class="hover:text-primary">{{name}}</a></h2>
+        <p class="mt-1 break-words text-xs italic text-muted-foreground">{{scientific_name}}</p>
+        <dl class="my-5 grid grid-cols-2 gap-x-3 gap-y-4 text-xs">
+          <div><dt class="mb-1 text-muted-foreground">Región</dt><dd class="break-words font-medium">{{#if region}}{{region}}{{else}}Sin especificar{{/if}}</dd></div>
+          <div><dt class="mb-1 text-muted-foreground">Cosecha</dt><dd class="font-medium tabular-nums">{{#if harvest_days}}{{harvest_days}} días{{else}}Sin especificar{{/if}}</dd></div>
+          <div><dt class="mb-1 text-muted-foreground">Temporada</dt><dd class="break-words font-medium">{{#if season}}{{season}}{{else}}Sin especificar{{/if}}</dd></div>
+          <div><dt class="mb-1 text-muted-foreground">Variedad</dt><dd class="break-words font-medium">{{#if variety}}{{variety}}{{else}}Sin especificar{{/if}}</dd></div>
+        </dl>
+        <div class="mt-auto flex items-center justify-between gap-2 border-t border-border pt-3">
+          <a href="/private/crops/{{id}}" class="inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline">
+            Ver ficha <span class="inline-flex shrink-0 text-base" aria-hidden="true">{{> private/crops/icon name="arrow_forward"}}</span>
+          </a>
+          {{> private/crops/actions}}
+        </div>
+      </div>
+    </article>
+  {{else}}
+    <div class="col-span-full rounded-2xl border border-dashed border-border bg-card px-6 py-16 text-center">
+      <span class="inline-flex shrink-0 text-5xl text-muted-foreground" aria-hidden="true">{{> private/crops/icon name="grass"}}</span>
+      <h2 class="mt-4 text-lg font-bold">No se encontraron cultivos</h2>
+      <p class="mt-2 text-sm text-muted-foreground">Revisa los filtros o registra un cultivo para comenzar.</p>
+      {{#if permissions.canCreate}}
+        <button type="button" id="btn-add-crop-card" class="mt-5 rounded-xl bg-primary px-5 py-2.5 text-xs font-bold text-primary-foreground hover:bg-primary/90">Nuevo cultivo</button>
+      {{/if}}
+    </div>
+  {{/each}}
+</section>

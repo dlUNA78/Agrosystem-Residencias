@@ -9,7 +9,7 @@ ctaIcon {String} Ícono Material Symbols del botón
 ctaBtnId {String} ID del botón CTA (opcional)
 showViewToggle {Boolean} Mostrar toggle tabla/grid (solo Productos)
 ══════════════════════════════════════════════════════════════ --}}
-<section
+<section data-private-search-bar
     class="bg-surface-container-lowest p-4 rounded-xl shadow-sm border border-outline-variant/10 flex flex-wrap items-center gap-3">
 
     {{!-- BUSCADOR --}}
@@ -19,7 +19,7 @@ showViewToggle {Boolean} Mostrar toggle tabla/grid (solo Productos)
             search
         </span>
 
-        <input id="{{searchId}}"
+        <input id="{{searchId}}" value="{{searchValue}}"
             class="w-full pl-11 pr-4 py-3 bg-surface-container-low border-none rounded-lg focus:ring-2 focus:ring-primary/20 text-sm placeholder:text-on-surface-variant/40"
             placeholder="{{searchPlaceholder}}" type="text" />
     </div>
@@ -34,7 +34,7 @@ showViewToggle {Boolean} Mostrar toggle tabla/grid (solo Productos)
             <option value="">{{this.label}}</option>
 
             {{#each this.options}}
-            <option value="{{this.value}}">{{this.text}}</option>
+            <option value="{{this.value}}" {{#if this.selected}}selected{{/if}}>{{this.text}}</option>
             {{/each}}
 
         </select>
@@ -68,50 +68,4 @@ showViewToggle {Boolean} Mostrar toggle tabla/grid (solo Productos)
 
     </div>
 </section>
-
-<script>
-    document.addEventListener("DOMContentLoaded", () => {
-
-        const searchInput = document.getElementById("{{searchId}}");
-        const filterSelects = document.querySelectorAll(".filter-select");
-
-        function aplicarFiltros() {
-
-            const params = new URLSearchParams();
-
-            // BUSCADOR
-            if (searchInput && searchInput.value.trim()) {
-                params.set("search", searchInput.value.trim());
-            }
-
-            // FILTROS
-            filterSelects.forEach(select => {
-
-                if (select.value !== "") {
-
-                    const param = select.dataset.param ||select.id.replace("filter-", "");
-                    params.set( param, select.value);
-                }
-            });
-
-            // RECARGAR LA PÁGINA CON LOS FILTROS
-            window.location.href =
-                `${window.location.pathname}?${params.toString()}`;
-        }
-
-        // Cuando cambie cualquier filtro
-        filterSelects.forEach(select => {
-            select.addEventListener("change", aplicarFiltros);
-        });
-
-        // Buscar al presionar Enter
-        if (searchInput) {
-            searchInput.addEventListener("keydown", (event) => {
-                if (event.key === "Enter") {
-                    aplicarFiltros();
-                }
-            });
-        }
-
-    });
-</script>
+<script src="/js/private/search-bar.js"></script>

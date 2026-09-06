@@ -18,6 +18,8 @@ const allowedImageTypes = Object.freeze({
   '.png': 'image/png',
   '.webp': 'image/webp',
 });
+const invalidImageContentMessage =
+  'El contenido real del archivo no corresponde a una imagen permitida.';
 
 export const validateImageFile = (file) => {
   const extension = path.extname(file.originalname || '').toLowerCase();
@@ -27,6 +29,44 @@ export const validateImageFile = (file) => {
   }
 
   return true;
+};
+
+const matchesImageSignature = (buffer, mimetype) => {
+  if (mimetype === 'image/jpeg') {
+    return buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff;
+  }
+
+  if (mimetype === 'image/png') {
+    return buffer
+      .subarray(0, 8)
+      .equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]));
+  }
+
+  if (mimetype === 'image/webp') {
+    return (
+      buffer.subarray(0, 4).toString('ascii') === 'RIFF' &&
+      buffer.subarray(8, 12).toString('ascii') === 'WEBP'
+    );
+  }
+
+  return false;
+};
+
+export const validateImageSignature = async (filePath, mimetype) => {
+  const file = await fs.promises.open(filePath, 'r');
+
+  try {
+    const header = Buffer.alloc(12);
+    const { bytesRead } = await file.read(header, 0, header.length, 0);
+
+    if (!matchesImageSignature(header.subarray(0, bytesRead), mimetype)) {
+      throw new Error(invalidImageContentMessage);
+    }
+
+    return true;
+  } finally {
+    await file.close();
+  }
 };
 
 const imageFileFilter = (_req, file, callback) => {
@@ -94,28 +134,64 @@ export const uploadPlague = multer({
   fileFilter: imageFileFilter,
 });
 
-export const uploadPlagueImages = (req, res, next) => {
-  uploadPlague.array('images', IMAGE_UPLOAD_LIMITS.files)(req, res, (error) => {
-    if (error) {
-      let message = error.message;
-
-      if (error.code === 'LIMIT_FILE_SIZE') {
-        message = 'Cada imagen puede pesar como máximo 5 MB.';
-      }
-
-      if (
-        error.code === 'LIMIT_FILE_COUNT' ||
-        error.code === 'LIMIT_UNEXPECTED_FILE'
-      ) {
-        message = `Puedes subir como máximo ${IMAGE_UPLOAD_LIMITS.files} imágenes por vez.`;
-      }
-
-      return res.status(400).send(message);
-    }
-
-    return next();
-  });
+const cleanupRejectedFiles = async (files = []) => {
+  await Promise.allSettled(
+    files.map(async (file) => {
+      if (file?.path) await fs.promises.rm(file.path, { force: true });
+    }),
+  );
 };
+
+const imageUploadErrorMessage = (error) => {
+  if (error.code === 'LIMIT_FILE_SIZE') {
+    return 'Cada imagen puede pesar como máximo 5 MB.';
+  }
+
+  if (
+    error.code === 'LIMIT_FILE_COUNT' ||
+    error.code === 'LIMIT_UNEXPECTED_FILE'
+  ) {
+    return `Puedes subir como máximo ${IMAGE_UPLOAD_LIMITS.files} imágenes por vez.`;
+  }
+
+  if (error.message === 'Sólo se permiten imágenes JPG, PNG o WEBP.') {
+    return error.message;
+  }
+
+  return 'No se pudo procesar la carga de imágenes.';
+};
+
+const createMultipleImageMiddleware = (uploader) => (req, res, next) => {
+  uploader.array('images', IMAGE_UPLOAD_LIMITS.files)(
+    req,
+    res,
+    async (error) => {
+      if (error) {
+        await cleanupRejectedFiles(req.files);
+        return res.status(400).send(imageUploadErrorMessage(error));
+      }
+
+      try {
+        await Promise.all(
+          (req.files || []).map((file) =>
+            validateImageSignature(file.path, file.mimetype),
+          ),
+        );
+      } catch (signatureError) {
+        await cleanupRejectedFiles(req.files);
+        console.error('Se rechazó una imagen por firma inválida:', {
+          name: signatureError.name,
+          code: signatureError.code,
+        });
+        return res.status(400).send(invalidImageContentMessage);
+      }
+
+      return next();
+    },
+  );
+};
+
+export const uploadPlagueImages = createMultipleImageMiddleware(uploadPlague);
 
 // Upload para cultivos
 export const uploadCrop = multer({
@@ -123,3 +199,5 @@ export const uploadCrop = multer({
   limits: IMAGE_UPLOAD_LIMITS,
   fileFilter: imageFileFilter,
 });
+
+export const uploadCropImages = createMultipleImageMiddleware(uploadCrop);

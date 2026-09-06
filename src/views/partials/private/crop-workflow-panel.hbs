@@ -1,0 +1,124 @@
+<section class="mb-6 rounded-xl border border-border bg-white p-5 shadow-2xs">
+  <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+    <div>
+      <span class="text-[10px] font-mono font-bold uppercase tracking-widest text-muted-foreground">Estado editorial</span>
+      <div class="mt-1 flex flex-wrap items-center gap-2">
+        {{> private/crop-workflow-badge workflow_status=crop.workflow_status}}
+        {{#if crop.review_notes}}
+          <span class="text-xs text-amber-700">{{crop.review_notes}}</span>
+        {{/if}}
+      </div>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-2">
+      {{#if (eq crop.workflow_status 'draft')}}
+        {{#if permissions.canSubmitReview}}
+          {{#if readiness.isReady}}
+            <form method="POST" action="/private/crops/{{crop.id}}/workflow">
+              <input type="hidden" name="action" value="submit_review" />
+              <button type="submit" class="rounded-lg bg-[#1b4332] px-4 py-2 text-xs font-bold text-white hover:bg-[#2d6a4f]">Enviar a revisión</button>
+            </form>
+          {{else}}
+            <button type="button" disabled class="cursor-not-allowed rounded-lg bg-muted px-4 py-2 text-xs font-bold text-muted-foreground opacity-70">Completa el checklist para enviar</button>
+          {{/if}}
+        {{/if}}
+      {{/if}}
+
+      {{#if (eq crop.workflow_status 'changes_requested')}}
+        {{#if permissions.canSubmitReview}}
+          {{#if readiness.isReady}}
+            <form method="POST" action="/private/crops/{{crop.id}}/workflow">
+              <input type="hidden" name="action" value="submit_review" />
+              <button type="submit" class="rounded-lg bg-[#1b4332] px-4 py-2 text-xs font-bold text-white hover:bg-[#2d6a4f]">Reenviar a revisión</button>
+            </form>
+          {{else}}
+            <button type="button" disabled class="cursor-not-allowed rounded-lg bg-muted px-4 py-2 text-xs font-bold text-muted-foreground opacity-70">Completa el checklist para reenviar</button>
+          {{/if}}
+        {{/if}}
+      {{/if}}
+
+      {{#if (eq crop.workflow_status 'in_review')}}
+        {{#if permissions.canVerify}}
+          <form method="POST" action="/private/crops/{{crop.id}}/workflow" class="flex flex-wrap items-center gap-2">
+            <input type="hidden" name="action" value="request_changes" />
+            <input type="text" name="review_notes" required maxlength="500" placeholder="Observaciones requeridas" class="rounded-lg border border-input bg-background px-3 py-2 text-xs" />
+            <button type="submit" class="rounded-lg border border-amber-300 bg-amber-50 px-4 py-2 text-xs font-bold text-amber-800 hover:bg-amber-100">Solicitar cambios</button>
+          </form>
+          {{#if readiness.isReady}}
+            <form method="POST" action="/private/crops/{{crop.id}}/workflow">
+              <input type="hidden" name="action" value="verify" />
+              <button type="submit" class="rounded-lg bg-[#1b4332] px-4 py-2 text-xs font-bold text-white hover:bg-[#2d6a4f]">Verificar</button>
+            </form>
+          {{else}}
+            <button type="button" disabled class="cursor-not-allowed rounded-lg bg-muted px-4 py-2 text-xs font-bold text-muted-foreground opacity-70">Ficha incompleta</button>
+          {{/if}}
+        {{/if}}
+      {{/if}}
+
+      {{#if (eq crop.workflow_status 'verified')}}
+        {{#if permissions.canPublish}}
+          {{#if readiness.isReady}}
+            <form method="POST" action="/private/crops/{{crop.id}}/workflow">
+              <input type="hidden" name="action" value="publish" />
+              <button type="submit" class="rounded-lg bg-[#1b4332] px-4 py-2 text-xs font-bold text-white hover:bg-[#2d6a4f]">Publicar</button>
+            </form>
+          {{else}}
+            <button type="button" disabled class="cursor-not-allowed rounded-lg bg-muted px-4 py-2 text-xs font-bold text-muted-foreground opacity-70">Ficha incompleta</button>
+          {{/if}}
+        {{/if}}
+      {{/if}}
+
+      {{#if (eq crop.workflow_status 'published')}}
+        {{#if permissions.canArchive}}
+          <form method="POST" action="/private/crops/{{crop.id}}/workflow">
+            <input type="hidden" name="action" value="archive" />
+            <button type="submit" class="rounded-lg border border-border bg-white px-4 py-2 text-xs font-bold text-foreground hover:bg-muted">Archivar</button>
+          </form>
+        {{/if}}
+      {{/if}}
+
+      {{#if (eq crop.workflow_status 'archived')}}
+        {{#if permissions.canRestore}}
+          <form method="POST" action="/private/crops/{{crop.id}}/workflow">
+            <input type="hidden" name="action" value="restore" />
+            <button type="submit" class="rounded-lg border border-border bg-white px-4 py-2 text-xs font-bold text-foreground hover:bg-muted">Restaurar como borrador</button>
+          </form>
+        {{/if}}
+      {{/if}}
+    </div>
+  </div>
+</section>
+
+<section id="publication-checklist" class="mb-6 rounded-xl border border-border bg-white p-5 shadow-2xs">
+  <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div>
+      <span class="text-[10px] font-mono font-bold uppercase tracking-widest text-muted-foreground">Control de calidad</span>
+      <h2 class="mt-1 text-base font-headline font-bold text-foreground">Requisitos para revisión y publicación</h2>
+      <p class="mt-1 text-xs text-muted-foreground">La ficha debe cumplir todos los requisitos antes de verificarse o hacerse pública.</p>
+    </div>
+    {{#if readiness.isReady}}
+      <span class="inline-flex w-fit items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-800">
+        <span class="material-symbols-outlined text-sm">task_alt</span> Lista para revisión
+      </span>
+    {{else}}
+      <span class="inline-flex w-fit items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-800">
+        <span class="material-symbols-outlined text-sm">pending_actions</span>
+        {{readiness.completeCount}} de {{readiness.totalCount}} completos
+      </span>
+    {{/if}}
+  </div>
+
+  <div class="mt-4 grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
+    {{#each readiness.items}}
+      <div class="flex items-start gap-3 rounded-lg border p-3 {{#if this.complete}}border-emerald-100 bg-emerald-50/60{{else}}border-amber-100 bg-amber-50/60{{/if}}">
+        <span class="material-symbols-outlined mt-0.5 text-base {{#if this.complete}}text-emerald-700{{else}}text-amber-600{{/if}}">
+          {{#if this.complete}}check_circle{{else}}radio_button_unchecked{{/if}}
+        </span>
+        <div>
+          <p class="text-xs font-bold text-foreground">{{this.label}}</p>
+          <p class="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">{{this.hint}}</p>
+        </div>
+      </div>
+    {{/each}}
+  </div>
+</section>

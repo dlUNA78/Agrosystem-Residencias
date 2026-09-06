@@ -1,0 +1,22 @@
+<section id="crop-section-images" class="scroll-mt-4 rounded-2xl border border-border bg-card p-4 sm:p-6">
+<div class="flex items-center gap-2 mb-5">
+<span class="inline-flex shrink-0 text-primary">{{> private/crops/icon name="image"}}</span>
+<div>
+<h4 class="font-bold text-foreground">Imágenes del cultivo</h4>
+<p class="text-xs text-muted-foreground">Agrega varias imágenes para mostrar las diferentes características del cultivo</p>
+</div>
+</div>
+<label for="crop-images"
+class="group flex flex-col items-center justify-center w-full min-h-47.5 border-2 border-dashed border-primary/30 rounded-2xl bg-primary/5 hover:bg-primary/10 hover:border-primary/60 transition-all cursor-pointer">
+<span
+class="material-symbols-outlined text-5xl text-primary/50 group-hover:text-primary transition-colors">cloud_upload</span>
+<p class="mt-3 text-sm font-bold text-foreground">Seleccionar imágenes del cultivo</p>
+<p class="text-xs text-muted-foreground mt-1">Puedes seleccionar hasta 10 imágenes</p>
+<p class="text-[10px] text-muted-foreground mt-2">JPG, JPEG, PNG o WEBP • Máximo 5 MB por imagen</p>
+<input type="file" id="crop-images" name="images" data-max-files="10" data-max-file-size="5242880"
+accept="image/jpeg,image/jpg,image/png,image/webp" multiple class="hidden">
+</label>
+<div id="crop-images-preview"
+class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mt-5">
+</div>
+</section>

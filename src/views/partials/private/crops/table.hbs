@@ -1,0 +1,42 @@
+<section id="crops-table-view" aria-label="Cultivos en tabla" class="hidden min-w-0 overflow-hidden rounded-2xl border border-border/80 bg-card shadow-2xs">
+  <div class="overflow-x-auto">
+    <table class="w-full text-left text-xs">
+      <caption class="sr-only">Catálogo privado de cultivos y acciones disponibles</caption>
+      <thead class="border-b border-border bg-muted/50 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+        <tr>
+          <th scope="col" class="px-5 py-4">Cultivo</th>
+          <th scope="col" class="px-5 py-4">Categoría</th>
+          <th scope="col" class="px-5 py-4">Región</th>
+          <th scope="col" class="px-5 py-4">Cosecha</th>
+          <th scope="col" class="px-5 py-4">Estado</th>
+          <th scope="col" class="px-5 py-4 text-right">Acciones</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-border/60">
+        {{#each crops}}
+          <tr class="transition hover:bg-muted/30">
+            <td class="px-5 py-4">
+              <div class="flex items-center gap-3">
+                <img src="{{#if image_url}}{{image_url}}{{else}}/images/test/default.png{{/if}}" alt="{{name}}" width="40" height="40" loading="lazy" class="h-10 w-10 shrink-0 rounded-xl border border-border object-cover" data-fallback-src="/images/test/default.png">
+                <div class="min-w-32 max-w-64 break-words">
+                  <a href="/private/crops/{{id}}" class="font-bold hover:text-primary">{{name}}</a>
+                  <p class="mt-1 text-[11px] italic text-muted-foreground">{{scientific_name}}</p>
+                </div>
+              </div>
+            </td>
+            <td class="px-5 py-4"><span class="rounded-md bg-primary/5 px-2 py-1 font-medium text-primary">{{category}}</span></td>
+            <td class="px-5 py-4 text-muted-foreground">{{#if region}}{{region}}{{else}}Sin especificar{{/if}}</td>
+            <td class="whitespace-nowrap px-5 py-4 tabular-nums">{{#if harvest_days}}{{harvest_days}} días{{else}}—{{/if}}</td>
+            <td class="px-5 py-4">{{> private/crop-workflow-badge}}</td>
+            <td class="px-5 py-4"><div class="flex items-center justify-end gap-1">
+              <a href="/private/crops/{{id}}" class="rounded-lg p-2 text-muted-foreground hover:bg-muted hover:text-primary" aria-label="Ver ficha de {{name}}" title="Ver ficha"><span class="inline-flex shrink-0 text-lg" aria-hidden="true">{{> private/crops/icon name="visibility"}}</span></a>
+              {{> private/crops/actions}}
+            </div></td>
+          </tr>
+        {{else}}
+          <tr><td colspan="6" class="px-5 py-12 text-center text-muted-foreground">No se encontraron cultivos con los filtros seleccionados.</td></tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+</section>

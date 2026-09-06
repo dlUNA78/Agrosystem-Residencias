@@ -1,0 +1,61 @@
+<section id="crop-section-climate" class="scroll-mt-4 rounded-2xl border border-border bg-card p-4 sm:p-6">
+<div class="flex items-center gap-2 mb-5">
+<span class="inline-flex shrink-0 text-primary">{{> private/crops/icon name="cloud"}}</span>
+<div>
+<h4 class="font-bold text-foreground">Condiciones climáticas</h4>
+<p class="text-xs text-muted-foreground">Condiciones ambientales ideales para el cultivo</p>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+<div>
+<label for="crop-climate" class="block text-xs font-bold text-muted-foreground mb-2">Tipo de clima</label>
+<select id="crop-climate" name="climate"
+class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-input bg-background">
+<option value="">Seleccionar clima</option>
+<option value="tropical">Tropical</option>
+<option value="subtropical">Subtropical</option>
+<option value="templado">Templado</option>
+<option value="seco">Seco</option>
+<option value="semiarido">Semiárido</option>
+<option value="humedo">Húmedo</option>
+<option value="frio">Frío</option>
+</select>
+</div>
+<div>
+<label for="crop-min-temperature" class="block text-xs font-bold text-muted-foreground mb-2">Temperatura mínima (°C)</label>
+<input type="number" id="crop-min-temperature" name="min_temperature" min="-20" max="60"
+step="0.1"
+placeholder="Ej. 18"
+class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-input bg-background">
+</div>
+<div>
+<label for="crop-max-temperature" class="block text-xs font-bold text-muted-foreground mb-2">Temperatura máxima (°C)</label>
+<input type="number" id="crop-max-temperature" name="max_temperature" min="-20" max="60"
+step="0.1"
+placeholder="Ej. 32"
+class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-input bg-background">
+</div>
+<div>
+<label for="crop-min-rainfall" class="block text-xs font-bold text-muted-foreground mb-2">Precipitación mínima (mm/año)</label>
+<input type="number" id="crop-min-rainfall" name="min_rainfall" min="0" max="10000" step="1"
+placeholder="Ej. 600"
+class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-input bg-background">
+</div>
+<div>
+<label for="crop-max-rainfall" class="block text-xs font-bold text-muted-foreground mb-2">Precipitación máxima (mm/año)</label>
+<input type="number" id="crop-max-rainfall" name="max_rainfall" min="0" max="10000" step="1"
+placeholder="Ej. 1200"
+class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-input bg-background">
+</div>
+<div>
+<label for="crop-humidity" class="block text-xs font-bold text-muted-foreground mb-2">Humedad relativa</label>
+<select id="crop-humidity" name="humidity"
+class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-input bg-background">
+<option value="">Seleccionar</option>
+<option value="baja">Baja</option>
+<option value="media">Media</option>
+<option value="alta">Alta</option>
+</select>
+</div>
+</div>
+</section>

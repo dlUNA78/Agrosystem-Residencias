@@ -1,44 +1,6 @@
 <div class="min-h-screen font-['Geist'] antialiased bg-background text-foreground">
 
-  {{! ── SUB-NAVBAR PEGAJOSO (NAVEGACIÓN RÁPIDA GLASSMORPHIC) ─────────────── }}
-  <header class="sticky top-16 z-30 bg-background/80 backdrop-blur-md border-b border-border shadow-2xs transition-all">
-    <div class="max-w-7xl mx-auto px-4 md:px-10 py-2.5 flex items-center justify-between gap-4 overflow-x-auto no-scrollbar">
-      <nav class="flex items-center gap-1.5 md:gap-3 text-xs font-medium text-muted-foreground whitespace-nowrap">
-        <a href="#resumen" class="px-3 py-1.5 rounded-lg hover:text-foreground hover:bg-muted transition-colors flex items-center gap-1.5 font-bold text-foreground">
-          <span class="material-symbols-outlined text-sm text-[#1b4332]">info</span> Resumen
-        </a>
-        <a href="#ficha-agronomica" class="px-3 py-1.5 rounded-lg hover:text-foreground hover:bg-muted transition-colors flex items-center gap-1.5">
-          <span class="material-symbols-outlined text-sm">agriculture</span> Ficha Agronómica
-        </a>
-        <a href="#plagas" class="px-3 py-1.5 rounded-lg hover:text-foreground hover:bg-muted transition-colors flex items-center gap-1.5">
-          <span class="material-symbols-outlined text-sm">bug_report</span> Plagas Asociadas
-          {{#if crop.plagues.length}}<span class="px-1.5 py-0.5 text-[10px] font-mono bg-rose-50 text-rose-700 rounded-full font-bold">{{crop.plagues.length}}</span>{{/if}}
-        </a>
-        <a href="#insumos" class="px-3 py-1.5 rounded-lg hover:text-foreground hover:bg-muted transition-colors flex items-center gap-1.5">
-          <span class="material-symbols-outlined text-sm">science</span> Insumos Autorizados
-          {{#if crop.products.length}}<span class="px-1.5 py-0.5 text-[10px] font-mono bg-blue-50 text-blue-700 rounded-full font-bold">{{crop.products.length}}</span>{{/if}}
-        </a>
-        {{#if isPrivate}}
-        <a href="#predios" class="px-3 py-1.5 rounded-lg hover:text-foreground hover:bg-muted transition-colors flex items-center gap-1.5">
-          <span class="material-symbols-outlined text-sm">landscape</span> Predios Activos
-          {{#if crop.farms.length}}<span class="px-1.5 py-0.5 text-[10px] font-mono bg-emerald-50 text-emerald-700 rounded-full font-bold">{{crop.farms.length}}</span>{{/if}}
-        </a>
-        {{/if}}
-      </nav>
-
-      <div class="flex items-center gap-2 shrink-0">
-        {{#if isPrivate}}
-          <a href="/private/crops" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-card border border-border text-foreground font-bold text-xs rounded-md hover:bg-secondary transition-colors shadow-2xs">
-            <span class="material-symbols-outlined text-xs">arrow_back</span> Panel
-          </a>
-        {{else}}
-          <a href="/crops" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-card border border-border text-foreground font-bold text-xs rounded-md hover:bg-secondary transition-colors shadow-2xs">
-            <span class="material-symbols-outlined text-xs">arrow_back</span> Catálogo
-          </a>
-        {{/if}}
-      </div>
-    </div>
-  </header>
+  {{> shared/crop-detail-nav}}
 
   <main class="px-4 md:px-10 pt-8 pb-16">
 
@@ -78,13 +40,11 @@
             <h1 class="text-4xl md:text-5xl font-headline font-extrabold text-foreground tracking-tight">
               {{#if crop.common_name}}{{crop.common_name}}{{else}}{{crop.name}}{{/if}}
             </h1>
-            {{#if (eq crop.status "aprobado")}}
-              <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-800 text-xs font-mono font-bold rounded-md border border-emerald-200">
-                <span class="material-symbols-outlined text-sm text-emerald-600">verified</span> Aprobado INIFAP
-              </span>
+            {{#if isPrivate}}
+              {{> private/crop-workflow-badge workflow_status=crop.workflow_status}}
             {{else}}
-              <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-800 text-xs font-mono font-bold rounded-md border border-amber-200">
-                <span class="material-symbols-outlined text-sm text-amber-600">pending</span> En Revisión
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-800 text-xs font-mono font-bold rounded-md border border-emerald-200">
+                <span class="material-symbols-outlined text-sm text-emerald-600">verified</span> Publicado por INIFAP
               </span>
             {{/if}}
           </div>
@@ -100,16 +60,22 @@
       </div>
     </div>
 
+    {{#if isPrivate}}
+      <div class="max-w-7xl mx-auto">
+        {{> private/crop-workflow-panel}}
+      </div>
+    {{/if}}
+
     {{! ── HERO BANNER & RESUMEN AGRONÓMICO ────────────────────────────────── }}
     <div class="mb-10 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
       <!-- Columna Izquierda: Fotografía del Cultivo -->
       <div class="col-span-1 lg:col-span-7">
         <div class="relative overflow-hidden rounded-xl bg-muted border border-border shadow-2xs h-80 md:h-95 group">
           {{#if crop.image_url}}
-            <img src="{{crop.image_url}}" alt="{{crop.name}}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" onerror="this.onerror=null; this.src='/images/test/default.png';" />
+            <img src="{{crop.image_url}}" alt="{{crop.name}}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" data-fallback-src="/images/test/default.png" />
           {{else}}
             {{#if crop.images.[0].image_url}}
-              <img src="{{crop.images.[0].image_url}}" alt="{{crop.name}}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" onerror="this.onerror=null; this.src='/images/test/default.png';" />
+              <img src="{{crop.images.[0].image_url}}" alt="{{crop.name}}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" data-fallback-src="/images/test/default.png" />
             {{else}}
               <div class="w-full h-full bg-card flex flex-col items-center justify-center gap-2">
                 <span class="material-symbols-outlined text-6xl text-muted-foreground/40">agriculture</span>
@@ -348,7 +314,7 @@
               <div>
                 <!-- Imagen de la Plaga con Overlay y Badges -->
                 <div class="relative h-44 w-full bg-muted overflow-hidden">
-                  <img src="{{this.image_url}}" alt="{{this.name}}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" onerror="this.onerror=null; this.src='/images/plagas/pulgon-verde.webp';" />
+                  <img src="{{this.image_url}}" alt="{{this.name}}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" data-fallback-src="/images/plagas/pulgon-verde.webp" />
                   <div class="absolute inset-0 bg-linear-to-t from-black/80 via-black/30 to-transparent pointer-events-none"></div>
 
                   <!-- Categoría y Riesgo flotantes -->
@@ -426,7 +392,7 @@
 
                 <div class="flex items-center gap-4 mb-4">
                   <div class="w-16 h-16 rounded-lg bg-muted border border-border overflow-hidden shrink-0 flex items-center justify-center p-1">
-                    <img src="{{this.image_url}}" alt="{{this.name}}" class="w-full h-full object-contain" onerror="this.onerror=null; this.src='/images/products/confidor-350-sc.webp';" />
+                    <img src="{{this.image_url}}" alt="{{this.name}}" class="w-full h-full object-contain" data-fallback-src="/images/products/confidor-350-sc.webp" />
                   </div>
                   <div>
                     <h4 class="text-base font-headline font-bold text-foreground group-hover:text-[#1b4332] transition-colors leading-tight">{{this.name}}</h4>
@@ -503,3 +469,4 @@
 
   </main>
 </div>
+<script src="/js/shared/image-fallback.js"></script>

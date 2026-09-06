@@ -1,0 +1,44 @@
+<section id="crop-section-requirements" class="scroll-mt-4 rounded-2xl border border-border bg-card p-4 sm:p-6">
+<div class="flex items-center gap-2 mb-5">
+<span class="inline-flex shrink-0 text-primary">{{> private/crops/icon name="water_drop"}}</span>
+<div>
+<h4 class="font-bold text-foreground">Requerimientos del cultivo</h4>
+<p class="text-xs text-muted-foreground">Necesidades de agua, luz y manejo</p>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+<div>
+<label for="crop-water" class="block text-xs font-bold text-muted-foreground mb-2">Requerimiento de agua</label>
+<select id="crop-water" name="water_requirement"
+class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-input bg-background">
+<option value="">Seleccionar</option>
+<option value="bajo">Bajo</option>
+<option value="medio">Medio</option>
+<option value="alto">Alto</option>
+</select>
+</div>
+<div>
+<label for="crop-irrigation" class="block text-xs font-bold text-muted-foreground mb-2">Tipo de riego</label>
+<select id="crop-irrigation" name="irrigation_type"
+class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-input bg-background">
+<option value="">Seleccionar riego</option>
+<option value="lluvia">Temporal / Lluvia</option>
+<option value="goteo">Goteo</option>
+<option value="aspersion">Aspersión</option>
+<option value="gravedad">Gravedad</option>
+<option value="microaspersion">Microaspersión</option>
+<option value="otro">Otro</option>
+</select>
+</div>
+<div>
+<label for="crop-sun" class="block text-xs font-bold text-muted-foreground mb-2">Requerimiento de luz</label>
+<select id="crop-sun" name="sunlight_requirement"
+class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-input bg-background">
+<option value="">Seleccionar</option>
+<option value="sombra">Sombra</option>
+<option value="media-sombra">Media sombra</option>
+<option value="sol-directo">Sol directo</option>
+</select>
+</div>
+</div>
+</section>

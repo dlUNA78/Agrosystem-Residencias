@@ -10,7 +10,9 @@ describe('🧪 Suite de Pruebas Públicas - Módulo de Cultivos', () => {
   let sampleCrop;
 
   beforeAll(async () => {
-    sampleCrop = await Crop.findOne({ where: { status: 'aprobado' } });
+    sampleCrop = await Crop.findOne({
+      where: { status: 'aprobado', workflow_status: 'published' },
+    });
     if (!sampleCrop) {
       sampleCrop = await Crop.create({
         name: 'Cultivo Maíz QA',
@@ -18,6 +20,7 @@ describe('🧪 Suite de Pruebas Públicas - Módulo de Cultivos', () => {
         category: 'Cereales',
         description: 'Descripción para suite de prueba',
         status: 'aprobado',
+        workflow_status: 'published',
       });
     }
   });
@@ -132,6 +135,45 @@ describe('🧪 Suite de Pruebas Públicas - Módulo de Cultivos', () => {
       expect(found).toBeUndefined();
 
       await pendingCrop.destroy();
+    });
+
+    it('un borrador con status heredado aprobado tampoco aparece en la API pública', async () => {
+      const forgedApprovedCrop = await Crop.create({
+        name: 'Cultivo Aprobado Heredado QA',
+        scientific_name: 'Draftus approvedus',
+        category: 'Hortalizas',
+        status: 'aprobado',
+        workflow_status: 'draft',
+      });
+
+      try {
+        const response = await request(app).get('/api/crops');
+        expect(response.status).toBe(200);
+        expect(
+          response.body.crops.find((crop) => crop.id === forgedApprovedCrop.id),
+        ).toBeUndefined();
+      } finally {
+        await forgedApprovedCrop.destroy();
+      }
+    });
+
+    it('un borrador con status heredado aprobado no tiene detalle público', async () => {
+      const forgedApprovedCrop = await Crop.create({
+        name: 'Cultivo Privado QA',
+        scientific_name: 'Privatus crop',
+        category: 'Hortalizas',
+        status: 'aprobado',
+        workflow_status: 'draft',
+      });
+
+      try {
+        const response = await request(app).get(
+          `/crops/${forgedApprovedCrop.id}`,
+        );
+        expect(response.status).toBe(404);
+      } finally {
+        await forgedApprovedCrop.destroy();
+      }
     });
   });
 });
