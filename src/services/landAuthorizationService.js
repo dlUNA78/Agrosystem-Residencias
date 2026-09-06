@@ -14,11 +14,12 @@ export const getLandPermissions = (role) => {
   };
 };
 
-export const getLandListWhere = (user, { includeArchived = false } = {}) => {
+export const getLandListWhere = (user, { status = 'active' } = {}) => {
   const permissions = getLandPermissions(user?.role);
   const where = {};
 
-  if (!includeArchived) where.status = true;
+  if (status === 'active') where.status = true;
+  if (status === 'archived') where.status = false;
   if (!permissions.canViewAll) where.user_id = user?.id;
 
   return where;

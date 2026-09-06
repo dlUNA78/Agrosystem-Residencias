@@ -43,6 +43,9 @@ const sendInputError = (req, res, fieldErrors) => {
   return res.status(400).send(errors.join(' '));
 };
 
+const getRequestedListStatus = (value) =>
+  value === 'archived' || value === 'all' ? value : 'active';
+
 const serializeFarm = (farm, user) => {
   const value = farm.toJSON();
   return {
@@ -59,6 +62,7 @@ const serializeFarm = (farm, user) => {
 export const renderLandsPrivate = async (req, res) => {
   try {
     const permissions = getLandPermissions(req.user.role);
+    const listStatus = getRequestedListStatus(req.query?.status);
     const [regions, farms] = await Promise.all([
       Region.findAll({
         attributes: ['id', 'name'],
@@ -66,7 +70,7 @@ export const renderLandsPrivate = async (req, res) => {
         raw: true,
       }),
       Farm.findAll({
-        where: getLandListWhere(req.user),
+        where: getLandListWhere(req.user, { status: listStatus }),
         include: [regionInclude, ownerInclude],
         order: [['createdAt', 'DESC']],
       }),
@@ -81,6 +85,12 @@ export const renderLandsPrivate = async (req, res) => {
       regions,
       farmsCount: farmsData.length,
       permissions,
+      filters: {
+        status: listStatus,
+        isActive: listStatus === 'active',
+        isArchived: listStatus === 'archived',
+        isAll: listStatus === 'all',
+      },
       extraHead:
         '<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />',
       extraScripts: `
@@ -146,7 +156,7 @@ export const landDetail = async (req, res) => {
 
   try {
     const farm = await Farm.findOne({
-      where: { ...getLandListWhere(req.user), id },
+      where: { ...getLandListWhere(req.user, { status: 'all' }), id },
       include: [regionInclude, ownerInclude],
     });
     if (!farm) return res.status(404).send('Predio no encontrado');
@@ -158,6 +168,11 @@ export const landDetail = async (req, res) => {
       activePage: 'lands',
       extraScripts: '<script src="/js/private/land-detail.js"></script>',
       land: landData,
+      regions: await Region.findAll({
+        attributes: ['id', 'name'],
+        order: [['name', 'ASC']],
+        raw: true,
+      }),
       permissions: landData.permissions,
       landName: landData.name,
       landLocation: `${landData.municipality || 'Sin municipio'}${landData.region ? ` — ${landData.region.name}` : ''}`,
@@ -173,3 +188,9 @@ export const landDetail = async (req, res) => {
     return res.status(500).send('Error al obtener el expediente del terreno');
   }
 };
+
+export {
+  archiveFarmPrivate,
+  restoreFarmPrivate,
+  updateFarmPrivate,
+} from './lands/landMutationController.js';

@@ -68,6 +68,9 @@ import {
   renderLandsPrivate, // Lista todas las parcelas
   landDetail, // Expediente detallado de una parcela por ID
   createFarmPrivate, // Crea una nueva parcela/granja
+  updateFarmPrivate,
+  archiveFarmPrivate,
+  restoreFarmPrivate,
 } from '../controllers/private/landsController.js';
 
 // ─── Middlewares de autenticación y autorización ──────────────────────────────
@@ -151,6 +154,9 @@ privateRouter.get('/private/lands', renderLandsPrivate); // Lista de parcelas (r
 privateRouter.get('/private/lands/:id/expediente', landDetail); // Expediente de una parcela específica
 privateRouter.get('/lands', renderLandsPrivate); // Alias de lista de parcelas (sin prefijo)
 privateRouter.post('/private/lands/create', createFarmPrivate); // Crear nueva parcela
+privateRouter.post('/private/lands/update/:id', updateFarmPrivate);
+privateRouter.post('/private/lands/archive/:id', archiveFarmPrivate);
+privateRouter.post('/private/lands/restore/:id', restoreFarmPrivate);
 privateRouter.post('/lands/create', createFarmPrivate); // Crear nueva parcela
 
 // ══════════════════════════════════════════════════════════════════════════════

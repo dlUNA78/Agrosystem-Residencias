@@ -7,10 +7,16 @@ const FARMING_TYPES = new Set([
   'Hidroponía',
 ]);
 
-const cleanText = (value) =>
-  typeof value === 'string'
-    ? value.replace(/[\u0000-\u001f\u007f]/g, '').trim()
-    : '';
+const cleanText = (value) => {
+  if (typeof value !== 'string') return '';
+  return [...value]
+    .filter((character) => {
+      const code = character.charCodeAt(0);
+      return code > 31 && code !== 127;
+    })
+    .join('')
+    .trim();
+};
 
 const addError = (fieldErrors, field, message) => {
   fieldErrors[field] ??= [];
@@ -37,13 +43,8 @@ export const parseLandId = (value) => {
   return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : null;
 };
 
-export const validateLandInput = (input = {}) => {
-  const fieldErrors = {};
-  const value = {};
+const normalizeIdentity = (input, value, fieldErrors) => {
   const name = cleanText(input.name);
-  const municipality = cleanText(input.municipality);
-  const farmingType = cleanText(input.farming_type);
-
   if (name.length < 2 || name.length > 120) {
     addError(
       fieldErrors,
@@ -53,7 +54,9 @@ export const validateLandInput = (input = {}) => {
   } else {
     value.name = name;
   }
+};
 
+const normalizeSurface = (input, value, fieldErrors) => {
   const sizeHectares = parseDecimal(input.size_hectares, {
     min: 0.01,
     max: 1000000,
@@ -68,7 +71,11 @@ export const validateLandInput = (input = {}) => {
   } else {
     value.size_hectares = sizeHectares;
   }
+};
 
+const normalizeClassification = (input, value, fieldErrors) => {
+  const municipality = cleanText(input.municipality);
+  const farmingType = cleanText(input.farming_type);
   if (municipality.length > 100) {
     addError(
       fieldErrors,
@@ -88,7 +95,9 @@ export const validateLandInput = (input = {}) => {
   } else if (farmingType) {
     value.farming_type = farmingType;
   }
+};
 
+const normalizeRegion = (input, value, fieldErrors) => {
   if (input.region_id !== undefined && input.region_id !== '') {
     const regionId = parseLandId(input.region_id);
     if (!regionId) {
@@ -97,7 +106,9 @@ export const validateLandInput = (input = {}) => {
       value.region_id = regionId;
     }
   }
+};
 
+const normalizeCoordinates = (input, value, fieldErrors) => {
   const latitude = parseDecimal(input.location_lat, {
     min: -90,
     max: 90,
@@ -129,6 +140,17 @@ export const validateLandInput = (input = {}) => {
     value.location_lat = latitude;
     value.location_lng = longitude;
   }
+};
+
+export const validateLandInput = (input = {}) => {
+  const fieldErrors = {};
+  const value = {};
+
+  normalizeIdentity(input, value, fieldErrors);
+  normalizeSurface(input, value, fieldErrors);
+  normalizeClassification(input, value, fieldErrors);
+  normalizeRegion(input, value, fieldErrors);
+  normalizeCoordinates(input, value, fieldErrors);
 
   const errors = Object.values(fieldErrors).flat();
   return { isValid: errors.length === 0, errors, fieldErrors, value };

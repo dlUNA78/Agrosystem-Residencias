@@ -1,56 +1,33 @@
-document.addEventListener('DOMContentLoaded', function () {
-  const tabBtns = document.querySelectorAll('.tab-btn');
-  const tabPanels = document.querySelectorAll('.tab-panel');
+document.addEventListener('DOMContentLoaded', () => {
+  const modal = document.getElementById('modal-edit-land');
+  const openButton = document.getElementById('btn-open-edit-land');
+  const closeButtons = [
+    document.getElementById('btn-close-edit-land'),
+    document.getElementById('btn-cancel-edit-land'),
+    document.getElementById('modal-edit-land-backdrop'),
+  ].filter(Boolean);
 
-  tabBtns.forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const target = btn.dataset.tab;
-      tabBtns.forEach((b) => {
-        b.classList.remove('border-primary', 'text-[#0F2E2E]');
-        b.classList.add('border-transparent', 'text-on-surface-variant');
-      });
-      btn.classList.add('border-primary', 'text-[#0F2E2E]');
-      btn.classList.remove('border-transparent', 'text-on-surface-variant');
-      tabPanels.forEach((p) => p.classList.add('hidden'));
-      document.getElementById('tab-' + target).classList.remove('hidden');
-    });
+  if (!modal || !openButton) return;
+
+  const openModal = () => {
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    document.body.classList.add('overflow-hidden');
+    document.getElementById('edit-land-name')?.focus();
+  };
+
+  const closeModal = () => {
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    document.body.classList.remove('overflow-hidden');
+    openButton.focus();
+  };
+
+  openButton.addEventListener('click', openModal);
+  closeButtons.forEach((button) => button.addEventListener('click', closeModal));
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && !modal.classList.contains('hidden')) {
+      closeModal();
+    }
   });
-
-  function makeModal(modalId, openBtns, closeBtns, backdropId) {
-    const modal = document.getElementById(modalId);
-    const backdrop = document.getElementById(backdropId);
-    function open() {
-      modal.classList.remove('hidden');
-      document.body.style.overflow = 'hidden';
-    }
-    function close() {
-      modal.classList.add('hidden');
-      document.body.style.overflow = '';
-    }
-    openBtns.forEach((id) => {
-      const el = document.getElementById(id);
-      if (el) el.addEventListener('click', open);
-    });
-    closeBtns.forEach((id) => {
-      const el = document.getElementById(id);
-      if (el) el.addEventListener('click', close);
-    });
-    if (backdrop) backdrop.addEventListener('click', close);
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') close();
-    });
-  }
-
-  makeModal(
-    'modal-reporte',
-    ['btn-open-reporte'],
-    ['btn-close-reporte', 'btn-cancel-reporte'],
-    'modal-reporte-backdrop',
-  );
-  makeModal(
-    'modal-aplicacion',
-    ['btn-open-aplicacion'],
-    ['btn-close-aplicacion', 'btn-cancel-aplicacion'],
-    'modal-aplicacion-backdrop',
-  );
 });
