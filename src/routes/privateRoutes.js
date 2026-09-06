@@ -150,6 +150,7 @@ privateRouter.post(
 privateRouter.get('/private/lands', renderLandsPrivate); // Lista de parcelas (ruta con prefijo /private)
 privateRouter.get('/private/lands/:id/expediente', landDetail); // Expediente de una parcela específica
 privateRouter.get('/lands', renderLandsPrivate); // Alias de lista de parcelas (sin prefijo)
+privateRouter.post('/private/lands/create', createFarmPrivate); // Crear nueva parcela
 privateRouter.post('/lands/create', createFarmPrivate); // Crear nueva parcela
 
 // ══════════════════════════════════════════════════════════════════════════════

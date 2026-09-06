@@ -11,7 +11,7 @@
             <div>
                 <h1 class="text-2xl font-extrabold text-[#0F2E2E]">Gestión de Terrenos y Parcelas</h1>
                 <p class="text-sm text-on-surface-variant mt-1">
-                    Registra y monitorea tus predios.
+                    {{#if permissions.canViewAll}}Consulta y monitorea los predios activos del personal autorizado.{{else}}Registra y monitorea tus predios.{{/if}}
                     {{#if farmsCount}}
                         <span class="font-bold text-primary">{{farmsCount}} terreno(s) activo(s).</span>
                     {{else}}
@@ -19,12 +19,13 @@
                     {{/if}}
                 </p>
             </div>
-            {{!-- Botón para abrir el modal de registro --}}
+            {{#if permissions.canCreate}}
             <button id="btn-open-new-land"
                 class="flex items-center gap-2 px-5 py-2.5 bg-[#0F2E2E] text-white rounded-xl text-sm font-bold hover:bg-[#43655c] transition-colors shadow-sm">
                 <span class="material-symbols-outlined text-base">add_location_alt</span>
                 Registrar Predio
             </button>
+            {{/if}}
         </div>
 
         {{!-- ── Mapa de mis terrenos (visualización) ── --}}
@@ -68,6 +69,11 @@
                         {{#if this.municipality}}{{this.municipality}}{{else}}<em>Sin municipio</em>{{/if}}
                         {{#if this.region}} — {{this.region.name}}{{/if}}
                     </div>
+                    {{#if @root.permissions.canViewAll}}
+                    <p class="mt-2 text-xs text-on-surface-variant">
+                        Responsable: <span class="font-semibold text-foreground">{{#if this.user}}{{this.user.full_name}}{{else}}Sin responsable disponible{{/if}}</span>
+                    </p>
+                    {{/if}}
                     <div class="mt-4 grid grid-cols-2 gap-3">
                         <div class="bg-surface-container-low rounded-xl p-3">
                             <p class="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider">Tamaño</p>
@@ -94,7 +100,7 @@
             </article>
             {{/each}}
 
-            {{!-- Tarjeta de añadir nuevo terreno --}}
+            {{#if @root.permissions.canCreate}}
             <article id="btn-open-new-land-card"
                 class="bg-surface-container-lowest rounded-xl border-2 border-dashed border-primary/20 shadow-sm overflow-hidden group hover:-translate-y-1 transition-all duration-300 flex items-center justify-center min-h-[380px] cursor-pointer">
                 <div class="text-center p-6">
@@ -102,6 +108,7 @@
                     <p class="text-base font-bold text-on-surface-variant group-hover:text-primary transition-colors">Registrar Nuevo Predio</p>
                 </div>
             </article>
+            {{/if}}
         </section>
         {{else}}
         {{!-- Estado vacío --}}
@@ -123,6 +130,7 @@
      y los inputs ocultos de lat/lng que
      public/js/private/lands.js gestiona.
      ════════════════════════════════════════════ --}}
+{{#if permissions.canCreate}}
 <div id="modal-new-land" class="hidden fixed inset-0 z-[200] flex items-center justify-center">
     {{!-- Backdrop --}}
     <div id="modal-new-land-backdrop" class="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
@@ -141,7 +149,7 @@
         </div>
 
         {{!-- Body — Formulario con acción al backend --}}
-        <form id="form-new-land" action="/lands/create" method="POST">
+        <form id="form-new-land" action="/private/lands/create" method="POST">
             <div class="p-6 space-y-5 overflow-y-auto max-h-[75vh]">
 
                 {{!-- Fila 1: Nombre y Hectáreas --}}
@@ -155,6 +163,8 @@
                             id="farm-name"
                             name="name"
                             required
+                            minlength="2"
+                            maxlength="120"
                             placeholder="Ej. Parcela Norte"
                             class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" />
                     </div>
@@ -169,6 +179,7 @@
                             name="size_hectares"
                             step="0.01"
                             min="0.01"
+                            max="1000000"
                             required
                             placeholder="Ej. 5.25"
                             class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" />
@@ -182,6 +193,7 @@
                             type="text"
                             id="farm-municipality"
                             name="municipality"
+                            maxlength="100"
                             placeholder="Ej. Uruapan"
                             class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" />
                     </div>
@@ -270,3 +282,4 @@
         </form>
     </div>
 </div>
+{{/if}}
