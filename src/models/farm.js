@@ -19,6 +19,19 @@ export default (sequelize, DataTypes) => {
         foreignKey: 'region_id',
         as: 'region',
       });
+
+      Farm.hasMany(models.FarmCrop, {
+        foreignKey: 'farm_id',
+        as: 'farmCrops',
+      });
+      Farm.hasMany(models.FarmHealthReport, {
+        foreignKey: 'farm_id',
+        as: 'healthReports',
+      });
+      Farm.hasMany(models.FarmApplication, {
+        foreignKey: 'farm_id',
+        as: 'applications',
+      });
     }
   }
 
