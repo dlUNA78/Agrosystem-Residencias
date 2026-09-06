@@ -1,0 +1,44 @@
+<section id="crop-section-management" class="scroll-mt-4 rounded-2xl border border-border bg-card p-4 sm:p-6">
+<div class="flex items-center gap-2 mb-5">
+<span class="inline-flex shrink-0 text-primary">{{> private/crops/icon name="compost"}}</span>
+<div>
+<h4 class="font-bold text-foreground">Fertilización y manejo</h4>
+<p class="text-xs text-muted-foreground">Información básica para el manejo agronómico</p>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+<div>
+<label for="crop-nutrients" class="block text-xs font-bold text-muted-foreground mb-2">Nutrientes principales</label>
+<input type="text" id="crop-nutrients" name="nutrients" maxlength="500"
+placeholder="Ej. Nitrógeno, fósforo y potasio"
+class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-input bg-background">
+</div>
+<div>
+<label for="crop-fertilization" class="block text-xs font-bold text-muted-foreground mb-2">Recomendación de fertilización</label>
+<input type="text" id="crop-fertilization" name="fertilization" maxlength="500"
+placeholder="Ej. Fertilización balanceada NPK"
+class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-input bg-background">
+</div>
+<div>
+<label for="crop-pruning" class="block text-xs font-bold text-muted-foreground mb-2">Requiere poda</label>
+<select id="crop-pruning" name="requires_pruning"
+class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-input bg-background">
+<option value="">Seleccionar</option>
+<option value="true">Sí</option>
+<option value="false">No</option>
+</select>
+</div>
+<div>
+<label for="crop-pollination" class="block text-xs font-bold text-muted-foreground mb-2">Tipo de polinización</label>
+<select id="crop-pollination" name="pollination_type"
+class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-input bg-background">
+<option value="">Seleccionar</option>
+<option value="autopolinización">Autopolinización</option>
+<option value="cruzada">Polinización cruzada</option>
+<option value="viento">Por viento</option>
+<option value="insectos">Por insectos</option>
+<option value="otro">Otro</option>
+</select>
+</div>
+</div>
+</section>

@@ -1,0 +1,12 @@
+<div class="flex shrink-0 items-center gap-1">
+  {{#if canEditRecord}}
+    <button type="button" class="edit-crop-btn rounded-lg p-2 text-muted-foreground transition hover:bg-muted hover:text-primary" data-id="{{id}}" title="Editar cultivo" aria-label="Editar {{name}}">
+      <span class="inline-flex shrink-0 text-lg" aria-hidden="true">{{> private/crops/icon name="edit"}}</span>
+    </button>
+  {{/if}}
+  {{#if canDeleteRecord}}
+    <button type="button" class="delete-crop-btn rounded-lg p-2 text-muted-foreground transition hover:bg-rose-50 hover:text-rose-700" data-id="{{id}}" data-name="{{name}}" title="Eliminar cultivo" aria-label="Eliminar {{name}}">
+      <span class="inline-flex shrink-0 text-lg" aria-hidden="true">{{> private/crops/icon name="delete"}}</span>
+    </button>
+  {{/if}}
+</div>

@@ -1,0 +1,50 @@
+<section id="crop-section-soil" class="scroll-mt-4 rounded-2xl border border-border bg-card p-4 sm:p-6">
+<div class="flex items-center gap-2 mb-5">
+<span class="inline-flex shrink-0 text-primary">{{> private/crops/icon name="landscape"}}</span>
+<div>
+<h4 class="font-bold text-foreground">Características del suelo</h4>
+<p class="text-xs text-muted-foreground">Requerimientos edafológicos del cultivo</p>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+<div>
+<label for="crop-soil" class="block text-xs font-bold text-muted-foreground mb-2">Tipo de suelo</label>
+<select id="crop-soil" name="soil_type"
+class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-input bg-background">
+<option value="">Seleccionar suelo</option>
+<option value="arenoso">Arenoso</option>
+<option value="arcilloso">Arcilloso</option>
+<option value="franco">Franco</option>
+<option value="franco-arenoso">Franco arenoso</option>
+<option value="franco-arcilloso">Franco arcilloso</option>
+<option value="limoso">Limoso</option>
+</select>
+</div>
+<div>
+<label for="crop-ph" class="block text-xs font-bold text-muted-foreground mb-2">Rango de pH</label>
+<input type="text" id="crop-ph" name="ph_range" maxlength="20" inputmode="decimal"
+data-crop-format="ph" placeholder="Ej. 5.5 - 7.0"
+class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-input bg-background">
+</div>
+<div>
+<label for="crop-drainage" class="block text-xs font-bold text-muted-foreground mb-2">Drenaje requerido</label>
+<select id="crop-drainage" name="drainage"
+class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-input bg-background">
+<option value="">Seleccionar</option>
+<option value="bajo">Bajo</option>
+<option value="medio">Medio</option>
+<option value="alto">Alto</option>
+</select>
+</div>
+<div>
+<label for="crop-organic-matter" class="block text-xs font-bold text-muted-foreground mb-2">Materia orgánica requerida</label>
+<select id="crop-organic-matter" name="organic_matter"
+class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-input bg-background">
+<option value="">Seleccionar</option>
+<option value="baja">Baja</option>
+<option value="media">Media</option>
+<option value="alta">Alta</option>
+</select>
+</div>
+</div>
+</section>

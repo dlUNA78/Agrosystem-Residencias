@@ -1,10 +1,12 @@
 import { initializeCropFormValidation } from './crop-form-validation.js';
 import { showAppNotification } from '../shared/notifications.js';
+import { observeCropDialog } from './cropDialog.js';
 
 // MODAL CULTIVOS
 {
   // ELEMENTOS DEL MODAL
   const modalCrop = document.getElementById('modal-crop');
+  observeCropDialog(modalCrop);
 
   const modalTitle = document.getElementById('modal-crop-title');
 
@@ -136,7 +138,7 @@ import { showAppNotification } from '../shared/notifications.js';
 
     const preview = document.createElement('div');
     preview.className =
-      'relative aspect-square rounded-xl overflow-hidden border border-outline-variant/30 bg-surface-container-low';
+      'relative aspect-square rounded-xl overflow-hidden border border-border bg-muted';
 
     const image = document.createElement('img');
     image.src = source;
@@ -356,62 +358,33 @@ import { showAppNotification } from '../shared/notifications.js';
     });
   }
 
-  // CAMBIO DE VISTA
-
+  // El formulario GET aplica los filtros a todo el catálogo.
   const tableView = document.getElementById('crops-table-view');
-
   const gridView = document.getElementById('crops-grid-view');
-
   const btnTable = document.getElementById('view-table');
-
   const btnGrid = document.getElementById('view-grid');
 
-  if (btnTable && btnGrid && tableView && gridView) {
-    // GRID POR DEFECTO
-
-    btnGrid.classList.add('bg-[#43655c]', 'text-white');
-
-    btnGrid.classList.remove('text-on-surface-variant');
-
-    btnTable.classList.remove('bg-[#43655c]', 'text-white');
-
-    btnTable.classList.add('text-on-surface-variant');
-
-    // TABLA
-
-    btnTable.addEventListener('click', function () {
-      tableView.classList.remove('hidden');
-
-      gridView.classList.add('hidden');
-
-      btnTable.classList.add('bg-[#43655c]', 'text-white');
-
-      btnTable.classList.remove('text-on-surface-variant');
-
-      btnGrid.classList.remove('bg-[#43655c]', 'text-white');
-
-      btnGrid.classList.add('text-on-surface-variant');
-    });
-
-    // GRID
-
-    btnGrid.addEventListener('click', function () {
-      tableView.classList.add('hidden');
-
-      gridView.classList.remove('hidden');
-
-      btnGrid.classList.add('bg-[#43655c]', 'text-white');
-
-      btnGrid.classList.remove('text-on-surface-variant');
-
-      btnTable.classList.remove('bg-[#43655c]', 'text-white');
-
-      btnTable.classList.add('text-on-surface-variant');
-    });
+  function setCatalogView(table) {
+    tableView?.classList.toggle('hidden', !table);
+    gridView?.classList.toggle('hidden', table);
+    for (const [button, selected] of [
+      [btnTable, table],
+      [btnGrid, !table],
+    ]) {
+      if (!button) continue;
+      button.classList.toggle('bg-primary', selected);
+      button.classList.toggle('text-white', selected);
+      button.classList.toggle('text-muted-foreground', !selected);
+      button.setAttribute('aria-pressed', String(selected));
+    }
   }
+
+  btnTable?.addEventListener('click', () => setCatalogView(true));
+  btnGrid?.addEventListener('click', () => setCatalogView(false));
 
   // MODAL ELIMINAR CULTIVO
   const modalDeleteCrop = document.getElementById('modal-delete-crop');
+  observeCropDialog(modalDeleteCrop);
   const modalDeleteCropBackdrop = document.getElementById(
     'modal-delete-crop-backdrop',
   );
@@ -461,34 +434,4 @@ import { showAppNotification } from '../shared/notifications.js';
       closeDeleteCropModal();
     }
   });
-
-  // BUSCADOR EN TIEMPO REAL
-
-  const searchInput = document.getElementById('crop-search');
-
-  if (searchInput) {
-    searchInput.addEventListener('input', () => {
-      const search = searchInput.value.toLowerCase().trim();
-
-      // FILAS DE LA TABLA
-
-      const rows = document.querySelectorAll('#crops-table-view tbody tr');
-
-      rows.forEach((row) => {
-        const text = row.textContent.toLowerCase();
-
-        row.classList.toggle('hidden', !text.includes(search));
-      });
-
-      // TARJETAS DEL GRID
-
-      const cards = document.querySelectorAll('#crops-grid-view > article');
-
-      cards.forEach((card) => {
-        const text = card.textContent.toLowerCase();
-
-        card.classList.toggle('hidden', !text.includes(search));
-      });
-    });
-  }
 }
