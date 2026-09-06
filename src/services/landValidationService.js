@@ -118,7 +118,11 @@ const normalizeCoordinates = (input, value, fieldErrors) => {
     max: 180,
   });
   if (Number.isNaN(latitude)) {
-    addError(fieldErrors, 'location_lat', 'La latitud debe estar entre -90 y 90.');
+    addError(
+      fieldErrors,
+      'location_lat',
+      'La latitud debe estar entre -90 y 90.',
+    );
   }
   if (Number.isNaN(longitude)) {
     addError(

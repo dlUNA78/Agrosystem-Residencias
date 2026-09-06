@@ -30,6 +30,13 @@ const mockDb = {
   },
   User: {},
   AuditLog: { create: jest.fn() },
+  Crop: { findAll: jest.fn(async () => []) },
+  FarmApplication: {},
+  FarmCrop: {},
+  FarmCropStage: {},
+  FarmHealthReport: {},
+  Plague: { findAll: jest.fn(async () => []) },
+  Product: { findAll: jest.fn(async () => []) },
 };
 
 jest.unstable_mockModule('../../src/models/index.js', () => ({
@@ -73,10 +80,7 @@ describe('controladores privados de terrenos', () => {
     );
 
     const adminResponse = buildResponse();
-    await renderLandsPrivate(
-      { user: { id: 1, role: 'admin' } },
-      adminResponse,
-    );
+    await renderLandsPrivate({ user: { id: 1, role: 'admin' } }, adminResponse);
     expect(mockDb.Farm.findAll).toHaveBeenLastCalledWith(
       expect.objectContaining({ where: { status: true } }),
     );

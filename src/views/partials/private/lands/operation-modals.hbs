@@ -1,0 +1,134 @@
+<div data-land-modal="cycle" class="hidden fixed inset-0 z-[210] items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="cycle-modal-title">
+    <button type="button" data-land-modal-close class="absolute inset-0 bg-black/40 backdrop-blur-sm" aria-label="Cerrar"></button>
+    <div class="relative z-10 w-full max-w-lg overflow-hidden rounded-2xl border border-border bg-card shadow-2xl">
+        <header class="flex items-center justify-between border-b border-border px-6 py-4">
+            <h2 id="cycle-modal-title" class="text-lg font-extrabold text-foreground">Registrar ciclo de cultivo</h2>
+            <button type="button" data-land-modal-close class="rounded-lg px-3 py-2 text-sm font-bold text-muted-foreground hover:bg-muted">Cerrar</button>
+        </header>
+        <form action="/private/lands/{{land.id}}/cycles" method="POST">
+            <div class="space-y-5 p-6">
+                <div>
+                    <label for="cycle-crop" class="mb-1.5 block text-xs font-bold text-muted-foreground">Cultivo publicado</label>
+                    <select id="cycle-crop" name="crop_id" required class="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                        <option value="">Seleccionar cultivo</option>
+                        {{#each crops}}<option value="{{this.id}}">{{this.name}} · {{this.scientific_name}}</option>{{/each}}
+                    </select>
+                </div>
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <div>
+                        <label for="cycle-date" class="mb-1.5 block text-xs font-bold text-muted-foreground">Fecha de siembra</label>
+                        <input id="cycle-date" name="planting_date" type="date" required class="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" />
+                    </div>
+                    <div>
+                        <label for="cycle-area" class="mb-1.5 block text-xs font-bold text-muted-foreground">Lote o sección</label>
+                        <input id="cycle-area" name="area_section" maxlength="100" placeholder="Ej. Lote norte" class="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" />
+                    </div>
+                </div>
+            </div>
+            <footer class="flex justify-end gap-3 border-t border-border bg-muted/50 px-6 py-4">
+                <button type="button" data-land-modal-close class="rounded-xl border border-border bg-card px-5 py-2.5 text-sm font-bold text-muted-foreground hover:bg-muted">Cancelar</button>
+                <button type="submit" class="rounded-xl bg-primary px-6 py-2.5 text-sm font-bold text-white hover:bg-primary/90">Registrar ciclo</button>
+            </footer>
+        </form>
+    </div>
+</div>
+
+<div data-land-modal="health" class="hidden fixed inset-0 z-[210] items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="health-modal-title">
+    <button type="button" data-land-modal-close class="absolute inset-0 bg-black/40 backdrop-blur-sm" aria-label="Cerrar"></button>
+    <div class="relative z-10 w-full max-w-lg overflow-hidden rounded-2xl border border-border bg-card shadow-2xl">
+        <header class="flex items-center justify-between border-b border-border px-6 py-4">
+            <h2 id="health-modal-title" class="text-lg font-extrabold text-foreground">Registrar hallazgo fitosanitario</h2>
+            <button type="button" data-land-modal-close class="rounded-lg px-3 py-2 text-sm font-bold text-muted-foreground hover:bg-muted">Cerrar</button>
+        </header>
+        <form action="/private/lands/{{land.id}}/health-reports" method="POST">
+            <div class="max-h-[70vh] space-y-5 overflow-y-auto p-6">
+                <div>
+                    <label for="health-plague" class="mb-1.5 block text-xs font-bold text-muted-foreground">Plaga publicada</label>
+                    <select id="health-plague" name="plague_id" required class="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                        <option value="">Seleccionar plaga</option>
+                        {{#each plagues}}<option value="{{this.id}}">{{this.name}} · {{this.scientific_name}}</option>{{/each}}
+                    </select>
+                </div>
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <div>
+                        <label for="health-cycle" class="mb-1.5 block text-xs font-bold text-muted-foreground">Ciclo relacionado</label>
+                        <select id="health-cycle" name="farm_crop_id" class="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                            <option value="">Terreno en general</option>
+                            {{#each activeFarmCrops}}<option value="{{this.id}}">{{this.crop.name}}{{#if this.area_section}} · {{this.area_section}}{{/if}}</option>{{/each}}
+                        </select>
+                    </div>
+                    <div>
+                        <label for="health-severity" class="mb-1.5 block text-xs font-bold text-muted-foreground">Severidad</label>
+                        <select id="health-severity" name="severity" required class="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                            <option value="low">Baja</option><option value="medium">Media</option><option value="high">Alta</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label for="health-date" class="mb-1.5 block text-xs font-bold text-muted-foreground">Fecha de observación</label>
+                    <input id="health-date" name="observed_at" type="date" required max="{{today}}" value="{{today}}" class="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" />
+                </div>
+                <div>
+                    <label for="health-description" class="mb-1.5 block text-xs font-bold text-muted-foreground">Descripción</label>
+                    <textarea id="health-description" name="description" maxlength="2000" rows="3" class="w-full resize-y rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"></textarea>
+                </div>
+            </div>
+            <footer class="flex justify-end gap-3 border-t border-border bg-muted/50 px-6 py-4">
+                <button type="button" data-land-modal-close class="rounded-xl border border-border bg-card px-5 py-2.5 text-sm font-bold text-muted-foreground hover:bg-muted">Cancelar</button>
+                <button type="submit" class="rounded-xl bg-red-600 px-6 py-2.5 text-sm font-bold text-white hover:bg-red-700">Guardar hallazgo</button>
+            </footer>
+        </form>
+    </div>
+</div>
+
+<div data-land-modal="application" class="hidden fixed inset-0 z-[210] items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="application-modal-title">
+    <button type="button" data-land-modal-close class="absolute inset-0 bg-black/40 backdrop-blur-sm" aria-label="Cerrar"></button>
+    <div class="relative z-10 w-full max-w-lg overflow-hidden rounded-2xl border border-border bg-card shadow-2xl">
+        <header class="flex items-center justify-between border-b border-border px-6 py-4">
+            <h2 id="application-modal-title" class="text-lg font-extrabold text-foreground">Registrar aplicación</h2>
+            <button type="button" data-land-modal-close class="rounded-lg px-3 py-2 text-sm font-bold text-muted-foreground hover:bg-muted">Cerrar</button>
+        </header>
+        <form action="/private/lands/{{land.id}}/applications" method="POST">
+            <div class="max-h-[70vh] space-y-5 overflow-y-auto p-6">
+                <div>
+                    <label for="application-product" class="mb-1.5 block text-xs font-bold text-muted-foreground">Producto activo</label>
+                    <select id="application-product" name="product_id" required class="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                        <option value="">Seleccionar producto</option>
+                        {{#each products}}<option value="{{this.id}}">{{this.name}}{{#if this.active_ingredient}} · {{this.active_ingredient}}{{/if}}</option>{{/each}}
+                    </select>
+                </div>
+                <div>
+                    <label for="application-cycle" class="mb-1.5 block text-xs font-bold text-muted-foreground">Ciclo relacionado</label>
+                    <select id="application-cycle" name="farm_crop_id" class="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                        <option value="">Terreno en general</option>
+                        {{#each activeFarmCrops}}<option value="{{this.id}}">{{this.crop.name}}{{#if this.area_section}} · {{this.area_section}}{{/if}}</option>{{/each}}
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="application-dose" class="mb-1.5 block text-xs font-bold text-muted-foreground">Dosis</label>
+                        <input id="application-dose" name="dose_value" type="number" required min="0.001" max="1000000" step="0.001" class="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" />
+                    </div>
+                    <div>
+                        <label for="application-unit" class="mb-1.5 block text-xs font-bold text-muted-foreground">Unidad</label>
+                        <select id="application-unit" name="dose_unit" required class="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                            <option value="L/ha">L/ha</option><option value="kg/ha">kg/ha</option><option value="ml/ha">ml/ha</option><option value="g/ha">g/ha</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label for="application-date" class="mb-1.5 block text-xs font-bold text-muted-foreground">Fecha de aplicación</label>
+                    <input id="application-date" name="applied_at" type="date" required max="{{today}}" value="{{today}}" class="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" />
+                </div>
+                <div>
+                    <label for="application-notes" class="mb-1.5 block text-xs font-bold text-muted-foreground">Notas</label>
+                    <textarea id="application-notes" name="notes" maxlength="2000" rows="3" class="w-full resize-y rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"></textarea>
+                </div>
+            </div>
+            <footer class="flex justify-end gap-3 border-t border-border bg-muted/50 px-6 py-4">
+                <button type="button" data-land-modal-close class="rounded-xl border border-border bg-card px-5 py-2.5 text-sm font-bold text-muted-foreground hover:bg-muted">Cancelar</button>
+                <button type="submit" class="rounded-xl bg-primary px-6 py-2.5 text-sm font-bold text-white hover:bg-primary/90">Guardar aplicación</button>
+            </footer>
+        </form>
+    </div>
+</div>

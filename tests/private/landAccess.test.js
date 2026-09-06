@@ -22,10 +22,7 @@ describe('acceso al módulo privado de terrenos', () => {
 
   it('permite consultar archivados sin perder el aislamiento por responsable', () => {
     expect(
-      getLandListWhere(
-        { id: 12, role: 'inifap' },
-        { status: 'archived' },
-      ),
+      getLandListWhere({ id: 12, role: 'inifap' }, { status: 'archived' }),
     ).toEqual({ user_id: 12, status: false });
     expect(
       getLandListWhere({ id: 1, role: 'admin' }, { status: 'all' }),

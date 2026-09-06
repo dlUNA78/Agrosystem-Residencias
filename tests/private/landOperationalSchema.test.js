@@ -28,11 +28,9 @@ describe('migración de registros operativos de terrenos', () => {
       'area_section',
       expect.objectContaining({ allowNull: true }),
     );
-    expect(queryInterface.createTable.mock.calls.map(([table]) => table)).toEqual([
-      'FarmCropStages',
-      'FarmHealthReports',
-      'FarmApplications',
-    ]);
+    expect(
+      queryInterface.createTable.mock.calls.map(([table]) => table),
+    ).toEqual(['FarmCropStages', 'FarmHealthReports', 'FarmApplications']);
     expect(queryInterface.addConstraint).toHaveBeenCalledWith(
       'FarmCropStages',
       expect.objectContaining({
@@ -65,11 +63,9 @@ describe('migración de registros operativos de terrenos', () => {
 
     await migration.down(queryInterface);
 
-    expect(queryInterface.dropTable.mock.calls.map(([table]) => table)).toEqual([
-      'FarmApplications',
-      'FarmHealthReports',
-      'FarmCropStages',
-    ]);
+    expect(queryInterface.dropTable.mock.calls.map(([table]) => table)).toEqual(
+      ['FarmApplications', 'FarmHealthReports', 'FarmCropStages'],
+    );
     expect(queryInterface.removeColumn).toHaveBeenCalledWith(
       'FarmCrops',
       'area_section',

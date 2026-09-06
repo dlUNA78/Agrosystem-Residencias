@@ -53,7 +53,9 @@ export const updateFarmPrivate = async (req, res) => {
   try {
     if (
       validation.value.region_id &&
-      !(await Region.findByPk(validation.value.region_id, { attributes: ['id'] }))
+      !(await Region.findByPk(validation.value.region_id, {
+        attributes: ['id'],
+      }))
     ) {
       return sendInputError(req, res, {
         region_id: ['La región seleccionada no existe.'],
@@ -87,11 +89,7 @@ export const updateFarmPrivate = async (req, res) => {
     if (result === 'invalid_status') {
       return res.status(409).send('Restaura el terreno antes de editarlo');
     }
-    return sendMutationSuccess(
-      req,
-      res,
-      `/private/lands/${id}/expediente`,
-    );
+    return sendMutationSuccess(req, res, `/private/lands/${id}/expediente`);
   } catch (error) {
     console.error('Error al actualizar el terreno:', error);
     return res.status(500).send('Error al actualizar el terreno');

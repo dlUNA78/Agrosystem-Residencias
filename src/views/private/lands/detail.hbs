@@ -86,23 +86,27 @@
 
         <section class="rounded-2xl border border-border bg-card p-6 shadow-sm lg:col-span-3">
             <h2 class="text-lg font-extrabold text-foreground">Seguimiento agrícola</h2>
-            <p class="mt-2 text-sm leading-relaxed text-muted-foreground">Este expediente será el punto de entrada para consultar ciclos de cultivo, etapas fenológicas, hallazgos fitosanitarios y aplicaciones registradas.</p>
+            <p class="mt-2 text-sm leading-relaxed text-muted-foreground">Resumen de los registros operativos vinculados con este terreno.</p>
             <div class="mt-5 grid gap-3 sm:grid-cols-3">
                 <div class="rounded-xl border border-dashed border-border p-4">
                     <p class="text-sm font-bold text-foreground">Ciclos de cultivo</p>
-                    <p class="mt-1 text-xs text-muted-foreground">Sin registros conectados.</p>
+                    <p class="mt-1 text-2xl font-extrabold text-primary">{{farmCropsCount}}</p>
                 </div>
                 <div class="rounded-xl border border-dashed border-border p-4">
                     <p class="text-sm font-bold text-foreground">Hallazgos</p>
-                    <p class="mt-1 text-xs text-muted-foreground">Sin registros conectados.</p>
+                    <p class="mt-1 text-2xl font-extrabold text-red-700">{{healthReportsCount}}</p>
                 </div>
                 <div class="rounded-xl border border-dashed border-border p-4">
                     <p class="text-sm font-bold text-foreground">Aplicaciones</p>
-                    <p class="mt-1 text-xs text-muted-foreground">Sin registros conectados.</p>
+                    <p class="mt-1 text-2xl font-extrabold text-foreground">{{applicationsCount}}</p>
                 </div>
             </div>
         </section>
     </div>
+
+    {{> private/lands/cycles}}
+    {{> private/lands/health-reports}}
+    {{> private/lands/applications}}
 </div>
 
 {{#if permissions.canEdit}}
@@ -164,4 +168,8 @@
         </form>
     </div>
 </div>
+{{/if}}
+
+{{#if permissions.canEdit}}
+{{> private/lands/operation-modals}}
 {{/if}}

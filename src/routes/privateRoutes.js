@@ -71,6 +71,11 @@ import {
   updateFarmPrivate,
   archiveFarmPrivate,
   restoreFarmPrivate,
+  createLandCropCycle,
+  advanceLandCropStage,
+  finishLandCropCycle,
+  createFarmHealthReport,
+  createFarmApplication,
 } from '../controllers/private/landsController.js';
 
 // ─── Middlewares de autenticación y autorización ──────────────────────────────
@@ -157,6 +162,11 @@ privateRouter.post('/private/lands/create', createFarmPrivate); // Crear nueva p
 privateRouter.post('/private/lands/update/:id', updateFarmPrivate);
 privateRouter.post('/private/lands/archive/:id', archiveFarmPrivate);
 privateRouter.post('/private/lands/restore/:id', restoreFarmPrivate);
+privateRouter.post('/private/lands/:id/cycles', createLandCropCycle);
+privateRouter.post('/private/lands/:id/cycles/advance', advanceLandCropStage);
+privateRouter.post('/private/lands/:id/cycles/finish', finishLandCropCycle);
+privateRouter.post('/private/lands/:id/health-reports', createFarmHealthReport);
+privateRouter.post('/private/lands/:id/applications', createFarmApplication);
 privateRouter.post('/lands/create', createFarmPrivate); // Crear nueva parcela
 
 // ══════════════════════════════════════════════════════════════════════════════

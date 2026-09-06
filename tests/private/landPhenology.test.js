@@ -27,9 +27,7 @@ describe('etapas de cultivo en terrenos', () => {
     expect(() => generateLandCropStages('fecha-inválida', 120)).toThrow(
       /fecha de siembra/i,
     );
-    expect(() => generateLandCropStages('2026-01-15', 0)).toThrow(
-      /duración/i,
-    );
+    expect(() => generateLandCropStages('2026-01-15', 0)).toThrow(/duración/i);
   });
 
   it('resume progreso y etapa actual', () => {

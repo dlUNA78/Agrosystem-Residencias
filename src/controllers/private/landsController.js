@@ -7,10 +7,7 @@ import {
   getLandListWhere,
   getLandPermissions,
 } from '../../services/landAuthorizationService.js';
-import {
-  parseLandId,
-  validateLandInput,
-} from '../../services/landValidationService.js';
+import { validateLandInput } from '../../services/landValidationService.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -113,7 +110,9 @@ export const createFarmPrivate = async (req, res) => {
   try {
     if (
       validation.value.region_id &&
-      !(await Region.findByPk(validation.value.region_id, { attributes: ['id'] }))
+      !(await Region.findByPk(validation.value.region_id, {
+        attributes: ['id'],
+      }))
     ) {
       return sendInputError(req, res, {
         region_id: ['La región seleccionada no existe.'],
@@ -150,47 +149,18 @@ export const createFarmPrivate = async (req, res) => {
   }
 };
 
-export const landDetail = async (req, res) => {
-  const id = parseLandId(req.params.id);
-  if (!id) return res.status(400).send('Identificador de terreno inválido');
-
-  try {
-    const farm = await Farm.findOne({
-      where: { ...getLandListWhere(req.user, { status: 'all' }), id },
-      include: [regionInclude, ownerInclude],
-    });
-    if (!farm) return res.status(404).send('Predio no encontrado');
-
-    const landData = serializeFarm(farm, req.user);
-    return res.render('private/lands/detail', {
-      layout: privateLayout,
-      pageTitle: `Expediente — ${landData.name}`,
-      activePage: 'lands',
-      extraScripts: '<script src="/js/private/land-detail.js"></script>',
-      land: landData,
-      regions: await Region.findAll({
-        attributes: ['id', 'name'],
-        order: [['name', 'ASC']],
-        raw: true,
-      }),
-      permissions: landData.permissions,
-      landName: landData.name,
-      landLocation: `${landData.municipality || 'Sin municipio'}${landData.region ? ` — ${landData.region.name}` : ''}`,
-      landLat: landData.location_lat ? String(landData.location_lat) : 'N/A',
-      landLng: landData.location_lng ? String(landData.location_lng) : 'N/A',
-      landHectares: landData.size_hectares
-        ? String(landData.size_hectares)
-        : '0',
-      landId: `#PRD-${String(landData.id).padStart(4, '0')}`,
-    });
-  } catch (error) {
-    console.error('Error al obtener el expediente del terreno:', error);
-    return res.status(500).send('Error al obtener el expediente del terreno');
-  }
-};
-
+export { landDetail } from './lands/landDetailController.js';
 export {
   archiveFarmPrivate,
   restoreFarmPrivate,
   updateFarmPrivate,
 } from './lands/landMutationController.js';
+export {
+  advanceLandCropStage,
+  createLandCropCycle,
+  finishLandCropCycle,
+} from './lands/landCycleController.js';
+export {
+  createFarmApplication,
+  createFarmHealthReport,
+} from './lands/landRecordController.js';
