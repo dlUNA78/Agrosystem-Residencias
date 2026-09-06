@@ -32,6 +32,12 @@ export default (sequelize, DataTypes) => {
   }
   FarmCrop.init(
     {
+      id: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        autoIncrement: true,
+        primaryKey: true,
+      },
       farm_id: DataTypes.INTEGER,
       crop_id: DataTypes.INTEGER,
       area_section: DataTypes.STRING,

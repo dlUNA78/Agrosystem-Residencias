@@ -65,18 +65,22 @@ export const createLandCropCycle = async (req, res) => {
         },
         { transaction },
       );
+      const farmCropId = farmCrop.get?.('id') ?? farmCrop.id;
+      if (!farmCropId) {
+        throw new Error('No se generó el identificador del ciclo de cultivo');
+      }
       const harvestDays = Number(crop.harvest_days) || 120;
       const stages = generateLandCropStages(
         validation.value.planting_date,
         harvestDays,
-      ).map((stage) => ({ ...stage, farm_crop_id: farmCrop.id }));
+      ).map((stage) => ({ ...stage, farm_crop_id: farmCropId }));
       await FarmCropStage.bulkCreate(stages, { transaction });
       await createLandAudit(
         {
           action: 'create_crop_cycle',
           recordId: farm.id,
           newValues: {
-            farm_crop_id: farmCrop.id,
+            farm_crop_id: farmCropId,
             crop_id: crop.id,
             planting_date: validation.value.planting_date,
             area_section: validation.value.area_section || null,
@@ -85,7 +89,7 @@ export const createLandCropCycle = async (req, res) => {
         },
         transaction,
       );
-      return { farmCropId: farmCrop.id };
+      return { farmCropId };
     });
 
     if (typeof result === 'string') return sendOperationError(res, result);
