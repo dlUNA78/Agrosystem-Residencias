@@ -2,99 +2,94 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 import db from '../../models/index.js';
+import {
+  getContextualLandPermissions,
+  getLandListWhere,
+  getLandPermissions,
+} from '../../services/landAuthorizationService.js';
+import { validateLandInput } from '../../services/landValidationService.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-// Ruta absoluta al layout privado
 const privateLayout = path.join(__dirname, '../../views/layouts/private');
 
-// ============================================================
-// LANDS — Mapa de datos demo por ID (reemplazar con DB real)
-// ============================================================
-const DEMO_LANDS = {
-  1: {
-    landName: 'La Esperanza',
-    landLocation: 'Culiacán, Sinaloa',
-    landLat: '24.7994',
-    landLng: '-107.3877',
-    landHectares: '142',
-    landId: '#PRD-0041',
-  },
-  2: {
-    landName: 'El Progreso',
-    landLocation: 'Navolato, Sinaloa',
-    landLat: '24.7608',
-    landLng: '-107.6988',
-    landHectares: '280',
-    landId: '#PRD-0038',
-  },
-  3: {
-    landName: 'Rancho San Miguel',
-    landLocation: 'Mocorito, Sinaloa',
-    landLat: '25.4847',
-    landLng: '-107.9606',
-    landHectares: '95',
-    landId: '#PRD-0035',
-  },
-  4: {
-    landName: 'Los Álamos',
-    landLocation: 'Guasave, Sinaloa',
-    landLat: '25.5666',
-    landLng: '-108.4697',
-    landHectares: '210',
-    landId: '#PRD-0049',
-  },
+const { AuditLog, Farm, Region, User, sequelize } = db;
+
+const regionInclude = {
+  model: Region,
+  as: 'region',
+  attributes: ['id', 'name'],
+  required: false,
 };
 
-// ============================================================
-// GET /private/lands — Vista principal con datos reales del DB
-// REGLA DE SEGURIDAD: Consulta siempre aislada por user_id
-// ============================================================
+const ownerInclude = {
+  model: User,
+  as: 'user',
+  attributes: ['id', 'full_name'],
+  required: false,
+};
+
+const wantsJson = (req) =>
+  req.xhr || req.headers?.accept?.includes('application/json');
+
+const sendInputError = (req, res, fieldErrors) => {
+  const errors = Object.values(fieldErrors).flat();
+  if (wantsJson(req)) {
+    return res.status(400).json({ success: false, errors, fieldErrors });
+  }
+  return res.status(400).send(errors.join(' '));
+};
+
+const getRequestedListStatus = (value) =>
+  value === 'archived' || value === 'all' ? value : 'active';
+
+const serializeFarm = (farm, user) => {
+  const value = farm.toJSON();
+  return {
+    ...value,
+    permissions: getContextualLandPermissions({
+      role: user.role,
+      userId: user.id,
+      ownerUserId: value.user_id,
+      isActive: value.status,
+    }),
+  };
+};
+
 export const renderLandsPrivate = async (req, res) => {
   try {
-    // Obtener todas las regiones para poblar el select del formulario
-    const regions = await db.Region.findAll({
-      attributes: ['id', 'name'],
-      order: [['name', 'ASC']],
-      raw: true,
-    });
-
-    // Obtener únicamente los terrenos ACTIVOS del usuario logueado
-    const farms = await db.Farm.findAll({
-      where: {
-        user_id: req.user.id,
-        status: true,
-      },
-      include: [
-        {
-          model: db.Region,
-          as: 'region',
-          attributes: ['id', 'name'],
-          required: false,
-        },
-      ],
-      order: [['createdAt', 'DESC']],
-    });
-
-    // Serializar para pasar a la vista de forma segura
-    const farmsData = farms.map((f) => f.toJSON());
+    const permissions = getLandPermissions(req.user.role);
+    const listStatus = getRequestedListStatus(req.query?.status);
+    const [regions, farms] = await Promise.all([
+      Region.findAll({
+        attributes: ['id', 'name'],
+        order: [['name', 'ASC']],
+        raw: true,
+      }),
+      Farm.findAll({
+        where: getLandListWhere(req.user, { status: listStatus }),
+        include: [regionInclude, ownerInclude],
+        order: [['createdAt', 'DESC']],
+      }),
+    ]);
+    const farmsData = farms.map((farm) => serializeFarm(farm, req.user));
 
     return res.render('private/lands/list', {
       layout: privateLayout,
-      pageTitle: 'Mis Terrenos',
+      pageTitle: permissions.canViewAll ? 'Terrenos' : 'Mis Terrenos',
       activePage: 'lands',
-
-      // Datos
       farms: farmsData,
       regions,
       farmsCount: farmsData.length,
-
-      // Leaflet CSS → se inyecta en el <head> vía el slot extraHead del layout
+      permissions,
+      filters: {
+        status: listStatus,
+        isActive: listStatus === 'active',
+        isArchived: listStatus === 'archived',
+        isAll: listStatus === 'all',
+      },
       extraHead:
         '<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />',
-
-      // Leaflet JS + script estático de interactividad
       extraScripts: `
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
         <script src="/js/private/lands.js"></script>
@@ -106,99 +101,66 @@ export const renderLandsPrivate = async (req, res) => {
   }
 };
 
-// ============================================================
-// POST /lands/create — Crear un nuevo predio
-// REGLA DE SEGURIDAD: user_id forzado desde req.user.id
-// ============================================================
 export const createFarmPrivate = async (req, res) => {
-  try {
-    const {
-      name,
-      size_hectares,
-      farming_type,
-      municipality,
-      region_id,
-      location_lat,
-      location_lng,
-    } = req.body;
+  const validation = validateLandInput(req.body);
+  if (!validation.isValid) {
+    return sendInputError(req, res, validation.fieldErrors);
+  }
 
-    await db.Farm.create({
-      name,
-      size_hectares: size_hectares || null,
-      farming_type: farming_type || null,
-      municipality: municipality || null,
-      region_id: region_id || null,
-      location_lat: location_lat || null,
-      location_lng: location_lng || null,
-      user_id: req.user.id,
-      status: true,
+  try {
+    if (
+      validation.value.region_id &&
+      !(await Region.findByPk(validation.value.region_id, {
+        attributes: ['id'],
+      }))
+    ) {
+      return sendInputError(req, res, {
+        region_id: ['La región seleccionada no existe.'],
+      });
+    }
+
+    await sequelize.transaction(async (transaction) => {
+      const farm = await Farm.create(
+        {
+          ...validation.value,
+          user_id: req.user.id,
+          status: true,
+        },
+        { transaction },
+      );
+      await AuditLog.create(
+        {
+          action: 'create',
+          table_name: 'Farms',
+          record_id: farm.id,
+          old_values: null,
+          new_values: validation.value,
+          user_id: req.user.id,
+        },
+        { transaction },
+      );
     });
 
-    return res.redirect('/lands');
+    if (wantsJson(req)) return res.status(201).json({ success: true });
+    return res.redirect('/private/lands');
   } catch (error) {
     console.error('Error al crear el terreno:', error);
     return res.status(500).send('Error al crear el terreno');
   }
 };
 
-// ============================================================
-// GET /private/lands/:id/expediente — Detalle de un terreno
-// REGLA DE SEGURIDAD: Consulta aislada por user_id
-// ============================================================
-export const landDetail = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    // Buscar la parcela real en la base de datos perteneciendo al usuario
-    const farm = await db.Farm.findOne({
-      where: {
-        id,
-        user_id: req.user.id,
-        status: true,
-      },
-      include: [
-        {
-          model: db.Region,
-          as: 'region',
-          attributes: ['id', 'name'],
-          required: false,
-        },
-      ],
-    });
-
-    if (farm) {
-      const landData = farm.toJSON();
-      return res.render('private/lands/detail', {
-        layout: privateLayout,
-        pageTitle: `Expediente — ${landData.name}`,
-        activePage: 'lands',
-        extraScripts: '<script src="/js/private/land-detail.js"></script>',
-        landName: landData.name,
-        landLocation: `${landData.municipality || 'Sin municipio'}${landData.region ? ' — ' + landData.region.name : ''}`,
-        landLat: landData.location_lat ? String(landData.location_lat) : 'N/A',
-        landLng: landData.location_lng ? String(landData.location_lng) : 'N/A',
-        landHectares: landData.size_hectares
-          ? String(landData.size_hectares)
-          : '0',
-        landId: `#PRD-${String(landData.id).padStart(4, '0')}`,
-      });
-    }
-
-    // Fallback para predios de demostración / maqueta
-    const demoLand = DEMO_LANDS[id];
-    if (demoLand) {
-      return res.render('private/lands/detail', {
-        layout: privateLayout,
-        pageTitle: `Expediente — ${demoLand.landName}`,
-        activePage: 'lands',
-        extraScripts: '<script src="/js/private/land-detail.js"></script>',
-        ...demoLand,
-      });
-    }
-
-    return res.status(404).send('Predio no encontrado');
-  } catch (error) {
-    console.error('Error al obtener el expediente del terreno:', error);
-    return res.status(500).send('Error al obtener el expediente del terreno');
-  }
-};
+export { landDetail } from './lands/landDetailController.js';
+export {
+  archiveFarmPrivate,
+  restoreFarmPrivate,
+  updateFarmPrivate,
+} from './lands/landMutationController.js';
+export {
+  advanceLandCropStage,
+  createLandCropCycle,
+  finishLandCropCycle,
+} from './lands/landCycleController.js';
+export {
+  createFarmApplication,
+  createFarmHealthReport,
+} from './lands/landRecordController.js';

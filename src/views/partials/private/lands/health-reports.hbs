@@ -1,0 +1,28 @@
+<section class="rounded-2xl border border-border bg-card p-6 shadow-sm">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+        <div>
+            <h2 class="text-lg font-extrabold text-foreground">Hallazgos fitosanitarios</h2>
+            <p class="mt-1 text-sm text-muted-foreground">{{healthReportsCount}} observación(es) registradas.</p>
+        </div>
+        {{#if permissions.canEdit}}
+        <button type="button" data-land-modal-open="health" class="rounded-xl border border-red-200 px-4 py-2.5 text-sm font-bold text-red-700 hover:bg-red-50">Registrar hallazgo</button>
+        {{/if}}
+    </div>
+
+    {{#if healthReports}}
+    <div class="mt-5 overflow-x-auto">
+        <table class="w-full min-w-[640px] text-left text-sm">
+            <thead class="border-b border-border text-xs uppercase text-muted-foreground">
+                <tr><th class="px-3 py-3">Fecha</th><th class="px-3 py-3">Plaga</th><th class="px-3 py-3">Severidad</th><th class="px-3 py-3">Descripción</th></tr>
+            </thead>
+            <tbody class="divide-y divide-border">
+                {{#each healthReports}}
+                <tr><td class="px-3 py-3 text-muted-foreground">{{this.observedDate}}</td><td class="px-3 py-3 font-bold text-foreground">{{this.plague_name}}</td><td class="px-3 py-3">{{this.severityLabel}}</td><td class="max-w-sm px-3 py-3 text-muted-foreground">{{#if this.description}}{{this.description}}{{else}}Sin descripción{{/if}}</td></tr>
+                {{/each}}
+            </tbody>
+        </table>
+    </div>
+    {{else}}
+    <p class="mt-5 rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">No hay hallazgos fitosanitarios registrados.</p>
+    {{/if}}
+</section>

@@ -15,6 +15,7 @@ import {
   renderProductDetail,
   getProductsData,
 } from '../controllers/public/productController.js';
+import { renderLandsPublic } from '../controllers/public/landController.js';
 
 import { publicRateLimiter } from '../middlewares/rateLimiter.js';
 import { publicReadOnlyGuard } from '../middlewares/publicReadOnlyGuard.js';
@@ -42,5 +43,8 @@ publicRouter.get('/crops/:id', renderCropDetail);
 publicRouter.get('/api/products', getProductsData);
 publicRouter.get('/products', renderProductsPublic);
 publicRouter.get('/products/:id', renderProductDetail);
+
+// Regiones agrícolas. No expone predios, responsables ni coordenadas privadas.
+publicRouter.get('/lands', renderLandsPublic);
 
 export default publicRouter;

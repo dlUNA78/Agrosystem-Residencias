@@ -205,8 +205,9 @@ app.use(
     // Esto garantiza que Sequelize y las sesiones usen la misma configuración.
     store: new PgSession({
       pool: pgPool,
-      // 🛡️ Magia de dev: Esto crea la tabla "session" automáticamente en PostgreSQL si no existe
-      createTableIfMissing: true,
+      // El esquema de sesiones se administra mediante migración para evitar
+      // carreras cuando varias instancias arrancan al mismo tiempo.
+      createTableIfMissing: false,
     }),
     // Ya no hay fallback hardcoded: si SESSION_SECRET falta, el proceso
     // ya se detuvo arriba en la validación de entorno.

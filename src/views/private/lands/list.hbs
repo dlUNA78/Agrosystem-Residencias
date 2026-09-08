@@ -11,21 +11,39 @@
             <div>
                 <h1 class="text-2xl font-extrabold text-[#0F2E2E]">Gestión de Terrenos y Parcelas</h1>
                 <p class="text-sm text-on-surface-variant mt-1">
-                    Registra y monitorea tus predios.
+                    {{#if permissions.canViewAll}}Consulta y monitorea los predios activos del personal autorizado.{{else}}Registra y monitorea tus predios.{{/if}}
                     {{#if farmsCount}}
-                        <span class="font-bold text-primary">{{farmsCount}} terreno(s) activo(s).</span>
+                        <span class="font-bold text-primary">{{farmsCount}} resultado(s).</span>
                     {{else}}
                         <span class="text-slate-400">Aún no tienes terrenos registrados.</span>
                     {{/if}}
                 </p>
             </div>
-            {{!-- Botón para abrir el modal de registro --}}
+            {{#if permissions.canCreate}}
             <button id="btn-open-new-land"
                 class="flex items-center gap-2 px-5 py-2.5 bg-[#0F2E2E] text-white rounded-xl text-sm font-bold hover:bg-[#43655c] transition-colors shadow-sm">
                 <span class="material-symbols-outlined text-base">add_location_alt</span>
                 Registrar Predio
             </button>
+            {{/if}}
         </div>
+
+        <nav class="flex flex-wrap gap-2" aria-label="Filtrar terrenos por estado">
+            <a href="/private/lands?status=active"
+                class="rounded-lg border px-4 py-2 text-sm font-bold transition-colors {{#if filters.isActive}}border-primary bg-primary text-white{{else}}border-border bg-card text-muted-foreground hover:text-primary{{/if}}">
+                Activos
+            </a>
+            <a href="/private/lands?status=archived"
+                class="rounded-lg border px-4 py-2 text-sm font-bold transition-colors {{#if filters.isArchived}}border-primary bg-primary text-white{{else}}border-border bg-card text-muted-foreground hover:text-primary{{/if}}">
+                Archivados
+            </a>
+            {{#if permissions.canViewAll}}
+            <a href="/private/lands?status=all"
+                class="rounded-lg border px-4 py-2 text-sm font-bold transition-colors {{#if filters.isAll}}border-primary bg-primary text-white{{else}}border-border bg-card text-muted-foreground hover:text-primary{{/if}}">
+                Todos
+            </a>
+            {{/if}}
+        </nav>
 
         {{!-- ── Mapa de mis terrenos (visualización) ── --}}
         {{!-- isolation: isolate crea un stacking context propio que impide
@@ -56,8 +74,8 @@
                 <div class="relative h-36 bg-surface-container flex items-center justify-center overflow-hidden">
                     <span class="material-symbols-outlined text-6xl text-slate-200">landscape</span>
                     <div class="absolute top-3 right-3 flex items-center gap-1.5 bg-white/90 backdrop-blur px-2.5 py-1 rounded-full shadow-sm">
-                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                        <span class="text-[10px] font-black text-emerald-700 uppercase">Activo</span>
+                        <span class="w-2 h-2 rounded-full {{#if this.status}}bg-emerald-500{{else}}bg-slate-400{{/if}}"></span>
+                        <span class="text-[10px] font-black uppercase {{#if this.status}}text-emerald-700{{else}}text-slate-600{{/if}}">{{#if this.status}}Activo{{else}}Archivado{{/if}}</span>
                     </div>
                     <div class="absolute top-3 left-3 bg-white/80 backdrop-blur text-[10px] font-bold text-slate-500 px-2 py-0.5 rounded-full">#PRD-{{this.id}}</div>
                 </div>
@@ -68,6 +86,11 @@
                         {{#if this.municipality}}{{this.municipality}}{{else}}<em>Sin municipio</em>{{/if}}
                         {{#if this.region}} — {{this.region.name}}{{/if}}
                     </div>
+                    {{#if @root.permissions.canViewAll}}
+                    <p class="mt-2 text-xs text-on-surface-variant">
+                        Responsable: <span class="font-semibold text-foreground">{{#if this.user}}{{this.user.full_name}}{{else}}Sin responsable disponible{{/if}}</span>
+                    </p>
+                    {{/if}}
                     <div class="mt-4 grid grid-cols-2 gap-3">
                         <div class="bg-surface-container-low rounded-xl p-3">
                             <p class="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider">Tamaño</p>
@@ -84,17 +107,34 @@
                         </div>
                     </div>
                 </div>
-                <div class="px-5 pb-5">
+                <div class="grid grid-cols-1 gap-2 px-5 pb-5 sm:grid-cols-2">
                     <a href="/private/lands/{{this.id}}/expediente"
-                        class="w-full flex items-center justify-center gap-2 py-2.5 bg-[#0F2E2E] text-white rounded-xl text-sm font-bold hover:bg-[#43655c] transition-colors group-hover:shadow-md">
+                        class="flex items-center justify-center gap-2 rounded-xl bg-[#0F2E2E] py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#43655c] group-hover:shadow-md">
                         <span class="material-symbols-outlined text-base">folder_open</span>
                         Abrir Expediente
                     </a>
+                    {{#if this.permissions.canArchive}}
+                    <form action="/private/lands/archive/{{this.id}}" method="POST">
+                        <button type="submit" class="flex w-full items-center justify-center gap-2 rounded-xl border border-amber-200 py-2.5 text-sm font-bold text-amber-700 transition-colors hover:bg-amber-50">
+                            <span class="material-symbols-outlined text-base">archive</span>
+                            Archivar
+                        </button>
+                    </form>
+                    {{/if}}
+                    {{#if this.permissions.canRestore}}
+                    <form action="/private/lands/restore/{{this.id}}" method="POST">
+                        <button type="submit" class="flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-200 py-2.5 text-sm font-bold text-emerald-700 transition-colors hover:bg-emerald-50">
+                            <span class="material-symbols-outlined text-base">unarchive</span>
+                            Restaurar
+                        </button>
+                    </form>
+                    {{/if}}
                 </div>
             </article>
             {{/each}}
 
-            {{!-- Tarjeta de añadir nuevo terreno --}}
+            {{#if @root.filters.isActive}}
+            {{#if @root.permissions.canCreate}}
             <article id="btn-open-new-land-card"
                 class="bg-surface-container-lowest rounded-xl border-2 border-dashed border-primary/20 shadow-sm overflow-hidden group hover:-translate-y-1 transition-all duration-300 flex items-center justify-center min-h-[380px] cursor-pointer">
                 <div class="text-center p-6">
@@ -102,14 +142,16 @@
                     <p class="text-base font-bold text-on-surface-variant group-hover:text-primary transition-colors">Registrar Nuevo Predio</p>
                 </div>
             </article>
+            {{/if}}
+            {{/if}}
         </section>
         {{else}}
         {{!-- Estado vacío --}}
         <section class="flex flex-col items-center justify-center py-24 text-center">
             <span class="material-symbols-outlined text-7xl text-slate-200 mb-4">terrain</span>
-            <h2 class="text-xl font-extrabold text-[#0F2E2E] mb-2">Sin terrenos registrados</h2>
+            <h2 class="text-xl font-extrabold text-[#0F2E2E] mb-2">{{#if filters.isArchived}}Sin terrenos archivados{{else}}Sin terrenos registrados{{/if}}</h2>
             <p class="text-sm text-on-surface-variant max-w-sm">
-                Aún no has registrado ninguna parcela. Haz clic en <strong>"Registrar Predio"</strong> para comenzar.
+                {{#if filters.isArchived}}No hay terrenos archivados dentro de tu alcance.{{else}}Aún no has registrado ninguna parcela. Haz clic en <strong>"Registrar Predio"</strong> para comenzar.{{/if}}
             </p>
         </section>
         {{/if}}
@@ -123,6 +165,7 @@
      y los inputs ocultos de lat/lng que
      public/js/private/lands.js gestiona.
      ════════════════════════════════════════════ --}}
+{{#if permissions.canCreate}}
 <div id="modal-new-land" class="hidden fixed inset-0 z-[200] flex items-center justify-center">
     {{!-- Backdrop --}}
     <div id="modal-new-land-backdrop" class="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
@@ -141,7 +184,7 @@
         </div>
 
         {{!-- Body — Formulario con acción al backend --}}
-        <form id="form-new-land" action="/lands/create" method="POST">
+        <form id="form-new-land" action="/private/lands/create" method="POST">
             <div class="p-6 space-y-5 overflow-y-auto max-h-[75vh]">
 
                 {{!-- Fila 1: Nombre y Hectáreas --}}
@@ -155,6 +198,8 @@
                             id="farm-name"
                             name="name"
                             required
+                            minlength="2"
+                            maxlength="120"
                             placeholder="Ej. Parcela Norte"
                             class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" />
                     </div>
@@ -169,6 +214,7 @@
                             name="size_hectares"
                             step="0.01"
                             min="0.01"
+                            max="1000000"
                             required
                             placeholder="Ej. 5.25"
                             class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" />
@@ -182,6 +228,7 @@
                             type="text"
                             id="farm-municipality"
                             name="municipality"
+                            maxlength="100"
                             placeholder="Ej. Uruapan"
                             class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" />
                     </div>
@@ -270,3 +317,4 @@
         </form>
     </div>
 </div>
+{{/if}}

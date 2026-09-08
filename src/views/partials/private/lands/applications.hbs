@@ -1,0 +1,28 @@
+<section class="rounded-2xl border border-border bg-card p-6 shadow-sm">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+        <div>
+            <h2 class="text-lg font-extrabold text-foreground">Bitácora de aplicaciones</h2>
+            <p class="mt-1 text-sm text-muted-foreground">{{applicationsCount}} aplicación(es) registradas.</p>
+        </div>
+        {{#if permissions.canEdit}}
+        <button type="button" data-land-modal-open="application" class="rounded-xl border border-primary/30 px-4 py-2.5 text-sm font-bold text-primary hover:bg-primary/5">Registrar aplicación</button>
+        {{/if}}
+    </div>
+
+    {{#if applications}}
+    <div class="mt-5 overflow-x-auto">
+        <table class="w-full min-w-[680px] text-left text-sm">
+            <thead class="border-b border-border text-xs uppercase text-muted-foreground">
+                <tr><th class="px-3 py-3">Fecha</th><th class="px-3 py-3">Producto</th><th class="px-3 py-3">Ingrediente activo</th><th class="px-3 py-3">Dosis</th><th class="px-3 py-3">Notas</th></tr>
+            </thead>
+            <tbody class="divide-y divide-border">
+                {{#each applications}}
+                <tr><td class="px-3 py-3 text-muted-foreground">{{this.appliedDate}}</td><td class="px-3 py-3 font-bold text-foreground">{{this.product_name}}</td><td class="px-3 py-3 text-muted-foreground">{{#if this.active_ingredient}}{{this.active_ingredient}}{{else}}No especificado{{/if}}</td><td class="px-3 py-3 font-semibold text-foreground">{{this.dose_value}} {{this.dose_unit}}</td><td class="max-w-xs px-3 py-3 text-muted-foreground">{{#if this.notes}}{{this.notes}}{{else}}Sin notas{{/if}}</td></tr>
+                {{/each}}
+            </tbody>
+        </table>
+    </div>
+    {{else}}
+    <p class="mt-5 rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">No hay aplicaciones registradas.</p>
+    {{/if}}
+</section>
