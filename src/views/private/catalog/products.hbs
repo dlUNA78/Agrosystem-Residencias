@@ -157,7 +157,7 @@
 
                                 <td class="p-3 text-center">
 
-                                    <button type="button" class="btn-edit-product" data-id="{{id}}" data-name="{{name}}"
+                                    {{#if canEditRecord}}<button type="button" class="btn-edit-product" data-id="{{id}}" data-name="{{name}}"
                                         data-category="{{category}}" data-manufacturer="{{manufacturer}}"
                                         data-active="{{active_ingredient}}" data-registration="{{registration_code}}"
                                         data-validation="{{validation_status}}"
@@ -167,7 +167,7 @@
 
                                         ✏️ Editar
 
-                                    </button>
+                                    </button>{{/if}}
 
                                 </td>
 
@@ -311,15 +311,15 @@
                             </td>
 
                             <td class="px-6 py-4 text-right whitespace-nowrap">
-                                <button type="button" class="btn-edit-product" data-id="{{id}}" data-name="{{name}}"
+                                {{#if canEditRecord}}<button type="button" class="btn-edit-product" data-id="{{id}}" data-name="{{name}}"
                                     data-category="{{category}}" data-manufacturer="{{manufacturer}}"
                                     data-active="{{active_ingredient}}" data-registration="{{registration_code}}"
                                     data-validation="{{validation_status}}" data-expiration="{{expiration_date}}"
                                     data-crops="{{target_crops}}" data-description="{{description}}"
                                     data-status="{{status}}" data-image="{{image_url}}">
                                     ✏️ Editar
-                                </button>
-                                {{#if (hasRole user 'admin')}}
+                                </button>{{/if}}
+                                {{#if canDeleteRecord}}
 <form id="delete-form-{{id}}" action="/private/products/delete/{{id}}" method="POST"
                                     style="display:inline;">
 
@@ -411,7 +411,7 @@
 
                         <!-- ACTIONS -->
                         <div class="flex gap-3">
-                            <button type="button" class="btn-edit-product" data-id="{{id}}" data-name="{{name}}"
+                            {{#if canEditRecord}}<button type="button" class="btn-edit-product" data-id="{{id}}" data-name="{{name}}"
                                 data-category="{{category}}" data-manufacturer="{{manufacturer}}"
                                 data-active="{{active_ingredient}}" data-registration="{{registration_code}}"
                                 data-validation="{{validation_status}}" data-expiration="{{expiration_date}}"
@@ -421,12 +421,12 @@
                                 data-dosage="{{suggested_dosage}}" data-interval="{{safety_interval_days}}"
                                 data-formulation="{{formulation_type}}" data-safetysheet="{{safety_sheet_url}}">
                                 ✏️ Editar
-                            </button>
+                            </button>{{/if}}
 
-                            <button type="button" data-delete-btn data-id="{{id}}" data-name="{{name}}"
+                            {{#if canDeleteRecord}}<button type="button" data-delete-btn data-id="{{id}}" data-name="{{name}}"
                                 class="text-red-600 hover:underline">
                                 🗑 Eliminar
-                            </button>
+                            </button>{{/if}}
 
                         </div>
 
@@ -437,7 +437,7 @@
             {{/each}}
 
             <!-- ADD CARD -->
-            <div id="btn-add-product-card"
+            {{#if permissions.canCreate}}<div id="btn-add-product-card"
                 class="bg-surface-container-lowest rounded-xl border-2 border-dashed border-primary/20 shadow-sm overflow-hidden group hover:-translate-y-1 transition-all duration-300 flex items-center justify-center min-h-55 cursor-pointer">
 
                 <div class="text-center p-6">
@@ -450,7 +450,7 @@
                         Añadir producto
                     </p>
                 </div>
-            </div>
+            </div>{{/if}}
 
         </div>
 
@@ -475,6 +475,12 @@
         <form id="product-form" action="/private/products/create" method="POST" enctype="multipart/form-data"
             class="p-6 space-y-5">
 
+            <div id="product-form-validation-summary" tabindex="-1"
+                class="hidden rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-900">
+                <p class="font-bold">Corrige los siguientes campos:</p>
+                <ul class="mt-2 list-disc space-y-1 pl-5"></ul>
+            </div>
+
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
                 <!-- Nombre -->
@@ -483,7 +489,7 @@
                         Nombre Comercial *
                     </label>
 
-                    <input id="name" type="text" name="name" required placeholder="Ej. Glyphomax Pro 480"
+                    <input id="name" type="text" name="name" required maxlength="150" placeholder="Ej. Glyphomax Pro 480"
                         class="w-full bg-surface-container-low rounded-lg py-3 px-4 text-sm border-none focus:ring-2 focus:ring-primary/20">
                 </div>
 
@@ -500,11 +506,11 @@
                     </div>
 
                     <!-- Input -->
-                    <input id="image" type="file" name="image" accept="image/*"
+                    <input id="image" type="file" name="images" multiple accept="image/jpeg,image/png,image/webp"
                         class="w-full bg-surface-container-low rounded-lg py-3 px-4 text-sm border-none">
 
                     <p class="text-xs text-gray-500 mt-2">
-                        Si no seleccionas una imagen nueva, se conservará la actual.
+                        Puedes seleccionar hasta 10 imágenes JPG, PNG o WEBP (máximo 5 MB cada una).
                     </p>
                 </div>
 
@@ -535,7 +541,7 @@
                         Fabricante *
                     </label>
 
-                    <input id="manufacturer" type="text" name="manufacturer" required placeholder="Ej. Bayer"
+                    <input id="manufacturer" type="text" name="manufacturer" required maxlength="150" placeholder="Ej. Bayer"
                         class="w-full bg-surface-container-low rounded-lg py-3 px-4 text-sm border-none">
                 </div>
 
@@ -545,7 +551,7 @@
                         Principio Activo *
                     </label>
 
-                    <input id="active_ingredient" type="text" name="active_ingredient" required
+                    <input id="active_ingredient" type="text" name="active_ingredient" required maxlength="200"
                         placeholder="Ej. Glifosato 48%"
                         class="w-full bg-surface-container-low rounded-lg py-3 px-4 text-sm border-none">
                 </div>
@@ -556,25 +562,14 @@
                         Registro COFEPRIS *
                     </label>
 
-                    <input id="registration_code" type="text" name="registration_code" required
+                    <input id="registration_code" type="text" name="registration_code" required maxlength="100"
                         placeholder="Ej. RSCO-1234"
                         class="w-full bg-surface-container-low rounded-lg py-3 px-4 text-sm border-none">
                 </div>
 
-                <!-- Validación -->
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-widest mb-2">
-                        Estado de Validación
-                    </label>
-
-                    <select id="validation_status" name="validation_status"
-                        class="w-full bg-surface-container-low rounded-lg py-3 px-4 text-sm border-none">
-
-                        <option value="pendiente">Pendiente</option>
-                        <option value="aprobado">Aprobado</option>
-                        <option value="restringido">Restringido</option>
-
-                    </select>
+                <input id="validation_status" type="hidden" value="En revisión">
+                <div class="rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                    El estado se asigna mediante el flujo de revisión; no se captura manualmente.
                 </div>
 
                 <!-- Fecha -->
@@ -593,7 +588,7 @@
                         Cultivos Objetivo
                     </label>
 
-                    <input id="target_crops" type="text" name="target_crops" placeholder="Ej. Maíz, Trigo, Sorgo"
+                    <input id="target_crops" type="text" name="target_crops" maxlength="1000" placeholder="Ej. Maíz, Trigo, Sorgo"
                         class="w-full bg-surface-container-low rounded-lg py-3 px-4 text-sm border-none">
                 </div>
 
@@ -602,7 +597,7 @@
                     <label class="block text-xs font-bold uppercase tracking-widest mb-2">
                         Mecanismo de Acción
                     </label>
-                    <input id="mode_of_action" type="text" name="mode_of_action" placeholder="Ej. Sistémico e Ingestión"
+                    <input id="mode_of_action" type="text" name="mode_of_action" maxlength="200" placeholder="Ej. Sistémico e Ingestión"
                         class="w-full bg-surface-container-low rounded-lg py-3 px-4 text-sm border-none">
                 </div>
 
@@ -626,7 +621,7 @@
                     <label class="block text-xs font-bold uppercase tracking-widest mb-2">
                         Dosis Sugerida
                     </label>
-                    <input id="suggested_dosage" type="text" name="suggested_dosage" placeholder="Ej. 350 - 500 ml / ha"
+                    <input id="suggested_dosage" type="text" name="suggested_dosage" maxlength="100" placeholder="Ej. 350 - 500 ml / ha"
                         class="w-full bg-surface-container-low rounded-lg py-3 px-4 text-sm border-none">
                 </div>
 
@@ -635,7 +630,7 @@
                     <label class="block text-xs font-bold uppercase tracking-widest mb-2">
                         Días de Carencia (Pre-cosecha)
                     </label>
-                    <input id="safety_interval_days" type="number" name="safety_interval_days" placeholder="Ej. 14"
+                    <input id="safety_interval_days" type="number" name="safety_interval_days" min="0" max="3650" step="1" placeholder="Ej. 14"
                         class="w-full bg-surface-container-low rounded-lg py-3 px-4 text-sm border-none">
                 </div>
 
@@ -644,7 +639,7 @@
                     <label class="block text-xs font-bold uppercase tracking-widest mb-2">
                         Tipo de Formulación
                     </label>
-                    <input id="formulation_type" type="text" name="formulation_type" placeholder="Ej. Suspensión Concentrada (SC)"
+                    <input id="formulation_type" type="text" name="formulation_type" maxlength="100" placeholder="Ej. Suspensión Concentrada (SC)"
                         class="w-full bg-surface-container-low rounded-lg py-3 px-4 text-sm border-none">
                 </div>
 
@@ -653,7 +648,7 @@
                     <label class="block text-xs font-bold uppercase tracking-widest mb-2">
                         Enlace a Ficha Técnica / PDF
                     </label>
-                    <input id="safety_sheet_url" type="url" name="safety_sheet_url" placeholder="https://..."
+                    <input id="safety_sheet_url" type="url" name="safety_sheet_url" maxlength="2048" placeholder="https://..."
                         class="w-full bg-surface-container-low rounded-lg py-3 px-4 text-sm border-none">
                 </div>
 
@@ -663,22 +658,11 @@
                         Descripción Técnica
                     </label>
 
-                    <textarea id="description" name="description" rows="4" placeholder="Descripción del producto..."
+                    <textarea id="description" name="description" rows="4" maxlength="5000" placeholder="Descripción del producto..."
                         class="w-full bg-surface-container-low rounded-lg py-3 px-4 text-sm border-none resize-none"></textarea>
                 </div>
 
-                <!-- Estado -->
-                <div class="sm:col-span-2">
-                    <label class="flex items-center gap-3">
-
-                        <input id="status" type="checkbox" name="status" value="true" checked>
-
-                        <span class="text-sm font-semibold">
-                            Producto Activo
-                        </span>
-
-                    </label>
-                </div>
+                <input id="status" type="hidden" value="true">
 
             </div>
 
@@ -726,4 +710,4 @@
 
 </div>
 
-<script src="/js/private/product.js"></script>
+<script type="module" src="/js/private/product.js"></script>

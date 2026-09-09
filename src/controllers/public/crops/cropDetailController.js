@@ -5,6 +5,7 @@ import {
 } from '../../../services/cropPublicQueryService.js';
 import { CROP_WORKFLOW_STATUSES } from '../../../services/cropWorkflowService.js';
 import { PLAGUE_WORKFLOW_STATUSES } from '../../../services/plagueWorkflowService.js';
+import { PRODUCT_WORKFLOW_STATUSES } from '../../../services/productWorkflowService.js';
 
 const { Crop, CropImage } = db;
 
@@ -150,7 +151,11 @@ const cropDetailIncludes = [
     model: db.Product,
     as: 'products',
     required: false,
-    where: { status: true },
+    where: {
+      status: true,
+      workflow_status: PRODUCT_WORKFLOW_STATUSES.PUBLISHED,
+    },
+    attributes: ['id', 'name', 'category', 'active_ingredient', 'manufacturer'],
     include: [{ model: db.ProductImage, as: 'images', required: false }],
   },
 ];

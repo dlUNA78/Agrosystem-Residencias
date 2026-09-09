@@ -1,321 +1,281 @@
-// MODAL DE CREACIÓN Y EDICIÓN DE PRODUCTOS
-(function () {
-  // Modal
-  const modal = document.getElementById('modal-product');
-  const openBtn = document.getElementById('btn-add-product');
-  const openBtnCard = document.getElementById('btn-add-product-card');
-  const closeBtn = document.getElementById('modal-product-close');
-  const cancelBtn = document.getElementById('modal-product-cancel');
-  const backdrop = document.getElementById('modal-product-backdrop');
+import { showAppNotification } from '../shared/notifications.js';
 
-  function openModal() {
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
+const form = document.getElementById('product-form');
+const modal = document.getElementById('modal-product');
+const preview = document.getElementById('image-preview');
+const imageInput = document.getElementById('image');
+const title = document.getElementById('modal-title');
+const saveButton = document.getElementById('btn-save-product');
+const summary = document.getElementById('product-form-validation-summary');
+const validImageTypes = new Set(['image/jpeg', 'image/png', 'image/webp']);
+
+const openModal = () => {
+  modal?.classList.remove('hidden');
+  modal?.classList.add('flex');
+};
+const closeModal = () => {
+  modal?.classList.add('hidden');
+  modal?.classList.remove('flex');
+};
+const fieldLabel = (field) =>
+  field
+    .closest('div')
+    ?.querySelector('label')
+    ?.textContent?.replace('*', '')
+    .trim() || field.name;
+const errorElement = (field) => {
+  const id = `${field.id}-error`;
+  let element = document.getElementById(id);
+  if (element) return element;
+  element = document.createElement('p');
+  element.id = id;
+  element.className = 'mt-1 text-xs font-medium text-red-700';
+  field.insertAdjacentElement('afterend', element);
+  return element;
+};
+const nativeMessage = (field) => {
+  const label = fieldLabel(field);
+  if (field.validity.valueMissing) return `${label} es obligatorio.`;
+  if (field.validity.rangeUnderflow)
+    return `${label} debe ser al menos ${field.min}.`;
+  if (field.validity.rangeOverflow)
+    return `${label} no puede exceder ${field.max}.`;
+  if (field.validity.stepMismatch) return `${label} debe ser un número entero.`;
+  if (field.validity.tooLong)
+    return `${label} excede ${field.maxLength} caracteres.`;
+  if (field.validity.typeMismatch) return `${label} debe ser una URL válida.`;
+  return '';
+};
+const imageMessage = (field) => {
+  const files = Array.from(field.files || []);
+  if (files.length > 10) return 'Puedes seleccionar como máximo 10 imágenes.';
+  if (files.some((file) => file.size > 5 * 1024 * 1024)) {
+    return 'Cada imagen debe pesar como máximo 5 MB.';
   }
-  function closeModal() {
-    modal.classList.add('hidden');
-    modal.classList.remove('flex');
+  if (files.some((file) => !validImageTypes.has(file.type))) {
+    return 'Sólo se permiten imágenes JPG, PNG o WEBP.';
   }
-
-  if (openBtn) openBtn.addEventListener('click', openModal);
-  if (openBtnCard) openBtnCard.addEventListener('click', openModal);
-  if (closeBtn) closeBtn.addEventListener('click', closeModal);
-  if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
-  if (backdrop) backdrop.addEventListener('click', closeModal);
-
-  // View toggle
-  const tableView = document.getElementById('products-table-view');
-  const gridView = document.getElementById('products-grid-view');
-  const btnTable = document.getElementById('view-table');
-  const btnGrid = document.getElementById('view-grid');
-
-  if (btnTable && btnGrid) {
-    btnGrid.classList.add('bg-[#43655c]', 'text-white');
-    btnGrid.classList.remove('text-on-surface-variant');
-    btnTable.classList.remove('bg-[#43655c]', 'text-white');
-    btnTable.classList.add('text-on-surface-variant');
-
-    btnTable.addEventListener('click', function () {
-      tableView.style.display = '';
-      gridView.style.display = 'none';
-      btnTable.classList.add('bg-[#43655c]', 'text-white');
-      btnTable.classList.remove('text-on-surface-variant');
-      btnGrid.classList.remove('bg-[#43655c]', 'text-white');
-      btnGrid.classList.add('text-on-surface-variant');
-    });
-
-    btnGrid.addEventListener('click', function () {
-      tableView.style.display = 'none';
-      gridView.style.display = 'grid';
-      btnGrid.classList.add('bg-[#43655c]', 'text-white');
-      btnGrid.classList.remove('text-on-surface-variant');
-      btnTable.classList.remove('bg-[#43655c]', 'text-white');
-      btnTable.classList.add('text-on-surface-variant');
-    });
+  return '';
+};
+const renderFieldError = (field, message) => {
+  const element = errorElement(field);
+  element.textContent = message;
+  element.hidden = !message;
+  field.setAttribute('aria-invalid', String(Boolean(message)));
+  field.classList.toggle('ring-2', Boolean(message));
+  field.classList.toggle('ring-red-300', Boolean(message));
+};
+const validateField = (field) => {
+  field.setCustomValidity('');
+  const message =
+    nativeMessage(field) || (field.type === 'file' ? imageMessage(field) : '');
+  field.setCustomValidity(message);
+  renderFieldError(field, message);
+  return message;
+};
+const controls = form
+  ? Array.from(form.elements).filter(
+      (field) =>
+        field.name && ['INPUT', 'SELECT', 'TEXTAREA'].includes(field.tagName),
+    )
+  : [];
+const renderSummary = (messages) => {
+  if (!summary) return;
+  const list = summary.querySelector('ul');
+  list.replaceChildren();
+  [...new Set(messages)].slice(0, 6).forEach((message) => {
+    const item = document.createElement('li');
+    item.textContent = message;
+    list.appendChild(item);
+  });
+  summary.classList.toggle('hidden', messages.length === 0);
+};
+const resetForm = () => {
+  form?.reset();
+  if (form) form.action = '/private/products/create';
+  if (title) title.textContent = 'Nuevo Producto Agroquímico';
+  if (saveButton) saveButton.textContent = 'Guardar Producto';
+  controls.forEach((field) => {
+    field.setCustomValidity('');
+    renderFieldError(field, '');
+  });
+  renderSummary([]);
+  if (preview) {
+    preview.src = '';
+    preview.classList.add('hidden');
   }
-})();
+};
+const showCreateModal = () => {
+  resetForm();
+  openModal();
+};
 
-// MODAL DE ELIMINACIÓN DE PRODUCTOS
-window.addEventListener('DOMContentLoaded', () => {
-  const modal = document.getElementById('delete-modal');
-  const nameSpan = document.getElementById('delete-product-name');
-  const cancelBtn = document.getElementById('cancel-delete');
-  const confirmBtn = document.getElementById('confirm-delete');
+document
+  .getElementById('btn-add-product')
+  ?.addEventListener('click', showCreateModal);
+document
+  .getElementById('btn-add-product-card')
+  ?.addEventListener('click', showCreateModal);
+[
+  'modal-product-close',
+  'modal-product-cancel',
+  'modal-product-backdrop',
+].forEach((id) =>
+  document.getElementById(id)?.addEventListener('click', () => {
+    resetForm();
+    closeModal();
+  }),
+);
 
-  let formToDelete = null;
-
-  document.querySelectorAll('[data-delete-btn]').forEach((btn) => {
-    btn.addEventListener('click', function () {
-      const id = this.dataset.id;
-      const name = this.dataset.name;
-
-      formToDelete = document.getElementById('delete-form-' + id);
-
-      nameSpan.textContent = name;
-
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
-    });
-  });
-
-  cancelBtn.addEventListener('click', () => {
-    modal.classList.add('hidden');
-    modal.classList.remove('flex');
-    formToDelete = null;
-  });
-
-  confirmBtn.addEventListener('click', () => {
-    if (formToDelete) formToDelete.submit();
-  });
+imageInput?.addEventListener('change', () => {
+  validateField(imageInput);
+  const file = imageInput.files?.[0];
+  if (!file || !preview || !imageInput.validity.valid) return;
+  preview.src = URL.createObjectURL(file);
+  preview.classList.remove('hidden');
 });
 
-// FILTROS DE BÚSQUEDA
-document.addEventListener('DOMContentLoaded', () => {
-  const searchInput = document.getElementById('{{searchId}}');
-
-  // todos los productos (tabla + grid)
-  const items = document.querySelectorAll('.product-item');
-
-  // selects de filtros
-  const selects = document.querySelectorAll('.filter-select');
-
-  function applyFilters() {
-    const query = (searchInput?.value || '').toLowerCase().trim();
-
-    // obtener filtros activos
-    const activeFilters = {};
-
-    selects.forEach((sel) => {
-      if (sel.value) {
-        activeFilters[sel.id] = sel.value.toLowerCase();
-      }
-    });
-
-    items.forEach((item) => {
-      //datos del producto
-      const name = (item.dataset.name || '').toLowerCase();
-      const category = (item.dataset.category || '').toLowerCase();
-      const manufacturer = (item.dataset.manufacturer || '').toLowerCase();
-      const active = (item.dataset.active || '').toLowerCase();
-      const registration = (item.dataset.registration || '').toLowerCase();
-
-      const matchSearch =
-        name.includes(query) ||
-        category.includes(query) ||
-        manufacturer.includes(query) ||
-        active.includes(query) ||
-        registration.includes(query);
-
-      // filtros selects
-      let matchFilters = true;
-
-      for (const key in activeFilters) {
-        const value = activeFilters[key];
-
-        if (key.includes('category') && category !== value)
-          matchFilters = false;
-        if (key.includes('manufacturer') && manufacturer !== value)
-          matchFilters = false;
-        if (key.includes('status') && status !== value) matchFilters = false;
-        if (key.includes('active') && active !== value) matchFilters = false;
-      }
-
-      // mostrar / ocultar
-      item.style.display = matchSearch && matchFilters ? '' : 'none';
-    });
-  }
-
-  //eventos
-  if (searchInput) {
-    searchInput.addEventListener('input', applyFilters);
-  }
-
-  selects.forEach((sel) => {
-    sel.addEventListener('change', applyFilters);
-  });
-});
-
-// MODAL DE PRODUCTOS EXPIRADOS
-document.addEventListener('DOMContentLoaded', () => {
-  const btnOpen = document.getElementById('btn-expiring-products');
-  const modal = document.getElementById('expiring-products-modal');
-  const btnClose = document.getElementById('close-expiring-modal');
-  const btnCancel = document.getElementById('cancel-expiring-modal');
-
-  btnOpen.addEventListener('click', () => {
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-  });
-
-  function closeModal() {
-    modal.classList.add('hidden');
-    modal.classList.remove('flex');
-  }
-
-  btnClose.addEventListener('click', closeModal);
-  btnCancel.addEventListener('click', closeModal);
-});
-
-// MODAL DE PRODUCTOS EXPIRADOS
-document.addEventListener('DOMContentLoaded', () => {
-  const modal = document.getElementById('modal-product');
-  const form = document.getElementById('product-form');
-  const title = document.getElementById('modal-title');
-  const saveBtn = document.getElementById('btn-save-product');
-  const btnAdd = document.getElementById('btn-add-product');
-  const btnAddCard = document.getElementById('btn-add-product-card');
-  const btnClose = document.getElementById('modal-product-close');
-  const btnCancel = document.getElementById('modal-product-cancel');
-  const backdrop = document.getElementById('modal-product-backdrop');
-  const preview = document.getElementById('image-preview');
-  const imageInput = document.getElementById('image');
-  function openModal() {
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-  }
-
-  function closeModal() {
-    modal.classList.add('hidden');
-    modal.classList.remove('flex');
-  }
-
-  function resetForm() {
-    form.reset();
-
-    form.action = '/private/products/create';
-
-    title.textContent = 'Nuevo Producto Agroquímico';
-
-    saveBtn.textContent = 'Guardar Producto';
-
-    document.getElementById('status').checked = true;
-
-    // Reiniciar imagen
-    if (preview) {
-      preview.src = '';
-      preview.classList.add('hidden');
-    }
-  }
-  // VISTA PREVIA AL AGREGAR
-
-  if (imageInput) {
-    imageInput.addEventListener('change', function () {
-      const file = this.files[0];
-
-      if (file && preview) {
-        const reader = new FileReader();
-
-        reader.onload = function (e) {
-          preview.src = e.target.result;
-          preview.classList.remove('hidden');
-        };
-
-        reader.readAsDataURL(file);
-      }
-    });
-  }
-  // ABRIR PARA CREAR
-  if (btnAdd) {
-    btnAdd.addEventListener('click', () => {
+const setValue = (name, value) => {
+  const field = form?.elements.namedItem(name);
+  if (field) field.value = value ?? '';
+};
+document.querySelectorAll('.btn-edit-product').forEach((button) => {
+  button.addEventListener('click', async () => {
+    try {
+      const response = await fetch(`/private/products/${button.dataset.id}`, {
+        headers: { Accept: 'application/json' },
+      });
+      const result = await response.json();
+      if (!response.ok || !result.success) throw new Error(result.message);
       resetForm();
-      openModal();
-    });
-  }
-  if (btnAddCard) {
-    btnAddCard.addEventListener('click', () => {
-      resetForm();
-      openModal();
-    });
-  }
-  // CERRAR MODAL
-  if (btnClose) {
-    btnClose.addEventListener('click', () => {
-      resetForm();
-      closeModal();
-    });
-  }
-  if (btnCancel) {
-    btnCancel.addEventListener('click', () => {
-      resetForm();
-      closeModal();
-    });
-  }
-  if (backdrop) {
-    backdrop.addEventListener('click', () => {
-      resetForm();
-      closeModal();
-    });
-  }
-  // EDITAR PRODUCTO
-
-  document.querySelectorAll('.btn-edit-product').forEach((btn) => {
-    btn.addEventListener('click', function () {
-      form.action = '/private/products/update/' + this.dataset.id;
+      Object.entries(result.product).forEach(([name, value]) =>
+        setValue(name, value),
+      );
+      setValue(
+        'expiration_date',
+        result.product.expiration_date?.substring?.(0, 10),
+      );
+      form.action = `/private/products/update/${result.product.id}`;
       title.textContent = 'Editar Producto';
-      saveBtn.textContent = 'Actualizar Producto';
-      document.getElementById('name').value = this.dataset.name || '';
-      document.getElementById('category').value = this.dataset.category || '';
-      document.getElementById('manufacturer').value =
-        this.dataset.manufacturer || '';
-      document.getElementById('active_ingredient').value =
-        this.dataset.active || '';
-      document.getElementById('registration_code').value =
-        this.dataset.registration || '';
-      document.getElementById('validation_status').value =
-        this.dataset.validation || '';
-      document.getElementById('expiration_date').value = this.dataset.expiration
-        ? this.dataset.expiration.substring(0, 10)
-        : '';
-      document.getElementById('target_crops').value = this.dataset.crops || '';
-      document.getElementById('mode_of_action').value = this.dataset.mode || '';
-      document.getElementById('hazard_category').value =
-        this.dataset.hazard || '';
-      document.getElementById('suggested_dosage').value =
-        this.dataset.dosage || '';
-      document.getElementById('safety_interval_days').value =
-        this.dataset.interval || '';
-      document.getElementById('formulation_type').value =
-        this.dataset.formulation || '';
-      document.getElementById('safety_sheet_url').value =
-        this.dataset.safetysheet || '';
-      document.getElementById('description').value =
-        this.dataset.description || '';
-      document.getElementById('status').checked =
-        this.dataset.status === 'true' || this.dataset.status === '1';
-
-      // Mostrar imagen guardada
-
-      if (preview) {
-        if (this.dataset.image) {
-          preview.src = '/' + this.dataset.image;
-          preview.classList.remove('hidden');
-        } else {
-          preview.src = '/images/test/default.png';
-
-          preview.classList.remove('hidden');
-        }
+      saveButton.textContent = 'Actualizar Producto';
+      if (preview && result.product.image_url) {
+        preview.src = result.product.image_url;
+        preview.classList.remove('hidden');
       }
       openModal();
-    });
+    } catch (error) {
+      console.error('No se pudo cargar el producto:', error);
+      showAppNotification({
+        type: 'error',
+        title: 'No se pudo abrir el producto',
+        message: 'Recarga la página e intenta nuevamente.',
+      });
+    }
   });
+});
+
+controls.forEach((field) => {
+  field.addEventListener('blur', () => validateField(field));
+  field.addEventListener('input', () => {
+    if (field.value) validateField(field);
+  });
+});
+
+const applyServerErrors = (fieldErrors = {}) => {
+  Object.entries(fieldErrors).forEach(([name, messages]) => {
+    const field = form.elements.namedItem(name);
+    if (!field) return;
+    const message = Array.isArray(messages) ? messages[0] : messages;
+    field.setCustomValidity(message);
+    renderFieldError(field, message);
+  });
+};
+form?.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const messages = controls.map(validateField).filter(Boolean);
+  renderSummary(messages);
+  if (messages.length) {
+    showAppNotification({
+      type: 'warning',
+      title: 'Revisa el formulario',
+      message: `Hay ${messages.length} campo(s) por corregir.`,
+    });
+    return;
+  }
+
+  saveButton.disabled = true;
+  try {
+    const response = await fetch(form.action, {
+      method: 'POST',
+      headers: { Accept: 'application/json' },
+      body: new FormData(form),
+    });
+    const result = await response.json();
+    if (!response.ok || !result.success) {
+      applyServerErrors(result.fieldErrors);
+      renderSummary(result.errors || [result.message]);
+      throw new Error(result.message);
+    }
+    showAppNotification({
+      type: 'success',
+      title: 'Producto guardado',
+      message: result.message,
+    });
+    window.setTimeout(
+      () => window.location.assign(result.redirect || '/private/products'),
+      500,
+    );
+  } catch (error) {
+    console.error('No se pudo guardar el producto:', error);
+    showAppNotification({
+      type: 'error',
+      title: 'No se guardó el producto',
+      message: error.message || 'Revisa los datos e intenta nuevamente.',
+    });
+    saveButton.disabled = false;
+  }
+});
+
+const deleteModal = document.getElementById('delete-modal');
+let deleteForm;
+document.querySelectorAll('[data-delete-btn]').forEach((button) => {
+  button.addEventListener('click', () => {
+    deleteForm = document.getElementById(`delete-form-${button.dataset.id}`);
+    const name = document.getElementById('delete-product-name');
+    if (name) name.textContent = button.dataset.name;
+    deleteModal?.classList.remove('hidden');
+    deleteModal?.classList.add('flex');
+  });
+});
+document.getElementById('cancel-delete')?.addEventListener('click', () => {
+  deleteModal?.classList.add('hidden');
+  deleteModal?.classList.remove('flex');
+});
+document
+  .getElementById('confirm-delete')
+  ?.addEventListener('click', () => deleteForm?.submit());
+
+const expiringModal = document.getElementById('expiring-products-modal');
+document
+  .getElementById('btn-expiring-products')
+  ?.addEventListener('click', () => {
+    expiringModal?.classList.remove('hidden');
+    expiringModal?.classList.add('flex');
+  });
+['close-expiring-modal', 'cancel-expiring-modal'].forEach((id) =>
+  document.getElementById(id)?.addEventListener('click', () => {
+    expiringModal?.classList.add('hidden');
+    expiringModal?.classList.remove('flex');
+  }),
+);
+
+const tableView = document.getElementById('products-table-view');
+const gridView = document.getElementById('products-grid-view');
+document.getElementById('view-table')?.addEventListener('click', () => {
+  if (tableView) tableView.style.display = '';
+  if (gridView) gridView.style.display = 'none';
+});
+document.getElementById('view-grid')?.addEventListener('click', () => {
+  if (tableView) tableView.style.display = 'none';
+  if (gridView) gridView.style.display = 'grid';
 });

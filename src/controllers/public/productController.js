@@ -1,106 +1,108 @@
 import db from '../../models/index.js';
+import {
+  buildPublishedProductWhere,
+  normalizePublicProductQuery,
+  parsePublicProductId,
+} from '../../services/productPublicQueryService.js';
+import { CROP_WORKFLOW_STATUSES } from '../../services/cropWorkflowService.js';
+import { PLAGUE_WORKFLOW_STATUSES } from '../../services/plagueWorkflowService.js';
+
 const { Product, ProductImage, Plague, Crop } = db;
-const { Op } = db.Sequelize;
+const normalizeImagePath = (value) => {
+  if (!value) return null;
+  const relative = String(value)
+    .trim()
+    .replace(/^\/+/, '')
+    .replace(/^public\/+/, '');
+  return relative ? `/${relative}` : null;
+};
+const productImageInclude = {
+  model: ProductImage,
+  as: 'images',
+  required: false,
+};
+const riskThemes = Object.freeze({
+  Alto: { label: 'Crítico', badgeClass: 'bg-rose-50 text-rose-800' },
+  Medio: { label: 'Moderado', badgeClass: 'bg-amber-50 text-amber-800' },
+  Bajo: { label: 'Bajo', badgeClass: 'bg-emerald-50 text-emerald-800' },
+});
+const buildPublicProduct = (record) => {
+  const product = record.toJSON();
+  const primary =
+    product.images?.find((image) => image.is_primary) || product.images?.[0];
+  return {
+    id: product.id,
+    name: product.name,
+    category: product.category,
+    active_ingredient: product.active_ingredient,
+    registration_code: product.registration_code,
+    manufacturer: product.manufacturer,
+    validation_status: product.validation_status,
+    expiration_date: product.expiration_date,
+    target_crops: product.target_crops,
+    description: product.description,
+    mode_of_action: product.mode_of_action,
+    hazard_category: product.hazard_category,
+    suggested_dosage: product.suggested_dosage,
+    safety_interval_days: product.safety_interval_days,
+    formulation_type: product.formulation_type,
+    safety_sheet_url: product.safety_sheet_url,
+    plagues: product.plagues,
+    crops: product.crops,
+    images: (product.images || []).map((image) => ({
+      is_primary: image.is_primary,
+      display_order: image.display_order,
+      image_url: normalizeImagePath(image.image_url),
+    })),
+    image_url:
+      normalizeImagePath(primary?.image_url || product.image_url) ||
+      '/images/products/default.png',
+  };
+};
+
+const queryPublishedProducts = async (query) => {
+  const where = buildPublishedProductWhere(db.Sequelize.Op, query);
+  const offset = (query.page - 1) * query.limit;
+  return Product.findAndCountAll({
+    where,
+    include: [productImageInclude],
+    order: [['name', 'ASC']],
+    limit: query.limit,
+    offset,
+    distinct: true,
+  });
+};
 
 export const getProductsData = async (req, res) => {
   try {
-    const { search = '', page = 1, limit: customLimit } = req.query;
-    const limit = parseInt(customLimit, 10) || 8;
-    const currentPage = Math.max(1, parseInt(page, 10) || 1);
-    const offset = (currentPage - 1) * limit;
-
-    const where = { status: true };
-
-    if (search.trim()) {
-      where[Op.or] = [
-        { name: { [Op.iLike]: `%${search.trim()}%` } },
-        { active_ingredient: { [Op.iLike]: `%${search.trim()}%` } },
-        { manufacturer: { [Op.iLike]: `%${search.trim()}%` } },
-        { category: { [Op.iLike]: `%${search.trim()}%` } },
-      ];
-    }
-
-    const { count, rows } = await Product.findAndCountAll({
-      where,
-      include: [
-        {
-          model: ProductImage,
-          as: 'images',
-          required: false,
-        },
-      ],
-      order: [['name', 'ASC']],
-      limit,
-      offset,
-      distinct: true,
-    });
-
-    const plainProducts = rows.map((pRecord) => {
-      const p = pRecord.toJSON();
-      const primaryImg = p.images?.find((i) => i.is_primary) || p.images?.[0];
-      return {
-        ...p,
-        image_url: primaryImg?.image_url || '/images/products/default.png',
-      };
-    });
-
-    res.json({
-      products: plainProducts,
+    const query = normalizePublicProductQuery(req.query);
+    const { count, rows } = await queryPublishedProducts(query);
+    return res.json({
+      products: rows.map(buildPublicProduct),
       totalCount: count,
-      totalPages: Math.ceil(count / limit) || 1,
-      currentPage,
+      totalPages: Math.ceil(count / query.limit) || 1,
+      currentPage: query.page,
     });
   } catch (error) {
-    console.error('Error en getProductsData:', error);
-    res.status(500).json({ error: 'Error interno del servidor' });
+    console.error('Error al consultar productos públicos:', error);
+    return res.status(500).json({ error: 'Error interno del servidor' });
   }
 };
 
 export const renderProductsPublic = async (req, res) => {
   try {
-    const { search = '' } = req.query;
-
-    const where = { status: true };
-
-    if (search.trim()) {
-      where[Op.or] = [
-        { name: { [Op.iLike]: `%${search.trim()}%` } },
-        { active_ingredient: { [Op.iLike]: `%${search.trim()}%` } },
-        { manufacturer: { [Op.iLike]: `%${search.trim()}%` } },
-      ];
-    }
-
-    const products = await Product.findAll({
-      where,
-      include: [
-        {
-          model: ProductImage,
-          as: 'images',
-          required: false,
-        },
-      ],
-      order: [['name', 'ASC']],
-    });
-
-    const plainProducts = products.map((pRecord) => {
-      const p = pRecord.toJSON();
-      const primaryImg = p.images?.find((i) => i.is_primary) || p.images?.[0];
-      return {
-        ...p,
-        image_url: primaryImg?.image_url || '/images/products/default.png',
-      };
-    });
-
-    res.render('public/products', {
+    const query = normalizePublicProductQuery({ ...req.query, limit: 24 });
+    const { count, rows } = await queryPublishedProducts(query);
+    return res.render('public/products', {
       pageTitle: 'Catálogo de Agroquímicos y Productos',
       activePage: 'products',
-      products: plainProducts,
-      totalCount: plainProducts.length,
-      search: search.trim(),
+      products: rows.map(buildPublicProduct),
+      totalCount: count,
+      search: query.search,
     });
   } catch (error) {
     console.error('Error al renderizar productos públicos:', error);
-    res.status(500).render('public/products', {
+    return res.status(500).render('public/products', {
       pageTitle: 'Productos',
       activePage: 'products',
       products: [],
@@ -109,150 +111,96 @@ export const renderProductsPublic = async (req, res) => {
   }
 };
 
+const detailIncludes = [
+  productImageInclude,
+  {
+    model: Plague,
+    as: 'plagues',
+    required: false,
+    through: { attributes: [] },
+    where: {
+      status: true,
+      workflow_status: PLAGUE_WORKFLOW_STATUSES.PUBLISHED,
+    },
+    include: [{ model: db.PlagueImage, as: 'images', required: false }],
+  },
+  {
+    model: Crop,
+    as: 'crops',
+    required: false,
+    through: { attributes: [] },
+    where: {
+      status: 'aprobado',
+      workflow_status: CROP_WORKFLOW_STATUSES.PUBLISHED,
+    },
+    include: [{ model: db.CropImage, as: 'images', required: false }],
+  },
+];
+const normalizeRelatedImages = (records = [], fallback) =>
+  records.map((record) => {
+    const image =
+      record.images?.find((candidate) => candidate.is_primary) ||
+      record.images?.[0];
+    return {
+      id: record.id,
+      name: record.name,
+      scientific_name: record.scientific_name,
+      category: record.category,
+      description: record.description,
+      risk_level: record.risk_level,
+      riskTheme: riskThemes[record.risk_level] || riskThemes.Bajo,
+      image_url:
+        normalizeImagePath(image?.image_url || record.image_url) || fallback,
+    };
+  });
+
 export const renderProductDetail = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const productRecord = await Product.findByPk(id, {
-      include: [
-        { model: ProductImage, as: 'images', required: false },
-        {
-          model: Plague,
-          as: 'plagues',
-          through: { attributes: [] },
-          include: [
-            {
-              model: db.PlagueImage,
-              as: 'images',
-              required: false,
-            },
-          ],
-        },
-        {
-          model: Crop,
-          as: 'crops',
-          through: { attributes: [] },
-          include: [
-            {
-              model: db.CropImage,
-              as: 'images',
-              required: false,
-            },
-          ],
-        },
-      ],
+  const productId = parsePublicProductId(req.params.id);
+  if (!productId) {
+    return res.status(404).render('shared/product-detail', {
+      pageTitle: 'Producto no encontrado',
+      error: 'El producto solicitado no existe o no está publicado.',
     });
+  }
 
-    if (!productRecord || !productRecord.status) {
+  try {
+    const record = await Product.findOne({
+      where: {
+        ...buildPublishedProductWhere(db.Sequelize.Op, { search: '' }),
+        id: productId,
+      },
+      include: detailIncludes,
+    });
+    if (!record) {
       return res.status(404).render('shared/product-detail', {
         pageTitle: 'Producto no encontrado',
-        error: 'El producto solicitado no existe o fue deshabilitado.',
+        error: 'El producto solicitado no existe o no está publicado.',
       });
     }
-
-    const product = productRecord.toJSON();
-
-    const normalizeImagePath = (imagePath) => {
-      if (!imagePath) return null;
-      let path = String(imagePath).trim();
-      path = path.replace(/^\/+/, '');
-      path = path.replace(/^public\/+/, '');
-      return `/${path}`;
-    };
-
-    const primaryImg =
-      product.images?.find((i) => i.is_primary) || product.images?.[0];
-
-    let mainImg = primaryImg?.image_url || product.image_url;
-    if (mainImg) {
-      mainImg = normalizeImagePath(mainImg);
-    } else {
-      mainImg = '/images/products/confidor-350-sc.webp';
-    }
-    product.image_url = mainImg;
-
-    // ── Enriquecer plagas blanco asociadas ─────────────────────────────────
-    const riskThemes = {
-      Alto: {
-        badgeClass: 'bg-rose-50 text-rose-800 border-rose-200',
-        label: 'Crítico',
-      },
-      Medio: {
-        badgeClass: 'bg-amber-50 text-amber-800 border-amber-200',
-        label: 'Moderado',
-      },
-      Bajo: {
-        badgeClass: 'bg-emerald-50 text-emerald-800 border-emerald-200',
-        label: 'Bajo',
-      },
-    };
-
-    const plagueFallbackImages = {
-      'Pulgón Verde': '/images/plagas/pulgon-verde.webp',
-      'Gusano Cogollero': '/images/plagas/gusano-cogollero.webp',
-      Cenicilla: '/images/plagas/cenicilla.webp',
-      'Mosca del Mediterráneo': '/images/plagas/mosca-mediterraneo.webp',
-      'Psílido Asiático': '/images/plagas/psilido-asiatico.webp',
-      'Roya Amarilla': '/images/plagas/roya-amarilla.webp',
-      'Tizón Tardío': '/images/plagas/tizon-tardio.webp',
-      'Trips Oriental': '/images/plagas/trips-oriental.webp',
-    };
-
-    if (Array.isArray(product.plagues)) {
-      product.plagues = product.plagues.map((p) => {
-        const theme = riskThemes[p.risk_level] || riskThemes.Bajo;
-        const primaryPlagueImg =
-          p.images?.find((img) => img.is_primary) || p.images?.[0];
-
-        let imgUrl =
-          primaryPlagueImg?.image_url || primaryPlagueImg?.url || p.image_url;
-
-        if (imgUrl) {
-          imgUrl = normalizeImagePath(imgUrl);
-        } else {
-          imgUrl =
-            plagueFallbackImages[p.name] || '/images/plagas/pulgon-verde.webp';
-        }
-
-        return {
-          ...p,
-          image_url: imgUrl,
-          riskTheme: theme,
-        };
-      });
-    }
-
-    // ── Enriquecer cultivos autorizados ────────────────────────────────────
-    if (Array.isArray(product.crops)) {
-      product.crops = product.crops.map((c) => {
-        const primaryCropImg =
-          c.images?.find((img) => img.is_primary) || c.images?.[0];
-
-        let imgUrl = primaryCropImg?.image_url || c.image_url;
-        if (imgUrl) {
-          imgUrl = normalizeImagePath(imgUrl);
-        } else {
-          imgUrl = '/images/test/default.png';
-        }
-
-        return {
-          ...c,
-          image_url: imgUrl,
-        };
-      });
-    }
-
-    res.render('shared/product-detail', {
-      pageTitle: product.name,
-      activePage: 'products',
-      isPrivate: false,
-      product,
-    });
+    return renderPublishedProduct(res, record);
   } catch (error) {
     console.error('Error al renderizar el detalle del producto:', error);
-    res.status(500).render('shared/product-detail', {
+    return res.status(500).render('shared/product-detail', {
       pageTitle: 'Error',
       error: 'Error al cargar el detalle del producto.',
     });
   }
+};
+
+const renderPublishedProduct = (res, record) => {
+  const product = buildPublicProduct(record);
+  product.plagues = normalizeRelatedImages(
+    product.plagues,
+    '/images/plagas/pulgon-verde.webp',
+  );
+  product.crops = normalizeRelatedImages(
+    product.crops,
+    '/images/test/default.png',
+  );
+  return res.render('shared/product-detail', {
+    pageTitle: product.name,
+    activePage: 'products',
+    isPrivate: false,
+    product,
+  });
 };

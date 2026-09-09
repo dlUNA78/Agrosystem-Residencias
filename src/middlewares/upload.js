@@ -127,6 +127,8 @@ export const upload = multer({
   fileFilter: imageFileFilter,
 });
 
+export const uploadProduct = upload;
+
 // Upload para plagas
 export const uploadPlague = multer({
   storage: plagueStorage,
@@ -201,3 +203,45 @@ export const uploadCrop = multer({
 });
 
 export const uploadCropImages = createMultipleImageMiddleware(uploadCrop);
+
+const flattenUploadedFiles = (files) =>
+  Array.isArray(files) ? files : Object.values(files || {}).flat();
+
+export const uploadProductImages = (req, res, next) => {
+  upload.fields([
+    { name: 'images', maxCount: IMAGE_UPLOAD_LIMITS.files },
+    { name: 'image', maxCount: IMAGE_UPLOAD_LIMITS.files },
+  ])(req, res, async (error) => {
+    req.files = flattenUploadedFiles(req.files);
+
+    if (error) {
+      await cleanupRejectedFiles(req.files);
+      return res.status(400).send(imageUploadErrorMessage(error));
+    }
+    if (req.files.length > IMAGE_UPLOAD_LIMITS.files) {
+      await cleanupRejectedFiles(req.files);
+      return res
+        .status(400)
+        .send(
+          `Puedes subir como máximo ${IMAGE_UPLOAD_LIMITS.files} imágenes por vez.`,
+        );
+    }
+
+    try {
+      await Promise.all(
+        req.files.map((file) =>
+          validateImageSignature(file.path, file.mimetype),
+        ),
+      );
+    } catch (signatureError) {
+      await cleanupRejectedFiles(req.files);
+      console.error('Se rechazó una imagen de producto por firma inválida:', {
+        name: signatureError.name,
+        code: signatureError.code,
+      });
+      return res.status(400).send(invalidImageContentMessage);
+    }
+
+    return next();
+  });
+};
