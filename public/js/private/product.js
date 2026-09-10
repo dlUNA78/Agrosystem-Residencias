@@ -11,14 +11,25 @@ const title = document.getElementById('modal-title');
 const saveButton = document.getElementById('btn-save-product');
 const summary = document.getElementById('product-form-validation-summary');
 const validImageTypes = new Set(['image/jpeg', 'image/png', 'image/webp']);
+const overlayIds = ['modal-product', 'delete-modal', 'expiring-products-modal'];
+const syncPageScroll = () => {
+  const hasOpenOverlay = overlayIds.some((id) => {
+    const overlay = document.getElementById(id);
+    return overlay && !overlay.classList.contains('hidden');
+  });
+  document.documentElement.classList.toggle('overflow-hidden', hasOpenOverlay);
+  document.body.classList.toggle('overflow-hidden', hasOpenOverlay);
+};
 
 const openModal = () => {
   modal?.classList.remove('hidden');
   modal?.classList.add('flex');
+  syncPageScroll();
 };
 const closeModal = () => {
   modal?.classList.add('hidden');
   modal?.classList.remove('flex');
+  syncPageScroll();
 };
 const fieldLabel = (field) =>
   field
@@ -247,11 +258,13 @@ document.querySelectorAll('[data-delete-btn]').forEach((button) => {
     if (name) name.textContent = button.dataset.name;
     deleteModal?.classList.remove('hidden');
     deleteModal?.classList.add('flex');
+    syncPageScroll();
   });
 });
 document.getElementById('cancel-delete')?.addEventListener('click', () => {
   deleteModal?.classList.add('hidden');
   deleteModal?.classList.remove('flex');
+  syncPageScroll();
 });
 document
   .getElementById('confirm-delete')
@@ -263,11 +276,13 @@ document
   ?.addEventListener('click', () => {
     expiringModal?.classList.remove('hidden');
     expiringModal?.classList.add('flex');
+    syncPageScroll();
   });
 ['close-expiring-modal', 'cancel-expiring-modal'].forEach((id) =>
   document.getElementById(id)?.addEventListener('click', () => {
     expiringModal?.classList.add('hidden');
     expiringModal?.classList.remove('flex');
+    syncPageScroll();
   }),
 );
 
