@@ -49,11 +49,17 @@ const buildPublicProduct = (record) => {
     safety_sheet_url: product.safety_sheet_url,
     plagues: product.plagues,
     crops: product.crops,
-    images: (product.images || []).map((image) => ({
-      is_primary: image.is_primary,
-      display_order: image.display_order,
-      image_url: normalizeImagePath(image.image_url),
-    })),
+    images: (product.images || [])
+      .map((image) => ({
+        is_primary: image.is_primary,
+        display_order: image.display_order,
+        image_url: normalizeImagePath(image.image_url),
+      }))
+      .sort(
+        (first, second) =>
+          Number(second.is_primary) - Number(first.is_primary) ||
+          first.display_order - second.display_order,
+      ),
     image_url:
       normalizeImagePath(primary?.image_url || product.image_url) ||
       '/images/products/default.png',

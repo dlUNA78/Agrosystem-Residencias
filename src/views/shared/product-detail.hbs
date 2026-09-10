@@ -190,29 +190,7 @@
     <div class="mb-10 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
       <!-- Columna Izquierda: Fotografía/Empaque del Producto -->
       <div class="col-span-1 lg:col-span-5">
-        <div class="relative overflow-hidden rounded-xl bg-card border border-border shadow-2xs h-80 md:h-95 group flex items-center justify-center p-6">
-          {{#if product.image_url}}
-            <img src="{{product.image_url}}" alt="{{product.name}}" class="max-h-full max-w-full object-contain transition-transform duration-500 group-hover:scale-105" onerror="this.onerror=null; this.src='/images/products/confidor-350-sc.webp';" />
-          {{else}}
-            <div class="w-full h-full flex flex-col items-center justify-center bg-muted text-muted-foreground p-8 text-center">
-              <span class="material-symbols-outlined text-6xl mb-2 text-muted-foreground/40">science</span>
-              <p class="text-xs font-mono">SIN FOTOGRAFÍA REGISTRADA</p>
-            </div>
-          {{/if}}
-          <div class="absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-transparent pointer-events-none"></div>
-
-          <!-- Tag de Registro Oficial Top-Left -->
-          <div class="absolute top-3 left-3">
-            <span class="px-2.5 py-1 bg-card/90 backdrop-blur border border-border text-foreground text-[10px] font-mono font-bold uppercase rounded-md shadow-2xs">
-              REG: {{#if product.registration_code}}{{product.registration_code}}{{else}}CICOPLAFEST / INIFAP{{/if}}
-            </span>
-          </div>
-
-          <!-- Crédito Fotográfico Minimalista Bottom-Left -->
-          <span class="absolute left-3 bottom-3 text-mono-label text-[10px] text-white/90 font-mono tracking-wider drop-shadow-xs select-none bg-black/40 px-2 py-1 rounded backdrop-blur-xs">
-            ACERVO FOTO · INIFAP
-          </span>
-        </div>
+        {{> shared/products/gallery}}
       </div>
 
       <!-- Columna Derecha: Descripción y Clasificación NOM -->
@@ -455,3 +433,4 @@
 
   </main>
 </div>
+<script type="module" src="/js/shared/product-gallery.js"></script>

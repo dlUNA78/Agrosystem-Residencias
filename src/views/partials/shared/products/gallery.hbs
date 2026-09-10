@@ -1,0 +1,41 @@
+<div data-product-gallery class="space-y-3">
+  <div class="relative flex h-80 items-center justify-center overflow-hidden rounded-xl border border-border bg-card p-6 shadow-2xs md:h-95">
+    <img
+      data-product-gallery-main
+      src="{{product.image_url}}"
+      alt="{{product.name}}"
+      data-fallback="/images/products/default.png"
+      class="max-h-full max-w-full object-contain transition-opacity duration-200"
+    >
+    <div class="pointer-events-none absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-transparent"></div>
+
+    <div class="absolute left-3 top-3">
+      <span class="rounded-md border border-border bg-card/90 px-2.5 py-1 font-mono text-[10px] font-bold uppercase text-foreground shadow-2xs backdrop-blur">
+        REG: {{#if product.registration_code}}{{product.registration_code}}{{else}}CICOPLAFEST / INIFAP{{/if}}
+      </span>
+    </div>
+    <span class="absolute bottom-3 left-3 rounded bg-black/40 px-2 py-1 font-mono text-[10px] tracking-wider text-white/90 backdrop-blur-xs">
+      ACERVO FOTO · INIFAP
+    </span>
+
+    {{#if (gt product.images.length 1)}}
+      <button type="button" data-product-gallery-prev class="absolute left-3 top-1/2 flex size-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/50 bg-black/50 text-white shadow-md backdrop-blur transition hover:bg-black/70" aria-label="Imagen anterior">
+        <span class="material-symbols-outlined">chevron_left</span>
+      </button>
+      <button type="button" data-product-gallery-next class="absolute right-3 top-1/2 flex size-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/50 bg-black/50 text-white shadow-md backdrop-blur transition hover:bg-black/70" aria-label="Imagen siguiente">
+        <span class="material-symbols-outlined">chevron_right</span>
+      </button>
+      <span data-product-gallery-counter class="absolute bottom-3 right-3 rounded-full bg-black/60 px-3 py-1 font-mono text-[10px] font-bold text-white">1 / {{product.images.length}}</span>
+    {{/if}}
+  </div>
+
+  {{#if (gt product.images.length 1)}}
+    <div class="grid grid-cols-4 gap-2" aria-label="Imágenes del producto">
+      {{#each product.images}}
+        <button type="button" data-product-gallery-item data-index="{{@index}}" data-src="{{image_url}}" class="overflow-hidden rounded-lg border-2 border-transparent bg-card p-1 transition hover:border-primary/50" aria-label="Mostrar imagen {{add @index 1}}">
+          <img src="{{image_url}}" alt="Miniatura {{add @index 1}} de {{../product.name}}" class="h-16 w-full rounded-md object-cover" loading="lazy">
+        </button>
+      {{/each}}
+    </div>
+  {{/if}}
+</div>

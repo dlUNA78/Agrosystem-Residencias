@@ -88,6 +88,12 @@ describe('rutas privadas de productos', () => {
       is_primary: true,
       display_order: 0,
     });
+    await ProductImage.create({
+      product_id: product.id,
+      image_url: 'images/products/workflow-route-test-secondary.png',
+      is_primary: false,
+      display_order: 1,
+    });
     crop = await Crop.create({
       name: 'Cultivo relacionado QA',
       scientific_name: 'Test crop',
@@ -133,6 +139,8 @@ describe('rutas privadas de productos', () => {
     expect(detail.status).toBe(200);
     expect(detail.text).toContain('Flujo editorial');
     expect(detail.text).toContain('Enviar a revisión');
+    expect(detail.text).toContain('data-product-gallery');
+    expect(detail.text).toContain('data-product-gallery-next');
   });
 
   it('crea siempre un borrador e ignora estados manipulados', async () => {
