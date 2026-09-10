@@ -58,7 +58,10 @@ export const initializeProductImages = ({ input, validate }) => {
     const image = document.createElement('img');
     image.src = url;
     image.alt = alt;
-    image.className = 'h-24 w-full object-cover';
+    image.width = 240;
+    image.height = 96;
+    image.loading = 'lazy';
+    image.className = 'product-image-thumbnail';
     const caption = document.createElement('figcaption');
     caption.className =
       'truncate px-2 py-1.5 text-[10px] text-muted-foreground';
