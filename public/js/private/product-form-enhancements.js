@@ -42,14 +42,18 @@ export const initializeProductImages = ({ input, validate }) => {
   const gallery = document.getElementById('selected-image-preview');
   const counter = document.getElementById('selected-image-count');
   const clearButton = document.getElementById('clear-selected-images');
+  const picker = document.getElementById('product-image-picker');
+  const scrollContainer = document.getElementById('product-form');
   let selectedFiles = [];
   let existingImages = [];
   let objectUrls = [];
+  let previousScrollPosition = 0;
 
-  const syncInput = () => {
-    const transfer = new DataTransfer();
-    selectedFiles.forEach((file) => transfer.items.add(file));
-    input.files = transfer.files;
+  const restoreModalPosition = () => {
+    window.requestAnimationFrame(() => {
+      if (scrollContainer) scrollContainer.scrollTop = previousScrollPosition;
+      picker?.focus({ preventScroll: true });
+    });
   };
   const thumbnail = ({ url, label, alt }) => {
     const item = document.createElement('figure');
@@ -102,6 +106,10 @@ export const initializeProductImages = ({ input, validate }) => {
     }
   };
 
+  picker?.addEventListener('click', () => {
+    previousScrollPosition = scrollContainer?.scrollTop || 0;
+    input?.click();
+  });
   input?.addEventListener('change', () => {
     const additions = Array.from(input.files || []);
     const keys = new Set(
@@ -116,13 +124,13 @@ export const initializeProductImages = ({ input, validate }) => {
         keys.add(key);
       }
     });
-    syncInput();
     validate?.(input);
     render();
+    restoreModalPosition();
   });
   clearButton?.addEventListener('click', () => {
     selectedFiles = [];
-    syncInput();
+    input.value = '';
     validate?.(input);
     render();
   });
@@ -131,12 +139,18 @@ export const initializeProductImages = ({ input, validate }) => {
     reset() {
       selectedFiles = [];
       existingImages = [];
-      syncInput();
+      if (input) input.value = '';
       render();
     },
     setExisting(images = []) {
       existingImages = images.filter((image) => image?.image_url);
       render();
+    },
+    buildFormData(form) {
+      const data = new FormData(form);
+      data.delete('images');
+      selectedFiles.forEach((file) => data.append('images', file, file.name));
+      return data;
     },
   };
 };

@@ -221,7 +221,7 @@ form?.addEventListener('submit', async (event) => {
     const response = await fetch(form.action, {
       method: 'POST',
       headers: { Accept: 'application/json' },
-      body: new FormData(form),
+      body: imageControls.buildFormData(form),
     });
     const result = await response.json();
     if (!response.ok || !result.success) {
