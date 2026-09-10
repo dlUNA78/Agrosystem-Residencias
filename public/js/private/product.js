@@ -162,6 +162,9 @@ document.querySelectorAll('.btn-edit-product').forEach((button) => {
         preview.src = result.product.image_url;
         preview.classList.remove('hidden');
       }
+      const expiringDialog = document.getElementById('expiring-products-modal');
+      expiringDialog?.classList.add('hidden');
+      expiringDialog?.classList.remove('flex');
       openModal();
     } catch (error) {
       console.error('No se pudo cargar el producto:', error);
@@ -237,10 +240,10 @@ form?.addEventListener('submit', async (event) => {
 });
 
 const deleteModal = document.getElementById('delete-modal');
-let deleteForm;
+const deleteForm = document.getElementById('product-delete-form');
 document.querySelectorAll('[data-delete-btn]').forEach((button) => {
   button.addEventListener('click', () => {
-    deleteForm = document.getElementById(`delete-form-${button.dataset.id}`);
+    deleteForm.action = `/private/products/delete/${button.dataset.id}`;
     const name = document.getElementById('delete-product-name');
     if (name) name.textContent = button.dataset.name;
     deleteModal?.classList.remove('hidden');
@@ -271,11 +274,22 @@ document
 
 const tableView = document.getElementById('products-table-view');
 const gridView = document.getElementById('products-grid-view');
-document.getElementById('view-table')?.addEventListener('click', () => {
+const tableButton = document.getElementById('view-table');
+const gridButton = document.getElementById('view-grid');
+const setView = (view) => {
+  const showTable = view === 'table';
   if (tableView) tableView.style.display = '';
-  if (gridView) gridView.style.display = 'none';
-});
-document.getElementById('view-grid')?.addEventListener('click', () => {
-  if (tableView) tableView.style.display = 'none';
-  if (gridView) gridView.style.display = 'grid';
-});
+  tableView?.classList.toggle('hidden', !showTable);
+  gridView?.classList.toggle('hidden', showTable);
+  gridView?.classList.toggle('grid', !showTable);
+  tableButton?.classList.toggle('bg-primary', showTable);
+  tableButton?.classList.toggle('text-white', showTable);
+  gridButton?.classList.toggle('bg-primary', !showTable);
+  gridButton?.classList.toggle('text-white', !showTable);
+  tableButton?.setAttribute('aria-pressed', String(showTable));
+  gridButton?.setAttribute('aria-pressed', String(!showTable));
+  window.localStorage.setItem('private-products-view', view);
+};
+tableButton?.addEventListener('click', () => setView('table'));
+gridButton?.addEventListener('click', () => setView('grid'));
+setView(window.localStorage.getItem('private-products-view') || 'grid');

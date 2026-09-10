@@ -63,6 +63,9 @@ const buildProductView = (record, user) => {
   return {
     ...product,
     image_url: primary?.image_url || '/images/products/default.png',
+    expirationDateFormatted: product.expiration_date
+      ?.toISOString?.()
+      .slice(0, 10),
     canEditRecord:
       permissions.canEdit && isProductEditable(product.workflow_status),
     canDeleteRecord: permissions.canDelete,
@@ -94,7 +97,7 @@ export const productsPrivate = async (req, res) => {
     const now = new Date();
     const expiryLimit = new Date(now);
     expiryLimit.setDate(expiryLimit.getDate() + 60);
-    const [total, published, inReview, archived, expiringRecords] =
+    const [total, published, inReview, changesRequested, expiringRecords] =
       await Promise.all([
         Product.count(),
         Product.count({
@@ -104,7 +107,9 @@ export const productsPrivate = async (req, res) => {
           where: { workflow_status: PRODUCT_WORKFLOW_STATUSES.IN_REVIEW },
         }),
         Product.count({
-          where: { workflow_status: PRODUCT_WORKFLOW_STATUSES.ARCHIVED },
+          where: {
+            workflow_status: PRODUCT_WORKFLOW_STATUSES.CHANGES_REQUESTED,
+          },
         }),
         Product.findAll({
           where: {
@@ -122,9 +127,9 @@ export const productsPrivate = async (req, res) => {
       filters: { search, category, workflow },
       stats: {
         total,
-        aprobados: published,
-        pendientes: inReview,
-        restringidos: archived,
+        published,
+        inReview,
+        changesRequested,
       },
       expiringSoon: expiringRecords.length,
       expiringProducts: expiringRecords.map((record) => {

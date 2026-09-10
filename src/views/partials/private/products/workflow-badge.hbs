@@ -1,0 +1,13 @@
+{{#if (eq workflow_status 'published')}}
+  <span class="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[10px] font-bold uppercase text-emerald-800"><span class="material-symbols-outlined text-sm">public</span>Publicado</span>
+{{else if (eq workflow_status 'verified')}}
+  <span class="inline-flex items-center gap-1 rounded-full border border-sky-200 bg-sky-50 px-2.5 py-1 text-[10px] font-bold uppercase text-sky-800"><span class="material-symbols-outlined text-sm">verified</span>Verificado</span>
+{{else if (eq workflow_status 'in_review')}}
+  <span class="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[10px] font-bold uppercase text-amber-800"><span class="material-symbols-outlined text-sm">fact_check</span>En revisión</span>
+{{else if (eq workflow_status 'changes_requested')}}
+  <span class="inline-flex items-center gap-1 rounded-full border border-orange-200 bg-orange-50 px-2.5 py-1 text-[10px] font-bold uppercase text-orange-800"><span class="material-symbols-outlined text-sm">edit_note</span>Con cambios</span>
+{{else if (eq workflow_status 'archived')}}
+  <span class="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[10px] font-bold uppercase text-slate-700"><span class="material-symbols-outlined text-sm">archive</span>Archivado</span>
+{{else}}
+  <span class="inline-flex items-center gap-1 rounded-full border border-border bg-muted px-2.5 py-1 text-[10px] font-bold uppercase text-muted-foreground"><span class="material-symbols-outlined text-sm">draft</span>Borrador</span>
+{{/if}}

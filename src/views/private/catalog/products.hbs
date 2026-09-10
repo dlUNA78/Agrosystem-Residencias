@@ -1,713 +1,78 @@
-<main class="min-h-screen flex flex-col">
-    <div class="mt-20 p-6 md:p-12 space-y-8">
+<div class="min-h-screen bg-background pb-12 text-foreground">
+  <div class="mx-auto max-w-7xl space-y-7 px-0 pt-6 md:px-4">
+    <header class="flex flex-col justify-between gap-5 border-b border-border/80 pb-7 lg:flex-row lg:items-end">
+      <div class="space-y-3">
+        <span class="inline-block rounded-full bg-primary/5 px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-wider text-primary">Catálogo fitosanitario · INIFAP</span>
+        <h1 class="text-3xl font-black tracking-tight text-primary md:text-4xl">Gestión de Productos</h1>
+        <p class="max-w-2xl text-sm leading-relaxed text-muted-foreground">Administra fichas técnicas, registros y evidencia de productos agroquímicos antes de su publicación.</p>
+      </div>
+      {{#if permissions.canCreate}}
+        <button type="button" id="btn-add-product" class="inline-flex shrink-0 items-center justify-center gap-2 self-start rounded-xl bg-primary px-5 py-3 text-xs font-bold text-primary-foreground shadow-2xs transition hover:bg-primary/90">
+          <span class="material-symbols-outlined text-lg" aria-hidden="true">add</span>
+          Nuevo producto
+        </button>
+      {{/if}}
+    </header>
 
-        <!-- Page Header -->
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-                <h2 class="text-2xl font-extrabold text-[#0F2E2E] tracking-tight">Catálogo de Productos</h2>
-                <p class="text-sm text-on-surface-variant mt-1">Gestión de agroquímicos y formulaciones del repositorio
-                    INIFAP</p>
-            </div>
+    <section aria-label="Resumen editorial de productos" class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div class="flex items-center justify-between gap-3 rounded-2xl border border-border/80 bg-card p-5 shadow-2xs">
+        <div><p class="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Resultados</p><p class="mt-1 text-3xl font-black tabular-nums text-primary">{{stats.total}}</p><p class="mt-1 text-[11px] text-muted-foreground">Productos registrados</p></div>
+        <span class="rounded-xl bg-primary/5 p-3 text-primary"><span class="material-symbols-outlined">science</span></span>
+      </div>
+      <a href="/private/products?workflow=published" class="flex items-center justify-between gap-3 rounded-2xl border border-border/80 bg-card p-5 shadow-2xs transition hover:border-emerald-300">
+        <div><p class="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Publicados</p><p class="mt-1 text-3xl font-black tabular-nums text-emerald-700">{{stats.published}}</p><p class="mt-1 text-[11px] text-muted-foreground">Visibles para el público</p></div>
+        <span class="rounded-xl bg-emerald-50 p-3 text-emerald-700"><span class="material-symbols-outlined">public</span></span>
+      </a>
+      <a href="/private/products?workflow=in_review" class="flex items-center justify-between gap-3 rounded-2xl border border-border/80 bg-card p-5 shadow-2xs transition hover:border-amber-300">
+        <div><p class="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">En revisión</p><p class="mt-1 text-3xl font-black tabular-nums text-amber-700">{{stats.inReview}}</p><p class="mt-1 text-[11px] text-muted-foreground">Evaluación técnica pendiente</p></div>
+        <span class="rounded-xl bg-amber-50 p-3 text-amber-700"><span class="material-symbols-outlined">fact_check</span></span>
+      </a>
+      <a href="/private/products?workflow=changes_requested" class="flex items-center justify-between gap-3 rounded-2xl border border-border/80 bg-card p-5 shadow-2xs transition hover:border-orange-300">
+        <div><p class="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Con cambios</p><p class="mt-1 text-3xl font-black tabular-nums text-orange-700">{{stats.changesRequested}}</p><p class="mt-1 text-[11px] text-muted-foreground">Requieren ajustes del autor</p></div>
+        <span class="rounded-xl bg-orange-50 p-3 text-orange-700"><span class="material-symbols-outlined">edit_note</span></span>
+      </a>
+    </section>
+
+    <form method="GET" action="/private/products" class="flex flex-wrap items-end gap-3 rounded-2xl border border-border/80 bg-card p-4 shadow-2xs" aria-label="Filtrar productos">
+      <div class="min-w-0 basis-full lg:flex-1">
+        <label for="product-search" class="mb-2 block text-xs font-medium text-muted-foreground">Buscar producto</label>
+        <div class="relative">
+          <span class="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-lg text-muted-foreground">search</span>
+          <input id="product-search" name="search" type="search" maxlength="120" value="{{filters.search}}" placeholder="Nombre, ingrediente o fabricante…" class="w-full rounded-xl border border-input bg-background py-2.5 pl-10 pr-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20">
         </div>
-
-
-        <!-- KPI Strip -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div
-                class="bg-surface-container-lowest rounded-xl p-5 border border-outline-variant/10 shadow-sm flex items-center gap-4">
-                <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                    <span class="material-symbols-outlined text-[#43655c] text-xl">inventory_2</span>
-                </div>
-                <div>
-                    <p class="text-2xl font-extrabold text-[#0F2E2E] leading-none">{{stats.total}}</p>
-                    <p class="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold mt-0.5">Total</p>
-                </div>
-            </div>
-            <div
-                class="bg-surface-container-lowest rounded-xl p-5 border border-outline-variant/10 shadow-sm flex items-center gap-4">
-                <div class="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0">
-                    <span class="material-symbols-outlined text-emerald-600 text-xl">verified</span>
-                </div>
-                <div>
-                    <p class="text-2xl font-extrabold text-[#0F2E2E] leading-none">{{stats.aprobados}}</p>
-                    <p class="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold mt-0.5">Aprobados
-                    </p>
-                </div>
-            </div>
-            <div
-                class="bg-surface-container-lowest rounded-xl p-5 border border-outline-variant/10 shadow-sm flex items-center gap-4">
-                <div class="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
-                    <span class="material-symbols-outlined text-amber-600 text-xl">schedule</span>
-                </div>
-                <div>
-                    <p class="text-2xl font-extrabold text-[#0F2E2E] leading-none">{{stats.pendientes}}</p>
-                    <p class="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold mt-0.5">Pendientes
-                    </p>
-                </div>
-            </div>
-            <div
-                class="bg-surface-container-lowest rounded-xl p-5 border border-outline-variant/10 shadow-sm flex items-center gap-4">
-                <div class="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center shrink-0">
-                    <span class="material-symbols-outlined text-red-500 text-xl">block</span>
-                </div>
-                <div>
-                    <p class="text-2xl font-extrabold text-[#0F2E2E] leading-none">{{stats.restringidos}}</p>
-                    <p class="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold mt-0.5">
-                        Restringidos</p>
-                </div>
-
-            </div>
+      </div>
+      {{#each searchFilters}}
+        <div class="min-w-0 flex-1 basis-40 lg:flex-none">
+          <label for="{{id}}" class="mb-2 block text-xs font-medium text-muted-foreground">{{label}}</label>
+          <select id="{{id}}" name="{{param}}" class="w-full rounded-xl border border-input bg-background px-3 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20">
+            <option value="">Todos</option>
+            {{#each options}}<option value="{{value}}" {{#if selected}}selected{{/if}}>{{text}}</option>{{/each}}
+          </select>
         </div>
-
-        {{!-- Control Bar & Search --}}
-        {{> private/search-bar}}
-
-        <!-- Alert Panel -->
-        <div
-            class="bg-amber-50 border border-amber-100 p-4 rounded-xl flex flex-wrap items-center justify-between gap-3 shadow-sm">
-
-            <div class="flex items-center gap-3">
-                <div class="bg-amber-100 p-2 rounded-full">
-                    <span class="material-symbols-outlined text-amber-700">feedback</span>
-                </div>
-
-                <p class="text-amber-900 font-medium text-sm tracking-tight">
-                    Tienes
-                    <span class="font-bold">{{expiringSoon}}</span>
-                    productos con registro próximo a vencer en los próximos 60 días.
-                </p>
-            </div>
-
-            <!-- BOTÓN CORRECTO -->
-            <button id="btn-expiring-products"
-                class="bg-white text-amber-800 border border-amber-200 px-5 py-2 rounded-lg text-xs font-bold hover:bg-amber-100 transition-colors">
-                Ver registros
-            </button>
-
-        </div>
-
-        <!-- MODAL PRODUCTOS POR VENCER -->
-        <div id="expiring-products-modal" class="fixed inset-0 hidden items-center justify-center bg-black/50 z-50">
-
-            <div class="bg-white rounded-2xl shadow-xl w-full max-w-5xl max-h-[85vh] overflow-hidden">
-
-                <!-- Header -->
-                <div class="flex items-center justify-between p-5 border-b">
-
-                    <div>
-                        <h2 class="text-xl font-bold text-[#0F2E2E]">
-                            Productos próximos a vencer
-                        </h2>
-
-                        <p class="text-sm text-gray-500">
-                            Registros que vencerán en los próximos 60 días.
-                        </p>
-                    </div>
-
-                    <button id="close-expiring-modal" class="text-gray-500 hover:text-red-600 text-2xl">
-                        &times;
-                    </button>
-
-                </div>
-
-
-                <!-- Tabla -->
-                <div class="overflow-y-auto max-h-125">
-
-                    <table class="w-full">
-
-                        <thead class="bg-gray-100">
-
-                            <tr>
-                                <th class="p-3 text-left">Producto</th>
-                                <th class="p-3 text-left">Registro</th>
-                                <th class="p-3 text-left">Fabricante</th>
-                                <th class="p-3 text-left">Vence</th>
-                                <th class="p-3 text-center">Acciones</th>
-                            </tr>
-
-                        </thead>
-
-
-                        <tbody>
-
-                            {{#each expiringProducts}}
-
-                            <tr class="border-b">
-
-                                <td class="p-3">
-                                    {{name}}
-                                </td>
-
-
-                                <td class="p-3">
-                                    {{registration_code}}
-                                </td>
-
-
-                                <td class="p-3">
-                                    {{manufacturer}}
-                                </td>
-
-
-                                <td class="p-3">
-                                    {{expiration_date_formatted}}
-                                </td>
-
-
-                                <td class="p-3 text-center">
-
-                                    {{#if canEditRecord}}<button type="button" class="btn-edit-product" data-id="{{id}}" data-name="{{name}}"
-                                        data-category="{{category}}" data-manufacturer="{{manufacturer}}"
-                                        data-active="{{active_ingredient}}" data-registration="{{registration_code}}"
-                                        data-validation="{{validation_status}}"
-                                        data-expiration="{{expiration_date_formatted}}" data-crops="{{target_crops}}"
-                                        data-description="{{description}}" data-status="{{status}}"
-                                        data-image="{{image_url}}">
-
-                                        ✏️ Editar
-
-                                    </button>{{/if}}
-
-                                </td>
-
-                            </tr>
-
-                            {{else}}
-
-                            <tr>
-                                <td colspan="5" class="text-center p-6 text-gray-500">
-                                    No hay productos próximos a vencer.
-                                </td>
-                            </tr>
-
-                            {{/each}}
-
-                        </tbody>
-
-                    </table>
-
-                </div>
-
-                <!-- Footer -->
-                <div class="flex justify-end p-5 border-t">
-
-                    <button id="cancel-expiring-modal" class="px-5 py-2 rounded-lg bg-gray-200 hover:bg-gray-300">
-                        Cancelar
-                    </button>
-                </div>
-            </div>
-
-        </div>
-        <!-- TABLE VIEW -->
-        <div id="products-table-view" style="display:none"
-            class="bg-surface-container-lowest rounded-2xl shadow-sm border border-outline-variant/10 overflow-x-auto">
-
-            <div class="min-w-300">
-                <table class="w-full text-left border-collapse min-w-300">
-
-                    <thead>
-                        <tr class="bg-surface-container-low/50">
-
-                            <th
-                                class="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
-                                Imagen
-                            </th>
-
-                            <th
-                                class="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
-                                Producto
-                            </th>
-
-                            <th
-                                class="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
-                                Categoría
-                            </th>
-
-                            <th
-                                class="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
-                                Ingrediente activo
-                            </th>
-
-                            <th
-                                class="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
-                                Registro
-                            </th>
-
-                            <th
-                                class="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
-                                Fabricante
-                            </th>
-
-                            <th
-                                class="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
-                                Cultivos
-                            </th>
-
-                            <th
-                                class="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant text-center">
-                                Validación
-                            </th>
-
-                            <th
-                                class="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant text-center">
-                                Estatus
-                            </th>
-
-                            <th
-                                class="px-6 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant text-right">
-                                Acciones
-                            </th>
-
-                        </tr>
-                    </thead>
-
-                    <tbody>
-
-                        {{#each products}}
-                        <tr class="product-item" data-name="{{name}}" data-category="{{category}}"
-                            data-manufacturer="{{manufacturer}}" data-active="{{active_ingredient}}"
-                            data-registration="{{registration_code}}" data-status="{{validation_status}}">
-
-                            <td class="px-6 py-4">
-                                <img src="{{image_url}}" alt="{{name}}" class="w-14 h-14 rounded-lg object-cover"
-                                    onerror="this.src='/images/test/default.png'">
-                            </td>
-
-                            <td class="px-6 py-4 font-semibold">
-                                {{name}}
-                            </td>
-
-                            <td class="px-6 py-4">
-                                {{category}}
-                            </td>
-
-                            <td class="px-6 py-4">
-                                {{active_ingredient}}
-                            </td>
-
-                            <td class="px-6 py-4">
-                                {{registration_code}}
-                            </td>
-
-                            <td class="px-6 py-4">
-                                {{manufacturer}}
-                            </td>
-
-                            <td class="px-6 py-4">
-                                {{target_crops}}
-                            </td>
-
-                            <td class="px-6 py-4 text-center">
-                                {{validation_status}}
-                            </td>
-
-                            <td class="px-6 py-4 text-center">
-                                {{#if status}}
-                                <span class="text-green-600 font-semibold">Activo</span>
-                                {{else}}
-                                <span class="text-red-600 font-semibold">Inactivo</span>
-                                {{/if}}
-                            </td>
-
-                            <td class="px-6 py-4 text-right whitespace-nowrap">
-                                {{#if canEditRecord}}<button type="button" class="btn-edit-product" data-id="{{id}}" data-name="{{name}}"
-                                    data-category="{{category}}" data-manufacturer="{{manufacturer}}"
-                                    data-active="{{active_ingredient}}" data-registration="{{registration_code}}"
-                                    data-validation="{{validation_status}}" data-expiration="{{expiration_date}}"
-                                    data-crops="{{target_crops}}" data-description="{{description}}"
-                                    data-status="{{status}}" data-image="{{image_url}}">
-                                    ✏️ Editar
-                                </button>{{/if}}
-                                {{#if canDeleteRecord}}
-<form id="delete-form-{{id}}" action="/private/products/delete/{{id}}" method="POST"
-                                    style="display:inline;">
-
-                                    <button type="button" data-delete-btn data-id="{{id}}" data-name="{{name}}"
-                                        class="inline-flex items-center gap-1 text-red-600 hover:underline">
-                                        🗑 Eliminar
-                                    </button>
-
-                                </form>
-{{/if}}
-
-                            </td>
-
-                        </tr>
-                        {{/each}}
-                    </tbody>
-
-                </table>
-            </div>
-
-            <!-- Pagination -->
-            <div
-                class="px-6 py-5 bg-surface-container-low/30 border-t border-outline-variant/10 flex flex-wrap items-center justify-between gap-3">
-                <p class="text-xs font-medium text-on-surface-variant">
-                    Mostrando <span class="font-bold text-on-surface">1 a 6</span> de <span
-                        class="font-bold text-on-surface">800</span> productos
-                </p>
-                <div class="flex gap-2">
-                    <button
-                        class="px-5 py-2 rounded-lg bg-surface-container-highest/50 text-on-surface text-xs font-bold hover:bg-surface-container-highest transition-colors flex items-center gap-2">
-                        <span class="material-symbols-outlined text-sm">chevron_left</span>
-                        Anterior
-                    </button>
-                    <button
-                        class="px-5 py-2 rounded-lg bg-[#43655c] text-white text-xs font-bold hover:bg-[#354f47] transition-colors flex items-center gap-2 shadow-sm">
-                        Siguiente
-                        <span class="material-symbols-outlined text-sm">chevron_right</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- GRID VIEW -->
-        <div id="products-grid-view" class="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 grid">
-
-            {{#each products}}
-            <!-- para buscar-->
-            <div class="product-item" data-name="{{name}}" data-category="{{category}}"
-                data-manufacturer="{{manufacturer}}" data-active="{{active_ingredient}}"
-                data-registration="{{registration_code}}" data-status="{{validation_status}}">
-
-                <!-- IMAGE -->
-                <a href="/private/products/{{id}}" class="relative h-40 overflow-hidden block">
-                    <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        src="{{image_url}}" alt="{{name}}" onerror="this.onerror=null; this.src='/images/test/default.png';" />
-
-                    <div class="absolute top-2 left-2">
-                        <span
-                            class="inline-flex items-center gap-0.5 px-2 py-1 bg-[#43655c] text-white rounded text-[9px] font-black uppercase shadow-lg">
-                            <span class="material-symbols-outlined text-xs leading-none"
-                                style="font-variation-settings:'FILL' 1">verified</span>
-                            {{validation_status}}
-                        </span>
-                    </div>
-                </a>
-
-                <!-- CONTENT -->
-                <div class="p-4">
-
-                    <span class="text-[9px] font-black uppercase tracking-widest text-primary block mb-1">
-                        {{category}}
-                    </span>
-
-                    <h3 class="font-bold text-on-surface text-sm mt-1">
-                        <a href="/private/products/{{id}}" class="hover:text-primary transition-colors">
-                            {{name}}
-                        </a>
-                    </h3>
-
-                    <p class="text-xs italic text-on-surface-variant">
-                        {{active_ingredient}} · {{registration_code}}
-                    </p>
-
-                    <div class="mt-3 pt-3 border-t border-surface-container flex justify-between items-center">
-
-                        <span class="text-[10px] text-on-surface-variant">
-                            {{manufacturer}}
-                        </span>
-
-                        <!-- ACTIONS -->
-                        <div class="flex gap-3">
-                            {{#if canEditRecord}}<button type="button" class="btn-edit-product" data-id="{{id}}" data-name="{{name}}"
-                                data-category="{{category}}" data-manufacturer="{{manufacturer}}"
-                                data-active="{{active_ingredient}}" data-registration="{{registration_code}}"
-                                data-validation="{{validation_status}}" data-expiration="{{expiration_date}}"
-                                data-crops="{{target_crops}}" data-description="{{description}}"
-                                data-status="{{status}}" data-image="{{image_url}}"
-                                data-mode="{{mode_of_action}}" data-hazard="{{hazard_category}}"
-                                data-dosage="{{suggested_dosage}}" data-interval="{{safety_interval_days}}"
-                                data-formulation="{{formulation_type}}" data-safetysheet="{{safety_sheet_url}}">
-                                ✏️ Editar
-                            </button>{{/if}}
-
-                            {{#if canDeleteRecord}}<button type="button" data-delete-btn data-id="{{id}}" data-name="{{name}}"
-                                class="text-red-600 hover:underline">
-                                🗑 Eliminar
-                            </button>{{/if}}
-
-                        </div>
-
-                    </div>
-                </div>
-            </div>
-
-            {{/each}}
-
-            <!-- ADD CARD -->
-            {{#if permissions.canCreate}}<div id="btn-add-product-card"
-                class="bg-surface-container-lowest rounded-xl border-2 border-dashed border-primary/20 shadow-sm overflow-hidden group hover:-translate-y-1 transition-all duration-300 flex items-center justify-center min-h-55 cursor-pointer">
-
-                <div class="text-center p-6">
-                    <span
-                        class="material-symbols-outlined text-3xl text-primary/30 mb-2 group-hover:text-primary/50 transition-colors">
-                        add_circle
-                    </span>
-
-                    <p class="text-sm font-bold text-on-surface-variant group-hover:text-primary transition-colors">
-                        Añadir producto
-                    </p>
-                </div>
-            </div>{{/if}}
-
-        </div>
-
-    </div>
-</main>
-
-<!-- Modal: Añadir/Editar Producto -->
-<div id="modal-product" class="fixed inset-0 z-100 hidden items-center justify-center p-4">
-    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" id="modal-product-backdrop"></div>
-    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto z-10">
-        <div class="flex items-center justify-between p-6 border-b border-surface-container">
-            <div>
-                <h3 id="modal-title" class="text-lg font-extrabold text-[#0F2E2E]">Nuevo Producto Agroquímico</h3>
-                <p class="text-xs text-on-surface-variant mt-0.5">Completa la información para registrar el producto en
-                    el catálogo INIFAP</p>
-            </div>
-            <button id="modal-product-close"
-                class="p-2 rounded-lg hover:bg-surface-container-low text-on-surface-variant transition-colors">
-                <span class="material-symbols-outlined">close</span>
-            </button>
-        </div>
-        <form id="product-form" action="/private/products/create" method="POST" enctype="multipart/form-data"
-            class="p-6 space-y-5">
-
-            <div id="product-form-validation-summary" tabindex="-1"
-                class="hidden rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-900">
-                <p class="font-bold">Corrige los siguientes campos:</p>
-                <ul class="mt-2 list-disc space-y-1 pl-5"></ul>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-
-                <!-- Nombre -->
-                <div class="sm:col-span-2">
-                    <label class="block text-xs font-bold uppercase tracking-widest mb-2">
-                        Nombre Comercial *
-                    </label>
-
-                    <input id="name" type="text" name="name" required maxlength="150" placeholder="Ej. Glyphomax Pro 480"
-                        class="w-full bg-surface-container-low rounded-lg py-3 px-4 text-sm border-none focus:ring-2 focus:ring-primary/20">
-                </div>
-
-                <!-- Imagen -->
-                <div class="sm:col-span-2">
-                    <label class="block text-xs font-bold uppercase tracking-widest mb-2">
-                        Imagen del Producto
-                    </label>
-
-                    <!-- Vista previa -->
-                    <div class="mb-3">
-                        <img id="image-preview" src="/images/test/default.png" alt="Vista previa"
-                            class="w-40 h-40 object-cover rounded-lg border hidden">
-                    </div>
-
-                    <!-- Input -->
-                    <input id="image" type="file" name="images" multiple accept="image/jpeg,image/png,image/webp"
-                        class="w-full bg-surface-container-low rounded-lg py-3 px-4 text-sm border-none">
-
-                    <p class="text-xs text-gray-500 mt-2">
-                        Puedes seleccionar hasta 10 imágenes JPG, PNG o WEBP (máximo 5 MB cada una).
-                    </p>
-                </div>
-
-                <!-- Categoría -->
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-widest mb-2">
-                        Categoría *
-                    </label>
-
-                    <select id="category" name="category" required
-                        class="w-full bg-surface-container-low rounded-lg py-3 px-4 text-sm border-none">
-
-                        <option value="">Seleccionar...</option>
-                        <option value="Herbicida">Herbicida</option>
-                        <option value="Insecticida">Insecticida</option>
-                        <option value="Fungicida">Fungicida</option>
-                        <option value="Fertilizante">Fertilizante</option>
-                        <option value="Acaricida">Acaricida</option>
-                        <option value="Bactericida">Bactericida</option>
-                        <option value="Coadyuvante">Coadyuvante</option>
-
-                    </select>
-                </div>
-
-                <!-- Fabricante -->
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-widest mb-2">
-                        Fabricante *
-                    </label>
-
-                    <input id="manufacturer" type="text" name="manufacturer" required maxlength="150" placeholder="Ej. Bayer"
-                        class="w-full bg-surface-container-low rounded-lg py-3 px-4 text-sm border-none">
-                </div>
-
-                <!-- Principio Activo -->
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-widest mb-2">
-                        Principio Activo *
-                    </label>
-
-                    <input id="active_ingredient" type="text" name="active_ingredient" required maxlength="200"
-                        placeholder="Ej. Glifosato 48%"
-                        class="w-full bg-surface-container-low rounded-lg py-3 px-4 text-sm border-none">
-                </div>
-
-                <!-- Registro -->
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-widest mb-2">
-                        Registro COFEPRIS *
-                    </label>
-
-                    <input id="registration_code" type="text" name="registration_code" required maxlength="100"
-                        placeholder="Ej. RSCO-1234"
-                        class="w-full bg-surface-container-low rounded-lg py-3 px-4 text-sm border-none">
-                </div>
-
-                <input id="validation_status" type="hidden" value="En revisión">
-                <div class="rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-900">
-                    El estado se asigna mediante el flujo de revisión; no se captura manualmente.
-                </div>
-
-                <!-- Fecha -->
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-widest mb-2">
-                        Fecha de Vencimiento
-                    </label>
-
-                    <input id="expiration_date" type="date" name="expiration_date"
-                        class="w-full bg-surface-container-low rounded-lg py-3 px-4 text-sm border-none">
-                </div>
-
-                <!-- Cultivos -->
-                <div class="sm:col-span-2">
-                    <label class="block text-xs font-bold uppercase tracking-widest mb-2">
-                        Cultivos Objetivo
-                    </label>
-
-                    <input id="target_crops" type="text" name="target_crops" maxlength="1000" placeholder="Ej. Maíz, Trigo, Sorgo"
-                        class="w-full bg-surface-container-low rounded-lg py-3 px-4 text-sm border-none">
-                </div>
-
-                <!-- Mecanismo de Acción -->
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-widest mb-2">
-                        Mecanismo de Acción
-                    </label>
-                    <input id="mode_of_action" type="text" name="mode_of_action" maxlength="200" placeholder="Ej. Sistémico e Ingestión"
-                        class="w-full bg-surface-container-low rounded-lg py-3 px-4 text-sm border-none">
-                </div>
-
-                <!-- Clasificación Toxicológica -->
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-widest mb-2">
-                        Categoría Toxicológica
-                    </label>
-                    <select id="hazard_category" name="hazard_category"
-                        class="w-full bg-surface-container-low rounded-lg py-3 px-4 text-sm border-none">
-                        <option value="">Seleccionar...</option>
-                        <option value="Categoría IV — Precaución (Banda Verde)">Categoría IV — Banda Verde (Precaución)</option>
-                        <option value="Categoría III — Ligeramente Peligroso (Banda Azul)">Categoría III — Banda Azul (Ligeramente Peligroso)</option>
-                        <option value="Categoría II — Moderadamente Peligroso (Banda Amarilla)">Categoría II — Banda Amarilla (Moderadamente Peligroso)</option>
-                        <option value="Categoría I — Altamente Peligroso (Banda Roja)">Categoría I — Banda Roja (Altamente Peligroso)</option>
-                    </select>
-                </div>
-
-                <!-- Dosis Sugerida -->
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-widest mb-2">
-                        Dosis Sugerida
-                    </label>
-                    <input id="suggested_dosage" type="text" name="suggested_dosage" maxlength="100" placeholder="Ej. 350 - 500 ml / ha"
-                        class="w-full bg-surface-container-low rounded-lg py-3 px-4 text-sm border-none">
-                </div>
-
-                <!-- Días de Carencia -->
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-widest mb-2">
-                        Días de Carencia (Pre-cosecha)
-                    </label>
-                    <input id="safety_interval_days" type="number" name="safety_interval_days" min="0" max="3650" step="1" placeholder="Ej. 14"
-                        class="w-full bg-surface-container-low rounded-lg py-3 px-4 text-sm border-none">
-                </div>
-
-                <!-- Formulación -->
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-widest mb-2">
-                        Tipo de Formulación
-                    </label>
-                    <input id="formulation_type" type="text" name="formulation_type" maxlength="100" placeholder="Ej. Suspensión Concentrada (SC)"
-                        class="w-full bg-surface-container-low rounded-lg py-3 px-4 text-sm border-none">
-                </div>
-
-                <!-- Ficha de Seguridad (PDF URL) -->
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-widest mb-2">
-                        Enlace a Ficha Técnica / PDF
-                    </label>
-                    <input id="safety_sheet_url" type="url" name="safety_sheet_url" maxlength="2048" placeholder="https://..."
-                        class="w-full bg-surface-container-low rounded-lg py-3 px-4 text-sm border-none">
-                </div>
-
-                <!-- Descripción -->
-                <div class="sm:col-span-2">
-                    <label class="block text-xs font-bold uppercase tracking-widest mb-2">
-                        Descripción Técnica
-                    </label>
-
-                    <textarea id="description" name="description" rows="4" maxlength="5000" placeholder="Descripción del producto..."
-                        class="w-full bg-surface-container-low rounded-lg py-3 px-4 text-sm border-none resize-none"></textarea>
-                </div>
-
-                <input id="status" type="hidden" value="true">
-
-            </div>
-
-            <div class="flex justify-end gap-3 pt-4 border-t">
-
-                <button type="button" id="modal-product-cancel"
-                    class="px-6 py-3 rounded-lg bg-gray-200 hover:bg-gray-300">
-                    Cancelar
-                </button>
-                <button id="btn-save-product" type="submit"
-                    class="px-6 py-3 rounded-lg bg-[#43655c] hover:bg-[#36514a] text-white font-bold">
-                    Guardar Producto
-                </button>
-
-            </div>
-
-        </form>
-    </div>
+      {{/each}}
+      <button type="submit" class="rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground hover:bg-primary/90">Aplicar</button>
+      <a href="/private/products" class="rounded-xl border border-border px-4 py-2.5 text-sm font-medium hover:bg-muted">Limpiar</a>
+      <div class="flex items-center gap-1 rounded-xl border border-input p-1" role="group" aria-label="Presentación del catálogo">
+        <button type="button" id="view-grid" aria-label="Vista en tarjetas" aria-pressed="true" class="rounded-lg bg-primary p-2 text-white"><span class="material-symbols-outlined text-lg">grid_view</span></button>
+        <button type="button" id="view-table" aria-label="Vista en tabla" aria-pressed="false" class="rounded-lg p-2 text-muted-foreground"><span class="material-symbols-outlined text-lg">table_rows</span></button>
+      </div>
+    </form>
+
+    {{#if expiringSoon}}
+      <aside class="flex flex-col justify-between gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 sm:flex-row sm:items-center">
+        <div class="flex items-center gap-3"><span class="material-symbols-outlined rounded-xl bg-amber-100 p-2 text-amber-700">event_busy</span><div><p class="text-sm font-bold text-amber-950">{{expiringSoon}} registro(s) próximo(s) a vencer</p><p class="text-xs text-amber-800">Vencen durante los siguientes 60 días.</p></div></div>
+        <button type="button" id="btn-expiring-products" class="rounded-xl border border-amber-300 bg-white px-4 py-2 text-xs font-bold text-amber-900 hover:bg-amber-100">Revisar registros</button>
+      </aside>
+    {{/if}}
+
+    <p class="text-xs text-muted-foreground" role="status">Mostrando <strong class="text-foreground">{{products.length}}</strong> productos con los filtros actuales.</p>
+    {{> private/products/grid}}
+    {{> private/products/table}}
+  </div>
 </div>
 
-<!-- MODAL CONFIRM DELETE -->
-<div id="delete-modal" class="fixed inset-0 hidden items-center justify-center bg-black/50 z-50">
-
-    <div class="bg-white rounded-xl shadow-xl p-6 w-full max-w-md">
-
-        <h2 class="text-lg font-bold text-[#0F2E2E]">Confirmar eliminación</h2>
-
-        <p class="text-sm text-gray-600 mt-2">
-            ¿Seguro que deseas eliminar <span id="delete-product-name" class="font-semibold"></span>?
-        </p>
-
-        <div class="flex justify-end gap-3 mt-6">
-
-            <button id="cancel-delete" class="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300">
-                Cancelar
-            </button>
-
-            <button id="confirm-delete" class="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700">
-                Eliminar
-            </button>
-
-        </div>
-
-    </div>
-
-</div>
-
+{{> private/products/form-modal}}
+{{> private/products/expiring-modal}}
+{{> private/products/delete-modal}}
 <script type="module" src="/js/private/product.js"></script>
+<script src="/js/shared/image-fallback.js"></script>
