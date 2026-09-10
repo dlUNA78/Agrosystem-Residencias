@@ -12,6 +12,8 @@ import {
   isProductEditable,
 } from '../../../services/productWorkflowService.js';
 import { PRODUCT_CATEGORIES } from '../../../services/productValidationService.js';
+import { CROP_WORKFLOW_STATUSES } from '../../../services/cropWorkflowService.js';
+import { PLAGUE_WORKFLOW_STATUSES } from '../../../services/plagueWorkflowService.js';
 
 const currentDirectory = path.dirname(fileURLToPath(import.meta.url));
 const privateLayout = path.join(
@@ -97,27 +99,52 @@ export const productsPrivate = async (req, res) => {
     const now = new Date();
     const expiryLimit = new Date(now);
     expiryLimit.setDate(expiryLimit.getDate() + 60);
-    const [total, published, inReview, changesRequested, expiringRecords] =
-      await Promise.all([
-        Product.count(),
-        Product.count({
-          where: { workflow_status: PRODUCT_WORKFLOW_STATUSES.PUBLISHED },
-        }),
-        Product.count({
-          where: { workflow_status: PRODUCT_WORKFLOW_STATUSES.IN_REVIEW },
-        }),
-        Product.count({
-          where: {
-            workflow_status: PRODUCT_WORKFLOW_STATUSES.CHANGES_REQUESTED,
-          },
-        }),
-        Product.findAll({
-          where: {
-            expiration_date: { [db.Sequelize.Op.between]: [now, expiryLimit] },
-          },
-          order: [['expiration_date', 'ASC']],
-        }),
-      ]);
+    const [
+      total,
+      published,
+      inReview,
+      changesRequested,
+      expiringRecords,
+      cropOptions,
+      plagueOptions,
+    ] = await Promise.all([
+      Product.count(),
+      Product.count({
+        where: { workflow_status: PRODUCT_WORKFLOW_STATUSES.PUBLISHED },
+      }),
+      Product.count({
+        where: { workflow_status: PRODUCT_WORKFLOW_STATUSES.IN_REVIEW },
+      }),
+      Product.count({
+        where: {
+          workflow_status: PRODUCT_WORKFLOW_STATUSES.CHANGES_REQUESTED,
+        },
+      }),
+      Product.findAll({
+        where: {
+          expiration_date: { [db.Sequelize.Op.between]: [now, expiryLimit] },
+        },
+        order: [['expiration_date', 'ASC']],
+      }),
+      Crop.findAll({
+        where: {
+          status: 'aprobado',
+          workflow_status: CROP_WORKFLOW_STATUSES.PUBLISHED,
+        },
+        attributes: ['id', 'name', 'scientific_name'],
+        order: [['name', 'ASC']],
+        raw: true,
+      }),
+      Plague.findAll({
+        where: {
+          status: true,
+          workflow_status: PLAGUE_WORKFLOW_STATUSES.PUBLISHED,
+        },
+        attributes: ['id', 'name', 'scientific_name'],
+        order: [['name', 'ASC']],
+        raw: true,
+      }),
+    ]);
     return res.render('private/catalog/products', {
       layout: privateLayout,
       pageTitle: 'Gestión de Productos Agroquímicos',
@@ -132,6 +159,7 @@ export const productsPrivate = async (req, res) => {
         changesRequested,
       },
       expiringSoon: expiringRecords.length,
+      relationOptions: { crops: cropOptions, plagues: plagueOptions },
       expiringProducts: expiringRecords.map((record) => {
         const product = buildProductView(record, req.user);
         return {

@@ -12,7 +12,7 @@ import request from 'supertest';
 import app, { closeAppResources } from '../../app.js';
 import db from '../../src/models/index.js';
 
-const { Product, ProductImage, User } = db;
+const { Product, ProductImage, Crop, Plague, User } = db;
 const password = 'ProductRoutes@1234';
 const emails = [
   'product-author@agrosystem.test',
@@ -47,6 +47,8 @@ describe('rutas privadas de productos', () => {
   let reviewerAgent;
   let adminAgent;
   let product;
+  let crop;
+  let plague;
 
   beforeAll(async () => {
     await User.destroy({ where: { email: emails } });
@@ -86,6 +88,21 @@ describe('rutas privadas de productos', () => {
       is_primary: true,
       display_order: 0,
     });
+    crop = await Crop.create({
+      name: 'Cultivo relacionado QA',
+      scientific_name: 'Test crop',
+      category: 'Cereal',
+      status: 'aprobado',
+      workflow_status: 'published',
+      created_by_user_id: author.id,
+    });
+    plague = await Plague.create({
+      name: 'Plaga relacionada QA',
+      scientific_name: 'Test plague',
+      status: true,
+      workflow_status: 'published',
+      created_by_user_id: author.id,
+    });
   });
 
   beforeEach(async () => {
@@ -103,6 +120,8 @@ describe('rutas privadas de productos', () => {
 
   afterAll(async () => {
     if (product) await product.destroy();
+    if (crop) await crop.destroy();
+    if (plague) await plague.destroy();
     await User.destroy({ where: { email: emails } });
     await closeAppResources();
   });
@@ -144,6 +163,24 @@ describe('rutas privadas de productos', () => {
       .send({ ...completeData, description: 'Edición autorizada' });
     expect(denied.status).toBe(403);
     expect(allowed.status).toBe(302);
+  });
+
+  it('guarda cultivos y plagas publicados al editar', async () => {
+    const response = await authorAgent
+      .post(`/private/products/update/${product.id}`)
+      .send({
+        ...completeData,
+        crop_ids: String(crop.id),
+        plague_ids: String(plague.id),
+      });
+
+    const [crops, plagues] = await Promise.all([
+      product.getCrops(),
+      product.getPlagues(),
+    ]);
+    expect(response.status).toBe(302);
+    expect(crops.map(({ id }) => id)).toContain(crop.id);
+    expect(plagues.map(({ id }) => id)).toContain(plague.id);
   });
 
   it('separa autor, revisor y publicación administrativa', async () => {

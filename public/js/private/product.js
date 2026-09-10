@@ -1,8 +1,11 @@
 import { showAppNotification } from '../shared/notifications.js';
+import {
+  initializeProductImages,
+  initializeRelationSearch,
+} from './product-form-enhancements.js';
 
 const form = document.getElementById('product-form');
 const modal = document.getElementById('modal-product');
-const preview = document.getElementById('image-preview');
 const imageInput = document.getElementById('image');
 const title = document.getElementById('modal-title');
 const saveButton = document.getElementById('btn-save-product');
@@ -90,6 +93,11 @@ const renderSummary = (messages) => {
   });
   summary.classList.toggle('hidden', messages.length === 0);
 };
+const relationControls = initializeRelationSearch(form);
+const imageControls = initializeProductImages({
+  input: imageInput,
+  validate: validateField,
+});
 const resetForm = () => {
   form?.reset();
   if (form) form.action = '/private/products/create';
@@ -100,10 +108,8 @@ const resetForm = () => {
     renderFieldError(field, '');
   });
   renderSummary([]);
-  if (preview) {
-    preview.src = '';
-    preview.classList.add('hidden');
-  }
+  relationControls.reset();
+  imageControls.reset();
 };
 const showCreateModal = () => {
   resetForm();
@@ -127,17 +133,11 @@ document
   }),
 );
 
-imageInput?.addEventListener('change', () => {
-  validateField(imageInput);
-  const file = imageInput.files?.[0];
-  if (!file || !preview || !imageInput.validity.valid) return;
-  preview.src = URL.createObjectURL(file);
-  preview.classList.remove('hidden');
-});
-
 const setValue = (name, value) => {
   const field = form?.elements.namedItem(name);
-  if (field) field.value = value ?? '';
+  if (field instanceof HTMLElement && field.getAttribute('type') !== 'file') {
+    field.value = value ?? '';
+  }
 };
 document.querySelectorAll('.btn-edit-product').forEach((button) => {
   button.addEventListener('click', async () => {
@@ -155,13 +155,12 @@ document.querySelectorAll('.btn-edit-product').forEach((button) => {
         'expiration_date',
         result.product.expiration_date?.substring?.(0, 10),
       );
+      relationControls.select('crop_ids', result.product.crops);
+      relationControls.select('plague_ids', result.product.plagues);
+      imageControls.setExisting(result.product.images);
       form.action = `/private/products/update/${result.product.id}`;
       title.textContent = 'Editar Producto';
       saveButton.textContent = 'Actualizar Producto';
-      if (preview && result.product.image_url) {
-        preview.src = result.product.image_url;
-        preview.classList.remove('hidden');
-      }
       const expiringDialog = document.getElementById('expiring-products-modal');
       expiringDialog?.classList.add('hidden');
       expiringDialog?.classList.remove('flex');

@@ -6,12 +6,15 @@ import {
   cleanupUploadedProductFiles,
 } from '../../../services/productImageService.js';
 import { validateProductInput } from '../../../services/productValidationService.js';
+import { validateProductRelationsInput } from '../../../services/productRelationService.js';
+import { CROP_WORKFLOW_STATUSES } from '../../../services/cropWorkflowService.js';
+import { PLAGUE_WORKFLOW_STATUSES } from '../../../services/plagueWorkflowService.js';
 import {
   PRODUCT_WORKFLOW_STATUSES,
   isProductEditable,
 } from '../../../services/productWorkflowService.js';
 
-const { Product, ProductImage, AuditLog } = db;
+const { Product, ProductImage, Plague, Crop, AuditLog } = db;
 const parseId = (value) => {
   if (!/^[1-9]\d*$/.test(String(value || ''))) return null;
   const id = Number(value);
@@ -40,23 +43,100 @@ const rollbackWithFiles = async (transaction, files) => {
   await transaction.rollback();
   await cleanupUploadedProductFiles(files);
 };
+const getUpdateRestriction = (product, user) => {
+  const permissions = getContextualProductPermissions({
+    role: user.role,
+    userId: user.id,
+    createdByUserId: product.created_by_user_id,
+  });
+  if (!permissions.canEdit) {
+    return {
+      status: 403,
+      message: 'Sólo el autor o un administrador puede editar este producto.',
+    };
+  }
+  if (!isProductEditable(product.workflow_status)) {
+    return {
+      status: 409,
+      message: 'El producto no está en una etapa editable.',
+    };
+  }
+  return null;
+};
+const requireProduct = (product) => {
+  if (product) return product;
+  const error = new Error('Producto no encontrado.');
+  error.status = 404;
+  error.safeMessage = error.message;
+  throw error;
+};
+const getSafeErrorResponse = (error) => ({
+  status: error.status || 500,
+  message: error.safeMessage || 'No se pudo actualizar el producto.',
+});
+
+const validateRelationsExist = async ({ cropIds, plagueIds }, transaction) => {
+  const [cropCount, plagueCount] = await Promise.all([
+    Crop.count({
+      where: {
+        id: cropIds,
+        status: 'aprobado',
+        workflow_status: CROP_WORKFLOW_STATUSES.PUBLISHED,
+      },
+      transaction,
+    }),
+    Plague.count({
+      where: {
+        id: plagueIds,
+        status: true,
+        workflow_status: PLAGUE_WORKFLOW_STATUSES.PUBLISHED,
+      },
+      transaction,
+    }),
+  ]);
+  return cropCount === cropIds.length && plagueCount === plagueIds.length;
+};
+
+const readRelations = (req) => {
+  const relations = validateProductRelationsInput(req.body);
+  if (!relations.isValid) {
+    return {
+      error: {
+        isValid: false,
+        errors: relations.errors,
+        fieldErrors: { relations: relations.errors },
+      },
+    };
+  }
+  return { value: relations.value };
+};
 
 export const createProduct = async (req, res) => {
   const files = Array.isArray(req.files) ? req.files : [];
   const validation = validateProductInput(req.body);
-  if (!validation.isValid) {
+  const relations = readRelations(req);
+  if (!validation.isValid || relations.error) {
     await cleanupUploadedProductFiles(files);
     return failure(
       req,
       res,
       400,
       'Revisa los datos marcados antes de guardar el producto.',
-      validation,
+      relations.error || validation,
     );
   }
 
   const transaction = await db.sequelize.transaction();
   try {
+    if (!(await validateRelationsExist(relations.value, transaction))) {
+      await rollbackWithFiles(transaction, files);
+      return failure(
+        req,
+        res,
+        400,
+        'Alguna plaga o cultivo seleccionado ya no existe.',
+      );
+    }
     const product = await Product.create(
       {
         ...validation.value,
@@ -74,6 +154,8 @@ export const createProduct = async (req, res) => {
         { transaction },
       );
     }
+    await product.setCrops(relations.value.cropIds, { transaction });
+    await product.setPlagues(relations.value.plagueIds, { transaction });
     await AuditLog.create(
       {
         action: 'product.create',
@@ -102,48 +184,38 @@ export const updateProduct = async (req, res) => {
     return failure(req, res, 400, 'ID de producto no válido.');
   }
   const validation = validateProductInput(req.body);
-  if (!validation.isValid) {
+  const relations = readRelations(req);
+  if (!validation.isValid || relations.error) {
     await cleanupUploadedProductFiles(files);
     return failure(
       req,
       res,
       400,
       'Revisa los datos marcados antes de guardar el producto.',
-      validation,
+      relations.error || validation,
     );
   }
 
   const transaction = await db.sequelize.transaction();
   try {
-    const product = await Product.findByPk(productId, {
-      transaction,
-      lock: transaction.LOCK.UPDATE,
-    });
-    if (!product) {
+    const product = requireProduct(
+      await Product.findByPk(productId, {
+        transaction,
+        lock: transaction.LOCK.UPDATE,
+      }),
+    );
+    const restriction = getUpdateRestriction(product, req.user);
+    if (restriction) {
       await rollbackWithFiles(transaction, files);
-      return failure(req, res, 404, 'Producto no encontrado.');
+      return failure(req, res, restriction.status, restriction.message);
     }
-    const permissions = getContextualProductPermissions({
-      role: req.user.role,
-      userId: req.user.id,
-      createdByUserId: product.created_by_user_id,
-    });
-    if (!permissions.canEdit) {
+    if (!(await validateRelationsExist(relations.value, transaction))) {
       await rollbackWithFiles(transaction, files);
       return failure(
         req,
         res,
-        403,
-        'Sólo el autor o un administrador puede editar este producto.',
-      );
-    }
-    if (!isProductEditable(product.workflow_status)) {
-      await rollbackWithFiles(transaction, files);
-      return failure(
-        req,
-        res,
-        409,
-        'El producto no está en una etapa editable.',
+        400,
+        'Alguna plaga o cultivo seleccionado ya no existe.',
       );
     }
 
@@ -167,6 +239,8 @@ export const updateProduct = async (req, res) => {
         { transaction },
       );
     }
+    await product.setCrops(relations.value.cropIds, { transaction });
+    await product.setPlagues(relations.value.plagueIds, { transaction });
     await AuditLog.create(
       {
         action: 'product.update',
@@ -188,7 +262,8 @@ export const updateProduct = async (req, res) => {
   } catch (error) {
     await rollbackWithFiles(transaction, files);
     console.error('Error al actualizar producto:', error);
-    return failure(req, res, 500, 'No se pudo actualizar el producto.');
+    const safeError = getSafeErrorResponse(error);
+    return failure(req, res, safeError.status, safeError.message);
   }
 };
 
