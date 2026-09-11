@@ -34,6 +34,91 @@
     </div>
   </header>
 
+  {{#if isPrivate}}
+    <section class="mx-auto mt-6 w-full max-w-7xl rounded-xl border border-border bg-card p-5 shadow-2xs">
+      <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div>
+          <p class="text-[10px] font-mono font-bold uppercase tracking-widest text-muted-foreground">Flujo editorial</p>
+          <div class="mt-1 flex flex-wrap items-center gap-2">
+            <span class="rounded-full border border-border bg-muted px-3 py-1 text-xs font-bold">
+              {{#if (eq product.workflow_status 'draft')}}Borrador
+              {{else if (eq product.workflow_status 'in_review')}}En revisión
+              {{else if (eq product.workflow_status 'changes_requested')}}Cambios solicitados
+              {{else if (eq product.workflow_status 'verified')}}Verificado
+              {{else if (eq product.workflow_status 'published')}}Publicado
+              {{else if (eq product.workflow_status 'archived')}}Archivado
+              {{else}}Sin estado editorial{{/if}}
+            </span>
+            {{#if product.review_notes}}<span class="text-xs text-amber-700">{{product.review_notes}}</span>{{/if}}
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          {{#if (eq product.workflow_status 'draft')}}
+            {{#if permissions.canSubmitReview}}
+              <form method="POST" action="/private/products/{{product.id}}/workflow">
+                <input type="hidden" name="action" value="submit_review">
+                <button type="submit" {{#unless readiness.isReady}}disabled{{/unless}} class="rounded-lg bg-[#1b4332] px-4 py-2 text-xs font-bold text-white disabled:cursor-not-allowed disabled:opacity-50">Enviar a revisión</button>
+              </form>
+            {{/if}}
+          {{/if}}
+          {{#if (eq product.workflow_status 'changes_requested')}}
+            {{#if permissions.canSubmitReview}}
+              <form method="POST" action="/private/products/{{product.id}}/workflow">
+                <input type="hidden" name="action" value="submit_review">
+                <button type="submit" {{#unless readiness.isReady}}disabled{{/unless}} class="rounded-lg bg-[#1b4332] px-4 py-2 text-xs font-bold text-white disabled:cursor-not-allowed disabled:opacity-50">Reenviar a revisión</button>
+              </form>
+            {{/if}}
+          {{/if}}
+          {{#if (eq product.workflow_status 'in_review')}}
+            {{#if permissions.canVerify}}
+              <form method="POST" action="/private/products/{{product.id}}/workflow" class="flex flex-wrap gap-2">
+                <input type="hidden" name="action" value="request_changes">
+                <input type="text" name="review_notes" required maxlength="500" placeholder="Observaciones requeridas" class="rounded-lg border border-input px-3 py-2 text-xs">
+                <button type="submit" class="rounded-lg border border-amber-300 bg-amber-50 px-4 py-2 text-xs font-bold text-amber-800">Solicitar cambios</button>
+              </form>
+              <form method="POST" action="/private/products/{{product.id}}/workflow">
+                <input type="hidden" name="action" value="verify">
+                <button type="submit" {{#unless readiness.isReady}}disabled{{/unless}} class="rounded-lg bg-[#1b4332] px-4 py-2 text-xs font-bold text-white disabled:cursor-not-allowed disabled:opacity-50">Verificar</button>
+              </form>
+            {{/if}}
+          {{/if}}
+          {{#if (eq product.workflow_status 'verified')}}
+            {{#if permissions.canPublish}}
+              <form method="POST" action="/private/products/{{product.id}}/workflow">
+                <input type="hidden" name="action" value="publish">
+                <button type="submit" {{#unless readiness.isReady}}disabled{{/unless}} class="rounded-lg bg-[#1b4332] px-4 py-2 text-xs font-bold text-white disabled:cursor-not-allowed disabled:opacity-50">Publicar</button>
+              </form>
+            {{/if}}
+          {{/if}}
+          {{#if (eq product.workflow_status 'published')}}
+            {{#if permissions.canArchive}}
+              <form method="POST" action="/private/products/{{product.id}}/workflow">
+                <input type="hidden" name="action" value="archive">
+                <button type="submit" class="rounded-lg border border-border px-4 py-2 text-xs font-bold">Archivar</button>
+              </form>
+            {{/if}}
+          {{/if}}
+          {{#if (eq product.workflow_status 'archived')}}
+            {{#if permissions.canRestore}}
+              <form method="POST" action="/private/products/{{product.id}}/workflow">
+                <input type="hidden" name="action" value="restore">
+                <button type="submit" class="rounded-lg border border-border px-4 py-2 text-xs font-bold">Restaurar como borrador</button>
+              </form>
+            {{/if}}
+          {{/if}}
+        </div>
+      </div>
+      <div class="mt-4 grid grid-cols-2 gap-2 md:grid-cols-5">
+        {{#each readiness.items}}
+          <div class="rounded-lg border p-3 text-xs {{#if complete}}border-emerald-100 bg-emerald-50 text-emerald-800{{else}}border-amber-100 bg-amber-50 text-amber-800{{/if}}">
+            <span class="font-bold">{{#if complete}}✓{{else}}○{{/if}} {{label}}</span>
+          </div>
+        {{/each}}
+      </div>
+    </section>
+  {{/if}}
+
   <main class="px-4 md:px-10 pt-8 pb-16">
 
     {{! ── BREADCRUMBS & ENCABEZADO ────────────────────────────────────────── }}
@@ -91,10 +176,10 @@
           </p>
         </div>
 
-        {{#if isPrivate}}
+        {{#if canEditRecord}}
           <div class="flex items-center gap-3 shrink-0">
-            <a href="/private/products/update/{{product.id}}" class="px-4 py-2 bg-card border border-border text-foreground font-bold text-xs rounded-md hover:bg-secondary transition-colors shadow-2xs flex items-center gap-2">
-              <span class="material-symbols-outlined text-sm">edit</span> Editar Producto
+            <a href="/private/products" class="px-4 py-2 bg-card border border-border text-foreground font-bold text-xs rounded-md hover:bg-secondary transition-colors shadow-2xs flex items-center gap-2">
+              <span class="material-symbols-outlined text-sm">edit</span> Volver para editar
             </a>
           </div>
         {{/if}}
@@ -105,29 +190,7 @@
     <div class="mb-10 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
       <!-- Columna Izquierda: Fotografía/Empaque del Producto -->
       <div class="col-span-1 lg:col-span-5">
-        <div class="relative overflow-hidden rounded-xl bg-card border border-border shadow-2xs h-80 md:h-95 group flex items-center justify-center p-6">
-          {{#if product.image_url}}
-            <img src="{{product.image_url}}" alt="{{product.name}}" class="max-h-full max-w-full object-contain transition-transform duration-500 group-hover:scale-105" onerror="this.onerror=null; this.src='/images/products/confidor-350-sc.webp';" />
-          {{else}}
-            <div class="w-full h-full flex flex-col items-center justify-center bg-muted text-muted-foreground p-8 text-center">
-              <span class="material-symbols-outlined text-6xl mb-2 text-muted-foreground/40">science</span>
-              <p class="text-xs font-mono">SIN FOTOGRAFÍA REGISTRADA</p>
-            </div>
-          {{/if}}
-          <div class="absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-transparent pointer-events-none"></div>
-
-          <!-- Tag de Registro Oficial Top-Left -->
-          <div class="absolute top-3 left-3">
-            <span class="px-2.5 py-1 bg-card/90 backdrop-blur border border-border text-foreground text-[10px] font-mono font-bold uppercase rounded-md shadow-2xs">
-              REG: {{#if product.registration_code}}{{product.registration_code}}{{else}}CICOPLAFEST / INIFAP{{/if}}
-            </span>
-          </div>
-
-          <!-- Crédito Fotográfico Minimalista Bottom-Left -->
-          <span class="absolute left-3 bottom-3 text-mono-label text-[10px] text-white/90 font-mono tracking-wider drop-shadow-xs select-none bg-black/40 px-2 py-1 rounded backdrop-blur-xs">
-            ACERVO FOTO · INIFAP
-          </span>
-        </div>
+        {{> shared/products/gallery}}
       </div>
 
       <!-- Columna Derecha: Descripción y Clasificación NOM -->
@@ -370,3 +433,4 @@
 
   </main>
 </div>
+<script type="module" src="/js/shared/product-gallery.js"></script>

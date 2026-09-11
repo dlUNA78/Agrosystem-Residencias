@@ -1,0 +1,8 @@
+<div id="delete-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/55 p-4 backdrop-blur-xs" role="dialog" aria-modal="true" aria-labelledby="delete-product-title">
+  <div class="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-2xl">
+    <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-red-50 text-red-700"><span class="material-symbols-outlined">delete_forever</span></div>
+    <h2 id="delete-product-title" class="mt-4 text-xl font-black">Eliminar producto</h2>
+    <p class="mt-2 text-sm leading-relaxed text-muted-foreground">Esta acción elimina definitivamente <strong id="delete-product-name" class="text-foreground"></strong> y sus imágenes. Para retirarlo temporalmente del catálogo, utiliza “Archivar”.</p>
+    <form id="product-delete-form" method="POST" class="mt-6 flex justify-end gap-3"><button type="button" id="cancel-delete" class="rounded-xl border border-border px-4 py-2.5 text-sm font-bold hover:bg-muted">Cancelar</button><button type="button" id="confirm-delete" class="rounded-xl bg-red-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-red-800">Eliminar definitivamente</button></form>
+  </div>
+</div>

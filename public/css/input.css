@@ -3,6 +3,20 @@
 @source "../../src/controllers/**/*.js";
 @source "../../public/js/**/*.js";
 
+@layer components {
+  .product-image-gallery {
+    max-height: 18rem;
+    overflow-y: auto;
+  }
+
+  .product-image-thumbnail {
+    display: block;
+    width: 100%;
+    height: 6rem;
+    object-fit: cover;
+  }
+}
+
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme inline {

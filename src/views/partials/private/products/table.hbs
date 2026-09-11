@@ -1,0 +1,20 @@
+<section id="products-table-view" class="hidden overflow-hidden rounded-2xl border border-border/80 bg-card shadow-2xs" aria-label="Productos en tabla">
+  <div class="overflow-x-auto">
+    <table class="w-full min-w-225 text-left">
+      <thead class="border-b border-border bg-muted/50"><tr><th class="px-5 py-4 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Producto</th><th class="px-5 py-4 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Identificación</th><th class="px-5 py-4 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Fabricante</th><th class="px-5 py-4 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Estado editorial</th><th class="px-5 py-4 text-right text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Acciones</th></tr></thead>
+      <tbody class="divide-y divide-border/70">
+        {{#each products}}
+          <tr class="transition hover:bg-muted/30">
+            <td class="px-5 py-4"><div class="flex items-center gap-3"><div class="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-muted p-1"><img src="{{image_url}}" alt="" class="h-full w-full object-contain" data-fallback-src="/images/test/default.png"></div><div><a href="/private/products/{{id}}" class="text-sm font-bold hover:text-primary">{{name}}</a><p class="mt-0.5 text-xs text-muted-foreground">{{active_ingredient}}</p></div></div></td>
+            <td class="px-5 py-4"><p class="text-xs font-bold">{{category}}</p><p class="mt-1 font-mono text-[10px] text-muted-foreground">{{registration_code}}</p></td>
+            <td class="px-5 py-4 text-xs">{{manufacturer}}</td>
+            <td class="px-5 py-4">{{> private/products/workflow-badge}}</td>
+            <td class="px-5 py-4"><div class="flex justify-end gap-1"><a href="/private/products/{{id}}" class="rounded-lg p-2 text-primary hover:bg-primary/10" aria-label="Ver {{name}}"><span class="material-symbols-outlined text-lg">visibility</span></a>{{#if canEditRecord}}<button type="button" class="btn-edit-product rounded-lg p-2 text-primary hover:bg-primary/10" data-id="{{id}}" aria-label="Editar {{name}}"><span class="material-symbols-outlined text-lg">edit</span></button>{{/if}}{{#if canDeleteRecord}}<button type="button" data-delete-btn data-id="{{id}}" data-name="{{name}}" class="rounded-lg p-2 text-red-700 hover:bg-red-50" aria-label="Eliminar {{name}}"><span class="material-symbols-outlined text-lg">delete</span></button>{{/if}}</div></td>
+          </tr>
+        {{else}}
+          <tr><td colspan="5" class="px-6 py-14 text-center text-sm text-muted-foreground">No hay productos para mostrar.</td></tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+</section>

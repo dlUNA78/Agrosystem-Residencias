@@ -2,6 +2,7 @@ import db from '../../models/index.js';
 import { Op } from 'sequelize';
 import { buildPlagueDetailView } from '../../services/plagueDetailService.js';
 import { PLAGUE_WORKFLOW_STATUSES } from '../../services/plagueWorkflowService.js';
+import { PRODUCT_WORKFLOW_STATUSES } from '../../services/productWorkflowService.js';
 
 const { Plague, PlagueImage, Product, Region, Crop } = db;
 
@@ -258,7 +259,10 @@ export const renderPlagueDetail = async (req, res) => {
         {
           model: Product,
           as: 'products',
-          where: { status: true },
+          where: {
+            status: true,
+            workflow_status: PRODUCT_WORKFLOW_STATUSES.PUBLISHED,
+          },
           required: false, // LEFT JOIN
           attributes: [
             'id',

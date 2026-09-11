@@ -5,7 +5,7 @@ import { Router } from 'express';
 // uploadPlagueImages → imágenes de plagas (acepta múltiples archivos)
 // uploadCropImages → imágenes de cultivos (acepta múltiples archivos)
 import {
-  upload,
+  uploadProductImages,
   uploadPlagueImages,
   uploadCropImages,
 } from '../middlewares/upload.js';
@@ -19,6 +19,11 @@ import {
   requireCropWorkflowPermission,
 } from '../middlewares/cropAuthorizationMiddleware.js';
 import { CROP_PERMISSIONS } from '../services/cropAuthorizationService.js';
+import {
+  requireProductPermission,
+  requireProductWorkflowPermission,
+} from '../middlewares/productAuthorizationMiddleware.js';
+import { PRODUCT_PERMISSIONS } from '../services/productAuthorizationService.js';
 
 import { dashboard } from '../controllers/private/dashboardController.js';
 import { auditPrivate } from '../controllers/private/auditController.js';
@@ -61,6 +66,7 @@ import {
   createProduct,
   updateProduct,
   deleteProduct,
+  updateProductWorkflow,
 } from '../controllers/private/productsController.js';
 
 // ─── Controladores del módulo de parcelas (sub-controlador modular) ────────────
@@ -216,20 +222,43 @@ privateRouter.post(
 // ══════════════════════════════════════════════════════════════════════════════
 // MÓDULO: PRODUCTOS AGROQUÍMICOS
 // ══════════════════════════════════════════════════════════════════════════════
-privateRouter.get('/private/products', productsPrivate); // Lista todos los productos
-privateRouter.get('/private/catalog/products', productsPrivate); // Alias catálogo productos
-privateRouter.get('/private/products/:id', getProductDetail); // Detalle de producto por ID
+privateRouter.get(
+  '/private/products',
+  requireProductPermission(PRODUCT_PERMISSIONS.VIEW_PRIVATE),
+  productsPrivate,
+);
+privateRouter.get(
+  '/private/catalog/products',
+  requireProductPermission(PRODUCT_PERMISSIONS.VIEW_PRIVATE),
+  productsPrivate,
+);
+privateRouter.get(
+  '/private/products/:id',
+  requireProductPermission(PRODUCT_PERMISSIONS.VIEW_PRIVATE),
+  getProductDetail,
+);
 privateRouter.post(
   '/private/products/create',
-  upload.single('image'),
+  requireProductPermission(PRODUCT_PERMISSIONS.CREATE),
+  uploadProductImages,
   createProduct,
-); // Crear producto (1 imagen genérica)
+);
 privateRouter.post(
   '/private/products/update/:id',
-  upload.single('image'),
+  requireProductPermission(PRODUCT_PERMISSIONS.EDIT),
+  uploadProductImages,
   updateProduct,
-); // Actualizar producto
-privateRouter.post('/private/products/delete/:id', deleteProduct); // Eliminar producto
+);
+privateRouter.post(
+  '/private/products/delete/:id',
+  requireProductPermission(PRODUCT_PERMISSIONS.DELETE),
+  deleteProduct,
+);
+privateRouter.post(
+  '/private/products/:id/workflow',
+  requireProductWorkflowPermission,
+  updateProductWorkflow,
+);
 
 // ══════════════════════════════════════════════════════════════════════════════
 // MÓDULO: INGREDIENTES
