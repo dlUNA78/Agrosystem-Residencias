@@ -2,7 +2,7 @@ import request from 'supertest';
 import app, { closeAppResources } from '../../app.js';
 import db from '../../src/models/index.js';
 
-const { Plague } = db;
+const { Plague, PlagueRegion, Region } = db;
 
 afterAll(closeAppResources);
 
@@ -71,6 +71,35 @@ describe('🧪 Suite de Pruebas Públicas - Módulo de Plagas', () => {
       response.body.plagues.forEach((p) => {
         expect(['Crítico', 'Alto']).toContain(p.riskLabel);
       });
+    });
+
+    it('combina búsqueda, categoría y región sin exponer registros no relacionados', async () => {
+      const region = await Region.create({
+        name: `Región pública QA ${Date.now()}`,
+        lat: 23.5,
+        lng: -102.1,
+      });
+      const relation = await PlagueRegion.create({
+        plague_id: samplePlague.id,
+        region_id: region.id,
+        risk_level: samplePlague.risk_level || 'Bajo',
+      });
+
+      try {
+        const response = await request(app).get('/api/plagues').query({
+          search: samplePlague.name,
+          category: samplePlague.category,
+          region: region.name,
+        });
+
+        expect(response.status).toBe(200);
+        expect(response.body.plagues.map((plague) => plague.id)).toContain(
+          samplePlague.id,
+        );
+      } finally {
+        await relation.destroy();
+        await region.destroy();
+      }
     });
   });
 

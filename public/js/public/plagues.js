@@ -7,13 +7,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const plaguesGrid = document.getElementById('plagues-grid');
   const totalCountNumber = document.getElementById('total-count-number');
+  const totalCountHeader = document.getElementById('total-count-number-header');
+  const filterForm = document.getElementById('form-filtros');
 
   const paginationContainer = document.getElementById('pagination-container');
   const prevPageBtn = document.getElementById('prev-page-btn');
   const nextPageBtn = document.getElementById('next-page-btn');
   const currentPageDisplay = document.getElementById('current-page-display');
 
-  let currentPage = 1;
+  let currentPage =
+    Number(new URLSearchParams(window.location.search).get('page')) || 1;
   let debounceTimeout;
 
   const fetchPlagues = async () => {
@@ -37,6 +40,11 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!response.ok) throw new Error('Error fetching data');
 
       const data = await response.json();
+      window.history.replaceState(
+        null,
+        '',
+        `/plagues?${queryParams.toString()}`,
+      );
       renderPlagues(data);
     } catch (error) {
       console.error('Error al obtener las plagas:', error);
@@ -60,6 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     currentPage = newCurrentPage;
     totalCountNumber.textContent = totalCount;
+    if (totalCountHeader) totalCountHeader.textContent = totalCount;
 
     // Save CTA card if it exists in DOM or use default HTML if not found (on first load it should exist)
     const existingCta = document.getElementById('cta-new-species');
@@ -190,6 +199,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Hide filter btn as we do it in real time, but keep functionality if clicked
     filterBtn.addEventListener('click', handleFilterChange);
   }
+
+  filterForm?.addEventListener('submit', (event) => {
+    event.preventDefault();
+    handleFilterChange();
+  });
 
   prevPageBtn.addEventListener('click', () => {
     if (currentPage > 1) {

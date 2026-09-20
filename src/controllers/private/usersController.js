@@ -2,6 +2,10 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import bcrypt from 'bcrypt';
 import db from '../../models/index.js';
+import {
+  buildUserListWhere,
+  normalizeUserListQuery,
+} from '../../services/userListService.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -17,7 +21,9 @@ const { User } = db;
  */
 export const usersPrivate = async (req, res) => {
   try {
+    const filters = normalizeUserListQuery(req.query);
     const users = await User.findAll({
+      where: buildUserListWhere(db.Sequelize, filters),
       order: [['createdAt', 'DESC']],
     });
 
@@ -32,26 +38,39 @@ export const usersPrivate = async (req, res) => {
       pageTitle: 'Usuarios',
       activePage: 'users',
       users: safeUsers,
+      filters,
+      hasActiveFilters: Boolean(
+        filters.search || filters.role || filters.status,
+      ),
       searchId: 'user-search',
-      searchPlaceholder: 'Buscar por nombre, correo o institución...',
+      searchValue: filters.search,
+      searchPlaceholder: 'Buscar por nombre, correo, cargo o código...',
       searchFilters: [
         {
           id: 'filter-rol',
+          param: 'role',
           label: 'Rol: Todos',
           options: [
             { value: 'admin', text: 'Admin' },
             { value: 'inifap', text: 'INIFAP' },
             { value: 'agricultor', text: 'Agricultor' },
-          ],
+          ].map((option) => ({
+            ...option,
+            selected: option.value === filters.role,
+          })),
         },
         {
           id: 'filter-status',
+          param: 'status',
           label: 'Estatus: Todos',
           options: [
             { value: 'activo', text: 'Activo' },
             { value: 'pendiente', text: 'Pendiente' },
             { value: 'suspendido', text: 'Suspendido' },
-          ],
+          ].map((option) => ({
+            ...option,
+            selected: option.value === filters.status,
+          })),
         },
       ],
       showViewToggle: true,

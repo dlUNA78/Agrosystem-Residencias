@@ -54,16 +54,10 @@
               <!-- Filtro Categoría -->
               <div class="relative lg:w-52">
                 <select id="category-crops-filter" name="category" class="h-10 w-full appearance-none border border-input bg-card px-3 pr-8 text-sm rounded-md outline-none transition-colors focus-visible:border-[#1b4332] text-foreground font-medium cursor-pointer">
-                  <option value="Categoría">Categoría · Todas</option>
-                  <option value="cereal">Cereales</option>
-                  <option value="hortaliza">Hortalizas</option>
-                  <option value="frutal">Frutales</option>
-                  <option value="leguminosa">Leguminosas</option>
-                  <option value="oleaginosa">Oleaginosas</option>
-                  <option value="tuberculo">Tubérculos</option>
-                  <option value="forrajera">Forrajeras</option>
-                  <option value="industrial">Industriales</option>
-                  <option value="otro">Otros</option>
+                  <option value="">Categoría · Todas</option>
+                  {{#each categories}}
+                    <option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>
+                  {{/each}}
                 </select>
                 <span class="material-symbols-outlined pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">expand_more</span>
               </div>
@@ -181,7 +175,7 @@
         <div class="mt-12 flex justify-center">
           <nav class="flex items-center gap-2 bg-card border border-border p-1.5 rounded-lg shadow-2xs">
             {{#if hasPrevPage}}
-            <a href="/crops?page={{prevPage}}&search={{search}}&category={{selectedCategory}}" class="w-9 h-9 flex items-center justify-center rounded-md hover:bg-secondary text-foreground transition-colors">
+            <a href="{{prevUrl}}" class="w-9 h-9 flex items-center justify-center rounded-md hover:bg-secondary text-foreground transition-colors">
               <span class="material-symbols-outlined text-xl">chevron_left</span>
             </a>
             {{else}}
@@ -193,7 +187,7 @@
             <span class="px-4 text-xs font-mono font-semibold text-foreground">Página {{currentPage}} de {{totalPages}}</span>
 
             {{#if hasNextPage}}
-            <a href="/crops?page={{nextPage}}&search={{search}}&category={{selectedCategory}}" class="w-9 h-9 flex items-center justify-center rounded-md hover:bg-secondary text-foreground transition-colors">
+            <a href="{{nextUrl}}" class="w-9 h-9 flex items-center justify-center rounded-md hover:bg-secondary text-foreground transition-colors">
               <span class="material-symbols-outlined text-xl">chevron_right</span>
             </a>
             {{else}}

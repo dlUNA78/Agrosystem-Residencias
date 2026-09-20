@@ -136,6 +136,10 @@ describe('rutas privadas del workflow de cultivos', () => {
     expect(detailResponse.status).toBe(200);
     expect(detailResponse.text).toContain('Requisitos para revisión');
     expect(detailResponse.text).toContain('Enviar a revisión');
+    expect(detailResponse.text).toContain('data-crop-gallery');
+    expect(detailResponse.text).toContain(
+      'src="/images/crops/workflow-route-test.png"',
+    );
   });
 
   it('crea por ruta un borrador propiedad del INIFAP autenticado', async () => {

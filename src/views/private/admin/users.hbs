@@ -38,6 +38,13 @@
     <!-- BARRA DE BÚSQUEDA Y FILTROS -->
     {{> private/search-bar }}
 
+    <div class="flex items-center justify-between gap-3">
+        <p class="text-xs text-on-surface-variant" role="status"><strong>{{users.length}}</strong> usuario(s) encontrado(s).</p>
+        {{#if hasActiveFilters}}
+        <a href="/private/users" class="text-xs font-bold text-primary hover:underline">Limpiar búsqueda y filtros</a>
+        {{/if}}
+    </div>
+
     <!-- CONTENEDOR VISTAS (TABLA / GRILLA) -->
     <div id="users-views-container">
 

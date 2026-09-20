@@ -3,6 +3,11 @@ import { Op } from 'sequelize';
 import { buildPlagueDetailView } from '../../services/plagueDetailService.js';
 import { PLAGUE_WORKFLOW_STATUSES } from '../../services/plagueWorkflowService.js';
 import { PRODUCT_WORKFLOW_STATUSES } from '../../services/productWorkflowService.js';
+import {
+  buildPublishedPlagueQuery,
+  buildPublicPlaguePageUrl,
+  normalizePublicPlagueQuery,
+} from '../../services/plaguePublicQueryService.js';
 
 const { Plague, PlagueImage, Product, Region, Crop } = db;
 
@@ -55,103 +60,82 @@ const defaultRisk = {
   bannerTextClass: 'text-emerald-950',
 };
 
+const buildPublicPlagueCard = (record) => {
+  const plague = record.toJSON();
+  const normalizedRiskLevel =
+    { Crítico: 'Alto', Moderado: 'Medio' }[plague.risk_level] ||
+    plague.risk_level;
+  const risk = riskMap[normalizedRiskLevel] || defaultRisk;
+  const firstImage = plague.images?.[0];
+  const imageUrl =
+    plague.image_url || firstImage?.url || '/images/test/default.png';
+
+  return {
+    id: plague.id,
+    name: plague.name,
+    scientificName: plague.scientific_name,
+    category: plague.category,
+    description: plague.description,
+    image_url: imageUrl,
+    imageUrl,
+    riskLabel: risk.label,
+    riskBadgeClass: risk.badgeClass,
+  };
+};
+
+const findPublishedPlagues = async (rawQuery = {}) => {
+  const query = normalizePublicPlagueQuery(rawQuery);
+  const filters = buildPublishedPlagueQuery({
+    Op,
+    query,
+    Region,
+    PlagueImage,
+  });
+  const { count, rows } = await Plague.findAndCountAll({
+    ...filters,
+    order: [['createdAt', 'DESC']],
+    limit: query.limit,
+    offset: (query.page - 1) * query.limit,
+    distinct: true,
+  });
+  const totalPages = Math.max(1, Math.ceil(count / query.limit));
+  const currentPage = Math.min(query.page, totalPages);
+
+  if (currentPage !== query.page && count > 0) {
+    const corrected = await Plague.findAndCountAll({
+      ...filters,
+      order: [['createdAt', 'DESC']],
+      limit: query.limit,
+      offset: (currentPage - 1) * query.limit,
+      distinct: true,
+    });
+    return {
+      plagues: corrected.rows.map(buildPublicPlagueCard),
+      totalCount: corrected.count,
+      totalPages,
+      currentPage,
+      query: { ...query, page: currentPage },
+    };
+  }
+
+  return {
+    plagues: rows.map(buildPublicPlagueCard),
+    totalCount: count,
+    totalPages,
+    currentPage,
+    query: { ...query, page: currentPage },
+  };
+};
+
 // ── GET /api/plagues ───────────────────────────────────────────────────────
 export const getPlaguesData = async (req, res) => {
   try {
-    const {
-      search,
-      category,
-      region,
-      risk,
-      page = 1,
-      limit: customLimit,
-    } = req.query;
-    const limit = parseInt(customLimit, 10) || 8;
-    const currentPage = Math.max(1, parseInt(page, 10) || 1);
-    const offset = (currentPage - 1) * limit;
-
-    const where = {
-      status: true,
-      workflow_status: PLAGUE_WORKFLOW_STATUSES.PUBLISHED,
-    };
-
-    if (search) {
-      where[Op.or] = [
-        { name: { [Op.iLike]: `%${search}%` } },
-        { scientific_name: { [Op.iLike]: `%${search}%` } },
-        { description: { [Op.iLike]: `%${search}%` } },
-      ];
-    }
-    if (category && category !== 'Categoría') {
-      where.category = category;
-    }
-
-    let includeModels = [];
-
-    if (region && region !== 'Región') {
-      includeModels.push({
-        model: Region,
-        as: 'regions',
-        where: { name: region },
-        required: true,
-      });
-    }
-
-    if (risk && risk !== 'Riesgo') {
-      // Map risk back from UI selection to DB value if needed, or assume exact match
-      // The DB values are Alto, Medio, Bajo. The UI options are Crítico, Moderado, Bajo
-      const riskMapping = {
-        Crítico: 'Alto',
-        Moderado: 'Medio',
-        Bajo: 'Bajo',
-      };
-      if (riskMapping[risk]) {
-        where.risk_level = riskMapping[risk];
-      }
-    }
-
-    const { count, rows } = await Plague.findAndCountAll({
-      where: where,
-      include: [
-        {
-          model: PlagueImage,
-          as: 'images',
-          required: false,
-          separate: true,
-          order: [['sort_order', 'ASC']],
-        },
-      ],
-      order: [['createdAt', 'DESC']],
-      limit,
-      offset: offset,
-      distinct: true,
-    });
-
-    const plagues = rows.map((p) => {
-      const risk = riskMap[p.risk_level] || defaultRisk;
-      const firstImage = p.images?.[0];
-      const imgUrl =
-        p.image_url || firstImage?.url || '/images/test/default.png';
-
-      return {
-        id: p.id,
-        name: p.name,
-        scientificName: p.scientific_name,
-        category: p.category,
-        description: p.description,
-
-        image_url: imgUrl,
-        imageUrl: imgUrl,
-
-        riskLabel: risk.label,
-        riskBadgeClass: risk.badgeClass,
-      };
-    });
-    res.json({
-      plagues,
-      totalCount: count,
-      totalPages: Math.ceil(count / limit),
-      currentPage: parseInt(page),
+    const result = await findPublishedPlagues(req.query);
+    return res.json({
+      plagues: result.plagues,
+      totalCount: result.totalCount,
+      totalPages: result.totalPages,
+      currentPage: result.currentPage,
     });
   } catch (error) {
     console.error('Error en getPlaguesData:', error);
@@ -162,29 +146,7 @@ export const getPlaguesData = async (req, res) => {
 // ── GET /plagues ───────────────────────────────────────────────────────────
 export const renderPlaguesPublic = async (req, res) => {
   try {
-    const limit = 8;
-
-    const { count, rows } = await Plague.findAndCountAll({
-      where: {
-        status: true,
-        workflow_status: PLAGUE_WORKFLOW_STATUSES.PUBLISHED,
-      },
-
-      include: [
-        {
-          model: PlagueImage,
-          as: 'images',
-          required: false,
-          separate: true,
-          order: [['sort_order', 'ASC']],
-        },
-      ],
-
-      order: [['createdAt', 'DESC']],
-      limit,
-      offset: 0,
-      distinct: true,
-    });
+    const result = await findPublishedPlagues(req.query);
 
     const regionsDB = await Region.findAll({
       attributes: ['name'],
@@ -193,37 +155,20 @@ export const renderPlaguesPublic = async (req, res) => {
 
     const regionNames = regionsDB.map((r) => r.name);
 
-    const plagues = rows.map((p) => {
-      const risk = riskMap[p.risk_level] || defaultRisk;
-      const firstImage = p.images?.[0];
-      const imgUrl =
-        p.image_url || firstImage?.url || '/images/test/default.png';
-
-      return {
-        id: p.id,
-        name: p.name,
-        scientificName: p.scientific_name,
-        category: p.category,
-        description: p.description,
-
-        image_url: imgUrl,
-        imageUrl: imgUrl,
-
-        riskLabel: risk.label,
-        riskBadgeClass: risk.badgeClass,
-      };
-    });
-
-    const totalPages = Math.ceil(count / limit);
-
     res.render('public/plagues', {
       pageTitle: 'Plagas',
       activePage: 'plagues',
-      plagues,
+      plagues: result.plagues,
       regions: regionNames,
-      totalCount: count,
-      totalPages,
-      currentPage: 1,
+      totalCount: result.totalCount,
+      totalPages: result.totalPages,
+      currentPage: result.currentPage,
+      hasMultiplePages: result.totalPages > 1,
+      hasPrevPage: result.currentPage > 1,
+      hasNextPage: result.currentPage < result.totalPages,
+      prevUrl: buildPublicPlaguePageUrl(result.currentPage - 1, result.query),
+      nextUrl: buildPublicPlaguePageUrl(result.currentPage + 1, result.query),
+      filters: result.query,
       extraScripts: '<script src="/js/public/plagues.js"></script>',
     });
   } catch (error) {

@@ -23,6 +23,7 @@ const mockDb = {
   PlagueImage: {
     bulkCreate: jest.fn(),
     count: jest.fn(async () => 2),
+    findAll: jest.fn(async () => []),
     create: jest.fn(),
     destroy: jest.fn(),
   },
@@ -53,8 +54,16 @@ const validBody = {
 };
 
 const uploadedFiles = [
-  { filename: 'primera.png', originalname: 'primera.png' },
-  { filename: 'segunda.webp', originalname: 'segunda.webp' },
+  {
+    filename: 'primera.png',
+    originalname: 'primera.png',
+    path: 'public/images/plagues/primera.png',
+  },
+  {
+    filename: 'segunda.webp',
+    originalname: 'segunda.webp',
+    path: 'public/images/plagues/segunda.webp',
+  },
 ];
 
 describe('controlador de imágenes múltiples de plagas', () => {
@@ -65,6 +74,10 @@ describe('controlador de imágenes múltiples de plagas', () => {
     mockDb.Plague.create.mockResolvedValue(plague);
     mockDb.Plague.findByPk.mockResolvedValue(plague);
     mockDb.PlagueImage.count.mockResolvedValue(2);
+    mockDb.PlagueImage.findAll.mockResolvedValue([
+      { id: 7, url: 'images/plagues/guardada-1.png', sort_order: 0 },
+      { id: 8, url: 'images/plagues/guardada-2.png', sort_order: 1 },
+    ]);
   });
 
   it('guarda todas las imágenes al crear la ficha', async () => {
@@ -106,9 +119,10 @@ describe('controlador de imágenes múltiples de plagas', () => {
 
     await updatePlague(req, res);
 
-    expect(mockDb.PlagueImage.count).toHaveBeenCalledWith({
+    expect(mockDb.PlagueImage.findAll).toHaveBeenCalledWith({
       where: { plague_id: 41 },
       transaction,
+      order: [['sort_order', 'ASC']],
     });
     expect(mockDb.PlagueImage.destroy).not.toHaveBeenCalled();
     expect(mockDb.PlagueImage.bulkCreate).toHaveBeenCalledWith(
@@ -127,6 +141,102 @@ describe('controlador de imágenes múltiples de plagas', () => {
       { transaction },
     );
     expect(transaction.commit).toHaveBeenCalledTimes(1);
+  });
+
+  it('rechaza en servidor más de 10 imágenes al crear aunque se omita el cliente', async () => {
+    const req = {
+      body: validBody,
+      files: Array.from({ length: 11 }, (_, index) => ({
+        filename: `imagen-${index}.png`,
+        originalname: `imagen-${index}.png`,
+      })),
+      user: { id: 12, role: 'inifap' },
+    };
+    const res = buildResponse();
+
+    await createPlague(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.send).toHaveBeenCalledWith(
+      'La galería puede contener como máximo 10 imágenes.',
+    );
+    expect(mockDb.Plague.create).not.toHaveBeenCalled();
+  });
+
+  it('rechaza si las imágenes conservadas y nuevas exceden 10', async () => {
+    mockDb.PlagueImage.findAll.mockResolvedValue(
+      Array.from({ length: 9 }, (_, index) => ({
+        id: index + 1,
+        url: `images/plagues/guardada-${index}.png`,
+        sort_order: index,
+      })),
+    );
+    const req = {
+      params: { id: '41' },
+      body: validBody,
+      files: uploadedFiles,
+      user: { id: 12, role: 'inifap' },
+    };
+    const res = buildResponse();
+
+    await updatePlague(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.send).toHaveBeenCalledWith(
+      'La galería puede contener como máximo 10 imágenes.',
+    );
+    expect(plague.update).not.toHaveBeenCalled();
+    expect(mockDb.PlagueImage.bulkCreate).not.toHaveBeenCalled();
+  });
+
+  it('permite quitar imágenes propias y usa el total restante para el límite', async () => {
+    mockDb.PlagueImage.findAll.mockResolvedValue(
+      Array.from({ length: 10 }, (_, index) => ({
+        id: index + 1,
+        url: `images/plagues/guardada-${index}.png`,
+        sort_order: index,
+      })),
+    );
+    const req = {
+      params: { id: '41' },
+      body: { ...validBody, removed_image_ids: ['1', '2'] },
+      files: uploadedFiles,
+      user: { id: 12, role: 'inifap' },
+    };
+    const res = buildResponse();
+
+    await updatePlague(req, res);
+
+    expect(mockDb.PlagueImage.destroy).toHaveBeenCalledWith({
+      where: { id: [1, 2], plague_id: 41 },
+      transaction,
+    });
+    expect(mockDb.PlagueImage.bulkCreate).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        expect.objectContaining({ sort_order: 10 }),
+        expect.objectContaining({ sort_order: 11 }),
+      ]),
+      { transaction },
+    );
+    expect(transaction.commit).toHaveBeenCalledTimes(1);
+  });
+
+  it('rechaza eliminar una imagen que no pertenece a la plaga', async () => {
+    const req = {
+      params: { id: '41' },
+      body: { ...validBody, removed_image_ids: '999' },
+      files: [],
+      user: { id: 12, role: 'inifap' },
+    };
+    const res = buildResponse();
+
+    await updatePlague(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.send).toHaveBeenCalledWith(
+      'La selección de imágenes que deseas quitar no es válida.',
+    );
+    expect(mockDb.PlagueImage.destroy).not.toHaveBeenCalled();
   });
 
   it('impide que otro INIFAP edite el expediente del autor', async () => {

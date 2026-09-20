@@ -107,4 +107,51 @@ describe('seguridad de imágenes de plagas', () => {
       uploadedPaths.forEach((filePath) => fs.rmSync(filePath, { force: true }));
     }
   });
+
+  it('rechaza una petición manipulada con más de 10 archivos', async () => {
+    const app = express();
+    app.post('/plagues', uploadPlagueImages, (_req, res) => {
+      res.sendStatus(204);
+    });
+
+    let testRequest = request(app).post('/plagues');
+    for (let index = 0; index < 11; index += 1) {
+      testRequest = testRequest.attach('images', pngImage, {
+        filename: `plaga-${index}.png`,
+        contentType: 'image/png',
+      });
+    }
+
+    const response = await testRequest;
+
+    expect(response.status).toBe(400);
+    expect(response.text).toMatch(/máximo 10 imágenes/i);
+    expect(response.text).not.toMatch(
+      /[A-Z]:\\|node_modules|public[\\/]images/i,
+    );
+  });
+
+  it('rechaza una imagen que supera 5 MB con un mensaje seguro', async () => {
+    const app = express();
+    app.post('/plagues', uploadPlagueImages, (_req, res) => {
+      res.sendStatus(204);
+    });
+    const oversizedPng = Buffer.concat([
+      pngImage,
+      Buffer.alloc(IMAGE_UPLOAD_LIMITS.fileSize),
+    ]);
+
+    const response = await request(app)
+      .post('/plagues')
+      .attach('images', oversizedPng, {
+        filename: 'demasiado-grande.png',
+        contentType: 'image/png',
+      });
+
+    expect(response.status).toBe(400);
+    expect(response.text).toBe('Cada imagen puede pesar como máximo 5 MB.');
+    expect(response.text).not.toMatch(
+      /[A-Z]:\\|node_modules|public[\\/]images/i,
+    );
+  });
 });

@@ -14,6 +14,14 @@ import {
   normalizePrivatePlagueListQuery,
 } from '../../services/plagueListService.js';
 import {
+  MAX_PLAGUE_IMAGES,
+  buildPlagueImageRecords,
+  buildPlagueImageUpdatePlan,
+  cleanupStoredPlagueImages,
+  cleanupUploadedPlagueFiles,
+  parseRemovedPlagueImageIds,
+} from '../../services/plagueImageService.js';
+import {
   buildPlagueRelationEditor,
   validatePlagueRelationsInput,
 } from '../../services/plagueRelationService.js';
@@ -181,6 +189,7 @@ export const plaguesPrivate = async (req, res) => {
 
       const images = Array.isArray(data.images) ? data.images : [];
       const normalizedImages = images.map((image) => ({
+        id: image.id,
         url: `/${String(image.url).replace(/^\/+/, '')}`,
         ...(image.caption ? { caption: image.caption } : {}),
         ...(image.source ? { source: image.source } : {}),
@@ -364,6 +373,15 @@ export const plaguesPrivate = async (req, res) => {
 // CREAR PLAGA
 
 export const createPlague = async (req, res) => {
+  const files = Array.isArray(req.files) ? req.files : [];
+
+  if (files.length > MAX_PLAGUE_IMAGES) {
+    await cleanupUploadedPlagueFiles(files);
+    return res
+      .status(400)
+      .send('La galería puede contener como máximo 10 imágenes.');
+  }
+
   const transaction = await db.sequelize.transaction();
 
   try {
@@ -371,6 +389,7 @@ export const createPlague = async (req, res) => {
 
     if (!validation.isValid) {
       await transaction.rollback();
+      await cleanupUploadedPlagueFiles(files);
       return res.status(400).send(validation.errors.join(' '));
     }
 
@@ -399,13 +418,9 @@ export const createPlague = async (req, res) => {
     // GUARDAR IMÁGENES EN PlagueImages
     // ========================================================
 
-    if (Array.isArray(req.files) && req.files.length > 0) {
+    if (files.length > 0) {
       await PlagueImage.bulkCreate(
-        req.files.map((file, index) => ({
-          plague_id: plague.id,
-          url: `images/plagues/${file.filename}`,
-          sort_order: index,
-        })),
+        buildPlagueImageRecords({ plagueId: plague.id, files }),
         { transaction },
       );
     }
@@ -435,6 +450,7 @@ export const createPlague = async (req, res) => {
     // ========================================================
 
     await transaction.rollback();
+    await cleanupUploadedPlagueFiles(files);
 
     console.error('❌ ERROR AL CREAR LA PLAGA:', error);
 
@@ -445,7 +461,20 @@ export const createPlague = async (req, res) => {
 // ACTUALIZAR PLAGA
 
 export const updatePlague = async (req, res) => {
+  const files = Array.isArray(req.files) ? req.files : [];
+  const removedImageIds = parseRemovedPlagueImageIds(
+    req.body?.removed_image_ids,
+  );
+
+  if (removedImageIds === null) {
+    await cleanupUploadedPlagueFiles(files);
+    return res
+      .status(400)
+      .send('La selección de imágenes que deseas quitar no es válida.');
+  }
+
   const transaction = await db.sequelize.transaction();
+  let removedImages;
 
   try {
     const { id } = req.params;
@@ -454,6 +483,7 @@ export const updatePlague = async (req, res) => {
 
     if (!/^\d+$/.test(id)) {
       await transaction.rollback();
+      await cleanupUploadedPlagueFiles(files);
 
       return res.status(400).send('ID de plaga no válido');
     }
@@ -464,6 +494,7 @@ export const updatePlague = async (req, res) => {
 
     if (!plague) {
       await transaction.rollback();
+      await cleanupUploadedPlagueFiles(files);
 
       return res.status(404).send('Plaga no encontrada');
     }
@@ -476,6 +507,7 @@ export const updatePlague = async (req, res) => {
 
     if (!recordPermissions.canEdit) {
       await transaction.rollback();
+      await cleanupUploadedPlagueFiles(files);
       return res
         .status(403)
         .send('Sólo el autor o un administrador puede editar esta plaga.');
@@ -483,6 +515,7 @@ export const updatePlague = async (req, res) => {
 
     if (!isPlagueEditable(plague.workflow_status)) {
       await transaction.rollback();
+      await cleanupUploadedPlagueFiles(files);
       return res
         .status(409)
         .send('La plaga debe estar en borrador para poder editarse.');
@@ -494,8 +527,28 @@ export const updatePlague = async (req, res) => {
 
     if (!validation.isValid) {
       await transaction.rollback();
+      await cleanupUploadedPlagueFiles(files);
       return res.status(400).send(validation.errors.join(' '));
     }
+
+    const existingImages = await PlagueImage.findAll({
+      where: { plague_id: plague.id },
+      transaction,
+      ...(transaction.LOCK?.UPDATE ? { lock: transaction.LOCK.UPDATE } : {}),
+      order: [['sort_order', 'ASC']],
+    });
+    const imageUpdatePlan = buildPlagueImageUpdatePlan({
+      existingImages,
+      removedImageIds,
+      newFileCount: files.length,
+    });
+
+    if (imageUpdatePlan.error) {
+      await transaction.rollback();
+      await cleanupUploadedPlagueFiles(files);
+      return res.status(400).send(imageUpdatePlan.error);
+    }
+    removedImages = imageUpdatePlan.removedImages;
 
     // ========================================================
     // ACTUALIZAR DATOS DE LA PLAGA
@@ -516,18 +569,20 @@ export const updatePlague = async (req, res) => {
     // SI SE SUBIERON NUEVAS IMÁGENES, SE AGREGAN A LA GALERÍA
     // ========================================================
 
-    if (Array.isArray(req.files) && req.files.length > 0) {
-      const existingImageCount = await PlagueImage.count({
-        where: { plague_id: plague.id },
+    if (removedImageIds.length > 0) {
+      await PlagueImage.destroy({
+        where: { id: removedImageIds, plague_id: plague.id },
         transaction,
       });
+    }
 
+    if (files.length > 0) {
       await PlagueImage.bulkCreate(
-        req.files.map((file, index) => ({
-          plague_id: plague.id,
-          url: `images/plagues/${file.filename}`,
-          sort_order: existingImageCount + index,
-        })),
+        buildPlagueImageRecords({
+          plagueId: plague.id,
+          files,
+          startOrder: imageUpdatePlan.nextImageOrder,
+        }),
         { transaction },
       );
     }
@@ -545,10 +600,12 @@ export const updatePlague = async (req, res) => {
     );
 
     await transaction.commit();
+    await cleanupStoredPlagueImages(removedImages);
 
     return res.redirect('/private/plagues');
   } catch (error) {
     await transaction.rollback();
+    await cleanupUploadedPlagueFiles(files);
 
     console.error('Error al actualizar la plaga:', error);
 

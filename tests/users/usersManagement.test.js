@@ -93,6 +93,27 @@ describe('👥 Módulo de Gestión de Usuarios (CRUD + RBAC Admin + Perfil)', ()
     expect(res.text).toContain('Usuarios');
   });
 
+  it('2.1. El buscador Admin encuentra coincidencias parciales sin distinguir mayúsculas', async () => {
+    const adminAgent = await getAdminAgent();
+    const res = await adminAgent.get('/private/users?search=MINISTRADOR');
+
+    expect(res.status).toBe(200);
+    expect(res.text).toContain('admin@agrosystem.com');
+    expect(res.text).toContain('value="MINISTRADOR"');
+  });
+
+  it('2.2. El buscador Admin muestra un estado vacío seguro', async () => {
+    const adminAgent = await getAdminAgent();
+    const res = await adminAgent.get(
+      '/private/users?search=usuario-que-no-existe-qa',
+    );
+
+    expect(res.status).toBe(200);
+    expect(res.text).toContain('0</strong> usuario(s) encontrado(s)');
+    expect(res.text).toContain('No se encontraron usuarios');
+    expect(res.text).not.toMatch(/password_hash|\$2[aby]\$/i);
+  });
+
   it('3. El Administrador debe poder crear un nuevo usuario vía POST /private/users/create', async () => {
     const adminAgent = await getAdminAgent();
     const res = await adminAgent.post('/private/users/create').send({

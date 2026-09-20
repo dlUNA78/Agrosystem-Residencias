@@ -70,26 +70,7 @@
     <div class="mb-10 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
       <!-- Columna Izquierda: Fotografía del Cultivo -->
       <div class="col-span-1 lg:col-span-7">
-        <div class="relative overflow-hidden rounded-xl bg-muted border border-border shadow-2xs h-80 md:h-95 group">
-          {{#if crop.image_url}}
-            <img src="{{crop.image_url}}" alt="{{crop.name}}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" data-fallback-src="/images/test/default.png" />
-          {{else}}
-            {{#if crop.images.[0].image_url}}
-              <img src="{{crop.images.[0].image_url}}" alt="{{crop.name}}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" data-fallback-src="/images/test/default.png" />
-            {{else}}
-              <div class="w-full h-full bg-card flex flex-col items-center justify-center gap-2">
-                <span class="material-symbols-outlined text-6xl text-muted-foreground/40">agriculture</span>
-                <span class="text-xs font-mono text-muted-foreground">SIN FOTOGRAFÍA REGISTRADA</span>
-              </div>
-            {{/if}}
-          {{/if}}
-          <div class="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-black/20 pointer-events-none"></div>
-
-          <!-- Crédito Fotográfico Minimalista -->
-          <span class="absolute left-3 bottom-3 text-mono-label text-[10px] text-white/90 font-mono tracking-wider drop-shadow-xs select-none bg-black/40 px-2 py-1 rounded backdrop-blur-xs">
-            ACERVO FOTOGRÁFICO AGRONÓMICO · INIFAP
-          </span>
-        </div>
+        {{> shared/crops/gallery}}
       </div>
 
       <!-- Columna Derecha: Descripción y Ficha de Estado -->
@@ -470,3 +451,4 @@
   </main>
 </div>
 <script src="/js/shared/image-fallback.js"></script>
+<script type="module" src="/js/shared/crop-gallery.js"></script>

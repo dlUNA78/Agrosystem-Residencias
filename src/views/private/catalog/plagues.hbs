@@ -721,9 +721,11 @@
                     <div class="bg-muted/40 border border-input rounded-xl p-4 space-y-4">
                         <div id="plague-image-previews" class="hidden grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5" aria-live="polite"></div>
                         <div class="w-full">
+                            <input id="plague-removed-image-ids" type="hidden" name="removed_image_ids" value="">
                             <input id="plague-images" type="file" name="images" multiple accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
                                 class="block w-full text-xs text-muted-foreground file:mr-4 file:py-2 file:px-3 file:rounded-xl file:border-0 file:bg-[#e6f0e6] file:text-[#1b4332] file:font-bold file:text-xs">
-                            <p class="text-[11px] text-muted-foreground mt-1.5">Selecciona hasta 10 imágenes por vez · JPG, PNG o WEBP · máximo 5 MB cada una.</p>
+                            <p class="text-[11px] text-muted-foreground mt-1.5">La galería admite hasta 10 imágenes en total · JPG, PNG o WEBP · máximo 5 MB cada una.</p>
+                            <p id="plague-image-error" class="hidden mt-1.5 text-[11px] font-bold text-red-700" role="alert"></p>
                             <p id="plague-existing-images-note" class="hidden text-[11px] text-[#2d6a4f] mt-1">Las imágenes actuales se conservarán; la nueva selección se añadirá al final de la galería.</p>
                         </div>
                     </div>
