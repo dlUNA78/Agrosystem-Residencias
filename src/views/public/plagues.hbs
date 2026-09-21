@@ -32,7 +32,7 @@
 
       <!-- BARRA PEGAJOSA DE BUSCADOR Y FILTROS CON EFECTO DE FUSIÓN (sticky top-16) -->
       <div class="sticky top-16 z-30 -mx-6 mb-8 border-b border-border bg-background/95 px-6 py-4 backdrop-blur supports-backdrop-filter:bg-background/80 shadow-2xs">
-        <form action="/plagues" method="GET" id="form-filtros" onsubmit="return false;">
+        <form action="/plagues" method="GET" id="form-filtros">
           <div class="flex flex-col gap-3 lg:flex-row lg:items-center">
           
             <!-- Campo de Búsqueda -->
@@ -42,7 +42,7 @@
                 id="search-input"
                 name="search"
                 type="search"
-                value="{{query}}"
+                value="{{filters.search}}"
                 placeholder="Buscar por nombre común, científico, género, familia o cultivo…"
                 class="h-10 w-full border border-input bg-card pl-10 pr-4 text-sm rounded-md outline-none transition-all placeholder:text-muted-foreground focus-visible:border-[#1b4332] focus-visible:ring-2 focus-visible:ring-[#1b4332]/20"
               />
@@ -55,11 +55,11 @@
               <div class="relative lg:w-44">
                 <select id="category-filter" name="category" class="h-10 w-full appearance-none border border-input bg-card px-3 pr-8 text-sm rounded-md outline-none transition-colors focus-visible:border-[#1b4332] text-foreground font-medium cursor-pointer">
                   <option value="Categoría">Categoría · Todas</option>
-                  <option value="Insectos">Insectos</option>
-                  <option value="Hongos">Hongos</option>
-                  <option value="Bacterias">Bacterias</option>
-                  <option value="Virus">Virus</option>
-                  <option value="Ácaros">Ácaros</option>
+                  <option value="Insectos" {{#if (eq filters.category 'Insectos')}}selected{{/if}}>Insectos</option>
+                  <option value="Hongos" {{#if (eq filters.category 'Hongos')}}selected{{/if}}>Hongos</option>
+                  <option value="Bacterias" {{#if (eq filters.category 'Bacterias')}}selected{{/if}}>Bacterias</option>
+                  <option value="Virus" {{#if (eq filters.category 'Virus')}}selected{{/if}}>Virus</option>
+                  <option value="Ácaros" {{#if (eq filters.category 'Ácaros')}}selected{{/if}}>Ácaros</option>
                 </select>
                 <span class="material-symbols-outlined pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">expand_more</span>
               </div>
@@ -69,7 +69,7 @@
                 <select id="region-filter" name="region" class="h-10 w-full appearance-none border border-input bg-card px-3 pr-8 text-sm rounded-md outline-none transition-colors focus-visible:border-[#1b4332] text-foreground font-medium cursor-pointer">
                   <option value="Región">Región · Todas</option>
                   {{#each regions}}
-                    <option value="{{this}}">{{this}}</option>
+                    <option value="{{this}}" {{#if (eq ../filters.region this)}}selected{{/if}}>{{this}}</option>
                   {{/each}}
                 </select>
                 <span class="material-symbols-outlined pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">expand_more</span>
@@ -79,9 +79,9 @@
               <div class="relative lg:w-44">
                 <select id="risk-filter" name="risk" class="h-10 w-full appearance-none border border-input bg-card px-3 pr-8 text-sm rounded-md outline-none transition-colors focus-visible:border-[#1b4332] text-foreground font-medium cursor-pointer">
                   <option value="Riesgo">Riesgo · Todos</option>
-                  <option value="Crítico">Crítico</option>
-                  <option value="Moderado">Moderado</option>
-                  <option value="Bajo">Bajo</option>
+                  <option value="Crítico" {{#if (eq filters.risk 'Crítico')}}selected{{/if}}>Crítico</option>
+                  <option value="Moderado" {{#if (eq filters.risk 'Moderado')}}selected{{/if}}>Moderado</option>
+                  <option value="Bajo" {{#if (eq filters.risk 'Bajo')}}selected{{/if}}>Bajo</option>
                 </select>
                 <span class="material-symbols-outlined pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">expand_more</span>
               </div>
@@ -181,7 +181,7 @@
       <!-- Paginación Dinámica -->
       <div class="mt-12 flex justify-center" id="pagination-container" {{#if (eq totalPages 1)}}style="display:none;"{{/if}}>
         <nav class="flex items-center gap-2 bg-card border border-border p-1.5 rounded-lg shadow-2xs">
-          <button id="prev-page-btn" disabled class="w-9 h-9 flex items-center justify-center rounded-md hover:bg-secondary text-foreground disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors">
+          <button id="prev-page-btn" {{#unless hasPrevPage}}disabled{{/unless}} class="w-9 h-9 flex items-center justify-center rounded-md hover:bg-secondary text-foreground disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors">
             <span class="material-symbols-outlined text-xl">chevron_left</span>
           </button>
 

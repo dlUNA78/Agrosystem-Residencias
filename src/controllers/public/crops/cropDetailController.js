@@ -176,9 +176,11 @@ const buildPublicDetailContext = (cropRecord) => {
   const primaryImage = normalizePublicImagePath(
     primaryImageRecord?.image_url || crop.image_url,
   );
-  const carouselImages = (crop.images || []).map((image) => ({
-    image_url: normalizePublicImagePath(image.image_url),
-  }));
+  const carouselImages = (crop.images || [])
+    .map((image) => ({
+      image_url: normalizePublicImagePath(image.image_url),
+    }))
+    .filter((image) => image.image_url);
 
   return {
     primaryImage,

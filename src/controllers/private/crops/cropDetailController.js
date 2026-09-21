@@ -35,12 +35,18 @@ const parseCropId = (value) => {
 };
 
 const normalizeImages = (images = []) =>
-  images.map((image) => ({
-    ...image,
-    image_url: image.image_url
-      ? `/${String(image.image_url).replace(/^\/+/, '')}`
-      : null,
-  }));
+  images
+    .map((image) => ({
+      ...image,
+      image_url: image.image_url
+        ? `/${String(image.image_url)
+            .trim()
+            .replaceAll('\\', '/')
+            .replace(/^\/+/, '')
+            .replace(/^public\/+/, '')}`
+        : null,
+    }))
+    .filter((image) => image.image_url);
 
 const buildDetailContext = (cropRecord, user) => {
   const crop = cropRecord.toJSON();

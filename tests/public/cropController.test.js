@@ -2,7 +2,7 @@ import request from 'supertest';
 import app, { closeAppResources } from '../../app.js';
 import db from '../../src/models/index.js';
 
-const { Crop } = db;
+const { Crop, CropImage } = db;
 
 afterAll(closeAppResources);
 
@@ -68,8 +68,54 @@ describe('🧪 Suite de Pruebas Públicas - Módulo de Cultivos', () => {
       const response = await request(app).get('/api/crops?category=Cereales');
       expect(response.status).toBe(200);
       response.body.crops.forEach((c) => {
-        expect(c.category).toBe('Cereales');
+        expect(['Granos y Cereales', 'Cereales', 'Cereal']).toContain(
+          c.category,
+        );
       });
+    });
+
+    it('corrige una página fuera de rango sin perder los resultados publicados', async () => {
+      const response = await request(app).get('/api/crops?page=999999');
+
+      expect(response.status).toBe(200);
+      expect(response.body.currentPage).toBe(response.body.totalPages);
+      expect(response.body.crops.length).toBeGreaterThan(0);
+    });
+
+    it('muestra todas las imágenes normalizadas en el detalle público', async () => {
+      const crop = await Crop.create({
+        name: 'Cultivo Galería Pública QA',
+        scientific_name: 'Galeria publica',
+        category: 'Granos y Cereales',
+        status: 'aprobado',
+        workflow_status: 'published',
+      });
+      await CropImage.bulkCreate([
+        {
+          crop_id: crop.id,
+          image_url: 'public\\images\\crops\\galeria-uno.png',
+          is_primary: true,
+          display_order: 0,
+        },
+        {
+          crop_id: crop.id,
+          image_url: 'images/crops/galeria-dos.webp',
+          is_primary: false,
+          display_order: 1,
+        },
+      ]);
+
+      try {
+        const response = await request(app).get(`/crops/${crop.id}`);
+
+        expect(response.status).toBe(200);
+        expect(response.text).toContain('data-crop-gallery');
+        expect(response.text).toContain('/images/crops/galeria-uno.png');
+        expect(response.text).toContain('/images/crops/galeria-dos.webp');
+      } finally {
+        await CropImage.destroy({ where: { crop_id: crop.id } });
+        await crop.destroy();
+      }
     });
   });
 

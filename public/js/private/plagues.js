@@ -19,6 +19,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const existingImagesNote = document.getElementById(
     'plague-existing-images-note',
   );
+  const removedImageIdsInput = document.getElementById(
+    'plague-removed-image-ids',
+  );
+  const imageError = document.getElementById('plague-image-error');
   const exportButton = document.getElementById('btn-export-plagues');
   const biologicalCycleBuilder = document.getElementById(
     'biological-cycle-builder',
@@ -34,6 +38,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const maximumImageSize = 5 * 1024 * 1024;
   const allowedImageTypes = new Set(['image/jpeg', 'image/png', 'image/webp']);
   let currentExistingImages = [];
+  let selectedImageFiles = [];
+  let removedExistingImageIds = new Set();
   let previewObjectUrls = [];
 
   if (exportButton) {
@@ -119,6 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       return parsed
         .map((image) => ({
+          id: Number.isSafeInteger(Number(image?.id)) ? Number(image.id) : null,
           url: typeof image === 'string' ? image : image?.url,
           caption: typeof image === 'object' ? image?.caption : '',
         }))
@@ -128,7 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  function buildImagePreview({ url, label, isNew }) {
+  function buildImagePreview({ url, label, isNew, onRemove }) {
     const figure = document.createElement('figure');
     figure.className =
       'overflow-hidden rounded-xl border border-border/80 bg-card';
@@ -153,16 +160,43 @@ document.addEventListener('DOMContentLoaded', () => {
     status.textContent = isNew ? 'Nueva' : 'Actual';
 
     caption.append(name, status);
+    if (onRemove) {
+      const removeButton = document.createElement('button');
+      removeButton.type = 'button';
+      removeButton.className =
+        'shrink-0 rounded px-1.5 py-0.5 font-bold text-red-700 hover:bg-red-50';
+      removeButton.textContent = 'Quitar';
+      removeButton.setAttribute('aria-label', `Quitar ${label}`);
+      removeButton.addEventListener('click', onRemove);
+      caption.append(removeButton);
+    }
     figure.append(image, caption);
 
     return figure;
   }
 
-  function renderImagePreviews(existingImages = [], newFiles = []) {
+  function setImageError(message = '') {
+    if (!imageError) return;
+    imageError.textContent = message;
+    imageError.classList.toggle('hidden', !message);
+  }
+
+  function syncImageInput() {
+    if (!imageInput || typeof DataTransfer === 'undefined') return;
+    const transfer = new DataTransfer();
+    selectedImageFiles.forEach((file) => transfer.items.add(file));
+    imageInput.files = transfer.files;
+  }
+
+  function renderImagePreviews() {
     if (!imagePreviews) return;
 
     releaseImagePreviewUrls();
     imagePreviews.replaceChildren();
+
+    const existingImages = currentExistingImages.filter(
+      (image) => !removedExistingImageIds.has(image.id),
+    );
 
     existingImages.forEach((image, index) => {
       imagePreviews.append(
@@ -170,11 +204,22 @@ document.addEventListener('DOMContentLoaded', () => {
           url: image.url,
           label: image.caption || `Imagen ${index + 1}`,
           isNew: false,
+          onRemove:
+            image.id === null
+              ? null
+              : () => {
+                  removedExistingImageIds.add(image.id);
+                  removedImageIdsInput.value = [
+                    ...removedExistingImageIds,
+                  ].join(',');
+                  setImageError();
+                  renderImagePreviews();
+                },
         }),
       );
     });
 
-    newFiles.forEach((file) => {
+    selectedImageFiles.forEach((file, index) => {
       const objectUrl = URL.createObjectURL(file);
       previewObjectUrls.push(objectUrl);
       imagePreviews.append(
@@ -182,11 +227,18 @@ document.addEventListener('DOMContentLoaded', () => {
           url: objectUrl,
           label: file.name,
           isNew: true,
+          onRemove: () => {
+            selectedImageFiles.splice(index, 1);
+            syncImageInput();
+            setImageError();
+            renderImagePreviews();
+          },
         }),
       );
     });
 
-    const hasImages = existingImages.length > 0 || newFiles.length > 0;
+    const hasImages =
+      existingImages.length > 0 || selectedImageFiles.length > 0;
     imagePreviews.classList.toggle('hidden', !hasImages);
     imagePreviews.classList.toggle('grid', hasImages);
     existingImagesNote?.classList.toggle('hidden', existingImages.length === 0);
@@ -194,6 +246,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function resetImagePreviews() {
     currentExistingImages = [];
+    selectedImageFiles = [];
+    removedExistingImageIds = new Set();
+    if (removedImageIdsInput) removedImageIdsInput.value = '';
+    setImageError();
+    syncImageInput();
+    renderImagePreviews();
+  }
+
+  function loadExistingImagePreviews(data) {
+    currentExistingImages = normalizeExistingImages(data.images, data.imageUrl);
+    selectedImageFiles = [];
+    removedExistingImageIds = new Set();
+    if (removedImageIdsInput) removedImageIdsInput.value = '';
+    setImageError();
     renderImagePreviews();
   }
 
@@ -442,8 +508,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // MOSTRAR GALERÍA ACTUAL
-    currentExistingImages = normalizeExistingImages(data.images, data.imageUrl);
-    renderImagePreviews(currentExistingImages);
+    loadExistingImagePreviews(data);
 
     // LIMPIAR INPUT DE ARCHIVO
 
@@ -520,35 +585,67 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (imageInput) {
     imageInput.addEventListener('change', function () {
-      const files = Array.from(this.files || []);
+      const additions = Array.from(this.files || []);
 
-      if (files.length === 0) {
-        renderImagePreviews(currentExistingImages);
+      if (additions.length === 0) {
+        syncImageInput();
+        renderImagePreviews();
         return;
       }
 
-      if (files.length > maximumImagesPerSelection) {
-        alert(`Selecciona como máximo ${maximumImagesPerSelection} imágenes.`);
-        this.value = '';
-        renderImagePreviews(currentExistingImages);
+      if (additions.some((file) => !allowedImageTypes.has(file.type))) {
+        setImageError('Todas las imágenes deben ser JPG, PNG o WEBP.');
+        syncImageInput();
+        renderImagePreviews();
         return;
       }
 
-      if (files.some((file) => !allowedImageTypes.has(file.type))) {
-        alert('Todas las imágenes deben ser JPG, PNG o WEBP.');
-        this.value = '';
-        renderImagePreviews(currentExistingImages);
+      if (additions.some((file) => file.size > maximumImageSize)) {
+        setImageError('Cada imagen puede pesar como máximo 5 MB.');
+        syncImageInput();
+        renderImagePreviews();
         return;
       }
 
-      if (files.some((file) => file.size > maximumImageSize)) {
-        alert('Cada imagen puede pesar como máximo 5 MB.');
-        this.value = '';
-        renderImagePreviews(currentExistingImages);
+      const activeExistingCount = currentExistingImages.filter(
+        (image) => !removedExistingImageIds.has(image.id),
+      ).length;
+      const knownFiles = new Set(
+        selectedImageFiles.map(
+          (file) => `${file.name}:${file.size}:${file.lastModified}`,
+        ),
+      );
+      const uniqueAdditions = additions.filter((file) => {
+        const key = `${file.name}:${file.size}:${file.lastModified}`;
+        if (knownFiles.has(key)) return false;
+        knownFiles.add(key);
+        return true;
+      });
+
+      if (
+        activeExistingCount +
+          selectedImageFiles.length +
+          uniqueAdditions.length >
+        maximumImagesPerSelection
+      ) {
+        const available = Math.max(
+          0,
+          maximumImagesPerSelection -
+            activeExistingCount -
+            selectedImageFiles.length,
+        );
+        setImageError(
+          `La galería admite 10 imágenes en total. Puedes agregar ${available} más.`,
+        );
+        syncImageInput();
+        renderImagePreviews();
         return;
       }
 
-      renderImagePreviews(currentExistingImages, files);
+      selectedImageFiles.push(...uniqueAdditions);
+      setImageError();
+      syncImageInput();
+      renderImagePreviews();
     });
   }
 

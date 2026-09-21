@@ -1,0 +1,42 @@
+<div data-crop-gallery class="space-y-3">
+  <div class="group relative h-80 overflow-hidden rounded-xl border border-border bg-muted shadow-2xs md:h-95">
+    {{#if crop.image_url}}
+      <img
+        data-crop-gallery-main
+        src="{{crop.image_url}}"
+        alt="{{crop.name}}"
+        data-fallback="/images/test/default.png"
+        class="h-full w-full object-cover transition-opacity duration-200"
+      >
+      <div class="pointer-events-none absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-black/20"></div>
+      <span class="absolute bottom-3 left-3 rounded bg-black/40 px-2 py-1 font-mono text-[10px] tracking-wider text-white/90 backdrop-blur-xs">
+        ACERVO FOTOGRÁFICO AGRONÓMICO · INIFAP
+      </span>
+
+      {{#if (gt crop.images.length 1)}}
+        <button type="button" data-crop-gallery-prev class="absolute left-3 top-1/2 flex size-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/50 bg-black/50 text-white shadow-md backdrop-blur transition hover:bg-black/70" aria-label="Imagen anterior">
+          <span class="material-symbols-outlined">chevron_left</span>
+        </button>
+        <button type="button" data-crop-gallery-next class="absolute right-3 top-1/2 flex size-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/50 bg-black/50 text-white shadow-md backdrop-blur transition hover:bg-black/70" aria-label="Imagen siguiente">
+          <span class="material-symbols-outlined">chevron_right</span>
+        </button>
+        <span data-crop-gallery-counter class="absolute bottom-3 right-3 rounded-full bg-black/60 px-3 py-1 font-mono text-[10px] font-bold text-white">1 / {{crop.images.length}}</span>
+      {{/if}}
+    {{else}}
+      <div class="flex h-full w-full flex-col items-center justify-center gap-2 bg-card">
+        <span class="material-symbols-outlined text-6xl text-muted-foreground/40">agriculture</span>
+        <span class="font-mono text-xs text-muted-foreground">SIN FOTOGRAFÍA REGISTRADA</span>
+      </div>
+    {{/if}}
+  </div>
+
+  {{#if (gt crop.images.length 1)}}
+    <div class="grid grid-cols-4 gap-2" aria-label="Imágenes del cultivo">
+      {{#each crop.images}}
+        <button type="button" data-crop-gallery-item data-index="{{@index}}" data-src="{{image_url}}" class="overflow-hidden rounded-lg border-2 border-transparent bg-card p-1 transition hover:border-primary/50" aria-label="Mostrar imagen {{add @index 1}}">
+          <img src="{{image_url}}" alt="Miniatura {{add @index 1}} de {{../crop.name}}" data-fallback-src="/images/test/default.png" class="h-16 w-full rounded-md object-cover" loading="lazy">
+        </button>
+      {{/each}}
+    </div>
+  {{/if}}
+</div>

@@ -3,6 +3,56 @@ import { CROP_WORKFLOW_STATUSES } from './cropWorkflowService.js';
 export const DEFAULT_PUBLIC_CROP_PAGE_SIZE = 8;
 export const MAX_PUBLIC_CROP_PAGE_SIZE = 24;
 
+export const PUBLIC_CROP_CATEGORIES = Object.freeze([
+  'Granos y Cereales',
+  'Frutales',
+  'Hortalizas',
+  'Leguminosas',
+  'Oleaginosas',
+  'Tubérculos',
+  'Forrajeras',
+  'Ornamentales',
+  'Industriales',
+  'Otro',
+]);
+
+const categoryAliases = new Map([
+  ['cereal', 'Granos y Cereales'],
+  ['cereales', 'Granos y Cereales'],
+  ['granos y cereales', 'Granos y Cereales'],
+  ['frutal', 'Frutales'],
+  ['frutales', 'Frutales'],
+  ['hortaliza', 'Hortalizas'],
+  ['hortalizas', 'Hortalizas'],
+  ['leguminosa', 'Leguminosas'],
+  ['leguminosas', 'Leguminosas'],
+  ['oleaginosa', 'Oleaginosas'],
+  ['oleaginosas', 'Oleaginosas'],
+  ['tuberculo', 'Tubérculos'],
+  ['tubérculo', 'Tubérculos'],
+  ['tubérculos', 'Tubérculos'],
+  ['forrajera', 'Forrajeras'],
+  ['forrajeras', 'Forrajeras'],
+  ['ornamental', 'Ornamentales'],
+  ['ornamentales', 'Ornamentales'],
+  ['industrial', 'Industriales'],
+  ['industriales', 'Industriales'],
+  ['otro', 'Otro'],
+]);
+
+const categoryVariants = new Map([
+  ['Granos y Cereales', ['Granos y Cereales', 'Cereales', 'Cereal']],
+  ['Frutales', ['Frutales', 'Frutal']],
+  ['Hortalizas', ['Hortalizas', 'Hortaliza']],
+  ['Leguminosas', ['Leguminosas', 'Leguminosa']],
+  ['Oleaginosas', ['Oleaginosas', 'Oleaginosa']],
+  ['Tubérculos', ['Tubérculos', 'Tubérculo', 'Tuberculo']],
+  ['Forrajeras', ['Forrajeras', 'Forrajera']],
+  ['Ornamentales', ['Ornamentales', 'Ornamental']],
+  ['Industriales', ['Industriales', 'Industrial']],
+  ['Otro', ['Otro']],
+]);
+
 const normalizeText = (value, maxLength) =>
   String(value ?? '')
     .replaceAll('\0', '')
@@ -20,10 +70,16 @@ const normalizePositiveInteger = (value, fallback, maximum = Infinity) => {
 
 export const normalizePublicCropQuery = (query = {}) => {
   const category = normalizeText(query.category, 100);
+  const normalizedCategory = category
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .toLowerCase();
 
   return {
     search: normalizeText(query.search, 120),
-    category: ['Categoría', 'Todas'].includes(category) ? '' : category,
+    category: ['categoría', 'todas', ''].includes(category.toLowerCase())
+      ? ''
+      : categoryAliases.get(normalizedCategory) || '',
     page: normalizePositiveInteger(query.page, 1),
     limit: normalizePositiveInteger(
       query.limit,
@@ -31,6 +87,13 @@ export const normalizePublicCropQuery = (query = {}) => {
       MAX_PUBLIC_CROP_PAGE_SIZE,
     ),
   };
+};
+
+export const buildPublicCropPageUrl = (page, query = {}) => {
+  const params = new URLSearchParams({ page: String(page) });
+  if (query.search) params.set('search', query.search);
+  if (query.category) params.set('category', query.category);
+  return `/crops?${params.toString()}`;
 };
 
 export const buildPublishedCropWhere = (Op, query) => {
@@ -48,7 +111,9 @@ export const buildPublishedCropWhere = (Op, query) => {
     ];
   }
 
-  if (query.category) where.category = query.category;
+  if (query.category) {
+    where.category = { [Op.in]: categoryVariants.get(query.category) };
+  }
   return where;
 };
 
@@ -62,6 +127,7 @@ export const normalizePublicImagePath = (imagePath) => {
   if (!imagePath) return null;
   const relativePath = String(imagePath)
     .trim()
+    .replaceAll('\\', '/')
     .replace(/^\/+/, '')
     .replace(/^public\/+/, '');
   return relativePath ? `/${relativePath}` : null;
