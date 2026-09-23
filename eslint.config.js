@@ -5,7 +5,7 @@ import globals from 'globals';
 const LEGACY_COMPLEXITY = Object.freeze({
   'app.js': 23,
   'public/js/private/crops.js': 13,
-  'public/js/private/plagues.js': 27,
+  'public/js/private/plagues/plagueCycleEditor.js': 18,
   'public/js/private/product.js': 21,
   'public/js/private/suppliers.js': 24,
   'public/js/public/plagues.js': 11,

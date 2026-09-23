@@ -1,0 +1,173 @@
+<!-- ========================================================= -->
+<!-- MODAL AÑADIR / EDITAR PLAGA -->
+<!-- ========================================================= -->
+{{#if permissions.canCreate}}
+<div id="modal-plague" class="fixed inset-0 z-50 hidden items-center justify-center p-4 font-['Geist']">
+    <div id="modal-plague-backdrop" class="absolute inset-0 bg-black/40 backdrop-blur-xs"></div>
+    <div class="relative z-10 bg-card border border-border/80 rounded-2xl shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto flex flex-col">
+        
+        <form id="plague-form" action="/private/plagues/create" method="POST" enctype="multipart/form-data" class="flex flex-col flex-1">
+            
+            <!-- Header Modal -->
+            <div class="sticky top-0 z-20 bg-card/95 backdrop-blur-md border-b border-border/80 px-6 py-4 flex items-center justify-between">
+                <div>
+                    <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-[#2d6a4f]">Catálogo Fitosanitario</span>
+                    <h3 id="modal-plague-title" class="text-base font-headline font-black text-foreground">Nueva Plaga</h3>
+                </div>
+                <button type="button" id="modal-plague-close" class="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Campos Formulario -->
+            <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                
+                <div>
+                    <label class="block font-bold text-foreground mb-1.5">Nombre Común *</label>
+                    <input type="text" name="name" required placeholder="Ej. Mosca blanca"
+                        class="w-full bg-muted/40 border border-input rounded-xl px-3.5 py-2.5 text-xs text-foreground focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all">
+                </div>
+
+                <div>
+                    <label class="block font-bold text-foreground mb-1.5">Nombre Científico *</label>
+                    <input type="text" name="scientific_name" required placeholder="Ej. Bemisia tabaci"
+                        class="w-full bg-muted/40 border border-input rounded-xl px-3.5 py-2.5 text-xs italic font-serif text-foreground focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all">
+                </div>
+
+                <div>
+                    <label class="block font-bold text-foreground mb-1.5">Categoría</label>
+                    <select name="category"
+                        class="w-full bg-muted/40 border border-input rounded-xl px-3.5 py-2.5 text-xs text-foreground focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all">
+                        <option value="">Seleccione categoría...</option>
+                        <option value="Insecto">Insecto</option>
+                        <option value="Hongo">Hongo</option>
+                        <option value="Bacteria">Bacteria</option>
+                        <option value="Virus">Virus</option>
+                        <option value="Ácaro">Ácaro</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-foreground mb-1.5">Región Afectada</label>
+                    <input type="text" name="region" placeholder="Ej. Centro de México, El Bajío..."
+                        class="w-full bg-muted/40 border border-input rounded-xl px-3.5 py-2.5 text-xs text-foreground focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all">
+                </div>
+
+                <div>
+                    <label class="block font-bold text-foreground mb-1.5">Nivel de Riesgo</label>
+                    <select name="risk_level"
+                        class="w-full bg-muted/40 border border-input rounded-xl px-3.5 py-2.5 text-xs text-foreground focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all">
+                        <option value="Bajo">Bajo</option>
+                        <option value="Medio">Medio</option>
+                        <option value="Alto">Alto</option>
+                        <option value="Crítico">Crítico</option>
+                    </select>
+                </div>
+
+                <div class="md:col-span-2">
+                    <label class="block font-bold text-foreground mb-1.5">Descripción de la Plaga</label>
+                    <textarea name="description" rows="3" placeholder="Describe las características morfológicas y biológicas..."
+                        class="w-full bg-muted/40 border border-input rounded-xl px-3.5 py-2.5 text-xs text-foreground resize-none focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all"></textarea>
+                </div>
+
+                <div class="md:col-span-2">
+                    <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
+                        <div>
+                            <label class="block font-bold text-foreground">Ciclo Biológico</label>
+                            <p class="mt-0.5 text-[11px] text-muted-foreground">Organiza el ciclo en hasta 20 etapas.</p>
+                        </div>
+                        <button type="button" id="btn-add-biological-stage"
+                            class="inline-flex items-center gap-1.5 rounded-xl border border-[#1b4332]/20 bg-[#e6f0e6] px-3 py-2 text-xs font-bold text-[#1b4332] transition-colors hover:bg-[#d8ead8] cursor-pointer">
+                            <i data-lucide="plus" class="h-3.5 w-3.5"></i>
+                            Añadir etapa
+                        </button>
+                    </div>
+
+                    <div id="biological-cycle-builder" class="space-y-3" aria-live="polite"></div>
+
+                    <template id="biological-cycle-stage-template">
+                        <article data-biological-stage class="rounded-2xl border border-border/80 bg-muted/20 p-4">
+                            <div class="mb-3 flex items-center justify-between gap-3">
+                                <div class="flex items-center gap-2">
+                                    <span class="flex h-7 w-7 items-center justify-center rounded-full bg-[#1b4332] text-[11px] font-bold text-white" data-stage-number></span>
+                                    <span class="text-xs font-bold text-foreground">Etapa del ciclo</span>
+                                </div>
+                                <button type="button" class="remove-biological-stage inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-[11px] font-bold text-rose-600 transition-colors hover:bg-rose-50 cursor-pointer" aria-label="Eliminar etapa">
+                                    <i data-lucide="trash-2" class="h-3.5 w-3.5"></i>
+                                    Eliminar
+                                </button>
+                            </div>
+                            <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+                                <div>
+                                    <label class="mb-1 block text-[11px] font-bold text-foreground">Nombre de la etapa</label>
+                                    <input type="text" name="biological_cycle_title[]" maxlength="150" placeholder="Ej. Huevo, larva o adulto"
+                                        class="w-full rounded-xl border border-input bg-card px-3.5 py-2.5 text-xs text-foreground transition-all focus:border-[#1b4332] focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20">
+                                </div>
+                                <div>
+                                    <label class="mb-1 block text-[11px] font-bold text-foreground">Duración estimada</label>
+                                    <input type="text" name="biological_cycle_duration[]" maxlength="100" placeholder="Ej. 3 a 5 días"
+                                        class="w-full rounded-xl border border-input bg-card px-3.5 py-2.5 text-xs text-foreground transition-all focus:border-[#1b4332] focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20">
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label class="mb-1 block text-[11px] font-bold text-foreground">Descripción</label>
+                                    <textarea name="biological_cycle_description[]" maxlength="500" rows="2" placeholder="Describe qué ocurre durante esta etapa..."
+                                        class="w-full resize-none rounded-xl border border-input bg-card px-3.5 py-2.5 text-xs text-foreground transition-all focus:border-[#1b4332] focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20"></textarea>
+                                </div>
+                            </div>
+                        </article>
+                    </template>
+                </div>
+
+                <div class="md:col-span-2">
+                    <label class="block font-bold text-foreground mb-1.5">Síntomas en el Cultivo</label>
+                    <textarea name="symptoms" rows="2" placeholder="Describe las lesiones o síntomas observables..."
+                        class="w-full bg-muted/40 border border-input rounded-xl px-3.5 py-2.5 text-xs text-foreground resize-none focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all"></textarea>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-foreground mb-1.5">Métodos de Control Químico/Físico</label>
+                    <textarea name="control_methods" rows="3" placeholder="Recomendaciones de manejo..."
+                        class="w-full bg-muted/40 border border-input rounded-xl px-3.5 py-2.5 text-xs text-foreground resize-none focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all"></textarea>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-foreground mb-1.5">Control Biológico</label>
+                    <textarea name="biological_control" rows="3" placeholder="Organismos o parasitoides recomendados..."
+                        class="w-full bg-muted/40 border border-input rounded-xl px-3.5 py-2.5 text-xs text-foreground resize-none focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all"></textarea>
+                </div>
+
+                <div class="md:col-span-2">
+                    <label class="block font-bold text-foreground mb-1.5">Galería de imágenes</label>
+                    <div class="bg-muted/40 border border-input rounded-xl p-4 space-y-4">
+                        <div id="plague-image-previews" class="hidden grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5" aria-live="polite"></div>
+                        <div class="w-full">
+                            <input id="plague-removed-image-ids" type="hidden" name="removed_image_ids" value="">
+                            <input id="plague-images" type="file" name="images" multiple accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                                class="block w-full text-xs text-muted-foreground file:mr-4 file:py-2 file:px-3 file:rounded-xl file:border-0 file:bg-[#e6f0e6] file:text-[#1b4332] file:font-bold file:text-xs">
+                            <p class="text-[11px] text-muted-foreground mt-1.5">La galería admite hasta 10 imágenes en total · JPG, PNG o WEBP · máximo 5 MB cada una.</p>
+                            <p id="plague-image-error" class="hidden mt-1.5 text-[11px] font-bold text-red-700" role="alert"></p>
+                            <p id="plague-existing-images-note" class="hidden text-[11px] text-[#2d6a4f] mt-1">Las imágenes actuales se conservarán; la nueva selección se añadirá al final de la galería.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Footer Botones Modal -->
+            <div class="sticky bottom-0 bg-card/95 backdrop-blur-md border-t border-border/80 px-6 py-4 flex justify-end gap-2">
+                <button type="button" id="modal-plague-cancel"
+                    class="px-4 py-2 rounded-xl border border-border/80 text-xs font-bold text-muted-foreground hover:bg-muted transition-colors cursor-pointer">
+                    Cancelar
+                </button>
+                <button type="submit" id="btn-save-plague"
+                    class="px-5 py-2 rounded-xl bg-[#1b4332] text-white text-xs font-bold hover:bg-[#2d6a4f] transition-all shadow-2xs cursor-pointer inline-flex items-center gap-1.5">
+                    <i data-lucide="save" class="w-4 h-4"></i>
+                    <span id="btn-save-plague-text">Guardar Plaga</span>
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+</div>
+{{/if}}
