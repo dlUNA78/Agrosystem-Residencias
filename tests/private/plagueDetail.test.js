@@ -172,7 +172,7 @@ describe('detalle privado de plagas con datos verificables', () => {
     );
     const privateController = fs.readFileSync(
       new URL(
-        '../../src/controllers/private/plagueController.js',
+        '../../src/controllers/private/plagues/plagueDetailController.js',
         import.meta.url,
       ),
       'utf8',
