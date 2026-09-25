@@ -1,0 +1,38 @@
+<!-- ========================================================= -->
+<!-- MODAL ELIMINAR PLAGA -->
+<!-- ========================================================= -->
+{{#if permissions.canDelete}}
+<div id="modal-delete-plague" class="fixed inset-0 z-50 hidden items-center justify-center p-4 font-['Geist']">
+    <div id="modal-delete-plague-backdrop" class="absolute inset-0 bg-black/40 backdrop-blur-xs"></div>
+    <div class="relative z-10 w-full max-w-md bg-card border border-border/80 rounded-2xl shadow-xl overflow-hidden">
+        <div class="p-6 border-b border-border/60">
+            <div class="flex items-start gap-4">
+                <div class="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
+                    <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <h3 class="text-base font-bold text-foreground">¿Eliminar plaga?</h3>
+                    <p class="mt-0.5 text-xs text-muted-foreground">
+                        Esta acción removerá el registro del catálogo INIFAP permanentemente.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="p-6 text-xs text-muted-foreground">
+            ¿Confirmas la eliminación definitiva de la plaga <strong id="delete-plague-name" class="text-foreground"></strong>?
+        </div>
+        <div class="px-6 py-4 bg-muted/40 border-t border-border/60 flex justify-end gap-2">
+            <button type="button" id="btn-cancel-delete-plague"
+                class="px-4 py-2 rounded-xl border border-border/80 text-xs font-bold text-muted-foreground hover:bg-muted transition-colors cursor-pointer">
+                Cancelar
+            </button>
+            <form id="delete-plague-form" method="POST">
+                <button type="submit"
+                    class="px-4 py-2 rounded-xl bg-rose-600 text-white text-xs font-bold hover:bg-rose-700 transition-colors shadow-2xs cursor-pointer">
+                    Eliminar
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{{/if}}

@@ -30,3 +30,5 @@ coverage/
 .stryker-tmp/
 reports/
 
+# Archivos temporales locales de herramientas y revisiones
+tmp/

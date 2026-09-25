@@ -1,0 +1,167 @@
+<!-- ===================================================== -->
+        <!-- VISTA EN TABLA ADMINISTRATIVA (TABLE VIEW EN GEIST) -->
+        <!-- ===================================================== -->
+        <section id="plagues-table-view" class="hidden bg-card border border-border/80 rounded-2xl overflow-hidden shadow-2xs">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse font-['Geist']">
+                    <thead>
+                        <tr class="bg-muted/50 border-b border-border/80">
+                            <th class="px-6 py-3.5 text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground">Muestra</th>
+                            <th class="px-6 py-3.5 text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground">Plaga / Especie</th>
+                            <th class="px-6 py-3.5 text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground">Categoría</th>
+                            <th class="px-6 py-3.5 text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground text-center">Nivel Riesgo</th>
+                            <th class="px-6 py-3.5 text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground">Región</th>
+                            <th class="px-6 py-3.5 text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground">Verificación</th>
+                            <th class="px-6 py-3.5 text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground text-center">Estado</th>
+                            <th class="px-6 py-3.5 text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground text-right">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-border/60 text-xs">
+                        {{#each plagues}}
+                        <tr class="hover:bg-muted/30 transition-colors">
+                            <td class="px-6 py-4">
+                                {{#if image_url}}
+                                <img src="{{image_url}}" alt="{{name}}" class="plague-list-image w-10 h-10 rounded-xl object-cover border border-border/80">
+                                <div class="plague-image-fallback hidden w-10 h-10 rounded-xl bg-muted items-center justify-center text-muted-foreground">
+                                    <i data-lucide="bug" class="w-5 h-5"></i>
+                                </div>
+                                {{else}}
+                                <div class="w-10 h-10 rounded-xl bg-muted flex items-center justify-center text-muted-foreground">
+                                    <i data-lucide="bug" class="w-5 h-5"></i>
+                                </div>
+                                {{/if}}
+                            </td>
+                            <td class="px-6 py-4">
+                                <p class="font-bold text-foreground">{{name}}</p>
+                                {{#if scientific_name}}
+                                <p class="text-[11px] italic font-serif text-muted-foreground">{{scientific_name}}</p>
+                                {{/if}}
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="px-2 py-0.5 rounded-md bg-[#e6f0e6] text-[#1b4332] text-[10px] font-mono font-bold uppercase">
+                                    {{category}}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                {{#if risk_level}}
+                                <span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase
+                                    {{#if (eq risk_level 'Crítico')}}bg-rose-100 text-rose-800
+                                    {{else}}{{#if (eq risk_level 'Alto')}}bg-amber-100 text-amber-800
+                                    {{else}}{{#if (eq risk_level 'Medio')}}bg-yellow-100 text-yellow-800
+                                    {{else}}bg-emerald-100 text-emerald-800{{/if}}{{/if}}{{/if}}">
+                                    {{risk_level}}
+                                </span>
+                                {{else}}
+                                <span class="text-xs text-muted-foreground">-</span>
+                                {{/if}}
+                            </td>
+                            <td class="px-6 py-4 text-muted-foreground">
+                                {{#if region}}{{region}}{{else}}Sin especificar{{/if}}
+                            </td>
+                            <td class="px-6 py-4 text-muted-foreground">
+                                {{#if verified_by}}
+                                <div class="flex items-center gap-1 text-emerald-700 font-medium">
+                                    <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+                                    <span>{{verified_by}}</span>
+                                </div>
+                                {{else}}
+                                <span class="text-muted-foreground">Pendiente</span>
+                                {{/if}}
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                {{#if (eq workflow_status 'published')}}
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                                    Publicada
+                                </span>
+                                {{else if (eq workflow_status 'in_review')}}
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 text-[10px] font-bold">En revisión</span>
+                                {{else if (eq workflow_status 'verified')}}
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 text-[10px] font-bold">Verificada</span>
+                                {{else if (eq workflow_status 'changes_requested')}}
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-orange-50 text-orange-700 text-[10px] font-bold">Cambios solicitados</span>
+                                {{else if (eq workflow_status 'archived')}}
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 text-[10px] font-bold">Archivada</span>
+                                {{else}}
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 text-[10px] font-bold">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                                    Borrador
+                                </span>
+                                {{/if}}
+                            </td>
+                            <td class="px-6 py-4 text-right">
+                                <div class="flex items-center justify-end gap-1">
+                                    <a href="/private/plagues/{{id}}" class="p-1.5 rounded-lg text-muted-foreground hover:text-[#1b4332] hover:bg-muted transition-colors" title="Ver detalles">
+                                        <i data-lucide="eye" class="w-4 h-4"></i>
+                                    </a>
+                                    {{#if canEditRecord}}
+                                    <button type="button" class="btn-edit-plague p-1.5 rounded-lg text-muted-foreground hover:text-[#1b4332] hover:bg-muted transition-colors cursor-pointer"
+                                        title="Editar plaga" data-id="{{id}}" data-name="{{name}}"
+                                        data-scientific-name="{{scientific_name}}" data-category="{{category}}"
+                                        data-region="{{region}}" data-risk-level="{{risk_level}}"
+                                        data-description="{{description}}" data-symptoms="{{symptoms}}"
+                                        data-control-methods="{{control_methods}}"
+                                        data-biological-control="{{biological_control}}"
+                                        data-biological-cycle="{{biological_cycle_json}}" data-images="{{images_json}}" data-image-url="{{image_url}}">
+                                        <i data-lucide="edit-2" class="w-4 h-4"></i>
+                                    </button>
+                                    {{/if}}
+                                    {{#if ../permissions.canDelete}}
+                                    <button type="button" class="btn-delete-plague p-1.5 rounded-lg text-muted-foreground hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                                        title="Eliminar plaga" data-id="{{id}}" data-name="{{name}}">
+                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                    </button>
+                                    {{/if}}
+                                </div>
+                            </td>
+                        </tr>
+                        {{else}}
+                        <tr>
+                            <td colspan="8" class="px-6 py-12 text-center text-xs text-muted-foreground">
+                                No se encontraron registros de plagas en la base de datos.
+                            </td>
+                        </tr>
+                        {{/each}}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        {{#if pagination.hasMultiplePages}}
+        <nav aria-label="Paginación de plagas" class="flex flex-col items-center justify-between gap-4 rounded-2xl border border-border/80 bg-card px-4 py-3 shadow-2xs sm:flex-row">
+            <p class="text-xs text-muted-foreground">
+                Página <strong class="text-foreground">{{pagination.currentPage}}</strong> de
+                <strong class="text-foreground">{{pagination.totalPages}}</strong>
+            </p>
+
+            <div class="flex items-center gap-1">
+                {{#if pagination.hasPrevPage}}
+                <a href="{{pagination.prevUrl}}" aria-label="Página anterior" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border text-foreground transition-colors hover:bg-muted">
+                    <i data-lucide="chevron-left" class="h-4 w-4"></i>
+                </a>
+                {{else}}
+                <span aria-disabled="true" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border text-muted-foreground opacity-40">
+                    <i data-lucide="chevron-left" class="h-4 w-4"></i>
+                </span>
+                {{/if}}
+
+                {{#each pagination.pages}}
+                    {{#if this.isCurrent}}
+                    <span aria-current="page" class="inline-flex h-9 min-w-9 items-center justify-center rounded-lg bg-[#1b4332] px-2 text-xs font-bold text-white">{{this.number}}</span>
+                    {{else}}
+                    <a href="{{this.url}}" class="inline-flex h-9 min-w-9 items-center justify-center rounded-lg border border-border px-2 text-xs font-bold text-foreground transition-colors hover:bg-muted">{{this.number}}</a>
+                    {{/if}}
+                {{/each}}
+
+                {{#if pagination.hasNextPage}}
+                <a href="{{pagination.nextUrl}}" aria-label="Página siguiente" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border text-foreground transition-colors hover:bg-muted">
+                    <i data-lucide="chevron-right" class="h-4 w-4"></i>
+                </a>
+                {{else}}
+                <span aria-disabled="true" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border text-muted-foreground opacity-40">
+                    <i data-lucide="chevron-right" class="h-4 w-4"></i>
+                </span>
+                {{/if}}
+            </div>
+        </nav>
+        {{/if}}
