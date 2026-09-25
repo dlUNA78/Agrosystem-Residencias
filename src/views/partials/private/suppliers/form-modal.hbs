@@ -1,0 +1,623 @@
+{{!-- ═══════════════════════════════════════════════════════════
+MODAL: Añadir / Editar Proveedor
+════════════════════════════════════════════════════════════ --}}
+<div id="modal-supplier" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+
+    <div class="bg-surface-container-lowest rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+
+        <!-- Modal Header -->
+        <div
+            class="sticky top-0 z-10 bg-surface-container-lowest flex items-center justify-between px-8 py-6 border-b border-outline-variant/10">
+
+            <div class="flex items-center gap-3">
+
+                <div class="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-primary text-xl">
+                        add_business
+                    </span>
+                </div>
+
+                <div>
+                    <h2 id="supplier-modal-title" class="text-base font-extrabold text-on-surface tracking-tight">
+                        Nuevo Proveedor
+                    </h2>
+
+                    <p class="text-xs text-on-surface-variant mt-0.5">
+                        Registra la información completa del proveedor
+                    </p>
+                </div>
+
+            </div>
+
+            <button id="btn-close-modal-supplier" type="button"
+                class="p-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-colors">
+
+                <span class="material-symbols-outlined">
+                    close
+                </span>
+
+            </button>
+
+        </div>
+
+
+        <!-- Modal Body -->
+        <form id="form-supplier" action="/private/suppliers/create" method="POST" class="px-8 py-6 space-y-8">
+
+            <!-- DATOS DE LA EMPRESA -->
+            <!-- ================================================= -->
+
+            <section>
+
+                <div class="flex items-center gap-2 mb-4">
+
+                    <span class="material-symbols-outlined text-primary">
+                        business
+                    </span>
+
+                    <h3 class="text-sm font-extrabold text-on-surface">
+                        Datos de la empresa
+                    </h3>
+
+                </div>
+
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                    <!-- Nombre de la empresa -->
+                    <div class="md:col-span-2">
+
+                        <label
+                            class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">
+
+                            Nombre de la empresa
+
+                        </label>
+
+                        <input type="text" id="supplier-name" name="name" placeholder="Razón social de la empresa"
+                            required
+                            class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+
+                    </div>
+
+
+                    <!-- Nombre comercial -->
+                    <div>
+
+                        <label
+                            class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">
+
+                            Nombre comercial
+
+                        </label>
+
+                        <input type="text" id="supplier-commercial-name" name="commercial_name"
+                            placeholder="Nombre con el que se conoce comercialmente"
+                            class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+
+                    </div>
+
+
+                    <!-- RFC -->
+                    <div>
+
+                        <label
+                            class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">
+
+                            RFC
+
+                        </label>
+
+                        <input type="text" id="supplier-rfc" name="rfc" placeholder="ABC123456XYZ" maxlength="13"
+                            required
+                            class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+
+                    </div>
+
+
+                    <!-- Tipo de suministro -->
+                    <div class="md:col-span-2">
+
+                        <label
+                            class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">
+
+                            Tipo de suministro
+
+                        </label>
+
+                        <select id="supplier-supply-type" name="supply_type" required
+                            class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+
+                            <option value="">
+                                Seleccionar tipo de suministro...
+                            </option>
+
+                            <option value="agroquimicos">
+                                Agroquímicos
+                            </option>
+
+                            <option value="semillas">
+                                Semillas
+                            </option>
+
+                            <option value="equipo">
+                                Equipo agrícola
+                            </option>
+
+                            <option value="fertilizantes">
+                                Fertilizantes
+                            </option>
+
+                            <option value="herramientas">
+                                Herramientas
+                            </option>
+
+                            <option value="servicios">
+                                Servicios
+                            </option>
+
+                            <option value="otros">
+                                Otros
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- ================================================= -->
+            <!-- 👤 DATOS DE CONTACTO -->
+            <!-- ================================================= -->
+
+            <section>
+
+                <div class="flex items-center gap-2 mb-4">
+
+                    <span class="material-symbols-outlined text-primary">
+                        contact_phone
+                    </span>
+
+                    <h3 class="text-sm font-extrabold text-on-surface">
+                        Datos de contacto
+                    </h3>
+
+                </div>
+
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                    <!-- Nombre del contacto -->
+                    <div>
+
+                        <label
+                            class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">
+
+                            Nombre del contacto
+
+                        </label>
+
+                        <input type="text" id="supplier-contact-name" name="contact_name" placeholder="Nombre completo"
+                            required
+                            class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+
+                    </div>
+
+
+                    <!-- Puesto del contacto -->
+                    <div>
+
+                        <label
+                            class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">
+
+                            Puesto del contacto
+
+                        </label>
+
+                        <input type="text" id="supplier-contact-position" name="contact_position"
+                            placeholder="Ej. Gerente de ventas"
+                            class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+
+                    </div>
+
+
+                    <!-- Correo -->
+                    <div>
+
+                        <label
+                            class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">
+
+                            Correo electrónico
+
+                        </label>
+
+                        <input type="email" id="supplier-email" name="email" placeholder="contacto@empresa.com" required
+                            class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+
+                    </div>
+
+
+                    <!-- Correo alternativo -->
+                    <div>
+
+                        <label
+                            class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">
+
+                            Correo alternativo
+
+                        </label>
+
+                        <input type="email" id="supplier-alternative-email" name="alternative_email"
+                            placeholder="ventas@empresa.com"
+                            class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+
+                    </div>
+
+
+                    <!-- Teléfono -->
+                    <div>
+
+                        <label
+                            class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">
+
+                            Teléfono
+
+                        </label>
+
+                        <input type="tel" id="supplier-phone" name="phone" placeholder="Número principal" required
+                            class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+
+                    </div>
+
+
+                    <!-- Teléfono alternativo -->
+                    <div>
+
+                        <label
+                            class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">
+
+                            Teléfono alternativo
+
+                        </label>
+
+                        <input type="tel" id="supplier-alternative-phone" name="alternative_phone"
+                            placeholder="Número alternativo"
+                            class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- ================================================= -->
+            <!-- 📍 UBICACIÓN -->
+            <!-- ================================================= -->
+
+            <section>
+
+                <div class="flex items-center gap-2 mb-4">
+
+                    <span class="material-symbols-outlined text-primary">
+                        location_on
+                    </span>
+
+                    <h3 class="text-sm font-extrabold text-on-surface">
+                        Ubicación
+                    </h3>
+
+                </div>
+
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                    <!-- Dirección -->
+                    <div class="md:col-span-2">
+
+                        <label
+                            class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">
+
+                            Dirección
+
+                        </label>
+
+                        <input type="text" id="supplier-address" name="address" placeholder="Calle, número y colonia"
+                            required
+                            class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+
+                    </div>
+
+
+                    <!-- Ciudad -->
+                    <div>
+
+                        <label
+                            class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">
+
+                            Ciudad
+
+                        </label>
+
+                        <input type="text" id="supplier-city" name="city" placeholder="Ciudad" required
+                            class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+
+                    </div>
+
+
+                    <!-- Estado -->
+                    <div>
+
+                        <label
+                            class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">
+
+                            Estado
+
+                        </label>
+
+                        <input type="text" id="supplier-state" name="state" placeholder="Estado" required
+                            class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+
+                    </div>
+
+
+                    <!-- Código postal -->
+                    <div>
+
+                        <label
+                            class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">
+
+                            Código postal
+
+                        </label>
+
+                        <input type="text" id="supplier-postal-code" name="postal_code" placeholder="00000"
+                            maxlength="5" required
+                            class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+
+                    </div>
+
+
+                    <!-- País -->
+                    <div>
+
+                        <label
+                            class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">
+
+                            País
+
+                        </label>
+
+                        <input type="text" id="supplier-country" name="country" value="México" required
+                            class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- ================================================= -->
+            <!-- 📦 INFORMACIÓN DEL SUMINISTRO -->
+            <!-- ================================================= -->
+
+            <section>
+
+                <div class="flex items-center gap-2 mb-4">
+
+                    <span class="material-symbols-outlined text-primary">
+                        inventory_2
+                    </span>
+
+                    <h3 class="text-sm font-extrabold text-on-surface">
+                        Información del suministro
+                    </h3>
+
+                </div>
+
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                    <!-- Productos que suministra -->
+                    <div class="md:col-span-2">
+
+                        <label
+                            class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">
+                            Productos que suministra
+                        </label>
+
+                        <textarea id="supplier-supplied-products" name="supplied_products" rows="3"
+                            placeholder="Ej. Fertilizantes, insecticidas, semillas..." required
+                            class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none resize-none focus:ring-2 focus:ring-primary/20"></textarea>
+
+                    </div>
+
+
+                    <!-- Marcas -->
+                    <div class="md:col-span-2">
+
+                        <label
+                            class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">
+                            Marcas que maneja
+                        </label>
+
+                        <input type="text" id="supplier-brands" name="brands"
+                            placeholder="Ej. Bayer, Syngenta, Corteva..."
+                            class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+
+                    </div>
+
+
+                    <!-- Tiempo de entrega -->
+                    <div>
+
+                        <label
+                            class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">
+                            Tiempo de entrega
+                        </label>
+
+                        <input type="text" id="supplier-delivery-time" name="delivery_time" placeholder="Ej. 3 a 5 días"
+                            class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+
+                    </div>
+
+
+                    <!-- Compra mínima -->
+                    <div>
+
+                        <label
+                            class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">
+
+                            Compra mínima
+
+                        </label>
+
+                        <input type="number" id="supplier-minimum-order" name="minimum_order" placeholder="0.00" min="0"
+                            step="0.01"
+                            class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+
+                    </div>
+
+                </div>
+
+            </section>
+
+            <!--  INFORMACIÓN COMERCIAL -->
+            <section>
+
+                <div class="flex items-center gap-2 mb-4">
+
+                    <span class="material-symbols-outlined text-primary">
+                        payments
+                    </span>
+
+                    <h3 class="text-sm font-extrabold text-on-surface">
+                        Información comercial
+                    </h3>
+
+                </div>
+
+
+                <div>
+
+                    <label
+                        class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">
+
+                        Forma de pago
+
+                    </label>
+
+                    <select id="supplier-payment-method" name="payment_method"
+                        class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+
+                        <option value="">
+                            Seleccionar forma de pago...
+                        </option>
+
+                        <option value="efectivo">
+                            Efectivo
+                        </option>
+
+                        <option value="transferencia">
+                            Transferencia bancaria
+                        </option>
+
+                        <option value="tarjeta">
+                            Tarjeta
+                        </option>
+
+                        <option value="credito">
+                            Crédito
+                        </option>
+
+                        <option value="contado">
+                            Contado
+                        </option>
+
+                    </select>
+
+                </div>
+
+            </section>
+
+            <!-- ⚙️ CONTROL -->
+
+            <section>
+
+                <div class="flex items-center gap-2 mb-4">
+
+                    <span class="material-symbols-outlined text-primary">
+                        settings
+                    </span>
+
+                    <h3 class="text-sm font-extrabold text-on-surface">
+                        Control del proveedor
+                    </h3>
+
+                </div>
+
+
+                <div>
+
+                    <label
+                        class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">
+
+                        Estatus
+
+                    </label>
+
+                    <select id="supplier-status" name="status" required
+                        class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+
+                        <option value="pendiente">
+                            Pendiente
+                        </option>
+
+                        <option value="activo">
+                            Activo
+                        </option>
+
+                        <option value="inactivo">
+                            Inactivo
+                        </option>
+
+                    </select>
+
+                </div>
+
+            </section>
+
+        </form>
+
+
+        <!-- Modal Footer -->
+        <div
+            class="sticky bottom-0 px-8 py-5 bg-surface-container-low/95 backdrop-blur border-t border-outline-variant/10 flex justify-end gap-3">
+
+            <button id="btn-cancel-modal-supplier" type="button"
+                class="px-6 py-2.5 rounded-lg text-on-surface-variant text-sm font-bold hover:bg-surface-container-low transition-colors">
+
+                Cancelar
+
+            </button>
+
+
+            <button type="submit" form="form-supplier"
+                class="px-6 py-2.5 rounded-lg bg-[#43655c] text-white text-sm font-bold hover:bg-[#354f47] transition-colors shadow-lg shadow-primary/10 flex items-center gap-2">
+
+                <span class="material-symbols-outlined text-base">
+                    save
+                </span>
+
+                Guardar Proveedor
+
+            </button>
+
+        </div>
+    </div>
+
+</div>
