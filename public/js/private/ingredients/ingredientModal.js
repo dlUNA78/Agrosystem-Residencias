@@ -10,7 +10,6 @@ export const initializeIngredientModal = () => {
   const btnCancelIngredient = document.getElementById(
     'btn-cancel-modal-ingredient',
   );
-  const formIngredient = document.getElementById('form-ingredient');
 
   if (!modalIngredient) {
     return;
@@ -24,9 +23,6 @@ export const initializeIngredientModal = () => {
   const closeModal = () => {
     modalIngredient.classList.remove('flex');
     modalIngredient.classList.add('hidden');
-    if (formIngredient) {
-      formIngredient.reset();
-    }
   };
 
   btnAddIngredient?.addEventListener('click', openModal);
@@ -36,12 +32,6 @@ export const initializeIngredientModal = () => {
 
   modalIngredient.addEventListener('click', (e) => {
     if (e.target === modalIngredient) {
-      closeModal();
-    }
-  });
-
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && !modalIngredient.classList.contains('hidden')) {
       closeModal();
     }
   });

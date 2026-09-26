@@ -1,30 +1,47 @@
-<main class="w-full flex flex-col justify-between items-center py-6 px-4 md:px-12 bg-background min-h-screen">
-    <div class="w-full max-w-7xl space-y-6">
+<main class="min-h-screen flex flex-col">
+    <!-- Content Area -->
+    <div class="mt-20 p-12 space-y-10">
 
-        {{!-- Search bar with title, add button, and view toggle --}}
-        {{> private/search-bar
-        title="Ingredientes Activos"
-        description="Gestión y catálogo de materias primas y compuestos químicos"
-        searchPlaceholder="Buscar por nombre común, IUPAC o grupo químico..."
-        btnId="btn-add-ingredient"
-        btnLabel="Nuevo Ingrediente"
-        filterPrefix="active-ingredient"
-        }}
+        {{!-- Control Bar & Search --}}
+        {{> private/search-bar}}
 
-        {{!-- Quick Stats Bar --}}
-        <div class="bg-surface-container-lowest rounded-2xl p-6 border border-outline-variant/10 shadow-sm">
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-                <div class="border-r border-outline-variant/10">
-                    <p class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant">Total Ingredientes</p>
-                    <p class="text-2xl font-extrabold text-on-surface">148</p>
+        {{!-- Stats Bar --}}
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div
+                class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm p-5 flex items-center gap-4">
+                <div class="w-11 h-11 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined text-primary" data-icon="science">science</span>
                 </div>
-                <div class="border-r border-outline-variant/10">
-                    <p class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant">Insecticidas</p>
-                    <p class="text-2xl font-extrabold text-on-surface">62</p>
+                <div>
+                    <p class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant">Total</p>
+                    <p class="text-2xl font-extrabold text-on-surface">312</p>
                 </div>
-                <div class="border-r border-outline-variant/10">
-                    <p class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant">Fungicidas</p>
-                    <p class="text-2xl font-extrabold text-on-surface">45</p>
+            </div>
+            <div
+                class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm p-5 flex items-center gap-4">
+                <div class="w-11 h-11 rounded-full bg-emerald-500/10 flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined text-emerald-600"
+                        data-icon="check_circle">check_circle</span>
+                </div>
+                <div>
+                    <p class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant">Aprobados</p>
+                    <p class="text-2xl font-extrabold text-on-surface">278</p>
+                </div>
+            </div>
+            <div
+                class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm p-5 flex items-center gap-4">
+                <div class="w-11 h-11 rounded-full bg-amber-500/10 flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined text-amber-600" data-icon="schedule">schedule</span>
+                </div>
+                <div>
+                    <p class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant">Pendientes</p>
+                    <p class="text-2xl font-extrabold text-on-surface">21</p>
+                </div>
+            </div>
+            <div
+                class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm p-5 flex items-center gap-4">
+                <div class="w-11 h-11 rounded-full bg-error/10 flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined text-error" data-icon="dangerous">dangerous</span>
                 </div>
                 <div>
                     <p class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant">Restringidos</p>

@@ -55,10 +55,25 @@ describe('módulo privado de ingredientes activos', () => {
     ];
 
     it('la vista principal incluye la barra de búsqueda y los tres parciales modulares', () => {
-      expect(mainTemplate).toContain('{{> private/search-bar');
+      expect(mainTemplate).toContain('{{> private/search-bar}}');
       expect(mainTemplate).toContain('{{> private/ingredients/table}}');
       expect(mainTemplate).toContain('{{> private/ingredients/grid}}');
       expect(mainTemplate).toContain('{{> private/ingredients/form-modal}}');
+    });
+
+    it('la vista principal conserva el diseño exterior original y los cuatro indicadores y valores demostrativos', () => {
+      expect(mainTemplate).toContain(
+        '<main class="min-h-screen flex flex-col">',
+      );
+      expect(mainTemplate).toContain('<div class="mt-20 p-12 space-y-10">');
+      expect(mainTemplate).toContain('>Total</p>');
+      expect(mainTemplate).toContain('>312</p>');
+      expect(mainTemplate).toContain('>Aprobados</p>');
+      expect(mainTemplate).toContain('>278</p>');
+      expect(mainTemplate).toContain('>Pendientes</p>');
+      expect(mainTemplate).toContain('>21</p>');
+      expect(mainTemplate).toContain('>Restringidos</p>');
+      expect(mainTemplate).toContain('>13</p>');
     });
 
     it('todas las plantillas y parciales compilan sin errores de sintaxis en Handlebars', () => {
@@ -104,6 +119,16 @@ describe('módulo privado de ingredientes activos', () => {
         expect(content).not.toMatch(/display\s*:\s*none/i);
       });
     });
+
+    it("los iconos de estado aprobado conservan la clase de relleno visual [font-variation-settings:'FILL'_1]", () => {
+      const tableFillMatches =
+        tableTemplate.match(/\[font-variation-settings:'FILL'_1\]/g) || [];
+      const gridFillMatches =
+        gridTemplate.match(/\[font-variation-settings:'FILL'_1\]/g) || [];
+
+      expect(tableFillMatches).toHaveLength(3);
+      expect(gridFillMatches).toHaveLength(3);
+    });
   });
 
   describe('estructura e inicialización de módulos JavaScript del cliente', () => {
@@ -147,6 +172,15 @@ describe('módulo privado de ingredientes activos', () => {
       expect(modalJs).toContain("classList.add('flex')");
       expect(modalJs).toContain("classList.remove('flex')");
       expect(modalJs).toContain("classList.add('hidden')");
+    });
+
+    it('el JS cliente no introduce reset() ni cierre mediante Escape en el modal', () => {
+      expect(modalJs).not.toContain('.reset()');
+      expect(modalJs).not.toContain('reset');
+      expect(modalJs).not.toContain('Escape');
+      expect(modalJs).not.toContain('keydown');
+      expect(mainJs).not.toContain('reset');
+      expect(mainJs).not.toContain('Escape');
     });
   });
 
