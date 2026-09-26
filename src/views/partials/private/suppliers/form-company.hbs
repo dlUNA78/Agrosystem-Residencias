@@ -1,0 +1,78 @@
+<!-- DATOS DE LA EMPRESA -->
+<!-- ================================================= -->
+<section>
+    <div class="flex items-center gap-2 mb-4">
+        <span class="material-symbols-outlined text-primary">
+            business
+        </span>
+        <h3 class="text-sm font-extrabold text-on-surface">
+            Datos de la empresa
+        </h3>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Nombre de la empresa -->
+        <div class="md:col-span-2">
+            <label class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">
+                Nombre de la empresa
+            </label>
+            <input type="text" id="supplier-name" name="name" placeholder="Razón social de la empresa"
+                required
+                class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+        </div>
+
+        <!-- Nombre comercial -->
+        <div>
+            <label class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">
+                Nombre comercial
+            </label>
+            <input type="text" id="supplier-commercial-name" name="commercial_name"
+                placeholder="Nombre con el que se conoce comercialmente"
+                class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+        </div>
+
+        <!-- RFC -->
+        <div>
+            <label class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">
+                RFC
+            </label>
+            <input type="text" id="supplier-rfc" name="rfc" placeholder="ABC123456XYZ" maxlength="13"
+                required
+                class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+        </div>
+
+        <!-- Tipo de suministro -->
+        <div class="md:col-span-2">
+            <label class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">
+                Tipo de suministro
+            </label>
+            <select id="supplier-supply-type" name="supply_type" required
+                class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+                <option value="">
+                    Seleccionar tipo de suministro...
+                </option>
+                <option value="agroquimicos">
+                    Agroquímicos
+                </option>
+                <option value="semillas">
+                    Semillas
+                </option>
+                <option value="equipo">
+                    Equipo agrícola
+                </option>
+                <option value="fertilizantes">
+                    Fertilizantes
+                </option>
+                <option value="herramientas">
+                    Herramientas
+                </option>
+                <option value="servicios">
+                    Servicios
+                </option>
+                <option value="otros">
+                    Otros
+                </option>
+            </select>
+        </div>
+    </div>
+</section>

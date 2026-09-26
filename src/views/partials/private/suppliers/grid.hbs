@@ -1,0 +1,275 @@
+        <!-- GRID VIEW -->
+        <div id="suppliers-grid-view" class="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 grid">
+
+            {{#each suppliers}}
+
+            <div
+                class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm overflow-hidden hover:-translate-y-1 transition-all duration-300">
+
+                <!-- HEADER DE LA TARJETA -->
+                <div class="p-5 border-b border-outline-variant/10">
+
+                    <div class="flex items-start justify-between gap-3">
+
+                        <div class="flex items-center gap-3">
+
+                            <div class="w-11 h-11 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+
+                                <span class="material-symbols-outlined text-primary">
+                                    business
+                                </span>
+
+                            </div>
+
+                            <div>
+
+                                <h3 class="text-sm font-extrabold text-on-surface">
+                                    {{name}}
+                                </h3>
+
+                                {{#if commercial_name}}
+
+                                <p class="text-xs text-on-surface-variant mt-0.5">
+                                    {{commercial_name}}
+                                </p>
+
+                                {{/if}}
+
+                            </div>
+
+                        </div>
+
+                        <!-- ESTATUS -->
+
+                        {{#if (eq status "activo")}}
+
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0" title="Activo">
+                        </span>
+
+                        {{else if (eq status "pendiente")}}
+
+                        <span class="w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0" title="Pendiente">
+                        </span>
+
+                        {{else}}
+
+                        <span class="w-2.5 h-2.5 rounded-full bg-red-500 shrink-0" title="Inactivo">
+                        </span>
+
+                        {{/if}}
+
+                    </div>
+
+                </div>
+
+
+                <!-- INFORMACIÓN PRINCIPAL -->
+
+                <div class="p-5 space-y-4">
+
+                    <!-- RFC -->
+
+                    <div class="flex items-start gap-3">
+
+                        <span class="material-symbols-outlined text-base text-on-surface-variant">
+                            badge
+                        </span>
+
+                        <div>
+
+                            <p class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant">
+                                RFC
+                            </p>
+
+                            <p class="text-xs font-bold text-on-surface mt-0.5">
+                                {{rfc}}
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- CONTACTO -->
+
+                    <div class="flex items-start gap-3">
+
+                        <span class="material-symbols-outlined text-base text-on-surface-variant">
+                            contact_phone
+                        </span>
+
+                        <div>
+
+                            <p class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant">
+                                Contacto
+                            </p>
+
+                            <p class="text-xs font-bold text-on-surface mt-0.5">
+                                {{contact_name}}
+                            </p>
+
+                            <p class="text-xs text-on-surface-variant">
+                                {{email}}
+                            </p>
+
+                            <p class="text-xs text-on-surface-variant">
+                                {{phone}}
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- UBICACIÓN -->
+
+                    <div class="flex items-start gap-3">
+
+                        <span class="material-symbols-outlined text-base text-on-surface-variant">
+                            location_on
+                        </span>
+
+                        <div>
+
+                            <p class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant">
+                                Ubicación
+                            </p>
+
+                            <p class="text-xs text-on-surface">
+                                {{city}}, {{state}}
+                            </p>
+
+                            <p class="text-xs text-on-surface-variant">
+                                C.P. {{postal_code}}
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- SUMINISTRO -->
+
+                    <div>
+
+                        <p class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant mb-1.5">
+                            Suministro
+                        </p>
+
+                        <span
+                            class="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase">
+
+                            {{supply_type}}
+
+                        </span>
+
+                        <p class="text-xs text-on-surface-variant mt-2 line-clamp-2">
+                            {{supplied_products}}
+                        </p>
+
+                    </div>
+
+
+                    <!-- INFORMACIÓN COMERCIAL -->
+
+                    <div class="pt-3 border-t border-outline-variant/10 space-y-1">
+
+                        {{#if brands}}
+
+                        <p class="text-xs text-on-surface-variant">
+                            <strong>Marcas:</strong> {{brands}}
+                        </p>
+
+                        {{/if}}
+
+                        {{#if delivery_time}}
+
+                        <p class="text-xs text-on-surface-variant">
+                            <strong>Entrega:</strong> {{delivery_time}}
+                        </p>
+
+                        {{/if}}
+
+                        {{#if payment_method}}
+
+                        <p class="text-xs text-on-surface-variant">
+                            <strong>Pago:</strong> {{payment_method}}
+                        </p>
+
+                        {{/if}}
+
+                    </div>
+
+                </div>
+
+
+                <!-- ACCIONES -->
+
+                <div
+                    class="px-5 py-4 bg-surface-container-low/30 border-t border-outline-variant/10 flex justify-end gap-2">
+
+                    <button type="button" class="btn-edit-supplier" data-id="{{id}}" data-name="{{name}}"
+                        data-commercial-name="{{commercial_name}}" data-rfc="{{rfc}}" data-supply-type="{{supply_type}}"
+                        data-contact-name="{{contact_name}}" data-contact-position="{{contact_position}}"
+                        data-email="{{email}}" data-alternative-email="{{alternative_email}}" data-phone="{{phone}}"
+                        data-alternative-phone="{{alternative_phone}}" data-address="{{address}}" data-city="{{city}}"
+                        data-state="{{state}}" data-postal-code="{{postal_code}}" data-country="{{country}}"
+                        data-supplied-products="{{supplied_products}}" data-brands="{{brands}}"
+                        data-delivery-time="{{delivery_time}}" data-minimum-order="{{minimum_order}}"
+                        data-payment-method="{{payment_method}}" data-status="{{status}}">
+                        <span class="material-symbols-outlined">
+                            edit
+                        </span>
+                    </button>
+                    <button type="button"
+                        class="btn-delete-supplier p-2 rounded-lg hover:bg-red-50 hover:text-red-600 transition-colors"
+                        title="Eliminar proveedor" data-id="{{id}}" data-name="{{name}}">
+
+                        <span class="material-symbols-outlined text-lg">
+                            delete
+                        </span>
+
+                    </button>
+
+                </div>
+
+            </div>
+
+            {{else}}
+
+            <div class="col-span-full py-16 text-center">
+
+                <span class="material-symbols-outlined text-5xl text-on-surface-variant/30">
+                    business
+                </span>
+
+                <p class="mt-3 text-sm font-bold text-on-surface-variant">
+                    No hay proveedores registrados
+                </p>
+
+            </div>
+
+            {{/each}}
+
+
+            <!-- ADD NEW CARD -->
+
+            <div id="btn-add-supplier-card"
+                class="bg-surface-container-lowest rounded-xl border-2 border-dashed border-primary/20 shadow-sm overflow-hidden group hover:-translate-y-1 transition-all duration-300 flex items-center justify-center min-h-[220px] cursor-pointer">
+
+                <div class="text-center p-6">
+
+                    <span
+                        class="material-symbols-outlined text-3xl text-primary/30 mb-2 group-hover:text-primary/50 transition-colors">
+                        add_business
+                    </span>
+
+                    <p class="text-sm font-bold text-on-surface-variant group-hover:text-primary transition-colors">
+                        Añadir proveedor
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
