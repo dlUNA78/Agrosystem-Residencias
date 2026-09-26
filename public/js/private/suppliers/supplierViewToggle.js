@@ -10,9 +10,7 @@ export const initializeSupplierViewToggle = () => {
 
   const activateGridView = () => {
     tableView.classList.add('hidden');
-    tableView.style.display = 'none';
     gridView.classList.remove('hidden');
-    gridView.style.display = 'grid';
 
     btnGrid.classList.add('bg-[#43655c]', 'text-white');
     btnGrid.classList.remove('text-on-surface-variant');
@@ -22,9 +20,7 @@ export const initializeSupplierViewToggle = () => {
 
   const activateTableView = () => {
     gridView.classList.add('hidden');
-    gridView.style.display = 'none';
     tableView.classList.remove('hidden');
-    tableView.style.display = '';
 
     btnTable.classList.add('bg-[#43655c]', 'text-white');
     btnTable.classList.remove('text-on-surface-variant');

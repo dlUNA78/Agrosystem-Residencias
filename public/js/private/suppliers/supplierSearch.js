@@ -11,7 +11,7 @@ export const initializeSupplierSearch = () => {
     const rows = document.querySelectorAll('#suppliers-table-view tbody tr');
     rows.forEach((row) => {
       const text = row.textContent.toLowerCase();
-      row.style.display = text.includes(search) ? '' : 'none';
+      row.classList.toggle('hidden', !text.includes(search));
     });
 
     const cards = document.querySelectorAll(
@@ -19,7 +19,7 @@ export const initializeSupplierSearch = () => {
     );
     cards.forEach((card) => {
       const text = card.textContent.toLowerCase();
-      card.style.display = text.includes(search) ? '' : 'none';
+      card.classList.toggle('hidden', !text.includes(search));
     });
   });
 };

@@ -1,0 +1,73 @@
+<!-- ================================================= -->
+<!-- 👤 DATOS DE CONTACTO -->
+<!-- ================================================= -->
+<section>
+    <div class="flex items-center gap-2 mb-4">
+        <span class="material-symbols-outlined text-primary">
+            contact_phone
+        </span>
+        <h3 class="text-sm font-extrabold text-on-surface">
+            Datos de contacto
+        </h3>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Nombre del contacto -->
+        <div>
+            <label class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">
+                Nombre del contacto
+            </label>
+            <input type="text" id="supplier-contact-name" name="contact_name" placeholder="Nombre completo"
+                required
+                class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+        </div>
+
+        <!-- Puesto del contacto -->
+        <div>
+            <label class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">
+                Puesto del contacto
+            </label>
+            <input type="text" id="supplier-contact-position" name="contact_position"
+                placeholder="Ej. Gerente de ventas"
+                class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+        </div>
+
+        <!-- Correo -->
+        <div>
+            <label class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">
+                Correo electrónico
+            </label>
+            <input type="email" id="supplier-email" name="email" placeholder="contacto@empresa.com" required
+                class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+        </div>
+
+        <!-- Correo alternativo -->
+        <div>
+            <label class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">
+                Correo alternativo
+            </label>
+            <input type="email" id="supplier-alternative-email" name="alternative_email"
+                placeholder="ventas@empresa.com"
+                class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+        </div>
+
+        <!-- Teléfono -->
+        <div>
+            <label class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">
+                Teléfono
+            </label>
+            <input type="tel" id="supplier-phone" name="phone" placeholder="Número principal" required
+                class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+        </div>
+
+        <!-- Teléfono alternativo -->
+        <div>
+            <label class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant block mb-1.5">
+                Teléfono alternativo
+            </label>
+            <input type="tel" id="supplier-alternative-phone" name="alternative_phone"
+                placeholder="Número alternativo"
+                class="w-full px-4 py-3 bg-surface-container-low rounded-lg text-sm border-none focus:ring-2 focus:ring-primary/20">
+        </div>
+    </div>
+</section>
