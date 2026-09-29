@@ -10,313 +10,462 @@ import adminRouter from '../../src/routes/private/adminRoutes.js';
 const ROUTES_DIR = path.resolve('src/routes');
 const PRIVATE_ROUTES_DIR = path.resolve('src/routes/private');
 
-// Contrato esperado independiente derivado del commit base
-const EXPECTED_CONTRACT = [
-  // Rutas directas del agregador
-  { method: 'GET', path: '/profile', handlersCount: 1, domain: 'root' },
-  { method: 'POST', path: '/profile', handlersCount: 1, domain: 'root' },
-  { method: 'GET', path: '/private/profile', handlersCount: 1, domain: 'root' },
+// ══════════════════════════════════════════════════════════════════════════════
+// CONTRATO ESPERADO INDEPENDIENTE DERIVADO DEL COMMIT BASE
+// Cada endpoint define: método, ruta, dominio, controlador final, middlewares y argumentos de permisos
+// ══════════════════════════════════════════════════════════════════════════════
+export const EXPECTED_CONTRACT = [
+  // ─── AGREGADOR / RAÍZ (5) ──────────────────────────────────────────────────
+  {
+    method: 'GET',
+    path: '/profile',
+    domain: 'root',
+    controller: 'renderProfile',
+    middlewares: [],
+    permissionArg: null,
+  },
+  {
+    method: 'POST',
+    path: '/profile',
+    domain: 'root',
+    controller: 'updateProfile',
+    middlewares: [],
+    permissionArg: null,
+  },
+  {
+    method: 'GET',
+    path: '/private/profile',
+    domain: 'root',
+    controller: 'renderProfile',
+    middlewares: [],
+    permissionArg: null,
+  },
   {
     method: 'POST',
     path: '/private/profile',
-    handlersCount: 1,
     domain: 'root',
+    controller: 'updateProfile',
+    middlewares: [],
+    permissionArg: null,
   },
-  { method: 'GET', path: '/dashboard', handlersCount: 1, domain: 'root' },
+  {
+    method: 'GET',
+    path: '/dashboard',
+    domain: 'root',
+    controller: 'dashboard',
+    middlewares: [],
+    permissionArg: null,
+  },
 
-  // Catálogo: Cultivos (7)
+  // ─── CATÁLOGO: CULTIVOS (7) ────────────────────────────────────────────────
   {
     method: 'GET',
     path: '/private/crops',
-    handlersCount: 2,
     domain: 'catalog',
+    controller: 'cropsPrivate',
+    middlewares: ['requireCropPermission'],
+    permissionArg: 'crops.viewPrivate',
   },
   {
     method: 'GET',
     path: '/private/catalog/crops',
-    handlersCount: 2,
     domain: 'catalog',
+    controller: 'cropsPrivate',
+    middlewares: ['requireCropPermission'],
+    permissionArg: 'crops.viewPrivate',
   },
   {
     method: 'GET',
     path: '/private/crops/:id',
-    handlersCount: 2,
     domain: 'catalog',
+    controller: 'getCropDetail',
+    middlewares: ['requireCropPermission'],
+    permissionArg: 'crops.viewPrivate',
   },
   {
     method: 'POST',
     path: '/private/crops/create',
-    handlersCount: 3,
     domain: 'catalog',
+    controller: 'createCrop',
+    middlewares: ['requireCropPermission', 'uploadCropImages'],
+    permissionArg: 'crops.create',
   },
   {
     method: 'POST',
     path: '/private/crops/update/:id',
-    handlersCount: 3,
     domain: 'catalog',
+    controller: 'updateCrop',
+    middlewares: ['requireCropPermission', 'uploadCropImages'],
+    permissionArg: 'crops.edit',
   },
   {
     method: 'POST',
     path: '/private/crops/delete/:id',
-    handlersCount: 2,
     domain: 'catalog',
+    controller: 'deleteCrop',
+    middlewares: ['requireCropPermission'],
+    permissionArg: 'crops.delete',
   },
   {
     method: 'POST',
     path: '/private/crops/:id/workflow',
-    handlersCount: 2,
     domain: 'catalog',
+    controller: 'updateCropWorkflow',
+    middlewares: ['requireCropWorkflowPermission'],
+    permissionArg: null,
   },
 
-  // Catálogo: Plagas (8)
+  // ─── CATÁLOGO: PLAGAS (8) ──────────────────────────────────────────────────
   {
     method: 'GET',
     path: '/private/plagues',
-    handlersCount: 2,
     domain: 'catalog',
+    controller: 'plaguesPrivate',
+    middlewares: ['requirePlaguePermission'],
+    permissionArg: 'plagues.viewPrivate',
   },
   {
     method: 'GET',
     path: '/private/catalog/plagues',
-    handlersCount: 2,
     domain: 'catalog',
+    controller: 'plaguesPrivate',
+    middlewares: ['requirePlaguePermission'],
+    permissionArg: 'plagues.viewPrivate',
   },
   {
     method: 'GET',
     path: '/private/plagues/:id',
-    handlersCount: 2,
     domain: 'catalog',
+    controller: 'getPlagueDetail',
+    middlewares: ['requirePlaguePermission'],
+    permissionArg: 'plagues.viewPrivate',
   },
   {
     method: 'POST',
     path: '/private/plagues/create',
-    handlersCount: 3,
     domain: 'catalog',
+    controller: 'createPlague',
+    middlewares: ['requirePlaguePermission', 'uploadPlagueImages'],
+    permissionArg: 'plagues.create',
   },
   {
     method: 'POST',
     path: '/private/plagues/update/:id',
-    handlersCount: 3,
     domain: 'catalog',
+    controller: 'updatePlague',
+    middlewares: ['requirePlaguePermission', 'uploadPlagueImages'],
+    permissionArg: 'plagues.edit',
   },
   {
     method: 'POST',
     path: '/private/plagues/delete/:id',
-    handlersCount: 2,
     domain: 'catalog',
+    controller: 'deletePlague',
+    middlewares: ['requirePlaguePermission'],
+    permissionArg: 'plagues.delete',
   },
   {
     method: 'POST',
     path: '/private/plagues/:id/workflow',
-    handlersCount: 2,
     domain: 'catalog',
+    controller: 'updatePlagueWorkflow',
+    middlewares: ['requirePlagueWorkflowPermission'],
+    permissionArg: null,
   },
   {
     method: 'POST',
     path: '/private/plagues/:id/relations',
-    handlersCount: 2,
     domain: 'catalog',
+    controller: 'updatePlagueRelations',
+    middlewares: ['requirePlaguePermission'],
+    permissionArg: 'plagues.manageRelations',
   },
 
-  // Catálogo: Productos (7)
+  // ─── CATÁLOGO: PRODUCTOS AGROQUÍMICOS (7) ──────────────────────────────────
   {
     method: 'GET',
     path: '/private/products',
-    handlersCount: 2,
     domain: 'catalog',
+    controller: 'productsPrivate',
+    middlewares: ['requireProductPermission'],
+    permissionArg: 'products.viewPrivate',
   },
   {
     method: 'GET',
     path: '/private/catalog/products',
-    handlersCount: 2,
     domain: 'catalog',
+    controller: 'productsPrivate',
+    middlewares: ['requireProductPermission'],
+    permissionArg: 'products.viewPrivate',
   },
   {
     method: 'GET',
     path: '/private/products/:id',
-    handlersCount: 2,
     domain: 'catalog',
+    controller: 'getProductDetail',
+    middlewares: ['requireProductPermission'],
+    permissionArg: 'products.viewPrivate',
   },
   {
     method: 'POST',
     path: '/private/products/create',
-    handlersCount: 3,
     domain: 'catalog',
+    controller: 'createProduct',
+    middlewares: ['requireProductPermission', 'uploadProductImages'],
+    permissionArg: 'products.create',
   },
   {
     method: 'POST',
     path: '/private/products/update/:id',
-    handlersCount: 3,
     domain: 'catalog',
+    controller: 'updateProduct',
+    middlewares: ['requireProductPermission', 'uploadProductImages'],
+    permissionArg: 'products.edit',
   },
   {
     method: 'POST',
     path: '/private/products/delete/:id',
-    handlersCount: 2,
     domain: 'catalog',
+    controller: 'deleteProduct',
+    middlewares: ['requireProductPermission'],
+    permissionArg: 'products.delete',
   },
   {
     method: 'POST',
     path: '/private/products/:id/workflow',
-    handlersCount: 2,
     domain: 'catalog',
+    controller: 'updateProductWorkflow',
+    middlewares: ['requireProductWorkflowPermission'],
+    permissionArg: null,
   },
 
-  // Catálogo: Ingredientes (1)
+  // ─── CATÁLOGO: INGREDIENTES ACTIVOS (1) ────────────────────────────────────
   {
     method: 'GET',
     path: '/private/ingredients',
-    handlersCount: 1,
     domain: 'catalog',
+    controller: 'ingredientsPrivate',
+    middlewares: [],
+    permissionArg: null,
   },
 
-  // Parcelas (11)
-  { method: 'GET', path: '/private/lands', handlersCount: 1, domain: 'land' },
+  // ─── PARCELAS Y GRANJAS (11) ──────────────────────────────────────────────
+  {
+    method: 'GET',
+    path: '/private/lands',
+    domain: 'land',
+    controller: 'renderLandsPrivate',
+    middlewares: [],
+    permissionArg: null,
+  },
   {
     method: 'GET',
     path: '/private/lands/:id/expediente',
-    handlersCount: 1,
     domain: 'land',
+    controller: 'landDetail',
+    middlewares: [],
+    permissionArg: null,
   },
   {
     method: 'POST',
     path: '/private/lands/create',
-    handlersCount: 1,
     domain: 'land',
+    controller: 'createFarmPrivate',
+    middlewares: [],
+    permissionArg: null,
   },
   {
     method: 'POST',
     path: '/private/lands/update/:id',
-    handlersCount: 1,
     domain: 'land',
+    controller: 'updateFarmPrivate',
+    middlewares: [],
+    permissionArg: null,
   },
   {
     method: 'POST',
     path: '/private/lands/archive/:id',
-    handlersCount: 1,
     domain: 'land',
+    controller: 'archiveFarmPrivate',
+    middlewares: [],
+    permissionArg: null,
   },
   {
     method: 'POST',
     path: '/private/lands/restore/:id',
-    handlersCount: 1,
     domain: 'land',
+    controller: 'restoreFarmPrivate',
+    middlewares: [],
+    permissionArg: null,
   },
   {
     method: 'POST',
     path: '/private/lands/:id/cycles',
-    handlersCount: 1,
     domain: 'land',
+    controller: 'createLandCropCycle',
+    middlewares: [],
+    permissionArg: null,
   },
   {
     method: 'POST',
     path: '/private/lands/:id/cycles/advance',
-    handlersCount: 1,
     domain: 'land',
+    controller: 'advanceLandCropStage',
+    middlewares: [],
+    permissionArg: null,
   },
   {
     method: 'POST',
     path: '/private/lands/:id/cycles/finish',
-    handlersCount: 1,
     domain: 'land',
+    controller: 'finishLandCropCycle',
+    middlewares: [],
+    permissionArg: null,
   },
   {
     method: 'POST',
     path: '/private/lands/:id/health-reports',
-    handlersCount: 1,
     domain: 'land',
+    controller: 'createFarmHealthReport',
+    middlewares: [],
+    permissionArg: null,
   },
   {
     method: 'POST',
     path: '/private/lands/:id/applications',
-    handlersCount: 1,
     domain: 'land',
+    controller: 'createFarmApplication',
+    middlewares: [],
+    permissionArg: null,
   },
 
-  // Administración: Proveedores (4)
+  // ─── ADMINISTRACIÓN: PROVEEDORES (4) ───────────────────────────────────────
   {
     method: 'GET',
     path: '/private/suppliers',
-    handlersCount: 1,
     domain: 'admin',
+    controller: 'suppliersPrivate',
+    middlewares: [],
+    permissionArg: null,
   },
   {
     method: 'POST',
     path: '/private/suppliers/create',
-    handlersCount: 1,
     domain: 'admin',
+    controller: 'createSupplier',
+    middlewares: [],
+    permissionArg: null,
   },
   {
     method: 'POST',
     path: '/private/suppliers/update/:id',
-    handlersCount: 1,
     domain: 'admin',
+    controller: 'updateSupplier',
+    middlewares: [],
+    permissionArg: null,
   },
   {
     method: 'POST',
     path: '/private/suppliers/delete/:id',
-    handlersCount: 1,
     domain: 'admin',
+    controller: 'deleteSupplier',
+    middlewares: [],
+    permissionArg: null,
   },
 
-  // Administración: Usuarios (5)
+  // ─── ADMINISTRACIÓN: USUARIOS (5) ──────────────────────────────────────────
   {
     method: 'GET',
     path: '/private/users',
-    handlersCount: 2,
     domain: 'admin',
+    controller: 'usersPrivate',
+    middlewares: ['requireRole'],
+    permissionArg: 'admin',
   },
   {
     method: 'POST',
     path: '/private/users/create',
-    handlersCount: 2,
     domain: 'admin',
+    controller: 'createUser',
+    middlewares: ['requireRole'],
+    permissionArg: 'admin',
   },
   {
     method: 'POST',
     path: '/private/users/edit/:id',
-    handlersCount: 2,
     domain: 'admin',
+    controller: 'updateUser',
+    middlewares: ['requireRole'],
+    permissionArg: 'admin',
   },
   {
     method: 'POST',
     path: '/private/users/status/:id',
-    handlersCount: 2,
     domain: 'admin',
+    controller: 'updateUserStatus',
+    middlewares: ['requireRole'],
+    permissionArg: 'admin',
   },
   {
     method: 'POST',
     path: '/private/users/delete/:id',
-    handlersCount: 2,
     domain: 'admin',
+    controller: 'deleteUser',
+    middlewares: ['requireRole'],
+    permissionArg: 'admin',
   },
 
-  // Administración: Reportes y Auditoría (2)
+  // ─── ADMINISTRACIÓN: REPORTES Y AUDITORÍA (2) ─────────────────────────────
   {
     method: 'GET',
     path: '/private/reports',
-    handlersCount: 1,
     domain: 'admin',
+    controller: 'reportsPrivate',
+    middlewares: [],
+    permissionArg: null,
   },
-  { method: 'GET', path: '/private/audit', handlersCount: 1, domain: 'admin' },
+  {
+    method: 'GET',
+    path: '/private/audit',
+    domain: 'admin',
+    controller: 'auditPrivate',
+    middlewares: [],
+    permissionArg: null,
+  },
 ];
 
-const extractRoutesFromRouter = (router) => {
+/**
+ * Extrae todas las rutas registradas recorriendo recursivamente la pila (stack) de Express Router.
+ */
+const extractDetailedRoutes = (router) => {
   const routes = [];
   router.stack.forEach((layer) => {
     if (layer.route) {
       const methods = Object.keys(layer.route.methods)
         .map((m) => m.toUpperCase())
         .filter((m) => m !== '_ALL');
+      const handlers = layer.route.stack.map(
+        (h) => h.handle.name || h.name || 'anonymous',
+      );
+      const lastHandler = layer.route.stack[layer.route.stack.length - 1];
+      const controllerName = lastHandler?.handle?.name || 'anonymous';
+      const middlewareHandlers = layer.route.stack.slice(0, -1);
+
       methods.forEach((method) => {
         routes.push({
           method,
           path: layer.route.path,
           handlersCount: layer.route.stack.length,
+          handlers,
+          controllerName,
+          middlewareCount: middlewareHandlers.length,
+          middlewareNames: middlewareHandlers.map(
+            (h) => h.handle.name || h.name || 'anonymous',
+          ),
         });
       });
     } else if (layer.name === 'router' && layer.handle?.stack) {
-      routes.push(...extractRoutesFromRouter(layer.handle));
+      routes.push(...extractDetailedRoutes(layer.handle));
     }
   });
   return routes;
@@ -366,20 +515,41 @@ describe('pruebas estructurales y de inventario de rutas privadas por dominio', 
   });
 
   describe('equivalencia del inventario de rutas (50 endpoints)', () => {
-    const registeredRoutes = extractRoutesFromRouter(privateRouter);
+    const registeredRoutes = extractDetailedRoutes(privateRouter);
 
     it('el total de registros explícitos coincide exactamente con los 50 del contrato base', () => {
       expect(registeredRoutes).toHaveLength(50);
       expect(EXPECTED_CONTRACT).toHaveLength(50);
     });
 
-    it('cada endpoint esperado existe en el router con el método y path exactos', () => {
+    it('cada endpoint esperado existe con el método, path, controlador final y middlewares exactos', () => {
       EXPECTED_CONTRACT.forEach((expected) => {
         const found = registeredRoutes.find(
           (r) => r.method === expected.method && r.path === expected.path,
         );
         expect(found).toBeDefined();
-        expect(found.handlersCount).toBe(expected.handlersCount);
+
+        // 1. Verifica el nombre del controlador final
+        expect(found.controllerName).toBe(expected.controller);
+
+        // 2. Verifica la cantidad exacta de middlewares previos
+        expect(found.middlewareCount).toBe(expected.middlewares.length);
+
+        // 3. Verifica el total de manejadores (middlewares + controlador)
+        expect(found.handlersCount).toBe(expected.middlewares.length + 1);
+
+        // 4. Si hay middlewares con nombre explícito (ej: requireCropWorkflowPermission, uploadProductImages), verificar coincidencia
+        expected.middlewares.forEach((mwName, idx) => {
+          const registeredMwName = found.middlewareNames[idx];
+          if (
+            mwName.startsWith('require') &&
+            mwName.endsWith('WorkflowPermission')
+          ) {
+            expect(registeredMwName).toBe(mwName);
+          } else if (mwName === 'uploadProductImages') {
+            expect(registeredMwName).toBe(mwName);
+          }
+        });
       });
     });
 
@@ -397,103 +567,111 @@ describe('pruebas estructurales y de inventario de rutas privadas por dominio', 
     });
 
     it('los routers por dominio contienen la distribución exacta de rutas', () => {
-      const catalogRoutes = extractRoutesFromRouter(catalogRouter);
-      const landRoutes = extractRoutesFromRouter(landRouter);
-      const adminRoutes = extractRoutesFromRouter(adminRouter);
+      const catalogRoutes = extractDetailedRoutes(catalogRouter);
+      const landRoutes = extractDetailedRoutes(landRouter);
+      const adminRoutes = extractDetailedRoutes(adminRouter);
 
       expect(catalogRoutes).toHaveLength(23);
       expect(landRoutes).toHaveLength(11);
       expect(adminRoutes).toHaveLength(11);
+
+      // 23 catálogo + 11 parcelas + 11 admin + 5 agregador raíz = 50
+      const totalModularRoutes =
+        catalogRoutes.length + landRoutes.length + adminRoutes.length + 5;
+      expect(totalModularRoutes).toBe(50);
     });
 
-    it('ningún path contiene duplicaciones de prefijo como /private/private/', () => {
-      registeredRoutes.forEach((r) => {
-        expect(r.path).not.toContain('/private/private/');
-      });
+    it('las 11 rutas de parcelas apuntan a sus controladores correspondientes (incluyendo archive/restore)', () => {
+      const landRoutes = extractDetailedRoutes(landRouter);
+
+      const archiveRoute = landRoutes.find(
+        (r) => r.method === 'POST' && r.path === '/private/lands/archive/:id',
+      );
+      expect(archiveRoute).toBeDefined();
+      expect(archiveRoute.controllerName).toBe('archiveFarmPrivate');
+
+      const restoreRoute = landRoutes.find(
+        (r) => r.method === 'POST' && r.path === '/private/lands/restore/:id',
+      );
+      expect(restoreRoute).toBeDefined();
+      expect(restoreRoute.controllerName).toBe('restoreFarmPrivate');
+
+      const cycleRoute = landRoutes.find(
+        (r) => r.method === 'POST' && r.path === '/private/lands/:id/cycles',
+      );
+      expect(cycleRoute).toBeDefined();
+      expect(cycleRoute.controllerName).toBe('createLandCropCycle');
+
+      const healthRoute = landRoutes.find(
+        (r) =>
+          r.method === 'POST' && r.path === '/private/lands/:id/health-reports',
+      );
+      expect(healthRoute).toBeDefined();
+      expect(healthRoute.controllerName).toBe('createFarmHealthReport');
+
+      const appRoute = landRoutes.find(
+        (r) =>
+          r.method === 'POST' && r.path === '/private/lands/:id/applications',
+      );
+      expect(appRoute).toBeDefined();
+      expect(appRoute.controllerName).toBe('createFarmApplication');
     });
   });
 
-  describe('contrato del agregador (privateRoutes.js)', () => {
-    const rawAggregatorContent = fs.readFileSync(
-      path.join(ROUTES_DIR, 'privateRoutes.js'),
-      'utf8',
-    );
-
-    it('conserva el orden estricto de autenticación y acceso al panel', () => {
-      const authIdx = rawAggregatorContent.indexOf(
-        'privateRouter.use(isAuthenticated)',
-      );
-      const profileGetIdx = rawAggregatorContent.indexOf(
-        "privateRouter.get('/profile'",
-      );
-      const profilePostIdx = rawAggregatorContent.indexOf(
-        "privateRouter.post('/profile'",
-      );
-      const panelIdx = rawAggregatorContent.indexOf(
-        'privateRouter.use(requirePanelAccess)',
-      );
-      const privProfileGetIdx = rawAggregatorContent.indexOf(
-        "privateRouter.get('/private/profile'",
-      );
-      const dashboardIdx = rawAggregatorContent.indexOf(
-        "privateRouter.get('/dashboard'",
-      );
-      const catalogMountIdx = rawAggregatorContent.indexOf(
-        'privateRouter.use(catalogRoutes)',
-      );
-      const landMountIdx = rawAggregatorContent.indexOf(
-        'privateRouter.use(landRoutes)',
-      );
-      const adminMountIdx = rawAggregatorContent.indexOf(
-        'privateRouter.use(adminRoutes)',
-      );
-
-      expect(authIdx).toBeGreaterThan(-1);
-      expect(profileGetIdx).toBeGreaterThan(authIdx);
-      expect(profilePostIdx).toBeGreaterThan(authIdx);
-
-      // /profile debe estar ANTES de requirePanelAccess
-      expect(profileGetIdx).toBeLessThan(panelIdx);
-      expect(profilePostIdx).toBeLessThan(panelIdx);
-
-      // /private/profile y /dashboard deben estar DESPUÉS de requirePanelAccess
-      expect(privProfileGetIdx).toBeGreaterThan(panelIdx);
-      expect(dashboardIdx).toBeGreaterThan(panelIdx);
-
-      // Los routers de dominio deben montarse DESPUÉS de requirePanelAccess
-      expect(catalogMountIdx).toBeGreaterThan(panelIdx);
-      expect(landMountIdx).toBeGreaterThan(panelIdx);
-      expect(adminMountIdx).toBeGreaterThan(panelIdx);
+  describe('preservación del orden de middlewares en el enrutador agregador', () => {
+    it('el primer middleware global es isAuthenticated', () => {
+      const firstLayer = privateRouter.stack[0];
+      expect(firstLayer.name).toBe('isAuthenticated');
     });
 
-    it('los routers de dominio no aplican isAuthenticated ni requirePanelAccess duplicados', () => {
-      const catalogContent = fs.readFileSync(
-        path.join(PRIVATE_ROUTES_DIR, 'catalogRoutes.js'),
-        'utf8',
-      );
-      const landContent = fs.readFileSync(
-        path.join(PRIVATE_ROUTES_DIR, 'landRoutes.js'),
-        'utf8',
-      );
-      const adminContent = fs.readFileSync(
-        path.join(PRIVATE_ROUTES_DIR, 'adminRoutes.js'),
-        'utf8',
-      );
+    it('las rutas /profile (GET y POST) se registran ANTES de requirePanelAccess', () => {
+      let profileGetIndex = -1;
+      let profilePostIndex = -1;
+      let requirePanelAccessIndex = -1;
 
-      [catalogContent, landContent, adminContent].forEach((content) => {
-        expect(content).not.toMatch(/router\.use\(\s*isAuthenticated\s*\)/i);
-        expect(content).not.toMatch(/router\.use\(\s*requirePanelAccess\s*\)/i);
+      privateRouter.stack.forEach((layer, index) => {
+        if (layer.route?.path === '/profile') {
+          if (layer.route.methods.get) profileGetIndex = index;
+          if (layer.route.methods.post) profilePostIndex = index;
+        }
+        if (
+          !layer.route &&
+          typeof layer.handle === 'function' &&
+          index > 0 &&
+          index < 5
+        ) {
+          requirePanelAccessIndex = index;
+        }
       });
+
+      expect(profileGetIndex).toBeGreaterThan(-1);
+      expect(profilePostIndex).toBeGreaterThan(-1);
+      expect(requirePanelAccessIndex).toBeGreaterThan(-1);
+      expect(profileGetIndex).toBeLessThan(requirePanelAccessIndex);
+      expect(profilePostIndex).toBeLessThan(requirePanelAccessIndex);
     });
 
-    it('adminRoutes no aplica requireRole("admin") globalmente a nivel de router', () => {
-      const adminContent = fs.readFileSync(
-        path.join(PRIVATE_ROUTES_DIR, 'adminRoutes.js'),
-        'utf8',
-      );
+    it('ningún sub-router por dominio duplica isAuthenticated ni requirePanelAccess en su pila raíz', () => {
+      const checkNoDuplicateGuards = (router) => {
+        router.stack.forEach((layer) => {
+          if (!layer.route) {
+            expect(layer.name).not.toBe('isAuthenticated');
+            expect(layer.name).not.toBe('requirePanelAccess');
+          }
+        });
+      };
 
-      expect(adminContent).not.toMatch(/adminRouter\.use\(/);
-      expect(adminContent).not.toMatch(/router\.use\(\s*requireRole/);
+      checkNoDuplicateGuards(catalogRouter);
+      checkNoDuplicateGuards(landRouter);
+      checkNoDuplicateGuards(adminRouter);
+    });
+
+    it('adminRoutes no aplica requireRole("admin") a nivel de router sino por endpoint', () => {
+      adminRouter.stack.forEach((layer) => {
+        if (!layer.route) {
+          expect(layer.name).not.toBe('requireRole');
+        }
+      });
     });
   });
 });

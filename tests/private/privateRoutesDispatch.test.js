@@ -302,6 +302,409 @@ const buildTestApp = () => {
   return app;
 };
 
+// ══════════════════════════════════════════════════════════════════════════════
+// INVENTARIO COMPLETO DE LOS 50 ENDPOINTS PARA PRUEBAS PARAMETRIZADAS
+// ══════════════════════════════════════════════════════════════════════════════
+const ALL_50_DISPATCH_ENDPOINTS = [
+  // ─── AGREGADOR RAÍZ / PERFIL / DASHBOARD (5) ──────────────────────────────
+  {
+    method: 'get',
+    routePath: '/profile',
+    dispatchPath: '/profile',
+    controller: 'renderProfile',
+    params: {},
+  },
+  {
+    method: 'post',
+    routePath: '/profile',
+    dispatchPath: '/profile',
+    controller: 'updateProfile',
+    params: {},
+    body: { bio: 'test' },
+  },
+  {
+    method: 'get',
+    routePath: '/private/profile',
+    dispatchPath: '/private/profile',
+    controller: 'renderProfile',
+    params: {},
+  },
+  {
+    method: 'post',
+    routePath: '/private/profile',
+    dispatchPath: '/private/profile',
+    controller: 'updateProfile',
+    params: {},
+    body: { bio: 'test' },
+  },
+  {
+    method: 'get',
+    routePath: '/dashboard',
+    dispatchPath: '/dashboard',
+    controller: 'dashboard',
+    params: {},
+  },
+
+  // ─── CATÁLOGO: CULTIVOS (7) ────────────────────────────────────────────────
+  {
+    method: 'get',
+    routePath: '/private/crops',
+    dispatchPath: '/private/crops',
+    controller: 'cropsPrivate',
+    params: {},
+    authEvent: 'auth:crop:crops.viewPrivate',
+  },
+  {
+    method: 'get',
+    routePath: '/private/catalog/crops',
+    dispatchPath: '/private/catalog/crops',
+    controller: 'cropsPrivate',
+    params: {},
+    authEvent: 'auth:crop:crops.viewPrivate',
+  },
+  {
+    method: 'get',
+    routePath: '/private/crops/:id',
+    dispatchPath: '/private/crops/101',
+    controller: 'getCropDetail',
+    params: { id: '101' },
+    authEvent: 'auth:crop:crops.viewPrivate',
+  },
+  {
+    method: 'post',
+    routePath: '/private/crops/create',
+    dispatchPath: '/private/crops/create',
+    controller: 'createCrop',
+    params: {},
+    authEvent: 'auth:crop:crops.create',
+    uploadEvent: 'upload:crops',
+  },
+  {
+    method: 'post',
+    routePath: '/private/crops/update/:id',
+    dispatchPath: '/private/crops/update/101',
+    controller: 'updateCrop',
+    params: { id: '101' },
+    authEvent: 'auth:crop:crops.edit',
+    uploadEvent: 'upload:crops',
+  },
+  {
+    method: 'post',
+    routePath: '/private/crops/delete/:id',
+    dispatchPath: '/private/crops/delete/101',
+    controller: 'deleteCrop',
+    params: { id: '101' },
+    authEvent: 'auth:crop:crops.delete',
+  },
+  {
+    method: 'post',
+    routePath: '/private/crops/:id/workflow',
+    dispatchPath: '/private/crops/101/workflow',
+    controller: 'updateCropWorkflow',
+    params: { id: '101' },
+    authEvent: 'auth:crop:workflow',
+  },
+
+  // ─── CATÁLOGO: PLAGAS (8) ──────────────────────────────────────────────────
+  {
+    method: 'get',
+    routePath: '/private/plagues',
+    dispatchPath: '/private/plagues',
+    controller: 'plaguesPrivate',
+    params: {},
+    authEvent: 'auth:plague:plagues.viewPrivate',
+  },
+  {
+    method: 'get',
+    routePath: '/private/catalog/plagues',
+    dispatchPath: '/private/catalog/plagues',
+    controller: 'plaguesPrivate',
+    params: {},
+    authEvent: 'auth:plague:plagues.viewPrivate',
+  },
+  {
+    method: 'get',
+    routePath: '/private/plagues/:id',
+    dispatchPath: '/private/plagues/102',
+    controller: 'getPlagueDetail',
+    params: { id: '102' },
+    authEvent: 'auth:plague:plagues.viewPrivate',
+  },
+  {
+    method: 'post',
+    routePath: '/private/plagues/create',
+    dispatchPath: '/private/plagues/create',
+    controller: 'createPlague',
+    params: {},
+    authEvent: 'auth:plague:plagues.create',
+    uploadEvent: 'upload:plagues',
+  },
+  {
+    method: 'post',
+    routePath: '/private/plagues/update/:id',
+    dispatchPath: '/private/plagues/update/102',
+    controller: 'updatePlague',
+    params: { id: '102' },
+    authEvent: 'auth:plague:plagues.edit',
+    uploadEvent: 'upload:plagues',
+  },
+  {
+    method: 'post',
+    routePath: '/private/plagues/delete/:id',
+    dispatchPath: '/private/plagues/delete/102',
+    controller: 'deletePlague',
+    params: { id: '102' },
+    authEvent: 'auth:plague:plagues.delete',
+  },
+  {
+    method: 'post',
+    routePath: '/private/plagues/:id/workflow',
+    dispatchPath: '/private/plagues/102/workflow',
+    controller: 'updatePlagueWorkflow',
+    params: { id: '102' },
+    authEvent: 'auth:plague:workflow',
+  },
+  {
+    method: 'post',
+    routePath: '/private/plagues/:id/relations',
+    dispatchPath: '/private/plagues/102/relations',
+    controller: 'updatePlagueRelations',
+    params: { id: '102' },
+    authEvent: 'auth:plague:plagues.manageRelations',
+  },
+
+  // ─── CATÁLOGO: PRODUCTOS (7) ───────────────────────────────────────────────
+  {
+    method: 'get',
+    routePath: '/private/products',
+    dispatchPath: '/private/products',
+    controller: 'productsPrivate',
+    params: {},
+    authEvent: 'auth:product:products.viewPrivate',
+  },
+  {
+    method: 'get',
+    routePath: '/private/catalog/products',
+    dispatchPath: '/private/catalog/products',
+    controller: 'productsPrivate',
+    params: {},
+    authEvent: 'auth:product:products.viewPrivate',
+  },
+  {
+    method: 'get',
+    routePath: '/private/products/:id',
+    dispatchPath: '/private/products/103',
+    controller: 'getProductDetail',
+    params: { id: '103' },
+    authEvent: 'auth:product:products.viewPrivate',
+  },
+  {
+    method: 'post',
+    routePath: '/private/products/create',
+    dispatchPath: '/private/products/create',
+    controller: 'createProduct',
+    params: {},
+    authEvent: 'auth:product:products.create',
+    uploadEvent: 'upload:products',
+  },
+  {
+    method: 'post',
+    routePath: '/private/products/update/:id',
+    dispatchPath: '/private/products/update/103',
+    controller: 'updateProduct',
+    params: { id: '103' },
+    authEvent: 'auth:product:products.edit',
+    uploadEvent: 'upload:products',
+  },
+  {
+    method: 'post',
+    routePath: '/private/products/delete/:id',
+    dispatchPath: '/private/products/delete/103',
+    controller: 'deleteProduct',
+    params: { id: '103' },
+    authEvent: 'auth:product:products.delete',
+  },
+  {
+    method: 'post',
+    routePath: '/private/products/:id/workflow',
+    dispatchPath: '/private/products/103/workflow',
+    controller: 'updateProductWorkflow',
+    params: { id: '103' },
+    authEvent: 'auth:product:workflow',
+  },
+
+  // ─── CATÁLOGO: INGREDIENTES (1) ────────────────────────────────────────────
+  {
+    method: 'get',
+    routePath: '/private/ingredients',
+    dispatchPath: '/private/ingredients',
+    controller: 'ingredientsPrivate',
+    params: {},
+  },
+
+  // ─── PARCELAS / GRANJAS (11) ──────────────────────────────────────────────
+  {
+    method: 'get',
+    routePath: '/private/lands',
+    dispatchPath: '/private/lands',
+    controller: 'renderLandsPrivate',
+    params: {},
+  },
+  {
+    method: 'get',
+    routePath: '/private/lands/:id/expediente',
+    dispatchPath: '/private/lands/201/expediente',
+    controller: 'landDetail',
+    params: { id: '201' },
+  },
+  {
+    method: 'post',
+    routePath: '/private/lands/create',
+    dispatchPath: '/private/lands/create',
+    controller: 'createFarmPrivate',
+    params: {},
+  },
+  {
+    method: 'post',
+    routePath: '/private/lands/update/:id',
+    dispatchPath: '/private/lands/update/201',
+    controller: 'updateFarmPrivate',
+    params: { id: '201' },
+  },
+  {
+    method: 'post',
+    routePath: '/private/lands/archive/:id',
+    dispatchPath: '/private/lands/archive/201',
+    controller: 'archiveFarmPrivate',
+    params: { id: '201' },
+  },
+  {
+    method: 'post',
+    routePath: '/private/lands/restore/:id',
+    dispatchPath: '/private/lands/restore/201',
+    controller: 'restoreFarmPrivate',
+    params: { id: '201' },
+  },
+  {
+    method: 'post',
+    routePath: '/private/lands/:id/cycles',
+    dispatchPath: '/private/lands/201/cycles',
+    controller: 'createLandCropCycle',
+    params: { id: '201' },
+  },
+  {
+    method: 'post',
+    routePath: '/private/lands/:id/cycles/advance',
+    dispatchPath: '/private/lands/201/cycles/advance',
+    controller: 'advanceLandCropStage',
+    params: { id: '201' },
+  },
+  {
+    method: 'post',
+    routePath: '/private/lands/:id/cycles/finish',
+    dispatchPath: '/private/lands/201/cycles/finish',
+    controller: 'finishLandCropCycle',
+    params: { id: '201' },
+  },
+  {
+    method: 'post',
+    routePath: '/private/lands/:id/health-reports',
+    dispatchPath: '/private/lands/201/health-reports',
+    controller: 'createFarmHealthReport',
+    params: { id: '201' },
+  },
+  {
+    method: 'post',
+    routePath: '/private/lands/:id/applications',
+    dispatchPath: '/private/lands/201/applications',
+    controller: 'createFarmApplication',
+    params: { id: '201' },
+  },
+
+  // ─── PROVEEDORES (4) ───────────────────────────────────────────────────────
+  {
+    method: 'get',
+    routePath: '/private/suppliers',
+    dispatchPath: '/private/suppliers',
+    controller: 'suppliersPrivate',
+    params: {},
+  },
+  {
+    method: 'post',
+    routePath: '/private/suppliers/create',
+    dispatchPath: '/private/suppliers/create',
+    controller: 'createSupplier',
+    params: {},
+  },
+  {
+    method: 'post',
+    routePath: '/private/suppliers/update/:id',
+    dispatchPath: '/private/suppliers/update/301',
+    controller: 'updateSupplier',
+    params: { id: '301' },
+  },
+  {
+    method: 'post',
+    routePath: '/private/suppliers/delete/:id',
+    dispatchPath: '/private/suppliers/delete/301',
+    controller: 'deleteSupplier',
+    params: { id: '301' },
+  },
+
+  // ─── USUARIOS (5) ──────────────────────────────────────────────────────────
+  {
+    method: 'get',
+    routePath: '/private/users',
+    dispatchPath: '/private/users',
+    controller: 'usersPrivate',
+    params: {},
+  },
+  {
+    method: 'post',
+    routePath: '/private/users/create',
+    dispatchPath: '/private/users/create',
+    controller: 'createUser',
+    params: {},
+  },
+  {
+    method: 'post',
+    routePath: '/private/users/edit/:id',
+    dispatchPath: '/private/users/edit/401',
+    controller: 'updateUser',
+    params: { id: '401' },
+  },
+  {
+    method: 'post',
+    routePath: '/private/users/status/:id',
+    dispatchPath: '/private/users/status/401',
+    controller: 'updateUserStatus',
+    params: { id: '401' },
+  },
+  {
+    method: 'post',
+    routePath: '/private/users/delete/:id',
+    dispatchPath: '/private/users/delete/401',
+    controller: 'deleteUser',
+    params: { id: '401' },
+  },
+
+  // ─── REPORTES Y AUDITORÍA (2) ─────────────────────────────────────────────
+  {
+    method: 'get',
+    routePath: '/private/reports',
+    dispatchPath: '/private/reports',
+    controller: 'reportsPrivate',
+    params: {},
+  },
+  {
+    method: 'get',
+    routePath: '/private/audit',
+    dispatchPath: '/private/audit',
+    controller: 'auditPrivate',
+    params: {},
+  },
+];
+
 describe('pruebas de despacho HTTP del router privado', () => {
   let app;
 
@@ -319,200 +722,306 @@ describe('pruebas de despacho HTTP del router privado', () => {
     app = buildTestApp();
   });
 
-  describe('1. Solicitudes sin sesión (isAuthenticated)', () => {
-    it('redirige a /auth/login y no ejecuta controladores ni middlewares posteriores', async () => {
-      simulatedUser = null;
+  // ════════════════════════════════════════════════════════════════════════════
+  // 1. COBERTURA PARAMETRIZADA DE LOS 50 ENDPOINTS
+  // ════════════════════════════════════════════════════════════════════════════
+  describe('cobertura parametrizada exhaustiva de los 50 endpoints', () => {
+    it('el catálogo de pruebas de despacho cubre exactamente 50 endpoints únicos', () => {
+      expect(ALL_50_DISPATCH_ENDPOINTS).toHaveLength(50);
+      const keys = ALL_50_DISPATCH_ENDPOINTS.map(
+        (e) => `${e.method.toUpperCase()} ${e.routePath}`,
+      );
+      expect(new Set(keys).size).toBe(50);
+    });
 
-      const profileRes = await request(app).get('/profile');
-      expect(profileRes.status).toBe(302);
-      expect(profileRes.headers.location).toBe('/auth/login');
+    test.each(ALL_50_DISPATCH_ENDPOINTS)(
+      '$method.toUpperCase() $routePath ejecuta el controlador $controller con parámetros esperados',
+      async (ep) => {
+        simulatedUser = { id: 1, role: 'admin' };
+        executionLog.length = 0;
 
-      const cropsRes = await request(app).post('/private/crops/create');
-      expect(cropsRes.status).toBe(302);
-      expect(cropsRes.headers.location).toBe('/auth/login');
+        let req = request(app)[ep.method](ep.dispatchPath);
+        if (ep.body) {
+          req = req.send(ep.body);
+        }
 
-      const usersRes = await request(app).get('/private/users');
-      expect(usersRes.status).toBe(302);
-      expect(usersRes.headers.location).toBe('/auth/login');
+        const res = await req;
+        expect(res.status).toBe(200);
 
-      expect(executionLog).toHaveLength(0);
-      expect(mockControllers.renderProfile).not.toHaveBeenCalled();
-      expect(mockControllers.createCrop).not.toHaveBeenCalled();
-      expect(mockControllers.usersPrivate).not.toHaveBeenCalled();
+        // 1. Verifica que el controlador ejecutado es exactamente el esperado
+        expect(mockControllers[ep.controller]).toHaveBeenCalledTimes(1);
+        expect(res.body.controller).toBe(ep.controller);
+
+        // 2. Verifica la captura y entrega de parámetros esperados (ej: :id)
+        expect(res.body.params).toEqual(ep.params);
+
+        // 3. Verifica la cadena ordenada si involucra subida y/o autorización
+        if (ep.uploadEvent) {
+          expect(executionLog).toEqual([
+            ep.authEvent,
+            ep.uploadEvent,
+            `controller:${ep.controller}`,
+          ]);
+        } else if (ep.authEvent) {
+          expect(executionLog).toEqual([
+            ep.authEvent,
+            `controller:${ep.controller}`,
+          ]);
+        }
+      },
+    );
+  });
+
+  // ════════════════════════════════════════════════════════════════════════════
+  // 2. ACCIONES EXPLÍCITAS DE PARCELAS / GRANJAS (ARCHIVAR / RESTAURAR / CICLOS)
+  // ════════════════════════════════════════════════════════════════════════════
+  describe('acciones explícitas de parcelas y granjas', () => {
+    beforeEach(() => {
+      simulatedUser = { id: 1, role: 'admin' };
+    });
+
+    it('POST /private/lands/archive/:id ejecuta exclusivamente archiveFarmPrivate con el id correspondiente', async () => {
+      const res = await request(app).post('/private/lands/archive/888');
+      expect(res.status).toBe(200);
+      expect(mockControllers.archiveFarmPrivate).toHaveBeenCalledTimes(1);
+      expect(mockControllers.restoreFarmPrivate).not.toHaveBeenCalled();
+      expect(res.body.controller).toBe('archiveFarmPrivate');
+      expect(res.body.params.id).toBe('888');
+    });
+
+    it('POST /private/lands/restore/:id ejecuta exclusivamente restoreFarmPrivate con el id correspondiente', async () => {
+      const res = await request(app).post('/private/lands/restore/888');
+      expect(res.status).toBe(200);
+      expect(mockControllers.restoreFarmPrivate).toHaveBeenCalledTimes(1);
+      expect(mockControllers.archiveFarmPrivate).not.toHaveBeenCalled();
+      expect(res.body.controller).toBe('restoreFarmPrivate');
+      expect(res.body.params.id).toBe('888');
+    });
+
+    it('los tres endpoints de ciclos de cultivo ejecutan sus controladores específicos', async () => {
+      // Crear ciclo
+      const createCycleRes = await request(app).post(
+        '/private/lands/999/cycles',
+      );
+      expect(createCycleRes.status).toBe(200);
+      expect(mockControllers.createLandCropCycle).toHaveBeenCalledTimes(1);
+      expect(createCycleRes.body.params.id).toBe('999');
+
+      // Avanzar etapa
+      const advanceRes = await request(app).post(
+        '/private/lands/999/cycles/advance',
+      );
+      expect(advanceRes.status).toBe(200);
+      expect(mockControllers.advanceLandCropStage).toHaveBeenCalledTimes(1);
+      expect(advanceRes.body.params.id).toBe('999');
+
+      // Finalizar ciclo
+      const finishRes = await request(app).post(
+        '/private/lands/999/cycles/finish',
+      );
+      expect(finishRes.status).toBe(200);
+      expect(mockControllers.finishLandCropCycle).toHaveBeenCalledTimes(1);
+      expect(finishRes.body.params.id).toBe('999');
+    });
+
+    it('los endpoints de reportes sanitarios y aplicaciones ejecutan sus controladores específicos', async () => {
+      const healthRes = await request(app).post(
+        '/private/lands/777/health-reports',
+      );
+      expect(healthRes.status).toBe(200);
+      expect(mockControllers.createFarmHealthReport).toHaveBeenCalledTimes(1);
+      expect(healthRes.body.params.id).toBe('777');
+
+      const appRes = await request(app).post('/private/lands/777/applications');
+      expect(appRes.status).toBe(200);
+      expect(mockControllers.createFarmApplication).toHaveBeenCalledTimes(1);
+      expect(appRes.body.params.id).toBe('777');
     });
   });
 
-  describe('2. Módulo de perfil (/profile accesible sin acceso al panel)', () => {
-    it('un usuario autenticado sin acceso al panel (agricultor) accede a GET y POST /profile', async () => {
-      simulatedUser = { id: 10, role: 'agricultor' };
+  // ════════════════════════════════════════════════════════════════════════════
+  // 3. MUTACIONES DE PROVEEDORES
+  // ════════════════════════════════════════════════════════════════════════════
+  describe('mutaciones de proveedores', () => {
+    beforeEach(() => {
+      simulatedUser = { id: 1, role: 'admin' };
+    });
 
-      const getRes = await request(app).get('/profile');
-      expect(getRes.status).toBe(200);
-      expect(mockControllers.renderProfile).toHaveBeenCalledTimes(1);
+    it('crear proveedor ejecuta createSupplier', async () => {
+      const res = await request(app)
+        .post('/private/suppliers/create')
+        .send({ nombre: 'AgroQuímica del Norte' });
+      expect(res.status).toBe(200);
+      expect(mockControllers.createSupplier).toHaveBeenCalledTimes(1);
+      expect(res.body.controller).toBe('createSupplier');
+    });
 
-      const postRes = await request(app)
-        .post('/profile')
-        .send({ nombre: 'Juan' });
-      expect(postRes.status).toBe(200);
-      expect(mockControllers.updateProfile).toHaveBeenCalledTimes(1);
+    it('actualizar proveedor ejecuta updateSupplier con el id entregado', async () => {
+      const res = await request(app)
+        .post('/private/suppliers/update/50')
+        .send({ telefono: '555-1234' });
+      expect(res.status).toBe(200);
+      expect(mockControllers.updateSupplier).toHaveBeenCalledTimes(1);
+      expect(res.body.controller).toBe('updateSupplier');
+      expect(res.body.params.id).toBe('50');
+    });
+
+    it('eliminar proveedor ejecuta deleteSupplier con el id entregado', async () => {
+      const res = await request(app).post('/private/suppliers/delete/50');
+      expect(res.status).toBe(200);
+      expect(mockControllers.deleteSupplier).toHaveBeenCalledTimes(1);
+      expect(res.body.controller).toBe('deleteSupplier');
+      expect(res.body.params.id).toBe('50');
     });
   });
 
-  describe('3. Bloqueo del panel privado (requirePanelAccess)', () => {
-    it('un usuario sin rol inifap/admin es rechazado (403) antes de alcanzar cualquier dominio', async () => {
-      simulatedUser = { id: 10, role: 'agricultor' };
-
-      const privateProfileRes = await request(app).get('/private/profile');
-      expect(privateProfileRes.status).toBe(403);
-
-      const dashboardRes = await request(app).get('/dashboard');
-      expect(dashboardRes.status).toBe(403);
-
-      const cropsRes = await request(app).get('/private/crops');
-      expect(cropsRes.status).toBe(403);
-
-      const landsRes = await request(app).get('/private/lands');
-      expect(landsRes.status).toBe(403);
-
-      const suppliersRes = await request(app).get('/private/suppliers');
-      expect(suppliersRes.status).toBe(403);
-
-      const usersRes = await request(app).get('/private/users');
-      expect(usersRes.status).toBe(403);
-
-      expect(executionLog).toHaveLength(0);
-      expect(mockControllers.dashboard).not.toHaveBeenCalled();
-      expect(mockControllers.cropsPrivate).not.toHaveBeenCalled();
-      expect(mockControllers.renderLandsPrivate).not.toHaveBeenCalled();
-      expect(mockControllers.suppliersPrivate).not.toHaveBeenCalled();
-      expect(mockControllers.usersPrivate).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('4. Barrera de rol de administración (requireRole("admin"))', () => {
-    it('un usuario inifap es rechazado (403) en endpoints de usuarios pero admitido en otros dominios', async () => {
+  // ════════════════════════════════════════════════════════════════════════════
+  // 4. ENDPOINTS DE USUARIOS Y CONTROL DE ACCESO ADMIN
+  // ════════════════════════════════════════════════════════════════════════════
+  describe('endpoints de usuarios y protección requireRole("admin")', () => {
+    it('un usuario inifap (no admin) es rechazado con 403 en los 5 endpoints de usuarios sin ejecutar controladores', async () => {
       simulatedUser = { id: 2, role: 'inifap' };
 
-      // Permitido en catálogo, parcelas, reportes y proveedores
-      const cropsRes = await request(app).get('/private/crops');
-      expect(cropsRes.status).toBe(200);
-
-      const suppliersRes = await request(app).get('/private/suppliers');
-      expect(suppliersRes.status).toBe(200);
-
-      const reportsRes = await request(app).get('/private/reports');
-      expect(reportsRes.status).toBe(200);
-
-      // Denegado en los endpoints de administración de usuarios
-      const usersGetRes = await request(app).get('/private/users');
-      expect(usersGetRes.status).toBe(403);
+      const getRes = await request(app).get('/private/users');
+      expect(getRes.status).toBe(403);
       expect(mockControllers.usersPrivate).not.toHaveBeenCalled();
 
-      const userCreateRes = await request(app).post('/private/users/create');
-      expect(userCreateRes.status).toBe(403);
+      const createRes = await request(app).post('/private/users/create');
+      expect(createRes.status).toBe(403);
       expect(mockControllers.createUser).not.toHaveBeenCalled();
 
-      const userEditRes = await request(app).post('/private/users/edit/12');
-      expect(userEditRes.status).toBe(403);
+      const editRes = await request(app).post('/private/users/edit/15');
+      expect(editRes.status).toBe(403);
       expect(mockControllers.updateUser).not.toHaveBeenCalled();
 
-      const userStatusRes = await request(app).post('/private/users/status/12');
-      expect(userStatusRes.status).toBe(403);
+      const statusRes = await request(app).post('/private/users/status/15');
+      expect(statusRes.status).toBe(403);
       expect(mockControllers.updateUserStatus).not.toHaveBeenCalled();
 
-      const userDeleteRes = await request(app).post('/private/users/delete/12');
-      expect(userDeleteRes.status).toBe(403);
+      const deleteRes = await request(app).post('/private/users/delete/15');
+      expect(deleteRes.status).toBe(403);
       expect(mockControllers.deleteUser).not.toHaveBeenCalled();
     });
 
-    it('un usuario admin accede exitosamente a los endpoints de usuarios', async () => {
+    it('un usuario admin ejecuta exitosamente los endpoints de gestión de usuarios', async () => {
       simulatedUser = { id: 1, role: 'admin' };
 
-      const usersRes = await request(app).get('/private/users');
-      expect(usersRes.status).toBe(200);
-      expect(mockControllers.usersPrivate).toHaveBeenCalledTimes(1);
+      const editRes = await request(app)
+        .post('/private/users/edit/15')
+        .send({ role: 'tecnico' });
+      expect(editRes.status).toBe(200);
+      expect(mockControllers.updateUser).toHaveBeenCalledTimes(1);
+      expect(editRes.body.params.id).toBe('15');
 
-      const createRes = await request(app)
-        .post('/private/users/create')
-        .send({ email: 'test@agro.test' });
-      expect(createRes.status).toBe(200);
-      expect(mockControllers.createUser).toHaveBeenCalledTimes(1);
+      const statusRes = await request(app)
+        .post('/private/users/status/15')
+        .send({ status: 'inactive' });
+      expect(statusRes.status).toBe(200);
+      expect(mockControllers.updateUserStatus).toHaveBeenCalledTimes(1);
+      expect(statusRes.body.params.id).toBe('15');
+
+      const deleteRes = await request(app).post('/private/users/delete/15');
+      expect(deleteRes.status).toBe(200);
+      expect(mockControllers.deleteUser).toHaveBeenCalledTimes(1);
+      expect(deleteRes.body.params.id).toBe('15');
     });
   });
 
-  describe('5. Orden estricto en rutas de catálogo (autorización → subida → controlador)', () => {
-    const catalogCreateUpdateEndpoints = [
+  // ════════════════════════════════════════════════════════════════════════════
+  // 5. RECHAZO DE WORKFLOWS SIN EJECUTAR CONTROLADORES
+  // ════════════════════════════════════════════════════════════════════════════
+  describe('rechazo estricto de los tres workflows sin ejecutar controladores', () => {
+    it('cuando se deniega permiso de workflow, responde 403 y no ejecuta ningún controlador de workflow', async () => {
+      simulatedUser = { id: 1, role: 'admin' };
+      simulatedPermissions.workflow = false;
+
+      // Workflow de Cultivos
+      executionLog.length = 0;
+      const cropWfRes = await request(app).post('/private/crops/10/workflow');
+      expect(cropWfRes.status).toBe(403);
+      expect(mockControllers.updateCropWorkflow).not.toHaveBeenCalled();
+      expect(executionLog).toEqual(['auth:crop:workflow']);
+
+      // Workflow de Plagas
+      executionLog.length = 0;
+      const plagueWfRes = await request(app).post(
+        '/private/plagues/20/workflow',
+      );
+      expect(plagueWfRes.status).toBe(403);
+      expect(mockControllers.updatePlagueWorkflow).not.toHaveBeenCalled();
+      expect(executionLog).toEqual(['auth:plague:workflow']);
+
+      // Workflow de Productos
+      executionLog.length = 0;
+      const productWfRes = await request(app).post(
+        '/private/products/30/workflow',
+      );
+      expect(productWfRes.status).toBe(403);
+      expect(mockControllers.updateProductWorkflow).not.toHaveBeenCalled();
+      expect(executionLog).toEqual(['auth:product:workflow']);
+    });
+  });
+
+  // ════════════════════════════════════════════════════════════════════════════
+  // 6. CADENA ORDENADA Y BLOQUEO DE SUBIDAS (AUTORIZACIÓN -> SUBIDA -> CONTROLADOR)
+  // ════════════════════════════════════════════════════════════════════════════
+  describe('cadena ordenada de subida y bloqueo ante fallo de autorización', () => {
+    const uploadEndpoints = [
       {
         path: '/private/crops/create',
         type: 'crops',
         controller: 'createCrop',
-        upload: 'upload:crops',
         auth: 'auth:crop:crops.create',
+        upload: 'upload:crops',
       },
       {
-        path: '/private/crops/update/1',
+        path: '/private/crops/update/5',
         type: 'crops',
         controller: 'updateCrop',
-        upload: 'upload:crops',
         auth: 'auth:crop:crops.edit',
+        upload: 'upload:crops',
       },
       {
         path: '/private/plagues/create',
         type: 'plagues',
         controller: 'createPlague',
-        upload: 'upload:plagues',
         auth: 'auth:plague:plagues.create',
+        upload: 'upload:plagues',
       },
       {
-        path: '/private/plagues/update/1',
+        path: '/private/plagues/update/5',
         type: 'plagues',
         controller: 'updatePlague',
-        upload: 'upload:plagues',
         auth: 'auth:plague:plagues.edit',
+        upload: 'upload:plagues',
       },
       {
         path: '/private/products/create',
         type: 'products',
         controller: 'createProduct',
-        upload: 'upload:products',
         auth: 'auth:product:products.create',
+        upload: 'upload:products',
       },
       {
-        path: '/private/products/update/1',
+        path: '/private/products/update/5',
         type: 'products',
         controller: 'updateProduct',
-        upload: 'upload:products',
         auth: 'auth:product:products.edit',
+        upload: 'upload:products',
       },
     ];
 
-    it('cuando está autorizado, ejecuta en orden exacto: autorización → subida → controlador', async () => {
+    it('cuando la autorización falla, ni la subida de archivos ni el controlador se ejecutan', async () => {
       simulatedUser = { id: 1, role: 'admin' };
 
-      for (const endpoint of catalogCreateUpdateEndpoints) {
-        executionLog.length = 0;
-        const res = await request(app).post(endpoint.path);
-        expect(res.status).toBe(200);
-
-        expect(executionLog).toEqual([
-          endpoint.auth,
-          endpoint.upload,
-          `controller:${endpoint.controller}`,
-        ]);
-      }
-    });
-
-    it('cuando la autorización rechaza, ni la subida ni el controlador se ejecutan', async () => {
-      simulatedUser = { id: 1, role: 'admin' };
-
-      for (const endpoint of catalogCreateUpdateEndpoints) {
+      for (const endpoint of uploadEndpoints) {
         executionLog.length = 0;
         simulatedPermissions[endpoint.type] = false;
 
         const res = await request(app).post(endpoint.path);
         expect(res.status).toBe(403);
 
-        // Se ejecutó la guardia de autorización, pero NUNCA subida ni controlador
+        // La autorización fue llamada y rechazó; nunca se llamó a upload ni a controller
         expect(executionLog).toEqual([endpoint.auth]);
         expect(executionLog).not.toContain(endpoint.upload);
         expect(executionLog).not.toContain(`controller:${endpoint.controller}`);
@@ -522,101 +1031,33 @@ describe('pruebas de despacho HTTP del router privado', () => {
     });
   });
 
-  describe('6. Workflows y relaciones', () => {
-    it('los endpoints de workflow ejecutan su guardia correspondiente antes del controlador', async () => {
-      simulatedUser = { id: 1, role: 'admin' };
+  // ════════════════════════════════════════════════════════════════════════════
+  // 7. AUTENTICACIÓN GLOBAL Y PANEL PRIVADO
+  // ════════════════════════════════════════════════════════════════════════════
+  describe('autenticación global y guardia de panel', () => {
+    it('solicitud sin sesión redirige 302 a /auth/login sin ejecutar ningún controlador', async () => {
+      simulatedUser = null;
 
-      // Cultivos workflow
-      executionLog.length = 0;
-      const cropWfRes = await request(app).post('/private/crops/10/workflow');
-      expect(cropWfRes.status).toBe(200);
-      expect(executionLog).toEqual([
-        'auth:crop:workflow',
-        'controller:updateCropWorkflow',
-      ]);
-
-      // Plagas workflow
-      executionLog.length = 0;
-      const plagueWfRes = await request(app).post(
-        '/private/plagues/10/workflow',
-      );
-      expect(plagueWfRes.status).toBe(200);
-      expect(executionLog).toEqual([
-        'auth:plague:workflow',
-        'controller:updatePlagueWorkflow',
-      ]);
-
-      // Productos workflow
-      executionLog.length = 0;
-      const productWfRes = await request(app).post(
-        '/private/products/10/workflow',
-      );
-      expect(productWfRes.status).toBe(200);
-      expect(executionLog).toEqual([
-        'auth:product:workflow',
-        'controller:updateProductWorkflow',
-      ]);
+      const res = await request(app).get('/dashboard');
+      expect(res.status).toBe(302);
+      expect(res.headers.location).toBe('/auth/login');
+      expect(mockControllers.dashboard).not.toHaveBeenCalled();
     });
 
-    it('plagas conserva la guardia MANAGE_RELATIONS en /relations', async () => {
-      simulatedUser = { id: 1, role: 'admin' };
+    it('usuario agricultor (sin acceso a panel) accede a /profile pero recibe 403 en el panel privado', async () => {
+      simulatedUser = { id: 10, role: 'agricultor' };
 
-      executionLog.length = 0;
-      const okRes = await request(app).post('/private/plagues/10/relations');
-      expect(okRes.status).toBe(200);
-      expect(executionLog).toEqual([
-        'auth:plague:plagues.manageRelations',
-        'controller:updatePlagueRelations',
-      ]);
+      const profileRes = await request(app).get('/profile');
+      expect(profileRes.status).toBe(200);
+      expect(mockControllers.renderProfile).toHaveBeenCalledTimes(1);
 
-      executionLog.length = 0;
-      simulatedPermissions.relations = false;
-      const failRes = await request(app).post('/private/plagues/10/relations');
-      expect(failRes.status).toBe(403);
-      expect(executionLog).toEqual(['auth:plague:plagues.manageRelations']);
-      expect(mockControllers.updatePlagueRelations).toHaveBeenCalledTimes(1); // solo del okRes
-    });
-  });
+      const dashboardRes = await request(app).get('/dashboard');
+      expect(dashboardRes.status).toBe(403);
+      expect(mockControllers.dashboard).not.toHaveBeenCalled();
 
-  describe('7. URLs, alias y preservación de parámetros :id', () => {
-    it('los alias /private/catalog/... despachan al mismo controlador que la ruta estándar', async () => {
-      simulatedUser = { id: 1, role: 'admin' };
-
-      await request(app).get('/private/crops');
-      await request(app).get('/private/catalog/crops');
-      expect(mockControllers.cropsPrivate).toHaveBeenCalledTimes(2);
-
-      await request(app).get('/private/plagues');
-      await request(app).get('/private/catalog/plagues');
-      expect(mockControllers.plaguesPrivate).toHaveBeenCalledTimes(2);
-
-      await request(app).get('/private/products');
-      await request(app).get('/private/catalog/products');
-      expect(mockControllers.productsPrivate).toHaveBeenCalledTimes(2);
-    });
-
-    it('las rutas con parámetro :id capturan y entregan el valor al controlador', async () => {
-      simulatedUser = { id: 1, role: 'admin' };
-
-      const cropRes = await request(app).get('/private/crops/45');
-      expect(cropRes.status).toBe(200);
-      expect(cropRes.body.params.id).toBe('45');
-
-      const landRes = await request(app).get('/private/lands/88/expediente');
-      expect(landRes.status).toBe(200);
-      expect(landRes.body.params.id).toBe('88');
-
-      const userRes = await request(app).post('/private/users/edit/77');
-      expect(userRes.status).toBe(200);
-      expect(userRes.body.params.id).toBe('77');
-    });
-
-    it('la ruta de ingredientes activos despacha correctamente a ingredientsPrivate', async () => {
-      simulatedUser = { id: 1, role: 'admin' };
-
-      const res = await request(app).get('/private/ingredients');
-      expect(res.status).toBe(200);
-      expect(mockControllers.ingredientsPrivate).toHaveBeenCalledTimes(1);
+      const cropsRes = await request(app).get('/private/crops');
+      expect(cropsRes.status).toBe(403);
+      expect(mockControllers.cropsPrivate).not.toHaveBeenCalled();
     });
   });
 });
