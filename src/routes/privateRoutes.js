@@ -1,98 +1,19 @@
 import { Router } from 'express';
 
-// ─── Middlewares de subida de archivos ────────────────────────────────────────
-// upload        → imágenes genéricas (productos)
-// uploadPlagueImages → imágenes de plagas (acepta múltiples archivos)
-// uploadCropImages → imágenes de cultivos (acepta múltiples archivos)
-import {
-  uploadProductImages,
-  uploadPlagueImages,
-  uploadCropImages,
-} from '../middlewares/upload.js';
-import {
-  requirePlaguePermission,
-  requirePlagueWorkflowPermission,
-} from '../middlewares/plagueAuthorizationMiddleware.js';
-import { PLAGUE_PERMISSIONS } from '../services/plagueAuthorizationService.js';
-import {
-  requireCropPermission,
-  requireCropWorkflowPermission,
-} from '../middlewares/cropAuthorizationMiddleware.js';
-import { CROP_PERMISSIONS } from '../services/cropAuthorizationService.js';
-import {
-  requireProductPermission,
-  requireProductWorkflowPermission,
-} from '../middlewares/productAuthorizationMiddleware.js';
-import { PRODUCT_PERMISSIONS } from '../services/productAuthorizationService.js';
-
-import { dashboard } from '../controllers/private/dashboardController.js';
-import { auditPrivate } from '../controllers/private/auditController.js';
-import { reportsPrivate } from '../controllers/private/reportsController.js';
-import { ingredientsPrivate } from '../controllers/private/ingredientsController.js';
-
-// ─── Controladores del módulo de plagas (sub-controlador modular) ────────────
-import {
-  plaguesPrivate,
-  getPlagueDetail,
-  createPlague,
-  updatePlague,
-  deletePlague,
-  updatePlagueWorkflow,
-  updatePlagueRelations,
-} from '../controllers/private/plagueController.js';
-
-// ─── Controladores del módulo de proveedores (sub-controlador modular) ────────
-import {
-  suppliersPrivate,
-  createSupplier,
-  updateSupplier,
-  deleteSupplier,
-} from '../controllers/private/suppliersController.js';
-
-// ─── Controladores del módulo de cultivos (sub-controlador modular) ────────────
-import {
-  cropsPrivate,
-  getCropDetail,
-  createCrop,
-  updateCrop,
-  deleteCrop,
-  updateCropWorkflow,
-} from '../controllers/private/cropsController.js';
-
-// ─── Controladores del módulo de productos (sub-controlador modular) ────────────
-import {
-  productsPrivate,
-  getProductDetail,
-  createProduct,
-  updateProduct,
-  deleteProduct,
-  updateProductWorkflow,
-} from '../controllers/private/productsController.js';
-
-// ─── Controladores del módulo de parcelas (sub-controlador modular) ────────────
-import {
-  renderLandsPrivate, // Lista todas las parcelas
-  landDetail, // Expediente detallado de una parcela por ID
-  createFarmPrivate, // Crea una nueva parcela/granja
-  updateFarmPrivate,
-  archiveFarmPrivate,
-  restoreFarmPrivate,
-  createLandCropCycle,
-  advanceLandCropStage,
-  finishLandCropCycle,
-  createFarmHealthReport,
-  createFarmApplication,
-} from '../controllers/private/landsController.js';
-
-// ─── Middlewares de autenticación y autorización ──────────────────────────────
-// isAuthenticated   → verifica que el usuario tenga sesión activa
-// requirePanelAccess → verifica que el usuario tenga rol con acceso al panel privado
 import {
   isAuthenticated,
   requirePanelAccess,
 } from '../middlewares/authMiddleware.js';
+import { dashboard } from '../controllers/private/dashboardController.js';
+import {
+  renderProfile,
+  updateProfile,
+} from '../controllers/private/usersController.js';
 
-// ─── Instancia del router privado ─────────────────────────────────────────────
+import catalogRoutes from './private/catalogRoutes.js';
+import landRoutes from './private/landRoutes.js';
+import adminRoutes from './private/adminRoutes.js';
+
 const privateRouter = Router();
 
 // Aplica el middleware de verificación de sesión activa a TODAS las rutas
@@ -114,203 +35,13 @@ privateRouter.post('/private/profile', updateProfile);
 // ══════════════════════════════════════════════════════════════════════════════
 // DASHBOARD
 // ══════════════════════════════════════════════════════════════════════════════
-// Pantalla principal del panel de administración
 privateRouter.get('/dashboard', dashboard);
 
 // ══════════════════════════════════════════════════════════════════════════════
-// MÓDULO: CULTIVOS
+// ROUTERS POR DOMINIO
 // ══════════════════════════════════════════════════════════════════════════════
-privateRouter.get(
-  '/private/crops',
-  requireCropPermission(CROP_PERMISSIONS.VIEW_PRIVATE),
-  cropsPrivate,
-); // Lista todos los cultivos
-privateRouter.get(
-  '/private/catalog/crops',
-  requireCropPermission(CROP_PERMISSIONS.VIEW_PRIVATE),
-  cropsPrivate,
-); // Alias catálogo cultivos
-privateRouter.get(
-  '/private/crops/:id',
-  requireCropPermission(CROP_PERMISSIONS.VIEW_PRIVATE),
-  getCropDetail,
-); // Detalle de un cultivo por ID
-privateRouter.post(
-  '/private/crops/create',
-  requireCropPermission(CROP_PERMISSIONS.CREATE),
-  uploadCropImages,
-  createCrop,
-); // Crear cultivo (hasta 10 imágenes)
-privateRouter.post(
-  '/private/crops/update/:id',
-  requireCropPermission(CROP_PERMISSIONS.EDIT),
-  uploadCropImages,
-  updateCrop,
-); // Actualizar cultivo
-privateRouter.post(
-  '/private/crops/delete/:id',
-  requireCropPermission(CROP_PERMISSIONS.DELETE),
-  deleteCrop,
-); // Eliminar cultivo
-privateRouter.post(
-  '/private/crops/:id/workflow',
-  requireCropWorkflowPermission,
-  updateCropWorkflow,
-);
-
-// ══════════════════════════════════════════════════════════════════════════════
-// MÓDULO: PARCELAS / GRANJAS
-// ══════════════════════════════════════════════════════════════════════════════
-privateRouter.get('/private/lands', renderLandsPrivate); // Lista de parcelas (ruta con prefijo /private)
-privateRouter.get('/private/lands/:id/expediente', landDetail); // Expediente de una parcela específica
-privateRouter.post('/private/lands/create', createFarmPrivate); // Crear nueva parcela
-privateRouter.post('/private/lands/update/:id', updateFarmPrivate);
-privateRouter.post('/private/lands/archive/:id', archiveFarmPrivate);
-privateRouter.post('/private/lands/restore/:id', restoreFarmPrivate);
-privateRouter.post('/private/lands/:id/cycles', createLandCropCycle);
-privateRouter.post('/private/lands/:id/cycles/advance', advanceLandCropStage);
-privateRouter.post('/private/lands/:id/cycles/finish', finishLandCropCycle);
-privateRouter.post('/private/lands/:id/health-reports', createFarmHealthReport);
-privateRouter.post('/private/lands/:id/applications', createFarmApplication);
-
-// ══════════════════════════════════════════════════════════════════════════════
-// MÓDULO: PLAGAS
-// ══════════════════════════════════════════════════════════════════════════════
-privateRouter.get(
-  '/private/plagues',
-  requirePlaguePermission(PLAGUE_PERMISSIONS.VIEW_PRIVATE),
-  plaguesPrivate,
-); // Lista todas las plagas
-privateRouter.get(
-  '/private/catalog/plagues',
-  requirePlaguePermission(PLAGUE_PERMISSIONS.VIEW_PRIVATE),
-  plaguesPrivate,
-); // Alias catálogo plagas
-privateRouter.get(
-  '/private/plagues/:id',
-  requirePlaguePermission(PLAGUE_PERMISSIONS.VIEW_PRIVATE),
-  getPlagueDetail,
-); // Detalle de una plaga específica
-privateRouter.post(
-  '/private/plagues/create',
-  requirePlaguePermission(PLAGUE_PERMISSIONS.CREATE),
-  uploadPlagueImages,
-  createPlague,
-);
-privateRouter.post(
-  '/private/plagues/update/:id',
-  requirePlaguePermission(PLAGUE_PERMISSIONS.EDIT),
-  uploadPlagueImages,
-  updatePlague,
-);
-privateRouter.post(
-  '/private/plagues/delete/:id',
-  requirePlaguePermission(PLAGUE_PERMISSIONS.DELETE),
-  deletePlague,
-); // Eliminar plaga
-privateRouter.post(
-  '/private/plagues/:id/workflow',
-  requirePlagueWorkflowPermission,
-  updatePlagueWorkflow,
-);
-privateRouter.post(
-  '/private/plagues/:id/relations',
-  requirePlaguePermission(PLAGUE_PERMISSIONS.MANAGE_RELATIONS),
-  updatePlagueRelations,
-);
-
-// ══════════════════════════════════════════════════════════════════════════════
-// MÓDULO: PRODUCTOS AGROQUÍMICOS
-// ══════════════════════════════════════════════════════════════════════════════
-privateRouter.get(
-  '/private/products',
-  requireProductPermission(PRODUCT_PERMISSIONS.VIEW_PRIVATE),
-  productsPrivate,
-);
-privateRouter.get(
-  '/private/catalog/products',
-  requireProductPermission(PRODUCT_PERMISSIONS.VIEW_PRIVATE),
-  productsPrivate,
-);
-privateRouter.get(
-  '/private/products/:id',
-  requireProductPermission(PRODUCT_PERMISSIONS.VIEW_PRIVATE),
-  getProductDetail,
-);
-privateRouter.post(
-  '/private/products/create',
-  requireProductPermission(PRODUCT_PERMISSIONS.CREATE),
-  uploadProductImages,
-  createProduct,
-);
-privateRouter.post(
-  '/private/products/update/:id',
-  requireProductPermission(PRODUCT_PERMISSIONS.EDIT),
-  uploadProductImages,
-  updateProduct,
-);
-privateRouter.post(
-  '/private/products/delete/:id',
-  requireProductPermission(PRODUCT_PERMISSIONS.DELETE),
-  deleteProduct,
-);
-privateRouter.post(
-  '/private/products/:id/workflow',
-  requireProductWorkflowPermission,
-  updateProductWorkflow,
-);
-
-// ══════════════════════════════════════════════════════════════════════════════
-// MÓDULO: INGREDIENTES
-// ══════════════════════════════════════════════════════════════════════════════
-privateRouter.get('/private/ingredients', ingredientsPrivate); // Lista de ingredientes activos
-
-// ══════════════════════════════════════════════════════════════════════════════
-// MÓDULO: PROVEEDORES
-// ══════════════════════════════════════════════════════════════════════════════
-privateRouter.get('/private/suppliers', suppliersPrivate); // Lista todos los proveedores
-privateRouter.post('/private/suppliers/create', createSupplier); // Crear proveedor
-privateRouter.post('/private/suppliers/update/:id', updateSupplier); // Actualizar proveedor
-privateRouter.post('/private/suppliers/delete/:id', deleteSupplier); // Eliminar proveedor
-
-// ─── Controladores del módulo de usuarios (sub-controlador modular) ────────────
-import {
-  usersPrivate,
-  createUser,
-  updateUser,
-  updateUserStatus,
-  deleteUser,
-  renderProfile,
-  updateProfile,
-} from '../controllers/private/usersController.js';
-
-import { requireRole } from '../middlewares/authMiddleware.js';
-
-// ══════════════════════════════════════════════════════════════════════════════
-// MÓDULO: USUARIOS (Admin Only)
-// ══════════════════════════════════════════════════════════════════════════════
-privateRouter.get('/private/users', requireRole('admin'), usersPrivate);
-privateRouter.post('/private/users/create', requireRole('admin'), createUser);
-privateRouter.post('/private/users/edit/:id', requireRole('admin'), updateUser);
-privateRouter.post(
-  '/private/users/status/:id',
-  requireRole('admin'),
-  updateUserStatus,
-);
-privateRouter.post(
-  '/private/users/delete/:id',
-  requireRole('admin'),
-  deleteUser,
-);
-
-// ══════════════════════════════════════════════════════════════════════════════
-// MÓDULO: REPORTES
-// ══════════════════════════════════════════════════════════════════════════════
-privateRouter.get('/private/reports', reportsPrivate); // Vista de reportes y estadísticas
-
-// ══════════════════════════════════════════════════════════════════════════════
-// MÓDULO: AUDITORÍA
-// ══════════════════════════════════════════════════════════════════════════════
-privateRouter.get('/private/audit', auditPrivate); // Registro de actividad y bitácora del sistema
+privateRouter.use(catalogRoutes);
+privateRouter.use(landRoutes);
+privateRouter.use(adminRoutes);
 
 export default privateRouter;
