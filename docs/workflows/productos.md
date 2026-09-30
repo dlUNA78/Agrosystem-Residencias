@@ -63,19 +63,19 @@ stateDiagram-v2
 
 ## 3. Matriz de Estados, Acciones y Campos
 
-| Estado de Workflow | Acción (`action`) | Siguiente Estado | Estado de Validación (`validation_status`) | Visibilidad Pública (`status`) | Roles Permitidos |
-| :--- | :--- | :--- | :--- | :---: | :--- |
-| `draft` | `submit_review` | `in_review` | `En revisión` | `false` | INIFAP (Autor) |
-| `in_review` | `request_changes` | `changes_requested` | `Cambios solicitados` | `false` | INIFAP (Revisor `!isAuthor`) |
-| `in_review` | `verify` | `verified` | `Validado` | `false` | INIFAP (Revisor `!isAuthor`) |
-| `changes_requested` | `submit_review` | `in_review` | `En revisión` | `false` | INIFAP (Autor) |
-| `verified` | `publish` | `published` | `Aprobado` | `true` | Administrador |
-| `published` | `archive` | `archived` | `Aprobado` | `false` | Administrador |
-| `archived` | `restore` | `draft` | `En revisión` | `true` | Administrador |
+| Estado de Workflow  | Acción (`action`) | Siguiente Estado    | Estado de Validación (`validation_status`) | Visibilidad Pública (`status`) | Roles Permitidos             |
+| :------------------ | :---------------- | :------------------ | :----------------------------------------- | :----------------------------: | :--------------------------- |
+| `draft`             | `submit_review`   | `in_review`         | `En revisión`                              |            `false`             | INIFAP (Autor)               |
+| `in_review`         | `request_changes` | `changes_requested` | `Cambios solicitados`                      |            `false`             | INIFAP (Revisor `!isAuthor`) |
+| `in_review`         | `verify`          | `verified`          | `Validado`                                 |            `false`             | INIFAP (Revisor `!isAuthor`) |
+| `changes_requested` | `submit_review`   | `in_review`         | `En revisión`                              |            `false`             | INIFAP (Autor)               |
+| `verified`          | `publish`         | `published`         | `Aprobado`                                 |             `true`             | Administrador                |
+| `published`         | `archive`         | `archived`          | `Aprobado`                                 |            `false`             | Administrador                |
+| `archived`          | `restore`         | `draft`             | `En revisión`                              |             `true`             | Administrador                |
 
 ---
 
-## 4. Requisitos de Preparación Técnica (*Readiness Checklist*)
+## 4. Requisitos de Preparación Técnica (_Readiness Checklist_)
 
 Definidos en [`productReadinessService.js`](../../src/services/productReadinessService.js). El producto debe cumplir los 10 campos requeridos sin excepción para enviarse a revisión o aprobarse:
 
