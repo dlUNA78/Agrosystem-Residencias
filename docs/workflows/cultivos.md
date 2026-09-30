@@ -77,7 +77,7 @@ stateDiagram-v2
 
 ## 4. Criterios de Preparación para Publicación (*Readiness Checklist*)
 
-Definidos en [`cropReadinessService.js`](file:///d:/Proyectos/Agrosystem-Residencias/src/services/cropReadinessService.js). Para que una ficha de cultivo pueda pasar a revisión (`submit_review`) o ser verificada/publicada, debe cumplir la totalidad de estos 9 puntos:
+Definidos en [`cropReadinessService.js`](../../src/services/cropReadinessService.js). Para que una ficha de cultivo pueda pasar a revisión (`submit_review`) o ser verificada/publicada, debe cumplir la totalidad de estos 9 puntos:
 
 1. **Identificación taxonómica:** Nombre común y nombre científico (`name`, `scientific_name`).
 2. **Clasificación:** Categoría agronómica del cultivo (`category`, ej. Hortaliza, Cereal, Frutal).
