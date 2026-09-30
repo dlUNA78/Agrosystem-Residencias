@@ -69,7 +69,7 @@ flowchart TD
 
 ## 3. Validaciones para el Alta y Modificación de Terrenos
 
-Definidas en [`landValidationService.js`](file:///d:/Proyectos/Agrosystem-Residencias/src/services/landValidationService.js):
+Definidas en [`landValidationService.js`](../../src/services/landValidationService.js):
 
 | Campo | Regla / Restricción | Mensaje de Error en Falla |
 | :--- | :--- | :--- |
@@ -84,7 +84,7 @@ Definidas en [`landValidationService.js`](file:///d:/Proyectos/Agrosystem-Reside
 
 ## 4. Reglas de Negocio en la Operación de Expedientes
 
-Definidas en [`landCycleController.js`](file:///d:/Proyectos/Agrosystem-Residencias/src/controllers/private/lands/landCycleController.js) y [`landPhenologyService.js`](file:///d:/Proyectos/Agrosystem-Residencias/src/services/landPhenologyService.js):
+Definidas en [`landCycleController.js`](../../src/controllers/private/lands/landCycleController.js) y [`landPhenologyService.js`](../../src/services/landPhenologyService.js):
 
 ### A. Apertura de Ciclo (`POST /private/lands/:id/cycles`)
 1. Solo se permite abrir ciclos en predios activos (`status = true`).
@@ -98,12 +98,12 @@ Definidas en [`landCycleController.js`](file:///d:/Proyectos/Agrosystem-Residenc
    Si el cultivo está en borrador o revisión, la creación del ciclo es rechazada inmediatamente.
 3. **Cálculo fenológico automático:** A partir de la fecha de siembra (`planting_date`) y los días estimados de cosecha (`harvest_days` del cultivo), el sistema calcula y crea los registros de `FarmCropStage` (etapas fenológicas proyectadas).
 
-### B. Avance y Monitoreo de Etapas (`POST /private/lands/:id/stages/advance`)
+### B. Avance y Monitoreo de Etapas (`POST /private/lands/:id/cycles/advance`)
 1. Las etapas fenológicas se completan secuencialmente.
 2. Cada avance registra fecha de cumplimiento y observaciones de campo.
 
 ### C. Incidencias Fitosanitarias y Aplicaciones
-- **Reporte de Salud (`POST /private/lands/:id/reports`):** Permite reportar la presencia o severidad de una plaga (`plague_id`), vinculada al catálogo oficial.
+- **Reporte de Salud (`POST /private/lands/:id/health-reports`):** Permite reportar la presencia o severidad de una plaga (`plague_id`), vinculada al catálogo oficial.
 - **Aplicaciones de Insumos (`POST /private/lands/:id/applications`):** Permite asentar fecha, dosis y método de aspersión empleando productos verificados y aprobados (`product_id`).
 
 ### D. Finalización de Ciclo (`POST /private/lands/:id/cycles/finish`)
