@@ -77,7 +77,7 @@ stateDiagram-v2
 
 ## 4. Requisitos de Preparación Técnica (*Readiness Checklist*)
 
-Definidos en [`productReadinessService.js`](file:///d:/Proyectos/Agrosystem-Residencias/src/services/productReadinessService.js). El producto debe cumplir los 10 campos requeridos sin excepción para enviarse a revisión o aprobarse:
+Definidos en [`productReadinessService.js`](../../src/services/productReadinessService.js). El producto debe cumplir los 10 campos requeridos sin excepción para enviarse a revisión o aprobarse:
 
 1. **Identificación comercial:** Nombre comercial de la marca (`name`).
 2. **Categoría:** Tipo de producto agronómico (`category`, ej. Fungicida, Insecticida, Herbicida, Bioestimulante).
