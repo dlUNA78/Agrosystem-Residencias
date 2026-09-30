@@ -23,8 +23,15 @@ siguen siendo necesarias para el desarrollo y la presentación del sistema.
 
 ## Entregables para asesores
 
-La carpeta `entrega-asesores/` contiene los documentos de avance separados por
-desarrollador. No representa documentación técnica normativa.
+La carpeta `entrega-asesores/` conserva documentos de avance por desarrollador y
+material complementario para las reuniones con asesores:
+
+- [Avance Desarrollador A](./entrega-asesores/Avance_Desarrollador_A.docx)
+- [Avance Desarrollador B](./entrega-asesores/Avance_Desarrollador_B.docx)
+- [Home y decisión sobre el foro](./entrega-asesores/Home_y_decision_sobre_foro.md)
+- [Regiones agrícolas y preguntas para asesores](./entrega-asesores/Regiones_y_preguntas_a_asesores.md)
+
+El foro queda fuera del alcance del sistema y no se considera una mejora futura.
 
 ## Criterio de conservación
 
