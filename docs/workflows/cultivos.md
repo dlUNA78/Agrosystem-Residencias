@@ -63,19 +63,19 @@ stateDiagram-v2
 
 ## 3. Matriz de Estados y Acciones
 
-| Estado Actual | Acción (`action`) | Siguiente Estado | Roles Autorizados | Efectos y Restricciones |
-| :--- | :--- | :--- | :--- | :--- |
-| `draft` | `submit_review` | `in_review` | INIFAP (Autor) | Valida 9 puntos de preparación técnica. Limpia observaciones previas. |
-| `in_review` | `request_changes` | `changes_requested` | INIFAP (Revisor ajeno) | Requiere observaciones explicativas (máximo 500 caracteres). |
-| `in_review` | `verify` | `verified` | INIFAP (Revisor ajeno) | Registra `verified_by_user_id` y `verified_at`. No publica de inmediato. |
-| `changes_requested` | `submit_review` | `in_review` | INIFAP (Autor) | El autor reenvía a revisión tras actualizar la ficha. |
-| `verified` | `publish` | `published` | Administrador | Asigna `status = 'aprobado'`, `published_by_user_id`, `published_at`. Habilita uso en parcelas. |
-| `published` | `archive` | `archived` | Administrador | Retira el cultivo de la vista pública. |
-| `archived` | `restore` | `draft` | Administrador | Regresa a borrador eliminando sellos de verificación previa para reiniciar ciclo. |
+| Estado Actual       | Acción (`action`) | Siguiente Estado    | Roles Autorizados      | Efectos y Restricciones                                                                         |
+| :------------------ | :---------------- | :------------------ | :--------------------- | :---------------------------------------------------------------------------------------------- |
+| `draft`             | `submit_review`   | `in_review`         | INIFAP (Autor)         | Valida 9 puntos de preparación técnica. Limpia observaciones previas.                           |
+| `in_review`         | `request_changes` | `changes_requested` | INIFAP (Revisor ajeno) | Requiere observaciones explicativas (máximo 500 caracteres).                                    |
+| `in_review`         | `verify`          | `verified`          | INIFAP (Revisor ajeno) | Registra `verified_by_user_id` y `verified_at`. No publica de inmediato.                        |
+| `changes_requested` | `submit_review`   | `in_review`         | INIFAP (Autor)         | El autor reenvía a revisión tras actualizar la ficha.                                           |
+| `verified`          | `publish`         | `published`         | Administrador          | Asigna `status = 'aprobado'`, `published_by_user_id`, `published_at`. Habilita uso en parcelas. |
+| `published`         | `archive`         | `archived`          | Administrador          | Retira el cultivo de la vista pública.                                                          |
+| `archived`          | `restore`         | `draft`             | Administrador          | Regresa a borrador eliminando sellos de verificación previa para reiniciar ciclo.               |
 
 ---
 
-## 4. Criterios de Preparación para Publicación (*Readiness Checklist*)
+## 4. Criterios de Preparación para Publicación (_Readiness Checklist_)
 
 Definidos en [`cropReadinessService.js`](../../src/services/cropReadinessService.js). Para que una ficha de cultivo pueda pasar a revisión (`submit_review`) o ser verificada/publicada, debe cumplir la totalidad de estos 9 puntos:
 
