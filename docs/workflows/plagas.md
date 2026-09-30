@@ -1,6 +1,6 @@
 # Flujo de Aprobación y Publicación: Plagas
 
-Este documento define el ciclo de vida editorial, reglas de control de acceso (RBAC), criterios de completitud (*readiness*) y transiciones de estado para el catálogo de plagas fitosanitarias en **Agrosystem**.
+Este documento define el ciclo de vida editorial, reglas de control de acceso (RBAC), criterios de completitud (_readiness_) y transiciones de estado para el catálogo de plagas fitosanitarias en **Agrosystem**.
 
 ---
 
@@ -49,7 +49,7 @@ stateDiagram-v2
 
     Borrador --> EnRevision: Enviar a revisión (Autor, con los 9 criterios listos)
     CambiosSolicitados --> EnRevision: Reenviar a revisión (Autor, tras corregir notas)
-    
+
     EnRevision --> CambiosSolicitados: Solicitar correcciones (Revisor ajeno, con observaciones)
     EnRevision --> Verificado: Verificar técnicamente (Revisor ajeno al autor)
 
@@ -62,19 +62,19 @@ stateDiagram-v2
 
 ## 3. Matriz de Transiciones y Permisos
 
-| Estado Inicial | Acción (`action`) | Estado Resultante | Rol Permitido | Condición de Negocio |
-| :--- | :--- | :--- | :--- | :--- |
-| `draft` | `submit_review` | `in_review` | INIFAP / Admin | Debe ser el autor (`isAuthor`) y cumplir el 100% de *readiness*. |
-| `in_review` | `request_changes` | `changes_requested` | INIFAP | Revisor técnico ajeno (`!isAuthor`). Observaciones obligatorias (máx. 500 caracteres). |
-| `in_review` | `verify` | `verified` | INIFAP | Revisor técnico ajeno (`!isAuthor`). Registra `verified_by_user_id` y `verified_at`. |
-| `changes_requested` | `submit_review` | `in_review` | INIFAP / Admin | Debe ser el autor. Limpia notas de revisión. |
-| `verified` | `publish` | `published` | Admin | Solo Administrador. Registra `published_by_user_id`, `published_at` y activa `status = true`. |
-| `published` | `archive` | `archived` | Admin | Solo Administrador. Desactiva visibilidad pública (`status = false`). |
-| `archived` | `restore` | `draft` | Admin | Solo Administrador. Reinicia verificador y publicador para nuevo ciclo editorial. |
+| Estado Inicial      | Acción (`action`) | Estado Resultante   | Rol Permitido  | Condición de Negocio                                                                          |
+| :------------------ | :---------------- | :------------------ | :------------- | :-------------------------------------------------------------------------------------------- |
+| `draft`             | `submit_review`   | `in_review`         | INIFAP / Admin | Debe ser el autor (`isAuthor`) y cumplir el 100% de _readiness_.                              |
+| `in_review`         | `request_changes` | `changes_requested` | INIFAP         | Revisor técnico ajeno (`!isAuthor`). Observaciones obligatorias (máx. 500 caracteres).        |
+| `in_review`         | `verify`          | `verified`          | INIFAP         | Revisor técnico ajeno (`!isAuthor`). Registra `verified_by_user_id` y `verified_at`.          |
+| `changes_requested` | `submit_review`   | `in_review`         | INIFAP / Admin | Debe ser el autor. Limpia notas de revisión.                                                  |
+| `verified`          | `publish`         | `published`         | Admin          | Solo Administrador. Registra `published_by_user_id`, `published_at` y activa `status = true`. |
+| `published`         | `archive`         | `archived`          | Admin          | Solo Administrador. Desactiva visibilidad pública (`status = false`).                         |
+| `archived`          | `restore`         | `draft`             | Admin          | Solo Administrador. Reinicia verificador y publicador para nuevo ciclo editorial.             |
 
 ---
 
-## 4. Requisitos de Preparación para Publicación (*Readiness Checklist*)
+## 4. Requisitos de Preparación para Publicación (_Readiness Checklist_)
 
 Antes de poder ejecutar `submit_review`, `verify` o `publish`, el servicio [`plagueReadinessService.js`](../../src/services/plagueReadinessService.js) valida de forma obligatoria los siguientes 9 criterios:
 
