@@ -9,6 +9,13 @@ siguen siendo necesarias para el desarrollo y la presentación del sistema.
   calidad y flujo de trabajo.
 - [Matriz RBAC](./RBAC.MD): permisos y responsabilidades por rol.
 
+## Flujos de trabajo y aprobación técnica
+
+- [Flujo de Plagas](./workflows/plagas.md): ciclo editorial, revisión por pares y publicación.
+- [Flujo de Cultivos](./workflows/cultivos.md): validación agronómica, readiness y habilitación para parcelas.
+- [Flujo de Productos](./workflows/productos.md): verificación sanitaria, dosis y registro fitosanitario.
+- [Flujo de Terrenos](./workflows/terrenos.md): ciclo de vida del predio, integración de catálogos y expediente fenológico.
+
 ## Referencias de dominio
 
 - [`referencias/relaciones-agricolas-catalogos.pdf`](./referencias/relaciones-agricolas-catalogos.pdf):
