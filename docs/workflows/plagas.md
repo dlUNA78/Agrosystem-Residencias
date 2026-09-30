@@ -76,7 +76,7 @@ stateDiagram-v2
 
 ## 4. Requisitos de Preparación para Publicación (*Readiness Checklist*)
 
-Antes de poder ejecutar `submit_review`, `verify` o `publish`, el servicio [`plagueReadinessService.js`](file:///d:/Proyectos/Agrosystem-Residencias/src/services/plagueReadinessService.js) valida de forma obligatoria los siguientes 9 criterios:
+Antes de poder ejecutar `submit_review`, `verify` o `publish`, el servicio [`plagueReadinessService.js`](../../src/services/plagueReadinessService.js) valida de forma obligatoria los siguientes 9 criterios:
 
 1. **Identificación taxonómica:** Nombre común y nombre científico (`name`, `scientific_name`).
 2. **Clasificación y riesgo:** Categoría (`category`) y nivel de riesgo agronómico (`risk_level`).
@@ -93,7 +93,7 @@ Antes de poder ejecutar `submit_review`, `verify` o `publish`, el servicio [`pla
 ## 5. Endpoints y Despacho Técnico
 
 - **Transición de Workflow:**
-  - `POST /private/plagas/:id/workflow` o `POST /private/plagues/:id/workflow`
+  - `POST /private/plagues/:id/workflow`
   - Parámetros en Body: `{ "action": "submit_review" | "request_changes" | "verify" | "publish" | "archive" | "restore", "review_notes": "..." }`
 - **Gestión de Relaciones (Cultivos / Regiones):**
   - `POST /private/plagues/:id/relations` (Solo editable en `draft` o `changes_requested`).
