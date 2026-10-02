@@ -88,10 +88,9 @@ export const renderLandsPrivate = async (req, res) => {
         isArchived: listStatus === 'archived',
         isAll: listStatus === 'all',
       },
-      extraHead:
-        '<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />',
+      extraHead: '<link rel="stylesheet" href="/vendor/leaflet/leaflet.css" />',
       extraScripts: `
-        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+        <script src="/vendor/leaflet/leaflet.js"></script>
         <script src="/js/private/lands.js"></script>
       `,
     });

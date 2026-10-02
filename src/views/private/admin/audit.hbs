@@ -19,7 +19,7 @@
         </div>
 
         <!-- TABLE VIEW -->
-        <div id="audit-table-view" style="display:none" class="bg-surface-container-lowest rounded-2xl shadow-sm overflow-hidden border border-outline-variant/10">
+        <div id="audit-table-view" class="hidden bg-surface-container-lowest rounded-2xl shadow-sm overflow-hidden border border-outline-variant/10">
             <table class="w-full text-left border-collapse">
                 <thead>
                     <tr class="bg-surface-container-low/50">
@@ -305,37 +305,6 @@
     </div>
 </main>
 
-<script>
-    (function () {
-        // View toggle
-        const tableView = document.getElementById('audit-table-view');
-        const gridView = document.getElementById('audit-grid-view');
-        const btnTable = document.getElementById('view-table');
-        const btnGrid = document.getElementById('view-grid');
+<script type="module" src="/js/private/audit.js"></script>
 
-        if (btnTable && btnGrid) {
-            btnGrid.classList.add('bg-[#43655c]', 'text-white');
-            btnGrid.classList.remove('text-on-surface-variant');
-            btnTable.classList.remove('bg-[#43655c]', 'text-white');
-            btnTable.classList.add('text-on-surface-variant');
 
-            btnTable.addEventListener('click', function () {
-                tableView.style.display = '';
-                gridView.style.display = 'none';
-                btnTable.classList.add('bg-[#43655c]', 'text-white');
-                btnTable.classList.remove('text-on-surface-variant');
-                btnGrid.classList.remove('bg-[#43655c]', 'text-white');
-                btnGrid.classList.add('text-on-surface-variant');
-            });
-
-            btnGrid.addEventListener('click', function () {
-                tableView.style.display = 'none';
-                gridView.style.display = 'grid';
-                btnGrid.classList.add('bg-[#43655c]', 'text-white');
-                btnGrid.classList.remove('text-on-surface-variant');
-                btnTable.classList.remove('bg-[#43655c]', 'text-white');
-                btnTable.classList.add('text-on-surface-variant');
-            });
-        }
-    })();
-</script>

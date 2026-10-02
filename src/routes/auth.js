@@ -43,8 +43,9 @@ router.post('/login', authLimiter, (req, res, next) => {
   })(req, res, next);
 });
 
-// --- RUTA DE CERRAR SESIÓN ---
-router.get('/logout', authController.logout);
+// --- RUTAS DE CERRAR SESIÓN (POST obligatorio según RULES.MD) ---
+router.post('/logout', authController.logout);
+router.get('/logout', (req, res) => res.redirect('/auth/login'));
 
 // --- ASCENSO A PERSONAL INIFAP (UPGRADE) ---
 router.get('/inifap-upgrade', isAuthenticated, authController.showUpgrade);

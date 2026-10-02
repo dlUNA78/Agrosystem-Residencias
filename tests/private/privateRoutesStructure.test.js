@@ -429,8 +429,8 @@ export const EXPECTED_CONTRACT = [
     path: '/private/audit',
     domain: 'admin',
     controller: 'auditPrivate',
-    middlewares: [],
-    permissionArg: null,
+    middlewares: ['requireRole'],
+    permissionArg: 'admin',
   },
 ];
 

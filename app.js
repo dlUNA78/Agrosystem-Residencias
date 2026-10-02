@@ -55,6 +55,8 @@ app.use(
   helmet({
     contentSecurityPolicy: false,
     crossOriginEmbedderPolicy: false,
+    crossOriginResourcePolicy: false,
+    referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
   }),
 );
 
@@ -192,6 +194,10 @@ hbs.registerHelper('userInitial', function (user, options) {
 
 // Archivos estáticos y Middlewares base
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(
+  '/vendor/leaflet',
+  express.static(path.join(__dirname, 'node_modules/leaflet/dist')),
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

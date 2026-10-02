@@ -40,4 +40,16 @@ describe('🔑 Pruebas de Flujo Completo de Inicio de Sesión (Login Flow)', () 
     // Limpieza
     await testUser.destroy();
   });
+
+  it('Debe cerrar sesión mediante POST /auth/logout y redirigir al login', async () => {
+    const response = await request(app).post('/auth/logout');
+    expect(response.status).toBe(302);
+    expect(response.headers.location).toBe('/auth/login');
+  });
+
+  it('Debe redirigir defensivamente a /auth/login si se accede por GET /auth/logout', async () => {
+    const response = await request(app).get('/auth/logout');
+    expect(response.status).toBe(302);
+    expect(response.headers.location).toBe('/auth/login');
+  });
 });

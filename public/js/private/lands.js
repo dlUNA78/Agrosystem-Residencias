@@ -26,11 +26,38 @@ document.addEventListener('DOMContentLoaded', function () {
       5,
     );
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution:
-        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-      maxZoom: 19,
-    }).addTo(landsMap);
+    const osmLayer = L.tileLayer(
+      'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+      {
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        maxZoom: 19,
+        referrerPolicy: 'strict-origin-when-cross-origin',
+      },
+    );
+
+    const satelliteLayer = L.tileLayer(
+      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+      {
+        attribution: 'Tiles &copy; Esri &mdash; Fuente: Esri, Maxar, Earthstar Geographics',
+        maxZoom: 19,
+      },
+    );
+
+    // Capa base por defecto
+    osmLayer.addTo(landsMap);
+
+    // Selector de capas: Mapa estándar vs Vista Satélite
+    L.control
+      .layers(
+        {
+          '🗺️ Mapa': osmLayer,
+          '🛰️ Satélite': satelliteLayer,
+        },
+        null,
+        { position: 'topright' },
+      )
+      .addTo(landsMap);
 
     // Forzar re-cálculo del tamaño por si el sidebar causa un reflow al cargar
     setTimeout(() => landsMap.invalidateSize(), 200);
@@ -122,10 +149,11 @@ document.addEventListener('DOMContentLoaded', function () {
         fadeAnimation: true,
       }).setView([19.432608, -99.133209], 5);
 
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution:
-          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         maxZoom: 19,
+        referrerPolicy: 'strict-origin-when-cross-origin',
       }).addTo(farmMap);
 
       // ── Evento clic: colocar/mover marcador y actualizar inputs ocultos ──
