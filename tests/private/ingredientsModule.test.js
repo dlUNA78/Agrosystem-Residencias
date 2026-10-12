@@ -2,7 +2,42 @@ import { describe, expect, it, jest } from '@jest/globals';
 import fs from 'node:fs';
 import path from 'node:path';
 import hbs from 'express-hbs';
-import { ingredientsPrivate } from '../../src/controllers/private/ingredientsController.js';
+
+const mockDb = {
+  Sequelize: {
+    Op: {
+      like: Symbol('like'),
+      or: Symbol('or'),
+    },
+    fn: jest.fn((name, arg) => ({ fn: name, arg })),
+    col: jest.fn((name) => ({ col: name })),
+    where: jest.fn((left, right) => ({ left, right })),
+  },
+  ActiveIngredient: {
+    findAndCountAll: jest.fn().mockResolvedValue({
+      count: 0,
+      rows: [],
+    }),
+    findByPk: jest.fn(),
+    create: jest.fn(),
+  },
+  AuditLog: {
+    create: jest.fn(),
+  },
+  sequelize: {
+    transaction: jest.fn().mockResolvedValue({
+      commit: jest.fn(),
+      rollback: jest.fn(),
+    }),
+  },
+};
+
+jest.unstable_mockModule('../../src/models/index.js', () => ({
+  default: mockDb,
+}));
+
+const { ingredientsPrivate } =
+  await import('../../src/controllers/private/ingredientsController.js');
 
 const VIEW_ROOT = path.resolve('src/views/private/catalog/ingredients.hbs');
 const PARTIALS_DIR = path.resolve('src/views/partials/private/ingredients');
@@ -13,13 +48,13 @@ const readView = (filePath) => fs.readFileSync(filePath, 'utf8');
 
 describe('módulo privado de ingredientes activos', () => {
   describe('controlador ingredientsPrivate', () => {
-    it('renderiza la vista correcta con los parámetros y filtros requeridos', () => {
+    it('renderiza la vista correcta con los parámetros y filtros requeridos', async () => {
       const req = {};
       const res = {
         render: jest.fn(),
       };
 
-      ingredientsPrivate(req, res);
+      await ingredientsPrivate(req, res);
 
       expect(res.render).toHaveBeenCalledTimes(1);
       const [viewPath, renderData] = res.render.mock.calls[0];

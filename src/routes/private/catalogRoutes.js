@@ -46,7 +46,13 @@ import {
   deleteProduct,
   updateProductWorkflow,
 } from '../../controllers/private/productsController.js';
-import { ingredientsPrivate } from '../../controllers/private/ingredientsController.js';
+import { requireRole } from '../../middlewares/authMiddleware.js';
+import {
+  ingredientsPrivate,
+  createIngredient,
+  updateIngredient,
+  deleteIngredient,
+} from '../../controllers/private/ingredientsController.js';
 
 const catalogRouter = Router();
 
@@ -182,5 +188,20 @@ catalogRouter.post(
 // MÓDULO: INGREDIENTES
 // ══════════════════════════════════════════════════════════════════════════════
 catalogRouter.get('/private/ingredients', ingredientsPrivate);
+catalogRouter.post(
+  '/private/ingredients/create',
+  requireRole('admin'),
+  createIngredient,
+);
+catalogRouter.post(
+  '/private/ingredients/update/:id',
+  requireRole('admin'),
+  updateIngredient,
+);
+catalogRouter.post(
+  '/private/ingredients/delete/:id',
+  requireRole('admin'),
+  deleteIngredient,
+);
 
 export default catalogRouter;
