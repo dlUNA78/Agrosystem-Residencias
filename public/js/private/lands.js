@@ -39,7 +39,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const satelliteLayer = L.tileLayer(
       'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
       {
-        attribution: 'Tiles &copy; Esri &mdash; Fuente: Esri, Maxar, Earthstar Geographics',
+        attribution:
+          'Tiles &copy; Esri &mdash; Fuente: Esri, Maxar, Earthstar Geographics',
         maxZoom: 19,
       },
     );

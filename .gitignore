@@ -28,7 +28,7 @@ public/css/style.css
 # QA y Reportes de Pruebas
 coverage/
 .stryker-tmp/
-reports/
+/reports/
 
 # Archivos temporales locales de herramientas y revisiones
 tmp/
