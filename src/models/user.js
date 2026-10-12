@@ -7,8 +7,11 @@ export default (sequelize, DataTypes) => {
      * This method is not a part of Sequelize lifecycle.
      * The `models/index` file will call this method automatically.
      */
-    static associate(_models) {
-      // define association here
+    static associate(models) {
+      User.hasMany(models.AuditLog, {
+        foreignKey: 'user_id',
+        as: 'auditLogs',
+      });
     }
   }
   User.init(

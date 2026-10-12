@@ -239,7 +239,7 @@ export const EXPECTED_CONTRACT = [
     permissionArg: null,
   },
 
-  // ─── CATÁLOGO: INGREDIENTES ACTIVOS (1) ────────────────────────────────────
+  // ─── CATÁLOGO: INGREDIENTES ACTIVOS (4) ────────────────────────────────────
   {
     method: 'GET',
     path: '/private/ingredients',
@@ -247,6 +247,30 @@ export const EXPECTED_CONTRACT = [
     controller: 'ingredientsPrivate',
     middlewares: [],
     permissionArg: null,
+  },
+  {
+    method: 'POST',
+    path: '/private/ingredients/create',
+    domain: 'catalog',
+    controller: 'createIngredient',
+    middlewares: ['requireRole'],
+    permissionArg: 'admin',
+  },
+  {
+    method: 'POST',
+    path: '/private/ingredients/update/:id',
+    domain: 'catalog',
+    controller: 'updateIngredient',
+    middlewares: ['requireRole'],
+    permissionArg: 'admin',
+  },
+  {
+    method: 'POST',
+    path: '/private/ingredients/delete/:id',
+    domain: 'catalog',
+    controller: 'deleteIngredient',
+    middlewares: ['requireRole'],
+    permissionArg: 'admin',
   },
 
   // ─── PARCELAS Y GRANJAS (11) ──────────────────────────────────────────────
@@ -429,8 +453,8 @@ export const EXPECTED_CONTRACT = [
     path: '/private/audit',
     domain: 'admin',
     controller: 'auditPrivate',
-    middlewares: [],
-    permissionArg: null,
+    middlewares: ['requireRole'],
+    permissionArg: 'admin',
   },
 ];
 
@@ -514,12 +538,12 @@ describe('pruebas estructurales y de inventario de rutas privadas por dominio', 
     });
   });
 
-  describe('equivalencia del inventario de rutas (50 endpoints)', () => {
+  describe('equivalencia del inventario de rutas (53 endpoints)', () => {
     const registeredRoutes = extractDetailedRoutes(privateRouter);
 
-    it('el total de registros explícitos coincide exactamente con los 50 del contrato base', () => {
-      expect(registeredRoutes).toHaveLength(50);
-      expect(EXPECTED_CONTRACT).toHaveLength(50);
+    it('el total de registros explícitos coincide exactamente con los 53 del contrato base', () => {
+      expect(registeredRoutes).toHaveLength(53);
+      expect(EXPECTED_CONTRACT).toHaveLength(53);
     });
 
     it('cada endpoint esperado existe con el método, path, controlador final y middlewares exactos', () => {
@@ -556,7 +580,7 @@ describe('pruebas estructurales y de inventario de rutas privadas por dominio', 
     it('no existen rutas adicionales, huérfanas ni duplicadas en el router compuesto', () => {
       const routeKeys = registeredRoutes.map((r) => `${r.method} ${r.path}`);
       const uniqueKeys = new Set(routeKeys);
-      expect(uniqueKeys.size).toBe(50);
+      expect(uniqueKeys.size).toBe(53);
 
       registeredRoutes.forEach((route) => {
         const expected = EXPECTED_CONTRACT.find(
@@ -571,14 +595,14 @@ describe('pruebas estructurales y de inventario de rutas privadas por dominio', 
       const landRoutes = extractDetailedRoutes(landRouter);
       const adminRoutes = extractDetailedRoutes(adminRouter);
 
-      expect(catalogRoutes).toHaveLength(23);
+      expect(catalogRoutes).toHaveLength(26);
       expect(landRoutes).toHaveLength(11);
       expect(adminRoutes).toHaveLength(11);
 
-      // 23 catálogo + 11 parcelas + 11 admin + 5 agregador raíz = 50
+      // 26 catálogo + 11 parcelas + 11 admin + 5 agregador raíz = 53
       const totalModularRoutes =
         catalogRoutes.length + landRoutes.length + adminRoutes.length + 5;
-      expect(totalModularRoutes).toBe(50);
+      expect(totalModularRoutes).toBe(53);
     });
 
     it('las 11 rutas de parcelas apuntan a sus controladores correspondientes (incluyendo archive/restore)', () => {

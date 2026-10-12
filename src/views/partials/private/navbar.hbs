@@ -47,10 +47,12 @@
                     <i data-lucide="user" class="w-4 h-4 text-[#1b4332]"></i>
                     <span>Mi Perfil</span>
                 </a>
-                <a href="/auth/logout" class="flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 transition-colors">
-                    <i data-lucide="log-out" class="w-4 h-4"></i>
-                    <span>Cerrar Sesión</span>
-                </a>
+                <form action="/auth/logout" method="POST" class="m-0">
+                    <button type="submit" class="w-full flex items-center gap-2.5 px-4 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 transition-colors text-left cursor-pointer">
+                        <i data-lucide="log-out" class="w-4 h-4"></i>
+                        <span>Cerrar Sesión</span>
+                    </button>
+                </form>
             </div>
         </div>
     </div>

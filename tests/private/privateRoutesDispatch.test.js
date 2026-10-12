@@ -64,6 +64,9 @@ const mockControllers = {
 
   // Ingredients
   ingredientsPrivate: createMockController('ingredientsPrivate'),
+  createIngredient: createMockController('createIngredient'),
+  updateIngredient: createMockController('updateIngredient'),
+  deleteIngredient: createMockController('deleteIngredient'),
 
   // Lands
   renderLandsPrivate: createMockController('renderLandsPrivate'),
@@ -150,6 +153,9 @@ jest.unstable_mockModule(
   '../../src/controllers/private/ingredientsController.js',
   () => ({
     ingredientsPrivate: mockControllers.ingredientsPrivate,
+    createIngredient: mockControllers.createIngredient,
+    updateIngredient: mockControllers.updateIngredient,
+    deleteIngredient: mockControllers.deleteIngredient,
   }),
 );
 
@@ -533,13 +539,36 @@ const ALL_50_DISPATCH_ENDPOINTS = [
     authEvent: 'auth:product:workflow',
   },
 
-  // ─── CATÁLOGO: INGREDIENTES (1) ────────────────────────────────────────────
+  // ─── CATÁLOGO: INGREDIENTES (4) ────────────────────────────────────────────
   {
     method: 'get',
     routePath: '/private/ingredients',
     dispatchPath: '/private/ingredients',
     controller: 'ingredientsPrivate',
     params: {},
+  },
+  {
+    method: 'post',
+    routePath: '/private/ingredients/create',
+    dispatchPath: '/private/ingredients/create',
+    controller: 'createIngredient',
+    params: {},
+    body: { name: 'Glifosato' },
+  },
+  {
+    method: 'post',
+    routePath: '/private/ingredients/update/:id',
+    dispatchPath: '/private/ingredients/update/1',
+    controller: 'updateIngredient',
+    params: { id: '1' },
+    body: { name: 'Glifosato' },
+  },
+  {
+    method: 'post',
+    routePath: '/private/ingredients/delete/:id',
+    dispatchPath: '/private/ingredients/delete/1',
+    controller: 'deleteIngredient',
+    params: { id: '1' },
   },
 
   // ─── PARCELAS / GRANJAS (11) ──────────────────────────────────────────────
@@ -723,15 +752,15 @@ describe('pruebas de despacho HTTP del router privado', () => {
   });
 
   // ════════════════════════════════════════════════════════════════════════════
-  // 1. COBERTURA PARAMETRIZADA DE LOS 50 ENDPOINTS
+  // 1. COBERTURA PARAMETRIZADA DE LOS 53 ENDPOINTS
   // ════════════════════════════════════════════════════════════════════════════
-  describe('cobertura parametrizada exhaustiva de los 50 endpoints', () => {
-    it('el catálogo de pruebas de despacho cubre exactamente 50 endpoints únicos', () => {
-      expect(ALL_50_DISPATCH_ENDPOINTS).toHaveLength(50);
+  describe('cobertura parametrizada exhaustiva de los 53 endpoints', () => {
+    it('el catálogo de pruebas de despacho cubre exactamente 53 endpoints únicos', () => {
+      expect(ALL_50_DISPATCH_ENDPOINTS).toHaveLength(53);
       const keys = ALL_50_DISPATCH_ENDPOINTS.map(
         (e) => `${e.method.toUpperCase()} ${e.routePath}`,
       );
-      expect(new Set(keys).size).toBe(50);
+      expect(new Set(keys).size).toBe(53);
     });
 
     test.each(ALL_50_DISPATCH_ENDPOINTS)(

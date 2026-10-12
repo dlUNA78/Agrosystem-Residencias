@@ -41,6 +41,12 @@
           href="/dashboard">
           Panel INIFAP
         </a>
+        {{else}}
+        <a class="text-sm font-semibold text-emerald-700 hover:text-emerald-900 transition-colors py-1.5 border-b-2 border-transparent flex items-center gap-1.5"
+          href="/auth/inifap-upgrade" title="Acceso al Panel Técnico (Validar Código)">
+          <span class="material-symbols-outlined text-base">verified_user</span>
+          Ascenso INIFAP
+        </a>
         {{/if}}
       </nav>
     </div>
@@ -100,15 +106,23 @@
               <span class="material-symbols-outlined text-base">dashboard</span>
               Panel INIFAP
             </a>
+            {{else}}
+            <a href="/auth/inifap-upgrade"
+              class="flex items-center gap-2.5 px-4 py-1.5 text-xs font-medium text-emerald-700 hover:bg-emerald-50 hover:text-emerald-900 transition-colors">
+              <span class="material-symbols-outlined text-base">verified_user</span>
+              Ascenso a Personal INIFAP
+            </a>
             {{/if}}
           </div>
 
           <div class="border-t border-border pt-1 mt-1">
-            <a href="/auth/logout"
-              class="flex items-center gap-2.5 px-4 py-1.5 text-xs font-medium text-rose-600 hover:bg-rose-50 transition-colors">
-              <span class="material-symbols-outlined text-base">logout</span>
-              Cerrar Sesión
-            </a>
+            <form action="/auth/logout" method="POST" class="m-0">
+              <button type="submit"
+                class="w-full flex items-center gap-2.5 px-4 py-1.5 text-xs font-medium text-rose-600 hover:bg-rose-50 transition-colors text-left cursor-pointer">
+                <span class="material-symbols-outlined text-base">logout</span>
+                Cerrar Sesión
+              </button>
+            </form>
           </div>
         </div>
       </div>
@@ -152,16 +166,31 @@
     {{#if (canAccessPanel user)}}
     <a href="/dashboard" class="block px-3 py-2 rounded-md text-sm font-semibold text-[#1b4332] bg-emerald-50">Ir al
       Panel INIFAP</a>
+    {{else}}
+    <a href="/auth/inifap-upgrade" class="block px-3 py-2 rounded-md text-sm font-semibold text-emerald-700 bg-emerald-50 flex items-center gap-2">
+      <span class="material-symbols-outlined text-base">verified_user</span>
+      Ascenso a Personal INIFAP
+    </a>
     {{/if}}
 
-    {{#unless user}}
+    {{#if user}}
+    <div class="pt-2 border-t border-border">
+      <form action="/auth/logout" method="POST" class="m-0">
+        <button type="submit"
+          class="w-full flex items-center gap-2 px-3 py-2 text-sm font-semibold text-rose-600 hover:bg-rose-50 rounded-md transition-colors text-left cursor-pointer">
+          <span class="material-symbols-outlined text-base">logout</span>
+          Cerrar Sesión
+        </button>
+      </form>
+    </div>
+    {{else}}
     <div class="pt-2 border-t border-border flex flex-col gap-2">
       <a href="/auth/login"
         class="w-full text-center py-2 text-xs font-semibold text-muted-foreground hover:bg-secondary rounded-md">Ingresar</a>
       <a href="/auth/register"
         class="w-full text-center py-2.5 text-xs font-semibold text-white bg-[#1b4332] hover:bg-[#133426] rounded-md shadow-2xs">Registrarse</a>
     </div>
-    {{/unless}}
+    {{/if}}
   </div>
 </header>
 

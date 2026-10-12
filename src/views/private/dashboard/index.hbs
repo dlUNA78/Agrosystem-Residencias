@@ -18,10 +18,14 @@
         VALIDACIONES PENDIENTES
       </span>
       <div class="flex items-baseline justify-between">
-        <span class="text-3xl font-headline font-black text-foreground">24</span>
-        <span class="inline-flex items-center gap-1 text-xs font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
-          <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i> +5 hoy
-        </span>
+        <span class="text-3xl font-headline font-black text-foreground">{{validations.total}}</span>
+        {{#if validations.todayNewCount}}
+          <span class="inline-flex items-center gap-1 text-xs font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+            <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i> +{{validations.todayNewCount}} hoy
+          </span>
+        {{else}}
+          <span class="text-xs font-mono text-muted-foreground font-semibold">Al día</span>
+        {{/if}}
       </div>
     </div>
 
@@ -31,8 +35,8 @@
         ALERTAS CRÍTICAS ACTIVAS
       </span>
       <div>
-        <span class="text-3xl font-headline font-black text-rose-600 block leading-tight">7</span>
-        <span class="text-xs text-muted-foreground font-medium">En terrenos privados</span>
+        <span class="text-3xl font-headline font-black text-rose-600 block leading-tight">{{alerts.criticalCount}}</span>
+        <span class="text-xs text-muted-foreground font-medium">En terrenos monitoreados</span>
       </div>
     </div>
 
@@ -42,19 +46,21 @@
         HECTÁREAS MONITOREADAS
       </span>
       <div class="flex items-baseline gap-1.5">
-        <span class="text-3xl font-headline font-black text-foreground">1,280</span>
+        <span class="text-3xl font-headline font-black text-foreground">{{land.formattedHectares}}</span>
         <span class="text-xs font-mono font-bold text-muted-foreground uppercase">ha</span>
       </div>
     </div>
 
-    <!-- KPI 4: Actividad Comunidad -->
+    <!-- KPI 4: Predios y Ciclos en Operación (reemplaza foro descartado) -->
     <div class="bg-card p-5 rounded-xl border border-border shadow-2xs hover:border-[#1b4332]/30 transition-all flex flex-col justify-between">
       <span class="text-[10px] font-mono font-bold uppercase tracking-widest text-muted-foreground block mb-3">
-        ACTIVIDAD COMUNIDAD
+        PREDIOS ACTIVOS
       </span>
-      <div>
-        <span class="text-3xl font-headline font-black text-foreground block leading-tight">142</span>
-        <span class="text-xs text-muted-foreground font-medium">Posts / IDs últ. 24h</span>
+      <div class="flex items-baseline justify-between">
+        <span class="text-3xl font-headline font-black text-foreground">{{land.totalFarms}}</span>
+        <span class="text-xs font-mono font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+          {{land.activeCyclesCount}} ciclos
+        </span>
       </div>
     </div>
   </section>
@@ -73,94 +79,102 @@
             <p class="text-xs text-muted-foreground">Tareas y alertas ordenadas por prioridad</p>
           </div>
           <span class="text-xs font-mono text-muted-foreground font-bold px-2.5 py-0.5 rounded-md bg-muted">
-            4 pendientes
+            Monitoreo en tiempo real
           </span>
         </div>
 
         <div class="divide-y divide-border">
-          <!-- Item 1: BROTE -->
-          <div class="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-muted/30 transition-colors">
-            <div class="flex items-start gap-3.5">
-              <div class="w-9 h-9 rounded-xl bg-rose-100/70 text-rose-600 flex items-center justify-center shrink-0 mt-0.5">
-                <i data-lucide="alert-triangle" class="w-5 h-5"></i>
-              </div>
-              <div>
-                <div class="flex items-center gap-2 mb-1">
-                  <span class="px-2 py-0.5 text-[9px] font-mono font-bold uppercase rounded bg-rose-100 text-rose-800 tracking-wider">
-                    BROTE
-                  </span>
-                  <h3 class="text-sm font-bold text-foreground">Posible brote de Gusano Cogollero en región central</h3>
+          {{#if alerts.latestAlert}}
+            <!-- Item 1: ALERTA FITOSANITARIA -->
+            <div class="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-muted/30 transition-colors">
+              <div class="flex items-start gap-3.5">
+                <div class="w-9 h-9 rounded-xl bg-rose-100/70 text-rose-600 flex items-center justify-center shrink-0 mt-0.5">
+                  <i data-lucide="alert-triangle" class="w-5 h-5"></i>
                 </div>
-                <p class="text-xs text-muted-foreground">3 reportes coincidentes · últimas 2 h</p>
-              </div>
-            </div>
-            <a href="/private/catalog/plagues" class="inline-flex items-center justify-center px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-lg transition-colors shrink-0 shadow-2xs">
-              Ver detalles
-            </a>
-          </div>
-
-          <!-- Item 2: VALIDACIÓN -->
-          <div class="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-muted/30 transition-colors">
-            <div class="flex items-start gap-3.5">
-              <div class="w-9 h-9 rounded-xl bg-emerald-100/70 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5">
-                <i data-lucide="clipboard-check" class="w-5 h-5"></i>
-              </div>
-              <div>
-                <div class="flex items-center gap-2 mb-1">
-                  <span class="px-2 py-0.5 text-[9px] font-mono font-bold uppercase rounded bg-emerald-100 text-emerald-800 tracking-wider">
-                    VALIDACIÓN
-                  </span>
-                  <h3 class="text-sm font-bold text-foreground">24 fichas de plaga esperan revisión</h3>
+                <div>
+                  <div class="flex items-center gap-2 mb-1">
+                    <span class="px-2 py-0.5 text-[9px] font-mono font-bold uppercase rounded bg-rose-100 text-rose-800 tracking-wider">
+                      INCIDENCIA
+                    </span>
+                    <h3 class="text-sm font-bold text-foreground">Alerta crítica: {{alerts.latestAlert.plague_name}}</h3>
+                  </div>
+                  <p class="text-xs text-muted-foreground">
+                    Predio: {{#if alerts.latestAlert.farm}}{{alerts.latestAlert.farm.name}}{{else}}No especificado{{/if}} · Severidad {{alerts.latestAlert.severity}}
+                  </p>
                 </div>
-                <p class="text-xs text-muted-foreground">5 nuevas hoy · asignadas a tu equipo</p>
               </div>
+              <a href="/private/lands" class="inline-flex items-center justify-center px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-lg transition-colors shrink-0 shadow-2xs">
+                Ver predio
+              </a>
             </div>
-            <a href="/private/catalog/plagues" class="inline-flex items-center justify-center px-4 py-2 bg-card border border-border hover:bg-muted text-foreground font-bold text-xs rounded-lg transition-colors shrink-0">
-              Revisar
-            </a>
-          </div>
+          {{/if}}
 
-          <!-- Item 3: SUGERENCIA -->
+          {{#if validations.total}}
+            <!-- Item 2: VALIDACIÓN -->
+            <div class="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-muted/30 transition-colors">
+              <div class="flex items-start gap-3.5">
+                <div class="w-9 h-9 rounded-xl bg-emerald-100/70 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5">
+                  <i data-lucide="clipboard-check" class="w-5 h-5"></i>
+                </div>
+                <div>
+                  <div class="flex items-center gap-2 mb-1">
+                    <span class="px-2 py-0.5 text-[9px] font-mono font-bold uppercase rounded bg-emerald-100 text-emerald-800 tracking-wider">
+                      VALIDACIÓN
+                    </span>
+                    <h3 class="text-sm font-bold text-foreground">{{validations.total}} fichas técnicas esperan revisión</h3>
+                  </div>
+                  <p class="text-xs text-muted-foreground">{{validations.plaguesPending}} plagas, {{validations.cropsPending}} cultivos, {{validations.productsPending}} productos</p>
+                </div>
+              </div>
+              <a href="/private/catalog/plagues" class="inline-flex items-center justify-center px-4 py-2 bg-card border border-border hover:bg-muted text-foreground font-bold text-xs rounded-lg transition-colors shrink-0">
+                Revisar
+              </a>
+            </div>
+          {{/if}}
+
+          <!-- Item 3: OPERACIÓN DE PREDIOS -->
           <div class="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-muted/30 transition-colors">
             <div class="flex items-start gap-3.5">
               <div class="w-9 h-9 rounded-xl bg-amber-100/70 text-amber-700 flex items-center justify-center shrink-0 mt-0.5">
-                <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                <i data-lucide="map-pin" class="w-5 h-5"></i>
               </div>
               <div>
                 <div class="flex items-center gap-2 mb-1">
                   <span class="px-2 py-0.5 text-[9px] font-mono font-bold uppercase rounded bg-amber-100 text-amber-800 tracking-wider">
-                    SUGERENCIA
+                    OPERACIÓN
                   </span>
-                  <h3 class="text-sm font-bold text-foreground">12 cambios sugeridos por técnicos de campo</h3>
+                  <h3 class="text-sm font-bold text-foreground">Registro y bitácora de predios agrícolas</h3>
                 </div>
-                <p class="text-xs text-muted-foreground">Ediciones a fichas y umbrales de manejo</p>
+                <p class="text-xs text-muted-foreground">Monitoreo fenológico y seguimiento de aplicaciones fitosanitarias</p>
               </div>
             </div>
-            <a href="/private/reports" class="inline-flex items-center justify-center px-4 py-2 bg-card border border-border hover:bg-muted text-foreground font-bold text-xs rounded-lg transition-colors shrink-0">
-              Revisar cambios
+            <a href="/private/lands" class="inline-flex items-center justify-center px-4 py-2 bg-card border border-border hover:bg-muted text-foreground font-bold text-xs rounded-lg transition-colors shrink-0">
+              Ir a predios
             </a>
           </div>
 
-          <!-- Item 4: ACCESO -->
-          <div class="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-muted/30 transition-colors">
-            <div class="flex items-start gap-3.5">
-              <div class="w-9 h-9 rounded-xl bg-slate-200/70 text-slate-700 flex items-center justify-center shrink-0 mt-0.5">
-                <i data-lucide="key" class="w-5 h-5"></i>
-              </div>
-              <div>
-                <div class="flex items-center gap-2 mb-1">
-                  <span class="px-2 py-0.5 text-[9px] font-mono font-bold uppercase rounded bg-slate-200 text-slate-800 tracking-wider">
-                    ACCESO
-                  </span>
-                  <h3 class="text-sm font-bold text-foreground">Generar código INIFAP para nuevo técnico</h3>
+          {{#if isAdmin}}
+            <!-- Item 4: ACCESO INIFAP -->
+            <div class="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-muted/30 transition-colors">
+              <div class="flex items-start gap-3.5">
+                <div class="w-9 h-9 rounded-xl bg-slate-200/70 text-slate-700 flex items-center justify-center shrink-0 mt-0.5">
+                  <i data-lucide="key" class="w-5 h-5"></i>
                 </div>
-                <p class="text-xs text-muted-foreground">Acceso seguro con caducidad de 24 h</p>
+                <div>
+                  <div class="flex items-center gap-2 mb-1">
+                    <span class="px-2 py-0.5 text-[9px] font-mono font-bold uppercase rounded bg-slate-200 text-slate-800 tracking-wider">
+                      ACCESO
+                    </span>
+                    <h3 class="text-sm font-bold text-foreground">Gestión de usuarios y accesos INIFAP</h3>
+                  </div>
+                  <p class="text-xs text-muted-foreground">Administración de roles y generación de códigos de vinculación</p>
+                </div>
               </div>
+              <a href="/private/users" class="inline-flex items-center justify-center px-4 py-2 bg-card border border-border hover:bg-muted text-foreground font-bold text-xs rounded-lg transition-colors shrink-0">
+                Gestionar
+              </a>
             </div>
-            <a href="/private/users" class="inline-flex items-center justify-center px-4 py-2 bg-card border border-border hover:bg-muted text-foreground font-bold text-xs rounded-lg transition-colors shrink-0">
-              Generar
-            </a>
-          </div>
+          {{/if}}
         </div>
 
         <!-- Botones de Acción Rápida Inferiores -->
@@ -168,12 +182,14 @@
           <a href="/private/lands" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-card border border-border hover:bg-muted text-foreground font-bold text-xs rounded-md transition-colors shadow-2xs">
             <i data-lucide="plus" class="w-3.5 h-3.5"></i> Registrar predio
           </a>
-          <a href="/private/reports" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-card border border-border hover:bg-muted text-foreground font-bold text-xs rounded-md transition-colors shadow-2xs">
-            <i data-lucide="file-text" class="w-3.5 h-3.5"></i> Sugerencias
+          <a href="/private/audit" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-card border border-border hover:bg-muted text-foreground font-bold text-xs rounded-md transition-colors shadow-2xs">
+            <i data-lucide="history" class="w-3.5 h-3.5"></i> Auditoría
           </a>
-          <a href="/private/users" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-card border border-border hover:bg-muted text-foreground font-bold text-xs rounded-md transition-colors shadow-2xs">
-            <i data-lucide="key" class="w-3.5 h-3.5"></i> Código INIFAP
-          </a>
+          {{#if isAdmin}}
+            <a href="/private/users" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-card border border-border hover:bg-muted text-foreground font-bold text-xs rounded-md transition-colors shadow-2xs">
+              <i data-lucide="key" class="w-3.5 h-3.5"></i> Código INIFAP
+            </a>
+          {{/if}}
         </div>
       </div>
 
@@ -184,72 +200,31 @@
           <span class="text-xs font-mono text-muted-foreground font-bold">reportes</span>
         </div>
 
-        <div class="space-y-4">
-          <!-- Plaga 1 -->
-          <div>
-            <div class="flex justify-between items-center text-xs font-bold mb-1.5">
-              <span class="text-foreground flex items-center gap-2">
-                <span class="font-mono text-muted-foreground font-semibold">01</span> Gusano Cogollero
-              </span>
-              <span class="font-mono text-foreground font-bold">450</span>
-            </div>
-            <div class="w-full bg-muted rounded-full h-2.5 overflow-hidden">
-              <div class="bg-[#1b4332] h-full rounded-full transition-all duration-700" style="width: 85%"></div>
-            </div>
+        {{#if topPlagues.length}}
+          <div class="space-y-4">
+            {{#each topPlagues}}
+              <div>
+                <div class="flex justify-between items-center text-xs font-bold mb-1.5">
+                  <span class="text-foreground flex items-center gap-2">
+                    <span class="font-mono text-muted-foreground font-semibold">{{this.index}}</span> {{this.name}}
+                  </span>
+                  <span class="font-mono text-foreground font-bold">{{this.count}}</span>
+                </div>
+                <div class="w-full bg-muted rounded-full h-2.5 overflow-hidden">
+                  <div class="h-full rounded-full transition-all duration-700" style="width: {{this.percentage}}%; background-color: {{this.color}}"></div>
+                </div>
+              </div>
+            {{/each}}
           </div>
-
-          <!-- Plaga 2 -->
-          <div>
-            <div class="flex justify-between items-center text-xs font-bold mb-1.5">
-              <span class="text-foreground flex items-center gap-2">
-                <span class="font-mono text-muted-foreground font-semibold">02</span> Mosca de la Fruta
-              </span>
-              <span class="font-mono text-foreground font-bold">320</span>
+        {{else}}
+          <div class="py-8 text-center">
+            <div class="w-12 h-12 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-3">
+              <i data-lucide="shield-check" class="w-6 h-6"></i>
             </div>
-            <div class="w-full bg-muted rounded-full h-2.5 overflow-hidden">
-              <div class="bg-[#2d6a4f] h-full rounded-full transition-all duration-700" style="width: 65%"></div>
-            </div>
+            <p class="text-sm font-bold text-foreground">Sin incidencias este mes</p>
+            <p class="text-xs text-muted-foreground mt-1">No se han registrado reportes fitosanitarios en los últimos 30 días.</p>
           </div>
-
-          <!-- Plaga 3 -->
-          <div>
-            <div class="flex justify-between items-center text-xs font-bold mb-1.5">
-              <span class="text-foreground flex items-center gap-2">
-                <span class="font-mono text-muted-foreground font-semibold">03</span> Pulgón Amarillo
-              </span>
-              <span class="font-mono text-foreground font-bold">210</span>
-            </div>
-            <div class="w-full bg-muted rounded-full h-2.5 overflow-hidden">
-              <div class="bg-[#40916c] h-full rounded-full transition-all duration-700" style="width: 45%"></div>
-            </div>
-          </div>
-
-          <!-- Plaga 4 -->
-          <div>
-            <div class="flex justify-between items-center text-xs font-bold mb-1.5">
-              <span class="text-foreground flex items-center gap-2">
-                <span class="font-mono text-muted-foreground font-semibold">04</span> Roya del Café
-              </span>
-              <span class="font-mono text-foreground font-bold">150</span>
-            </div>
-            <div class="w-full bg-muted rounded-full h-2.5 overflow-hidden">
-              <div class="bg-[#74c69d] h-full rounded-full transition-all duration-700" style="width: 30%"></div>
-            </div>
-          </div>
-
-          <!-- Plaga 5 -->
-          <div>
-            <div class="flex justify-between items-center text-xs font-bold mb-1.5">
-              <span class="text-foreground flex items-center gap-2">
-                <span class="font-mono text-muted-foreground font-semibold">05</span> Picudo del Algodón
-              </span>
-              <span class="font-mono text-foreground font-bold">95</span>
-            </div>
-            <div class="w-full bg-muted rounded-full h-2.5 overflow-hidden">
-              <div class="bg-[#b7e4c7] h-full rounded-full transition-all duration-700" style="width: 18%"></div>
-            </div>
-          </div>
-        </div>
+        {{/if}}
       </div>
 
     </div>
@@ -261,45 +236,41 @@
       <div class="bg-card p-6 rounded-xl border border-border shadow-2xs">
         <h2 class="text-base font-headline font-bold text-foreground mb-6">Distribución de cultivos</h2>
 
-        <div class="flex flex-col items-center justify-center gap-6">
-          <!-- Gráfico Donut SVG con CSS Conic Gradient -->
-          <div class="relative w-44 h-44 rounded-full flex items-center justify-center">
-            <div class="absolute inset-0 rounded-full"
-              style="background: conic-gradient(#1b4332 0% 40%, #40916c 40% 70%, #b7e4c7 70% 100%); mask: radial-gradient(transparent 62%, black 64%); -webkit-mask: radial-gradient(transparent 62%, black 64%);">
+        {{#if cropDistribution.hasData}}
+          <div class="flex flex-col items-center justify-center gap-6">
+            <!-- Gráfico Donut SVG con CSS Conic Gradient -->
+            <div class="relative w-44 h-44 rounded-full flex items-center justify-center">
+              <div class="absolute inset-0 rounded-full"
+                style="{{cropDistribution.conicGradientStyle}} mask: radial-gradient(transparent 62%, black 64%); -webkit-mask: radial-gradient(transparent 62%, black 64%);">
+              </div>
+              <div class="text-center z-10">
+                <span class="block text-2xl font-headline font-black text-foreground leading-none">{{cropDistribution.totalHectaresText}}</span>
+                <span class="text-[9px] font-mono text-muted-foreground uppercase font-bold tracking-widest">HECTÁREAS</span>
+              </div>
             </div>
-            <div class="text-center z-10">
-              <span class="block text-2xl font-headline font-black text-foreground leading-none">1.2k</span>
-              <span class="text-[9px] font-mono text-muted-foreground uppercase font-bold tracking-widest">HECTÁREAS</span>
+
+            <!-- Leyenda de cultivos -->
+            <div class="w-full space-y-3">
+              {{#each cropDistribution.crops}}
+                <div class="flex items-center justify-between text-xs">
+                  <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full" style="background-color: {{this.color}}"></span>
+                    <span class="font-bold text-foreground">{{this.name}}</span>
+                  </div>
+                  <span class="text-muted-foreground font-mono text-[11px]">{{this.percentage}}% del total</span>
+                </div>
+              {{/each}}
             </div>
           </div>
-
-          <!-- Leyenda de cultivos -->
-          <div class="w-full space-y-3">
-            <div class="flex items-center justify-between text-xs">
-              <div class="flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-[#1b4332]"></span>
-                <span class="font-bold text-foreground">Limón Pérsico</span>
-              </div>
-              <span class="text-muted-foreground font-mono text-[11px]">40% del total</span>
+        {{else}}
+          <div class="py-8 text-center">
+            <div class="w-12 h-12 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center mx-auto mb-3">
+              <i data-lucide="sprout" class="w-6 h-6"></i>
             </div>
-
-            <div class="flex items-center justify-between text-xs">
-              <div class="flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-[#40916c]"></span>
-                <span class="font-bold text-foreground">Aguacate Hass</span>
-              </div>
-              <span class="text-muted-foreground font-mono text-[11px]">30% del total</span>
-            </div>
-
-            <div class="flex items-center justify-between text-xs">
-              <div class="flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-[#b7e4c7]"></span>
-                <span class="font-bold text-foreground">Maíz Blanco</span>
-              </div>
-              <span class="text-muted-foreground font-mono text-[11px]">30% del total</span>
-            </div>
+            <p class="text-sm font-bold text-foreground">Sin ciclos activos</p>
+            <p class="text-xs text-muted-foreground mt-1">Registra siembras en predios para visualizar la distribución.</p>
           </div>
-        </div>
+        {{/if}}
       </div>
 
       <!-- TARJETA: ACTIVIDAD RECIENTE -->
@@ -311,49 +282,29 @@
           </a>
         </div>
 
-        <div class="space-y-4">
-          <!-- Actividad 1 -->
-          <div class="flex items-start gap-3">
-            <div class="w-8 h-8 rounded-full bg-emerald-100 text-[#1b4332] font-mono font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
-              PG
-            </div>
-            <div class="flex-1 min-w-0">
-              <p class="text-xs text-foreground leading-snug">
-                <span class="font-bold">Pedro G.</span> registró un nuevo predio <span class="font-bold text-[#1b4332]">La Esperanza</span>
-              </p>
-              <p class="text-[10px] text-muted-foreground font-mono mt-0.5">Hace 5 min</p>
-            </div>
-            <i data-lucide="check" class="w-4 h-4 text-emerald-600 shrink-0 mt-0.5"></i>
+        {{#if recentActivity.length}}
+          <div class="space-y-4">
+            {{#each recentActivity}}
+              <div class="flex items-start gap-3">
+                <div class="w-8 h-8 rounded-full bg-emerald-100 text-[#1b4332] font-mono font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
+                  {{this.initials}}
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-xs text-foreground leading-snug">
+                    <span class="font-bold">{{this.userName}}</span> {{this.action}} en <span class="font-bold text-[#1b4332]">{{this.tableName}}</span>
+                    {{#if this.entityName}} · {{this.entityName}}{{/if}}
+                  </p>
+                  <p class="text-[10px] text-muted-foreground font-mono mt-0.5">{{this.relativeTime}}</p>
+                </div>
+                <i data-lucide="check" class="w-4 h-4 text-emerald-600 shrink-0 mt-0.5"></i>
+              </div>
+            {{/each}}
           </div>
-
-          <!-- Actividad 2 -->
-          <div class="flex items-start gap-3">
-            <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-800 font-mono font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
-              AR
-            </div>
-            <div class="flex-1 min-w-0">
-              <p class="text-xs text-foreground leading-snug">
-                <span class="font-bold">América R.</span> aprobó la ficha de plaga <span class="font-bold text-[#1b4332]">Gusano Cogollero</span>
-              </p>
-              <p class="text-[10px] text-muted-foreground font-mono mt-0.5">Hace 15 min</p>
-            </div>
-            <i data-lucide="check" class="w-4 h-4 text-emerald-600 shrink-0 mt-0.5"></i>
+        {{else}}
+          <div class="py-6 text-center text-xs text-muted-foreground">
+            No se han registrado eventos de auditoría recientes.
           </div>
-
-          <!-- Actividad 3 -->
-          <div class="flex items-start gap-3">
-            <div class="w-8 h-8 rounded-full bg-purple-100 text-purple-800 font-mono font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
-              IA
-            </div>
-            <div class="flex-1 min-w-0">
-              <p class="text-xs text-foreground leading-snug">
-                <span class="font-bold">Ing. Ana S.</span> identificó la plaga <span class="font-bold text-[#1b4332]">Roya del Café</span>
-              </p>
-              <p class="text-[10px] text-muted-foreground font-mono mt-0.5">Hace 30 min</p>
-            </div>
-            <i data-lucide="check" class="w-4 h-4 text-emerald-600 shrink-0 mt-0.5"></i>
-          </div>
-        </div>
+        {{/if}}
       </div>
 
     </div>

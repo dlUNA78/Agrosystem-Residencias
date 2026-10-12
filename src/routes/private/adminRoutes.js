@@ -46,8 +46,8 @@ adminRouter.post('/private/users/delete/:id', requireRole('admin'), deleteUser);
 adminRouter.get('/private/reports', reportsPrivate);
 
 // ══════════════════════════════════════════════════════════════════════════════
-// MÓDULO: AUDITORÍA
+// MÓDULO: AUDITORÍA (Admin Only)
 // ══════════════════════════════════════════════════════════════════════════════
-adminRouter.get('/private/audit', auditPrivate);
+adminRouter.get('/private/audit', requireRole('admin'), auditPrivate);
 
 export default adminRouter;
