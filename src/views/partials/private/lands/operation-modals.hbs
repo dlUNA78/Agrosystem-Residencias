@@ -9,10 +9,14 @@
             <div class="space-y-5 p-6">
                 <div>
                     <label for="cycle-crop" class="mb-1.5 block text-xs font-bold text-muted-foreground">Cultivo publicado</label>
+                    <div class="relative mb-2">
+                        <input type="text" data-combobox-filter="cycle-crop" placeholder="🔍 Filtrar cultivo por nombre o científico..." class="w-full rounded-xl border border-input bg-muted/30 px-3.5 py-2 text-xs outline-none focus:border-primary focus:bg-background focus:ring-1 focus:ring-primary/20 transition-all" />
+                    </div>
                     <select id="cycle-crop" name="crop_id" required class="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
                         <option value="">Seleccionar cultivo</option>
                         {{#each crops}}<option value="{{this.id}}">{{this.name}} · {{this.scientific_name}}</option>{{/each}}
                     </select>
+                    <p data-combobox-empty="cycle-crop" class="hidden mt-1.5 text-xs text-amber-600 font-medium">No se encontraron cultivos que coincidan con la búsqueda.</p>
                 </div>
                 <div class="grid gap-4 sm:grid-cols-2">
                     <div>
@@ -44,10 +48,14 @@
             <div class="max-h-[70vh] space-y-5 overflow-y-auto p-6">
                 <div>
                     <label for="health-plague" class="mb-1.5 block text-xs font-bold text-muted-foreground">Plaga publicada</label>
+                    <div class="relative mb-2">
+                        <input type="text" data-combobox-filter="health-plague" placeholder="🔍 Filtrar plaga por nombre o científico..." class="w-full rounded-xl border border-input bg-muted/30 px-3.5 py-2 text-xs outline-none focus:border-primary focus:bg-background focus:ring-1 focus:ring-primary/20 transition-all" />
+                    </div>
                     <select id="health-plague" name="plague_id" required class="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
                         <option value="">Seleccionar plaga</option>
                         {{#each plagues}}<option value="{{this.id}}">{{this.name}} · {{this.scientific_name}}</option>{{/each}}
                     </select>
+                    <p data-combobox-empty="health-plague" class="hidden mt-1.5 text-xs text-amber-600 font-medium">No se encontraron plagas que coincidan con la búsqueda.</p>
                 </div>
                 <div class="grid gap-4 sm:grid-cols-2">
                     <div>
@@ -92,10 +100,14 @@
             <div class="max-h-[70vh] space-y-5 overflow-y-auto p-6">
                 <div>
                     <label for="application-product" class="mb-1.5 block text-xs font-bold text-muted-foreground">Producto activo</label>
+                    <div class="relative mb-2">
+                        <input type="text" data-combobox-filter="application-product" placeholder="🔍 Filtrar producto o ingrediente activo..." class="w-full rounded-xl border border-input bg-muted/30 px-3.5 py-2 text-xs outline-none focus:border-primary focus:bg-background focus:ring-1 focus:ring-primary/20 transition-all" />
+                    </div>
                     <select id="application-product" name="product_id" required class="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
                         <option value="">Seleccionar producto</option>
                         {{#each products}}<option value="{{this.id}}">{{this.name}}{{#if this.active_ingredient}} · {{this.active_ingredient}}{{/if}}</option>{{/each}}
                     </select>
+                    <p data-combobox-empty="application-product" class="hidden mt-1.5 text-xs text-amber-600 font-medium">No se encontraron productos que coincidan con la búsqueda.</p>
                 </div>
                 <div>
                     <label for="application-cycle" class="mb-1.5 block text-xs font-bold text-muted-foreground">Ciclo relacionado</label>

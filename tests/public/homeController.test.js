@@ -21,5 +21,7 @@ describe('🧪 Suite de Pruebas Públicas - Módulo Home Index', () => {
     expect(response.text).toContain('Avisos publicados esta semana');
     expect(response.text).toContain('Qué se siembra y qué se cosecha ahora');
     expect(response.text).toContain('Índice de la base de datos');
+    expect(response.text).toContain('Nota técnica institucional');
+    expect(response.text).toContain('BOLETÍN OFICIAL');
   });
 });

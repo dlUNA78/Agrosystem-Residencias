@@ -11,6 +11,7 @@ describe('consulta pública de regiones agrícolas', () => {
     expect(response.status).toBe(200);
     expect(response.text).toContain('Regiones agrícolas');
     expect(response.text).toContain('Información regional');
+    expect(response.text).toContain('catálogo técnico del INIFAP');
     expect(response.text).not.toContain('Abrir Expediente');
     expect(response.text).not.toContain('Responsable:');
     expect(response.text).not.toContain('Latitud');
