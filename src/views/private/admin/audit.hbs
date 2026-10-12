@@ -11,11 +11,11 @@
                 <div class="bg-blue-100 p-2 rounded-full">
                     <span class="material-symbols-outlined text-blue-700" data-icon="info">info</span>
                 </div>
-                <p class="text-blue-900 font-medium text-sm tracking-tight">Registro de auditoría activo. <span class="font-bold">128 acciones</span> registradas hoy.</p>
+                <p class="text-blue-900 font-medium text-sm tracking-tight">Registro de auditoría activo. <span class="font-bold">{{todayActionsCount}} acciones</span> registradas hoy.</p>
             </div>
-            <button class="bg-white text-blue-800 border border-blue-200 px-5 py-2 rounded-lg text-xs font-bold hover:bg-blue-100 transition-colors">
+            <a href="/private/audit?format=csv" id="btn-export-daily" class="bg-white text-blue-800 border border-blue-200 px-5 py-2 rounded-lg text-xs font-bold hover:bg-blue-100 transition-colors inline-block">
                 Descargar reporte diario
-            </button>
+            </a>
         </div>
 
         <!-- TABLE VIEW -->
@@ -36,275 +36,137 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-surface-container">
-
-                    <!-- Row 1 -->
-                    <tr class="hover:bg-surface/50 transition-colors">
-                        <td class="px-8 py-5">
-                            <p class="font-bold text-on-surface text-sm">Hoy, 10:45 AM</p>
-                            <p class="text-xs text-on-surface-variant">15 Oct 2024</p>
-                        </td>
-                        <td class="px-8 py-5">
-                            <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-extrabold text-xs shrink-0">
-                                    MR</div>
-                                <div>
-                                    <p class="font-bold text-on-surface text-sm">Marcos Ramírez</p>
-                                    <p class="text-[10px] text-on-surface-variant uppercase tracking-wide">Admin</p>
+                    {{#if auditLogs.length}}
+                        {{#each auditLogs}}
+                        <tr class="hover:bg-surface/50 transition-colors">
+                            <td class="px-8 py-5">
+                                <p class="font-bold text-on-surface text-sm">{{this.dates.dateText}}, {{this.dates.timeText}}</p>
+                                <p class="text-xs text-on-surface-variant">{{this.dates.fullDate}}</p>
+                            </td>
+                            <td class="px-8 py-5">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-extrabold text-xs shrink-0">
+                                        {{this.user.initials}}</div>
+                                    <div>
+                                        <p class="font-bold text-on-surface text-sm">{{this.user.name}}</p>
+                                        <p class="text-[10px] text-on-surface-variant uppercase tracking-wide">{{this.user.role}}</p>
+                                    </div>
                                 </div>
-                            </div>
-                        </td>
-                        <td class="px-8 py-5">
-                            <div class="flex items-center gap-2">
-                                <span class="material-symbols-outlined text-emerald-600 text-sm" data-icon="add_circle">add_circle</span>
-                                <p class="text-sm font-medium text-on-surface">Creó un nuevo producto</p>
-                            </div>
-                        </td>
-                        <td class="px-8 py-5 text-center">
-                            <span class="px-3 py-1.5 bg-surface-container text-on-surface-variant rounded-full text-[10px] font-black uppercase">Productos</span>
-                        </td>
-                        <td class="px-8 py-5 text-right">
-                            <p class="text-xs text-on-surface-variant">ID: PROD-1029 (Herbicida X)</p>
-                            <button class="text-[10px] text-primary hover:underline font-bold mt-1">Ver Detalle Completo</button>
-                        </td>
-                    </tr>
-
-                    <!-- Row 2 -->
-                    <tr class="hover:bg-surface/50 transition-colors">
-                        <td class="px-8 py-5">
-                            <p class="font-bold text-on-surface text-sm">Ayer, 16:30 PM</p>
-                            <p class="text-xs text-on-surface-variant">14 Oct 2024</p>
-                        </td>
-                        <td class="px-8 py-5">
-                            <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-full bg-secondary/10 flex items-center justify-center text-secondary font-extrabold text-xs shrink-0">
-                                    CF</div>
-                                <div>
-                                    <p class="font-bold text-on-surface text-sm">Carlos Fuentes</p>
-                                    <p class="text-[10px] text-on-surface-variant uppercase tracking-wide">Investigador</p>
+                            </td>
+                            <td class="px-8 py-5">
+                                <div class="flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-sm" data-icon="{{this.actionIcon}}">{{this.actionIcon}}</span>
+                                    <p class="text-sm font-medium text-on-surface">{{this.actionText}}</p>
                                 </div>
-                            </div>
-                        </td>
-                        <td class="px-8 py-5">
-                            <div class="flex items-center gap-2">
-                                <span class="material-symbols-outlined text-amber-600 text-sm" data-icon="edit">edit</span>
-                                <p class="text-sm font-medium text-on-surface">Actualizó estado de terreno</p>
-                            </div>
-                        </td>
-                        <td class="px-8 py-5 text-center">
-                            <span class="px-3 py-1.5 bg-surface-container text-on-surface-variant rounded-full text-[10px] font-black uppercase">Terrenos</span>
-                        </td>
-                        <td class="px-8 py-5 text-right">
-                            <p class="text-xs text-on-surface-variant">ID: PRD-0041 - Estatus: Alerta de plaga</p>
-                            <button class="text-[10px] text-primary hover:underline font-bold mt-1">Ver Detalle Completo</button>
-                        </td>
-                    </tr>
-
-                    <!-- Row 3 -->
-                    <tr class="hover:bg-surface/50 transition-colors">
-                        <td class="px-8 py-5">
-                            <p class="font-bold text-on-surface text-sm">Ayer, 09:15 AM</p>
-                            <p class="text-xs text-on-surface-variant">14 Oct 2024</p>
-                        </td>
-                        <td class="px-8 py-5">
-                            <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-extrabold text-xs shrink-0">
-                                    MR</div>
-                                <div>
-                                    <p class="font-bold text-on-surface text-sm">Marcos Ramírez</p>
-                                    <p class="text-[10px] text-on-surface-variant uppercase tracking-wide">Admin</p>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="px-8 py-5">
-                            <div class="flex items-center gap-2">
-                                <span class="material-symbols-outlined text-error text-sm" data-icon="delete">delete</span>
-                                <p class="text-sm font-medium text-on-surface">Eliminó un usuario</p>
-                            </div>
-                        </td>
-                        <td class="px-8 py-5 text-center">
-                            <span class="px-3 py-1.5 bg-surface-container text-on-surface-variant rounded-full text-[10px] font-black uppercase">Usuarios</span>
-                        </td>
-                        <td class="px-8 py-5 text-right">
-                            <p class="text-xs text-on-surface-variant">Email: d.gomez@empresa.com</p>
-                            <button class="text-[10px] text-primary hover:underline font-bold mt-1">Ver Detalle Completo</button>
-                        </td>
-                    </tr>
-
-                    <!-- Row 4 -->
-                    <tr class="hover:bg-surface/50 transition-colors">
-                        <td class="px-8 py-5">
-                            <p class="font-bold text-on-surface text-sm">12 Oct, 11:20 AM</p>
-                            <p class="text-xs text-on-surface-variant">12 Oct 2024</p>
-                        </td>
-                        <td class="px-8 py-5">
-                            <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-full bg-emerald-600/10 flex items-center justify-center text-emerald-700 font-extrabold text-xs shrink-0">
-                                    AP</div>
-                                <div>
-                                    <p class="font-bold text-on-surface text-sm">Ana Pérez</p>
-                                    <p class="text-[10px] text-on-surface-variant uppercase tracking-wide">Técnico</p>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="px-8 py-5">
-                            <div class="flex items-center gap-2">
-                                <span class="material-symbols-outlined text-emerald-600 text-sm" data-icon="check_circle">check_circle</span>
-                                <p class="text-sm font-medium text-on-surface">Aprobó una nueva plaga</p>
-                            </div>
-                        </td>
-                        <td class="px-8 py-5 text-center">
-                            <span class="px-3 py-1.5 bg-surface-container text-on-surface-variant rounded-full text-[10px] font-black uppercase">Plagas</span>
-                        </td>
-                        <td class="px-8 py-5 text-right">
-                            <p class="text-xs text-on-surface-variant">Spodoptera frugiperda (Gusano cogollero)</p>
-                            <button class="text-[10px] text-primary hover:underline font-bold mt-1">Ver Detalle Completo</button>
-                        </td>
-                    </tr>
-
+                            </td>
+                            <td class="px-8 py-5 text-center">
+                                <span class="px-3 py-1.5 bg-surface-container text-on-surface-variant rounded-full text-[10px] font-black uppercase">{{this.moduleLabel}}</span>
+                            </td>
+                            <td class="px-8 py-5 text-right">
+                                <p class="text-xs text-on-surface-variant">{{this.detailsText}}</p>
+                            </td>
+                        </tr>
+                        {{/each}}
+                    {{else}}
+                        <tr>
+                            <td colspan="5" class="px-8 py-12 text-center text-sm text-on-surface-variant">
+                                No se encontraron registros de auditoría que coincidan con los criterios.
+                            </td>
+                        </tr>
+                    {{/if}}
                 </tbody>
             </table>
 
-            <!-- Pagination -->
+            {{#if hasMultiplePages}}
+            <!-- Pagination Table -->
             <div class="px-8 py-6 bg-surface-container-low/30 border-t border-outline-variant/10 flex items-center justify-between">
                 <p class="text-xs font-medium text-on-surface-variant">
-                    Mostrando <span class="font-bold text-on-surface">1 a 4</span> de <span
-                        class="font-bold text-on-surface">1,024</span> registros
+                    Mostrando <span class="font-bold text-on-surface">{{startRecord}} a {{endRecord}}</span> de <span
+                        class="font-bold text-on-surface">{{totalCount}}</span> registros
                 </p>
                 <div class="flex gap-2">
-                    <button
+                    {{#if hasPrevPage}}
+                    <a href="?page={{prevPage}}{{#if searchValue}}&search={{searchValue}}{{/if}}"
                         class="px-5 py-2 rounded-lg bg-surface-container-highest/50 text-on-surface text-xs font-bold hover:bg-surface-container-highest transition-colors flex items-center gap-2">
                         <span class="material-symbols-outlined text-sm" data-icon="chevron_left">chevron_left</span>
                         Anterior
-                    </button>
-                    <button
+                    </a>
+                    {{/if}}
+                    {{#if hasNextPage}}
+                    <a href="?page={{nextPage}}{{#if searchValue}}&search={{searchValue}}{{/if}}"
                         class="px-5 py-2 rounded-lg bg-[#43655c] text-white text-xs font-bold hover:bg-[#354f47] transition-colors flex items-center gap-2 shadow-sm">
                         Siguiente
                         <span class="material-symbols-outlined text-sm" data-icon="chevron_right">chevron_right</span>
-                    </button>
+                    </a>
+                    {{/if}}
                 </div>
             </div>
+            {{/if}}
         </div>
 
         <!-- GRID VIEW -->
         <div id="audit-grid-view" class="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 grid">
-
-            <!-- Card 1 -->
-            <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm overflow-hidden group hover:-translate-y-1 transition-all duration-300">
-                <div class="p-5">
-                    <div class="flex justify-between items-start mb-4">
-                        <div class="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-on-primary font-extrabold text-base shrink-0 shadow-md">
-                            MR
+            {{#if auditLogs.length}}
+                {{#each auditLogs}}
+                <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm overflow-hidden group hover:-translate-y-1 transition-all duration-300">
+                    <div class="p-5">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-on-primary font-extrabold text-base shrink-0 shadow-md">
+                                {{this.user.initials}}
+                            </div>
+                            <div class="flex items-center justify-center gap-1.5 px-2.5 py-1 rounded-full {{this.actionBadgeClass}}">
+                                <span class="material-symbols-outlined text-xs">{{this.actionIcon}}</span>
+                                <span class="text-[9px] font-black uppercase">{{this.actionLabel}}</span>
+                            </div>
                         </div>
-                        <div class="flex items-center justify-center gap-1.5 text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full border border-blue-100">
-                            <span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">add_circle</span>
-                            <span class="text-[9px] font-black uppercase">Creación</span>
+                        <span class="text-[9px] font-black uppercase tracking-widest text-primary">{{this.user.name}}</span>
+                        <h3 class="font-bold text-on-surface text-base mt-1">{{this.actionText}}</h3>
+                        <p class="text-xs text-on-surface-variant truncate mt-1">Módulo: {{this.moduleLabel}}</p>
+                        <div class="flex items-center gap-1.5 mt-2">
+                            <span class="px-2 py-0.5 bg-surface-container text-on-surface-variant rounded text-[10px] font-bold tracking-tight">{{this.detailsText}}</span>
                         </div>
-                    </div>
-                    <span class="text-[9px] font-black uppercase tracking-widest text-primary">Marcos Ramírez</span>
-                    <h3 class="font-bold text-on-surface text-base mt-1">Nuevo Cultivo: Sorgo</h3>
-                    <p class="text-xs text-on-surface-variant truncate mt-1">Módulo: Cultivos</p>
-                    <div class="flex items-center gap-1.5 mt-2">
-                        <span class="px-2 py-0.5 bg-surface-container text-on-surface-variant rounded text-[10px] font-bold tracking-tight">IP: 192.168.1.45</span>
-                    </div>
 
-                    <div class="mt-4 pt-4 border-t border-surface-container flex justify-between items-center">
-                        <span class="text-[10px] text-on-surface-variant font-bold">10:30 AM · Hoy</span>
-                        <div class="flex gap-2 text-on-surface-variant">
-                            <button class="hover:text-primary transition-colors"><span class="material-symbols-outlined text-base">visibility</span></button>
+                        <div class="mt-4 pt-4 border-t border-surface-container flex justify-between items-center">
+                            <span class="text-[10px] text-on-surface-variant font-bold">{{this.dates.dateText}} · {{this.dates.timeText}}</span>
+                            <span class="text-[10px] text-on-surface-variant font-mono">#{{this.recordId}}</span>
                         </div>
                     </div>
                 </div>
-            </div>
-
-            <!-- Card 2 -->
-            <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm overflow-hidden group hover:-translate-y-1 transition-all duration-300">
-                <div class="p-5">
-                    <div class="flex justify-between items-start mb-4">
-                        <div class="w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-on-secondary font-extrabold text-base shrink-0 shadow-md">
-                            LV
-                        </div>
-                        <div class="flex items-center justify-center gap-1.5 text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100">
-                            <span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">check_circle</span>
-                            <span class="text-[9px] font-black uppercase">Aprobación</span>
-                        </div>
-                    </div>
-                    <span class="text-[9px] font-black uppercase tracking-widest text-secondary">Laura Vázquez</span>
-                    <h3 class="font-bold text-on-surface text-base mt-1">Validó Producto ID: IN-9921</h3>
-                    <p class="text-xs text-on-surface-variant truncate mt-1">Módulo: Productos</p>
-                    <div class="flex items-center gap-1.5 mt-2">
-                        <span class="px-2 py-0.5 bg-surface-container text-on-surface-variant rounded text-[10px] font-bold tracking-tight">IP: 10.0.0.12</span>
-                    </div>
-
-                    <div class="mt-4 pt-4 border-t border-surface-container flex justify-between items-center">
-                        <span class="text-[10px] text-on-surface-variant font-bold">09:15 AM · Hoy</span>
-                        <div class="flex gap-2 text-on-surface-variant">
-                            <button class="hover:text-primary transition-colors"><span class="material-symbols-outlined text-base">visibility</span></button>
-                        </div>
-                    </div>
+                {{/each}}
+            {{else}}
+                <div class="col-span-full py-12 text-center text-sm text-on-surface-variant bg-surface-container-lowest rounded-xl border border-outline-variant/10">
+                    No se encontraron registros de auditoría que coincidan con los criterios.
                 </div>
-            </div>
-
-            <!-- Card 3 -->
-            <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm overflow-hidden group hover:-translate-y-1 transition-all duration-300">
-                <div class="p-5">
-                    <div class="flex justify-between items-start mb-4">
-                        <div class="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant font-extrabold text-base shrink-0 shadow-md">
-                            Sistema
-                        </div>
-                        <div class="flex items-center justify-center gap-1.5 text-orange-600 bg-orange-50 px-2.5 py-1 rounded-full border border-orange-100">
-                            <span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">edit</span>
-                            <span class="text-[9px] font-black uppercase">Edición</span>
-                        </div>
-                    </div>
-                    <span class="text-[9px] font-black uppercase tracking-widest text-on-surface-variant">Sistema</span>
-                    <h3 class="font-bold text-on-surface text-base mt-1">Sincronización API INIFAP</h3>
-                    <p class="text-xs text-on-surface-variant truncate mt-1">Módulo: Ingredientes Activos</p>
-                    <div class="flex items-center gap-1.5 mt-2">
-                        <span class="px-2 py-0.5 bg-surface-container text-on-surface-variant rounded text-[10px] font-bold tracking-tight">IP: localhost</span>
-                    </div>
-
-                    <div class="mt-4 pt-4 border-t border-surface-container flex justify-between items-center">
-                        <span class="text-[10px] text-on-surface-variant font-bold">01:00 AM · Hoy</span>
-                        <div class="flex gap-2 text-on-surface-variant">
-                            <button class="hover:text-primary transition-colors"><span class="material-symbols-outlined text-base">visibility</span></button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Card 4 -->
-            <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm overflow-hidden group hover:-translate-y-1 transition-all duration-300 opacity-80">
-                <div class="p-5">
-                    <div class="flex justify-between items-start mb-4">
-                        <div class="w-12 h-12 rounded-full bg-error/10 flex items-center justify-center text-error font-extrabold text-base shrink-0 shadow-md">
-                            MR
-                        </div>
-                        <div class="flex items-center justify-center gap-1.5 text-error bg-error/5 px-2.5 py-1 rounded-full border border-error/20">
-                            <span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">delete</span>
-                            <span class="text-[9px] font-black uppercase">Eliminación</span>
-                        </div>
-                    </div>
-                    <span class="text-[9px] font-black uppercase tracking-widest text-primary">Marcos Ramírez</span>
-                    <h3 class="font-bold text-on-surface text-base mt-1">Eliminó Usuario: AP</h3>
-                    <p class="text-xs text-on-surface-variant truncate mt-1">Módulo: Usuarios</p>
-                    <div class="flex items-center gap-1.5 mt-2">
-                        <span class="px-2 py-0.5 bg-surface-container text-on-surface-variant rounded text-[10px] font-bold tracking-tight">IP: 192.168.1.45</span>
-                    </div>
-
-                    <div class="mt-4 pt-4 border-t border-surface-container flex justify-between items-center">
-                        <span class="text-[10px] text-on-surface-variant font-bold">16:45 PM · Ayer</span>
-                        <div class="flex gap-2 text-on-surface-variant">
-                            <button class="hover:text-primary transition-colors"><span class="material-symbols-outlined text-base">visibility</span></button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
+            {{/if}}
         </div>
+
+        {{#if hasMultiplePages}}
+        <!-- Pagination Grid -->
+        <div class="px-8 py-6 bg-surface-container-low/30 rounded-xl border border-outline-variant/10 flex items-center justify-between">
+            <p class="text-xs font-medium text-on-surface-variant">
+                Mostrando <span class="font-bold text-on-surface">{{startRecord}} a {{endRecord}}</span> de <span
+                    class="font-bold text-on-surface">{{totalCount}}</span> registros
+            </p>
+            <div class="flex gap-2">
+                {{#if hasPrevPage}}
+                <a href="?page={{prevPage}}{{#if searchValue}}&search={{searchValue}}{{/if}}"
+                    class="px-5 py-2 rounded-lg bg-surface-container-highest/50 text-on-surface text-xs font-bold hover:bg-surface-container-highest transition-colors flex items-center gap-2">
+                    <span class="material-symbols-outlined text-sm" data-icon="chevron_left">chevron_left</span>
+                    Anterior
+                </a>
+                {{/if}}
+                {{#if hasNextPage}}
+                <a href="?page={{nextPage}}{{#if searchValue}}&search={{searchValue}}{{/if}}"
+                    class="px-5 py-2 rounded-lg bg-[#43655c] text-white text-xs font-bold hover:bg-[#354f47] transition-colors flex items-center gap-2 shadow-sm">
+                    Siguiente
+                    <span class="material-symbols-outlined text-sm" data-icon="chevron_right">chevron_right</span>
+                </a>
+                {{/if}}
+            </div>
+        </div>
+        {{/if}}
 
     </div>
 </main>
 
 <script type="module" src="/js/private/audit.js"></script>
-
-
