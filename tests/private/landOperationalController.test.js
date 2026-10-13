@@ -236,6 +236,35 @@ describe('operaciones del expediente de terrenos', () => {
     );
   });
 
+  it('registra un hallazgo con plaga personalizada si no se selecciona del catálogo', async () => {
+    const res = buildResponse();
+    mockDb.Plague.findOne.mockResolvedValueOnce(null);
+
+    await createFarmHealthReport(
+      {
+        ...requestContext,
+        body: {
+          plague_id: 'custom',
+          custom_plague_name: 'Pulgón Amarillo',
+          severity: 'medium',
+          observed_at: '2026-09-06',
+        },
+      },
+      res,
+    );
+
+    expect(mockDb.FarmHealthReport.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        farm_id: 18,
+        plague_id: null,
+        plague_name: 'Pulgón Amarillo',
+        created_by_user_id: 12,
+      }),
+      { transaction },
+    );
+    expect(res.status).toHaveBeenCalledWith(201);
+  });
+
   it('registra una aplicación usando un producto público activo', async () => {
     const res = buildResponse();
     await createFarmApplication(
@@ -265,5 +294,36 @@ describe('operaciones del expediente de terrenos', () => {
       }),
       { transaction },
     );
+  });
+
+  it('registra una aplicación con producto personalizado si no se selecciona del catálogo', async () => {
+    const res = buildResponse();
+
+    await createFarmApplication(
+      {
+        ...requestContext,
+        body: {
+          product_id: 'custom',
+          custom_product_name: 'BioExtracto de Ajo',
+          custom_active_ingredient: 'Alicina 10%',
+          dose_value: '2.0',
+          dose_unit: 'L/ha',
+          applied_at: '2026-09-06',
+        },
+      },
+      res,
+    );
+
+    expect(mockDb.FarmApplication.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        farm_id: 18,
+        product_id: null,
+        product_name: 'BioExtracto de Ajo',
+        active_ingredient: 'Alicina 10%',
+        created_by_user_id: 12,
+      }),
+      { transaction },
+    );
+    expect(res.status).toHaveBeenCalledWith(201);
   });
 });

@@ -98,15 +98,23 @@ const getCatalogs = () =>
         workflow_status: PLAGUE_WORKFLOW_STATUSES.PUBLISHED,
         status: true,
       },
-      attributes: ['id', 'name', 'scientific_name'],
+      attributes: ['id', 'name', 'scientific_name', 'category'],
       order: [['name', 'ASC']],
       raw: true,
     }),
     Product.findAll({
       where: { status: true },
-      attributes: ['id', 'name', 'active_ingredient'],
+      attributes: ['id', 'name', 'active_ingredient', 'presentation'],
+      include: [
+        {
+          model: Plague,
+          as: 'plagues',
+          attributes: ['id', 'name'],
+          through: { attributes: [] },
+          required: false,
+        },
+      ],
       order: [['name', 'ASC']],
-      raw: true,
     }),
   ]);
 
@@ -136,14 +144,45 @@ export const landDetail = async (req, res) => {
     if (!farm) return res.status(404).send('Predio no encontrado');
 
     const land = farm.toJSON();
-    const [regions, crops, plagues, products] = await getCatalogs();
+    const [regions, crops, plagues, rawProducts] = await getCatalogs();
     const cropCategories = [
       ...new Set(crops.map((cropItem) => cropItem.category).filter(Boolean)),
     ].sort();
+    const plagueCategories = [
+      ...new Set(
+        plagues.map((plagueItem) => plagueItem.category).filter(Boolean),
+      ),
+    ].sort();
+
+    const products = rawProducts.map((prod) => {
+      const p = prod.toJSON ? prod.toJSON() : prod;
+      const targetPlagues = Array.isArray(p.plagues) ? p.plagues : [];
+      return {
+        ...p,
+        targetPlagueIds: targetPlagues.map((pl) => pl.id).join(','),
+        targetPlagueNames: targetPlagues.map((pl) => pl.name).join(', '),
+      };
+    });
+
     const farmCrops = prepareCropCycles(land.farmCrops);
     const healthReports = prepareHealthReports(land.healthReports);
     const applications = prepareApplications(land.applications);
     const permissions = buildPermissions(land, req.user);
+
+    const detectedPlagues = [
+      ...new Map(
+        healthReports
+          .filter((report) => report.plague_name)
+          .map((report) => [
+            report.plague_id || report.plague_name,
+            {
+              id: report.plague_id,
+              name: report.plague_name,
+              severity: report.severityLabel,
+            },
+          ]),
+      ).values(),
+    ];
 
     return res.render('private/lands/detail', {
       layout: privateLayout,
@@ -155,7 +194,9 @@ export const landDetail = async (req, res) => {
       crops,
       cropCategories,
       plagues,
+      plagueCategories,
       products,
+      detectedPlagues,
       farmCrops,
       activeFarmCrops: farmCrops.filter((farmCrop) => farmCrop.is_active),
       healthReports,

@@ -97,7 +97,9 @@ const filterSelectOptions = (select, query, emptyMsg) => {
 
 const setupComboboxFilters = () => {
   document
-    .querySelectorAll('[data-combobox-filter]:not([data-crop-search-input])')
+    .querySelectorAll(
+      '[data-combobox-filter]:not([data-crop-search-input]):not([data-plague-search-input]):not([data-product-search-input])',
+    )
     .forEach((input) => {
       const targetSelectId = input.dataset.comboboxFilter;
       const select = document.getElementById(targetSelectId);
@@ -113,6 +115,9 @@ const setupComboboxFilters = () => {
     });
 };
 
+/* ══════════════════════════════════════════════════════════════════════════
+   1. MÓDULO: CICLOS DE CULTIVO & CÁLCULO DE FECHA DE COSECHA
+   ══════════════════════════════════════════════════════════════════════════ */
 const buildCropSuggestionItem = (crop, onSelect) => {
   const button = document.createElement('button');
   button.type = 'button';
@@ -177,7 +182,7 @@ const updateSummaryLabels = (displays, harvestDate, cycleDays, cropName) => {
   if (displays.name) displays.name.textContent = cropName;
 };
 
-const setupCategoryFilters = (modal, onSelectCrop) => {
+const setupCropCategoryFilters = (modal, onSelectCrop) => {
   const categoryBtns = modal.querySelectorAll('[data-category-filter]');
   const cropCards = modal.querySelectorAll('[data-crop-card-item]');
 
@@ -348,10 +353,433 @@ const setupCycleModalUX = () => {
   plantingInput?.addEventListener('input', () => recalculateDates('planting'));
   harvestInput?.addEventListener('input', () => recalculateDates('harvest'));
 
-  setupCategoryFilters(modal, applyCropSelection);
+  setupCropCategoryFilters(modal, applyCropSelection);
   recalculateDates('planting');
 };
 
+/* ══════════════════════════════════════════════════════════════════════════
+   2. MÓDULO: PLAGAS / HALLAZGOS FITOSANITARIOS
+   ══════════════════════════════════════════════════════════════════════════ */
+const buildPlagueSuggestionItem = (plague, onSelect) => {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className =
+    'w-full text-left p-2.5 hover:bg-muted/80 rounded-xl flex items-center justify-between transition-colors';
+
+  const infoDiv = document.createElement('div');
+  const nameP = document.createElement('p');
+  nameP.className = 'text-xs font-bold text-foreground';
+  nameP.textContent = plague.name;
+  const sciP = document.createElement('p');
+  sciP.className = 'text-[11px] italic text-muted-foreground';
+  sciP.textContent = plague.scientific;
+  infoDiv.appendChild(nameP);
+  infoDiv.appendChild(sciP);
+
+  if (plague.category) {
+    const metaDiv = document.createElement('div');
+    const catBadge = document.createElement('span');
+    catBadge.className =
+      'rounded bg-muted px-2 py-0.5 text-[10px] font-semibold text-muted-foreground';
+    catBadge.textContent = plague.category;
+    metaDiv.appendChild(catBadge);
+    button.appendChild(metaDiv);
+  }
+
+  button.appendChild(infoDiv);
+  button.addEventListener('click', () => onSelect(plague));
+  return button;
+};
+
+const extractPlaguesFromSelect = (select) => {
+  if (!select) return [];
+  return Array.from(select.options)
+    .filter((opt) => opt.value && opt.value !== 'custom')
+    .map((opt) => ({
+      id: opt.value,
+      name: opt.dataset.name || opt.textContent.split('·')[0].trim(),
+      scientific: opt.dataset.scientific || '',
+      category: opt.dataset.category || '',
+    }));
+};
+
+const setupPlagueCategoryFilters = (modal, onSelectPlague) => {
+  const categoryBtns = modal.querySelectorAll('[data-plague-category-filter]');
+  const plagueCards = modal.querySelectorAll('[data-plague-card-item]');
+
+  categoryBtns.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const selectedCategory = btn.dataset.plagueCategoryFilter;
+      categoryBtns.forEach((b) => {
+        b.classList.remove('bg-primary', 'text-white');
+        b.classList.add('bg-muted', 'text-muted-foreground');
+      });
+      btn.classList.add('bg-primary', 'text-white');
+      btn.classList.remove('bg-muted', 'text-muted-foreground');
+
+      plagueCards.forEach((card) => {
+        const matches =
+          selectedCategory === 'all' ||
+          card.dataset.category === selectedCategory;
+        card.classList.toggle('hidden', !matches);
+      });
+    });
+  });
+
+  plagueCards.forEach((card) => {
+    card.addEventListener('click', () => {
+      onSelectPlague({
+        id: card.dataset.id,
+        name: card.dataset.name,
+        scientific: card.dataset.scientific,
+        category: card.dataset.category,
+      });
+    });
+  });
+};
+
+const setupHealthModalUX = () => {
+  const modal = document.querySelector('[data-land-modal="health"]');
+  if (!modal) return;
+
+  const select = document.getElementById('health-plague');
+  const searchInput = modal.querySelector('[data-plague-search-input]');
+  const suggestionsPanel = modal.querySelector(
+    '[data-plague-suggestions-panel]',
+  );
+  const suggestionsList = modal.querySelector('[data-plague-suggestions-list]');
+  const customPrompt = modal.querySelector('[data-plague-custom-prompt]');
+  const customNamePreview = modal.querySelector(
+    '[data-plague-custom-name-preview]',
+  );
+  const customPlagueBtn = modal.querySelector('[data-plague-custom-btn]');
+  const showAllBtn = modal.querySelector('[data-plague-show-all-btn]');
+  const catalogToggle = modal.querySelector('[data-plague-catalog-toggle]');
+  const catalogPanel = modal.querySelector('[data-plague-catalog-panel]');
+  const selectedCard = modal.querySelector('[data-plague-selected-card]');
+  const selectedName = modal.querySelector('[data-plague-selected-name]');
+  const selectedMeta = modal.querySelector('[data-plague-selected-meta]');
+  const clearBtn = modal.querySelector('[data-plague-clear-btn]');
+  const searchWrapper = modal.querySelector('[data-plague-search-wrapper]');
+  const customNameInput = document.getElementById('health-custom-plague-name');
+
+  const plagues = extractPlaguesFromSelect(select);
+
+  const applyPlagueSelection = (plague) => {
+    select.value = plague.id;
+    if (customNameInput) customNameInput.value = '';
+    selectedName.textContent = plague.name;
+    selectedMeta.textContent = `${plague.scientific || ''}${plague.category ? ` · ${plague.category}` : ''}`;
+    selectedCard.classList.remove('hidden');
+    searchWrapper.classList.add('hidden');
+    suggestionsPanel.classList.add('hidden');
+    catalogPanel.classList.add('hidden');
+  };
+
+  const applyCustomPlague = (customName) => {
+    const name = customName.trim();
+    if (!name) return;
+    select.value = 'custom';
+    if (customNameInput) customNameInput.value = name;
+    selectedName.textContent = `${name} (Personalizada)`;
+    selectedMeta.textContent = 'Plaga no catalogada / alerta local';
+    selectedCard.classList.remove('hidden');
+    searchWrapper.classList.add('hidden');
+    suggestionsPanel.classList.add('hidden');
+    catalogPanel.classList.add('hidden');
+  };
+
+  const resetSelection = () => {
+    select.value = '';
+    if (customNameInput) customNameInput.value = '';
+    selectedCard.classList.add('hidden');
+    searchWrapper.classList.remove('hidden');
+    searchInput.value = '';
+    searchInput.focus();
+  };
+
+  clearBtn?.addEventListener('click', resetSelection);
+
+  searchInput?.addEventListener('input', () => {
+    const query = normalizeText(searchInput.value.trim());
+    suggestionsList.innerHTML = '';
+
+    if (!query) {
+      suggestionsPanel.classList.add('hidden');
+      return;
+    }
+
+    const matches = plagues.filter(
+      (p) =>
+        normalizeText(p.name).includes(query) ||
+        normalizeText(p.scientific).includes(query),
+    );
+
+    if (matches.length > 0) {
+      matches
+        .slice(0, 8)
+        .forEach((p) =>
+          suggestionsList.appendChild(
+            buildPlagueSuggestionItem(p, applyPlagueSelection),
+          ),
+        );
+      customPrompt.classList.add('hidden');
+    } else {
+      customNamePreview.textContent = searchInput.value.trim();
+      customPrompt.classList.remove('hidden');
+    }
+
+    suggestionsPanel.classList.remove('hidden');
+  });
+
+  customPlagueBtn?.addEventListener('click', () => {
+    applyCustomPlague(searchInput.value);
+  });
+
+  showAllBtn?.addEventListener('click', () => {
+    suggestionsPanel.classList.add('hidden');
+    catalogPanel.classList.remove('hidden');
+  });
+
+  catalogToggle?.addEventListener('click', () => {
+    catalogPanel.classList.toggle('hidden');
+  });
+
+  setupPlagueCategoryFilters(modal, applyPlagueSelection);
+};
+
+/* ══════════════════════════════════════════════════════════════════════════
+   3. MÓDULO: PRODUCTOS / AGROQUÍMICOS & RECOMENDACIÓN INTELIGENTE
+   ══════════════════════════════════════════════════════════════════════════ */
+const buildProductSuggestionItem = (prod, onSelect) => {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className =
+    'w-full text-left p-2.5 hover:bg-muted/80 rounded-xl flex items-center justify-between transition-colors';
+
+  const infoDiv = document.createElement('div');
+  const nameP = document.createElement('p');
+  nameP.className = 'text-xs font-bold text-foreground';
+  nameP.textContent = prod.name;
+  const ingP = document.createElement('p');
+  ingP.className = 'text-[11px] text-muted-foreground';
+  ingP.textContent = prod.activeIngredient
+    ? `Ingrediente: ${prod.activeIngredient}`
+    : 'Agroquímico validado';
+  infoDiv.appendChild(nameP);
+  infoDiv.appendChild(ingP);
+
+  const metaDiv = document.createElement('div');
+  metaDiv.className = 'flex flex-col items-end gap-1';
+  if (prod.isTargetForDetectedPest) {
+    const pestBadge = document.createElement('span');
+    pestBadge.className =
+      'rounded-full bg-emerald-500/10 text-emerald-700 px-2 py-0.5 text-[9px] font-bold border border-emerald-500/20';
+    pestBadge.textContent = '⭐ Recomendado INIFAP';
+    metaDiv.appendChild(pestBadge);
+  }
+  if (prod.presentation) {
+    const presBadge = document.createElement('span');
+    presBadge.className =
+      'rounded bg-muted px-1.5 py-0.5 text-[9px] text-muted-foreground';
+    presBadge.textContent = prod.presentation;
+    metaDiv.appendChild(presBadge);
+  }
+
+  button.appendChild(infoDiv);
+  button.appendChild(metaDiv);
+  button.addEventListener('click', () => onSelect(prod));
+  return button;
+};
+
+const extractProductsFromSelect = (select) => {
+  if (!select) return [];
+  return Array.from(select.options)
+    .filter((opt) => opt.value && opt.value !== 'custom')
+    .map((opt) => ({
+      id: opt.value,
+      name: opt.dataset.name || opt.textContent.split('·')[0].trim(),
+      activeIngredient: opt.dataset.activeIngredient || '',
+      presentation: opt.dataset.presentation || '',
+      targetPlagueIds: (opt.dataset.targetPlagueIds || '').split(','),
+      targetPlagueNames: opt.dataset.targetPlagueNames || '',
+    }));
+};
+
+const setupQuickRecommendedProducts = (modal, products, onSelect) => {
+  const listContainer = modal.querySelector(
+    '[data-smart-recommended-products-list]',
+  );
+  if (!listContainer) return;
+
+  const recommendedProducts = products.filter((p) => p.isTargetForDetectedPest);
+  if (recommendedProducts.length === 0) {
+    const parentBox = modal.querySelector(
+      '[data-detected-plagues-recommendations]',
+    );
+    if (parentBox) parentBox.classList.add('hidden');
+    return;
+  }
+
+  listContainer.innerHTML = '';
+  recommendedProducts.slice(0, 4).forEach((prod) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className =
+      'rounded-lg border border-amber-600/40 bg-card px-3 py-1.5 text-xs font-bold text-amber-900 hover:bg-amber-100 hover:border-amber-600 transition-all flex items-center gap-1.5 shadow-sm';
+    btn.textContent = `⭐ ${prod.name}`;
+    btn.title = `Autorizado para control de plaga detectada`;
+    btn.addEventListener('click', () => onSelect(prod));
+    listContainer.appendChild(btn);
+  });
+};
+
+const setupApplicationModalUX = () => {
+  const modal = document.querySelector('[data-land-modal="application"]');
+  if (!modal) return;
+
+  const select = document.getElementById('application-product');
+  const searchInput = modal.querySelector('[data-product-search-input]');
+  const suggestionsPanel = modal.querySelector(
+    '[data-product-suggestions-panel]',
+  );
+  const suggestionsList = modal.querySelector(
+    '[data-product-suggestions-list]',
+  );
+  const customPrompt = modal.querySelector('[data-product-custom-prompt]');
+  const customNamePreview = modal.querySelector(
+    '[data-product-custom-name-preview]',
+  );
+  const customProductBtn = modal.querySelector('[data-product-custom-btn]');
+  const showAllBtn = modal.querySelector('[data-product-show-all-btn]');
+  const catalogToggle = modal.querySelector('[data-product-catalog-toggle]');
+  const catalogPanel = modal.querySelector('[data-product-catalog-panel]');
+  const selectedCard = modal.querySelector('[data-product-selected-card]');
+  const selectedName = modal.querySelector('[data-product-selected-name]');
+  const selectedMeta = modal.querySelector('[data-product-selected-meta]');
+  const clearBtn = modal.querySelector('[data-product-clear-btn]');
+  const searchWrapper = modal.querySelector('[data-product-search-wrapper]');
+  const customNameInput = document.getElementById(
+    'application-custom-product-name',
+  );
+  const productCards = modal.querySelectorAll('[data-product-card-item]');
+
+  const products = extractProductsFromSelect(select);
+
+  // Marcar productos recomendados para las plagas detectadas en el predio
+  const detectedPestElements = modal.querySelectorAll(
+    '[data-detected-plagues-recommendations] span',
+  );
+  const hasDetectedPests = detectedPestElements.length > 0;
+
+  products.forEach((prod) => {
+    prod.isTargetForDetectedPest =
+      hasDetectedPests && prod.targetPlagueNames.length > 0;
+  });
+
+  const applyProductSelection = (prod) => {
+    select.value = prod.id;
+    if (customNameInput) customNameInput.value = '';
+    selectedName.textContent = prod.name;
+    selectedMeta.textContent = `${prod.activeIngredient ? `Ingrediente: ${prod.activeIngredient}` : 'Producto oficial'}${prod.presentation ? ` · ${prod.presentation}` : ''}`;
+    selectedCard.classList.remove('hidden');
+    searchWrapper.classList.add('hidden');
+    suggestionsPanel.classList.add('hidden');
+    catalogPanel.classList.add('hidden');
+  };
+
+  const applyCustomProduct = (customName) => {
+    const name = customName.trim();
+    if (!name) return;
+    select.value = 'custom';
+    if (customNameInput) customNameInput.value = name;
+    selectedName.textContent = `${name} (Personalizado)`;
+    selectedMeta.textContent = 'Agroquímico no catalogado / formulación local';
+    selectedCard.classList.remove('hidden');
+    searchWrapper.classList.add('hidden');
+    suggestionsPanel.classList.add('hidden');
+    catalogPanel.classList.add('hidden');
+  };
+
+  const resetSelection = () => {
+    select.value = '';
+    if (customNameInput) customNameInput.value = '';
+    selectedCard.classList.add('hidden');
+    searchWrapper.classList.remove('hidden');
+    searchInput.value = '';
+    searchInput.focus();
+  };
+
+  clearBtn?.addEventListener('click', resetSelection);
+
+  searchInput?.addEventListener('input', () => {
+    const query = normalizeText(searchInput.value.trim());
+    suggestionsList.innerHTML = '';
+
+    if (!query) {
+      suggestionsPanel.classList.add('hidden');
+      return;
+    }
+
+    const matches = products.filter(
+      (prod) =>
+        normalizeText(prod.name).includes(query) ||
+        normalizeText(prod.activeIngredient).includes(query) ||
+        normalizeText(prod.targetPlagueNames).includes(query),
+    );
+
+    if (matches.length > 0) {
+      // Poner al principio los recomendados para plagas
+      matches.sort(
+        (a, b) =>
+          Number(b.isTargetForDetectedPest) - Number(a.isTargetForDetectedPest),
+      );
+      matches
+        .slice(0, 8)
+        .forEach((prod) =>
+          suggestionsList.appendChild(
+            buildProductSuggestionItem(prod, applyProductSelection),
+          ),
+        );
+      customPrompt.classList.add('hidden');
+    } else {
+      customNamePreview.textContent = searchInput.value.trim();
+      customPrompt.classList.remove('hidden');
+    }
+
+    suggestionsPanel.classList.remove('hidden');
+  });
+
+  customProductBtn?.addEventListener('click', () => {
+    applyCustomProduct(searchInput.value);
+  });
+
+  showAllBtn?.addEventListener('click', () => {
+    suggestionsPanel.classList.add('hidden');
+    catalogPanel.classList.remove('hidden');
+  });
+
+  catalogToggle?.addEventListener('click', () => {
+    catalogPanel.classList.toggle('hidden');
+  });
+
+  productCards.forEach((card) => {
+    card.addEventListener('click', () => {
+      applyProductSelection({
+        id: card.dataset.id,
+        name: card.dataset.name,
+        activeIngredient: card.dataset.activeIngredient,
+        presentation: card.dataset.presentation,
+      });
+    });
+  });
+
+  setupQuickRecommendedProducts(modal, products, applyProductSelection);
+};
+
+/* ══════════════════════════════════════════════════════════════════════════
+   INICIALIZACIÓN PRINCIPAL
+   ══════════════════════════════════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', () => {
   const closers = [];
   const editModal = document.getElementById('modal-edit-land');
@@ -376,6 +804,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   setupComboboxFilters();
   setupCycleModalUX();
+  setupHealthModalUX();
+  setupApplicationModalUX();
 
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') closers.forEach((close) => close());

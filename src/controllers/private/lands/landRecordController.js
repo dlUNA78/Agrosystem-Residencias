@@ -36,6 +36,60 @@ const sendRelationError = (res, error) => {
   return res.status(400).send('Selecciona un registro publicado del catálogo');
 };
 
+const resolveReportPlague = async (validatedInput, transaction) => {
+  if (validatedInput.plague_id) {
+    const plague = await Plague.findOne({
+      where: {
+        id: validatedInput.plague_id,
+        workflow_status: PLAGUE_WORKFLOW_STATUSES.PUBLISHED,
+        status: true,
+      },
+      transaction,
+    });
+    if (!plague) return null;
+    return { plagueId: plague.id, plagueName: plague.name };
+  }
+
+  if (validatedInput.custom_plague_name) {
+    const existing = await Plague.findOne({
+      where: { name: validatedInput.custom_plague_name },
+      transaction,
+    });
+    return {
+      plagueId: existing?.id || null,
+      plagueName: validatedInput.custom_plague_name,
+    };
+  }
+
+  return null;
+};
+
+const resolveApplicationProduct = async (validatedInput, transaction) => {
+  if (validatedInput.product_id) {
+    const product = await Product.findOne({
+      where: { id: validatedInput.product_id, status: true },
+      transaction,
+    });
+    if (!product) return null;
+    return {
+      productId: product.id,
+      productName: product.name,
+      activeIngredient: product.active_ingredient || null,
+    };
+  }
+
+  if (validatedInput.custom_product_name) {
+    return {
+      productId: null,
+      productName: validatedInput.custom_product_name,
+      activeIngredient:
+        validatedInput.custom_active_ingredient || 'No especificado',
+    };
+  }
+
+  return null;
+};
+
 export const createFarmHealthReport = async (req, res) => {
   const farmId = parseLandId(req.params.id);
   if (!farmId) return res.status(400).send('Identificador de terreno inválido');
@@ -55,22 +109,19 @@ export const createFarmHealthReport = async (req, res) => {
       );
       if (context.error) return context.error;
 
-      const plague = await Plague.findOne({
-        where: {
-          id: validation.value.plague_id,
-          workflow_status: PLAGUE_WORKFLOW_STATUSES.PUBLISHED,
-          status: true,
-        },
+      const plagueData = await resolveReportPlague(
+        validation.value,
         transaction,
-      });
-      if (!plague) return 'catalog_not_found';
+      );
+      if (!plagueData) return 'catalog_not_found';
 
       const report = await FarmHealthReport.create(
         {
           ...validation.value,
           farm_id: context.farm.id,
           farm_crop_id: context.farmCrop?.id || null,
-          plague_name: plague.name,
+          plague_id: plagueData.plagueId,
+          plague_name: plagueData.plagueName,
           status: 'open',
           created_by_user_id: req.user.id,
         },
@@ -83,7 +134,8 @@ export const createFarmHealthReport = async (req, res) => {
           newValues: {
             health_report_id: report.id,
             farm_crop_id: context.farmCrop?.id || null,
-            plague_id: plague.id,
+            plague_id: plagueData.plagueId,
+            plague_name: plagueData.plagueName,
             severity: validation.value.severity,
           },
           userId: req.user.id,
@@ -124,19 +176,20 @@ export const createFarmApplication = async (req, res) => {
       );
       if (context.error) return context.error;
 
-      const product = await Product.findOne({
-        where: { id: validation.value.product_id, status: true },
+      const productData = await resolveApplicationProduct(
+        validation.value,
         transaction,
-      });
-      if (!product) return 'catalog_not_found';
+      );
+      if (!productData) return 'catalog_not_found';
 
       const application = await FarmApplication.create(
         {
           ...validation.value,
           farm_id: context.farm.id,
           farm_crop_id: context.farmCrop?.id || null,
-          product_name: product.name,
-          active_ingredient: product.active_ingredient || null,
+          product_id: productData.productId,
+          product_name: productData.productName,
+          active_ingredient: productData.activeIngredient,
           created_by_user_id: req.user.id,
         },
         { transaction },
@@ -148,7 +201,8 @@ export const createFarmApplication = async (req, res) => {
           newValues: {
             application_id: application.id,
             farm_crop_id: context.farmCrop?.id || null,
-            product_id: product.id,
+            product_id: productData.productId,
+            product_name: productData.productName,
             dose_value: validation.value.dose_value,
             dose_unit: validation.value.dose_unit,
           },

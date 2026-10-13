@@ -113,6 +113,23 @@ describe('validación del expediente operativo de terrenos', () => {
     );
   });
 
+  it('normaliza un hallazgo fitosanitario con plaga personalizada', () => {
+    const result = validateFarmHealthReportInput({
+      plague_id: 'custom',
+      custom_plague_name: '  Pulgón Amarillo  ',
+      severity: 'medium',
+      observed_at: '2026-09-06',
+    });
+
+    expect(result.isValid).toBe(true);
+    expect(result.value).toEqual(
+      expect.objectContaining({
+        custom_plague_name: 'Pulgón Amarillo',
+        severity: 'medium',
+      }),
+    );
+  });
+
   it('rechaza severidad, fecha y texto excesivo en hallazgos', () => {
     const result = validateFarmHealthReportInput({
       plague_id: '4',
@@ -146,6 +163,27 @@ describe('validación del expediente operativo de terrenos', () => {
       expect.objectContaining({
         product_id: 15,
         dose_value: 1.5,
+        dose_unit: 'L/ha',
+      }),
+    );
+  });
+
+  it('normaliza una aplicación con producto personalizado y principio activo opcional', () => {
+    const result = validateFarmApplicationInput({
+      product_id: 'custom',
+      custom_product_name: ' BioExtracto de Ajo ',
+      custom_active_ingredient: ' Alicina 10% ',
+      dose_value: '2.0',
+      dose_unit: 'L/ha',
+      applied_at: '2026-09-06',
+    });
+
+    expect(result.isValid).toBe(true);
+    expect(result.value).toEqual(
+      expect.objectContaining({
+        custom_product_name: 'BioExtracto de Ajo',
+        custom_active_ingredient: 'Alicina 10%',
+        dose_value: 2,
         dose_unit: 'L/ha',
       }),
     );

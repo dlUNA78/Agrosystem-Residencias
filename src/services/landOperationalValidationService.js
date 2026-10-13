@@ -126,10 +126,50 @@ export const validateStageAdvanceInput = (input = {}) => {
   return buildResult(value, fieldErrors);
 };
 
+const setPlagueSelection = (input, value, fieldErrors) => {
+  const isExplicitCustom = input.plague_id === 'custom' || !input.plague_id;
+  const customName = cleanText(input.custom_plague_name);
+  if (isExplicitCustom && customName) {
+    if (customName.length > 150) {
+      addError(
+        fieldErrors,
+        'custom_plague_name',
+        'El nombre de la plaga no puede exceder 150 caracteres.',
+      );
+      return;
+    }
+    value.custom_plague_name = customName;
+    return;
+  }
+  setRequiredId(input, 'plague_id', value, fieldErrors);
+};
+
+const setProductSelection = (input, value, fieldErrors) => {
+  const isExplicitCustom = input.product_id === 'custom' || !input.product_id;
+  const customName = cleanText(input.custom_product_name);
+  if (isExplicitCustom && customName) {
+    if (customName.length > 150) {
+      addError(
+        fieldErrors,
+        'custom_product_name',
+        'El nombre del producto no puede exceder 150 caracteres.',
+      );
+      return;
+    }
+    value.custom_product_name = customName;
+    const customActive = cleanText(input.custom_active_ingredient);
+    if (customActive) {
+      value.custom_active_ingredient = customActive.slice(0, 150);
+    }
+    return;
+  }
+  setRequiredId(input, 'product_id', value, fieldErrors);
+};
+
 export const validateFarmHealthReportInput = (input = {}) => {
   const value = {};
   const fieldErrors = {};
-  setRequiredId(input, 'plague_id', value, fieldErrors);
+  setPlagueSelection(input, value, fieldErrors);
   setOptionalId(input, 'farm_crop_id', value, fieldErrors);
   setDate(input, 'observed_at', value, fieldErrors, 'La fecha de observación');
 
@@ -148,7 +188,7 @@ export const validateFarmHealthReportInput = (input = {}) => {
 export const validateFarmApplicationInput = (input = {}) => {
   const value = {};
   const fieldErrors = {};
-  setRequiredId(input, 'product_id', value, fieldErrors);
+  setProductSelection(input, value, fieldErrors);
   setOptionalId(input, 'farm_crop_id', value, fieldErrors);
   setDate(input, 'applied_at', value, fieldErrors, 'La fecha de aplicación');
 
