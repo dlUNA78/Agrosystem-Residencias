@@ -36,7 +36,10 @@ const mockDb = {
     bulkCreate: jest.fn(),
     findOne: jest.fn(),
   },
-  Crop: { findOne: jest.fn(async () => crop) },
+  Crop: {
+    findOne: jest.fn(async () => crop),
+    create: jest.fn(async (data) => ({ id: 99, ...data })),
+  },
   Plague: { findOne: jest.fn(async () => plague) },
   Product: { findOne: jest.fn(async () => product) },
   FarmHealthReport: { create: jest.fn(async () => ({ id: 41 })) },
@@ -107,6 +110,45 @@ describe('operaciones del expediente de terrenos', () => {
       expect.arrayContaining([
         expect.objectContaining({ farm_crop_id: 33, stage_order: 1 }),
       ]),
+      { transaction },
+    );
+    expect(res.status).toHaveBeenCalledWith(201);
+  });
+
+  it('crea un ciclo con cultivo personalizado si no se selecciona del catálogo', async () => {
+    const res = buildResponse();
+    mockDb.Crop.findOne.mockResolvedValueOnce(null);
+    mockDb.Crop.create.mockResolvedValueOnce({
+      id: 99,
+      name: 'Pitahaya',
+      harvest_days: 120,
+    });
+
+    await createLandCropCycle(
+      {
+        ...requestContext,
+        body: {
+          crop_id: 'custom',
+          custom_crop_name: 'Pitahaya',
+          planting_date: '2026-03-15',
+          area_section: 'Lote Experimental',
+        },
+      },
+      res,
+    );
+
+    expect(mockDb.Crop.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Pitahaya',
+        workflow_status: 'published',
+      }),
+      { transaction },
+    );
+    expect(mockDb.FarmCrop.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        farm_id: 18,
+        crop_id: 99,
+      }),
       { transaction },
     );
     expect(res.status).toHaveBeenCalledWith(201);

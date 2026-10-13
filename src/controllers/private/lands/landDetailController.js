@@ -89,7 +89,7 @@ const getCatalogs = () =>
     }),
     Crop.findAll({
       where: { workflow_status: CROP_WORKFLOW_STATUSES.PUBLISHED },
-      attributes: ['id', 'name', 'scientific_name'],
+      attributes: ['id', 'name', 'scientific_name', 'category', 'harvest_days'],
       order: [['name', 'ASC']],
       raw: true,
     }),
@@ -137,6 +137,9 @@ export const landDetail = async (req, res) => {
 
     const land = farm.toJSON();
     const [regions, crops, plagues, products] = await getCatalogs();
+    const cropCategories = [
+      ...new Set(crops.map((cropItem) => cropItem.category).filter(Boolean)),
+    ].sort();
     const farmCrops = prepareCropCycles(land.farmCrops);
     const healthReports = prepareHealthReports(land.healthReports);
     const applications = prepareApplications(land.applications);
@@ -150,6 +153,7 @@ export const landDetail = async (req, res) => {
       land,
       regions,
       crops,
+      cropCategories,
       plagues,
       products,
       farmCrops,

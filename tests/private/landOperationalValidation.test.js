@@ -44,6 +44,42 @@ describe('validación del expediente operativo de terrenos', () => {
     );
   });
 
+  it('normaliza un ciclo con cultivo personalizado y días de cosecha', () => {
+    const result = validateFarmCropInput({
+      crop_id: 'custom',
+      custom_crop_name: '  Pitahaya Roja  ',
+      custom_harvest_days: '180',
+      planting_date: '2026-04-10',
+      area_section: 'Sección Experimental',
+    });
+
+    expect(result.isValid).toBe(true);
+    expect(result.value).toEqual({
+      custom_crop_name: 'Pitahaya Roja',
+      custom_harvest_days: 180,
+      planting_date: '2026-04-10',
+      area_section: 'Sección Experimental',
+    });
+  });
+
+  it('rechaza cultivo personalizado con nombre vacío o que exceda el límite', () => {
+    const resultEmpty = validateFarmCropInput({
+      crop_id: 'custom',
+      custom_crop_name: '   ',
+      planting_date: '2026-04-10',
+    });
+    expect(resultEmpty.isValid).toBe(false);
+    expect(resultEmpty.fieldErrors.crop_id).toBeDefined();
+
+    const resultLong = validateFarmCropInput({
+      crop_id: 'custom',
+      custom_crop_name: 'a'.repeat(151),
+      planting_date: '2026-04-10',
+    });
+    expect(resultLong.isValid).toBe(false);
+    expect(resultLong.fieldErrors.custom_crop_name).toBeDefined();
+  });
+
   it('valida el avance de una etapa concreta', () => {
     expect(
       validateStageAdvanceInput({

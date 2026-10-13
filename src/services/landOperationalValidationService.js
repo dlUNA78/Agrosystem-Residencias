@@ -74,10 +74,32 @@ const buildResult = (value, fieldErrors) => {
   return { isValid: errors.length === 0, errors, fieldErrors, value };
 };
 
+const setCropSelection = (input, value, fieldErrors) => {
+  const isExplicitCustom = input.crop_id === 'custom' || !input.crop_id;
+  const customName = cleanText(input.custom_crop_name);
+  if (isExplicitCustom && customName) {
+    if (customName.length > 150) {
+      addError(
+        fieldErrors,
+        'custom_crop_name',
+        'El nombre del cultivo no puede exceder 150 caracteres.',
+      );
+      return;
+    }
+    value.custom_crop_name = customName;
+    const days = Number(input.custom_harvest_days);
+    if (Number.isInteger(days) && days > 0 && days <= 1500) {
+      value.custom_harvest_days = days;
+    }
+    return;
+  }
+  setRequiredId(input, 'crop_id', value, fieldErrors);
+};
+
 export const validateFarmCropInput = (input = {}) => {
   const value = {};
   const fieldErrors = {};
-  setRequiredId(input, 'crop_id', value, fieldErrors);
+  setCropSelection(input, value, fieldErrors);
   setDate(input, 'planting_date', value, fieldErrors, 'La fecha de siembra');
   setOptionalText(input, 'area_section', value, fieldErrors, {
     max: 100,

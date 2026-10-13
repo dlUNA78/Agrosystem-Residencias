@@ -1,32 +1,155 @@
 <div data-land-modal="cycle" class="hidden fixed inset-0 z-[210] items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="cycle-modal-title">
     <button type="button" data-land-modal-close class="absolute inset-0 bg-black/40 backdrop-blur-sm" aria-label="Cerrar"></button>
-    <div class="relative z-10 w-full max-w-lg overflow-hidden rounded-2xl border border-border bg-card shadow-2xl">
+    <div class="relative z-10 w-full max-w-2xl max-h-[90vh] overflow-hidden rounded-2xl border border-border bg-card shadow-2xl flex flex-col">
         <header class="flex items-center justify-between border-b border-border px-6 py-4">
-            <h2 id="cycle-modal-title" class="text-lg font-extrabold text-foreground">Registrar ciclo de cultivo</h2>
+            <div>
+                <h2 id="cycle-modal-title" class="text-lg font-extrabold text-foreground">Registrar ciclo de cultivo</h2>
+                <p class="text-xs text-muted-foreground">Catálogo agronómico, cálculo automático de cosecha y cultivos personalizados.</p>
+            </div>
             <button type="button" data-land-modal-close class="rounded-lg px-3 py-2 text-sm font-bold text-muted-foreground hover:bg-muted">Cerrar</button>
         </header>
-        <form action="/private/lands/{{land.id}}/cycles" method="POST">
+        <form id="form-create-cycle" action="/private/lands/{{land.id}}/cycles" method="POST" class="flex flex-col overflow-y-auto">
             <div class="space-y-5 p-6">
-                <div>
-                    <label for="cycle-crop" class="mb-1.5 block text-xs font-bold text-muted-foreground">Cultivo publicado</label>
-                    <div class="relative mb-2">
-                        <input type="text" data-combobox-filter="cycle-crop" placeholder="🔍 Filtrar cultivo por nombre o científico..." class="w-full rounded-xl border border-input bg-muted/30 px-3.5 py-2 text-xs outline-none focus:border-primary focus:bg-background focus:ring-1 focus:ring-primary/20 transition-all" />
+                <!-- SECCIÓN: SELECCIÓN DE CULTIVO -->
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <label for="cycle-crop-search" class="block text-xs font-bold uppercase tracking-wider text-muted-foreground">Cultivo</label>
+                        <button type="button" data-crop-catalog-toggle class="text-xs font-bold text-primary hover:underline flex items-center gap-1">
+                            <span data-catalog-toggle-text>📂 Explorar por categorías</span>
+                        </button>
                     </div>
-                    <select id="cycle-crop" name="crop_id" required class="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+
+                    <!-- Tarjeta de cultivo seleccionado (activa cuando hay selección) -->
+                    <div data-crop-selected-card class="hidden rounded-xl border border-emerald-500/40 bg-emerald-500/10 p-3.5 flex items-center justify-between gap-3">
+                        <div class="flex items-center gap-3">
+                            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-600 text-white font-black text-sm">
+                                🌾
+                            </div>
+                            <div>
+                                <p data-crop-selected-name class="text-sm font-extrabold text-foreground"></p>
+                                <p data-crop-selected-meta class="text-xs text-muted-foreground"></p>
+                            </div>
+                        </div>
+                        <button type="button" data-crop-clear-btn class="rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-bold text-muted-foreground hover:bg-muted">
+                            Cambiar
+                        </button>
+                    </div>
+
+                    <!-- Buscador interactivo de cultivos -->
+                    <div data-crop-search-wrapper class="relative">
+                        <input
+                            type="text"
+                            id="cycle-crop-search"
+                            data-crop-search-input
+                            data-combobox-filter="cycle-crop"
+                            placeholder="🔍 Escribe para buscar cultivo (ej. Maíz, Limón, Jitomate)..."
+                            autocomplete="off"
+                            class="w-full rounded-xl border border-input bg-muted/30 px-3.5 py-2.5 text-sm outline-none focus:border-primary focus:bg-background focus:ring-2 focus:ring-primary/20 transition-all"
+                        />
+
+                        <!-- Dropdown de recomendaciones y sugerencias dinámicas -->
+                        <div data-crop-suggestions-panel class="hidden absolute left-0 right-0 top-full z-20 mt-1 max-h-60 overflow-y-auto rounded-xl border border-border bg-card shadow-xl p-1.5 space-y-1">
+                            <div data-crop-suggestions-list class="space-y-1"></div>
+                            
+                            <!-- Opción cuando no hay coincidencia exacta o para cultivo libre -->
+                            <div data-crop-custom-prompt class="hidden border-t border-border pt-2 mt-2 px-2 pb-1">
+                                <p class="text-xs text-muted-foreground mb-1.5">¿No encuentras lo que buscas en el catálogo?</p>
+                                <button type="button" data-crop-custom-btn class="w-full rounded-lg border border-dashed border-primary/40 bg-primary/5 px-3 py-2 text-left text-xs font-bold text-primary hover:bg-primary/10 transition-colors flex items-center justify-between">
+                                    <span>🌱 Usar "<span data-crop-custom-name-preview></span>" como cultivo personalizado</span>
+                                    <span class="text-[10px] bg-primary/10 px-2 py-0.5 rounded">No catalogado</span>
+                                </button>
+                                <button type="button" data-crop-show-all-btn class="mt-1 text-[11px] font-semibold text-muted-foreground hover:text-foreground">
+                                    Ver todos los {{crops.length}} cultivos disponibles
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Explorador de catálogo por categorías (panel ampliado) -->
+                    <div data-crop-catalog-panel class="hidden rounded-xl border border-border bg-muted/20 p-4 space-y-3">
+                        <div class="flex flex-wrap items-center gap-1.5">
+                            <span class="text-xs font-bold text-muted-foreground mr-1">Categoría:</span>
+                            <button type="button" data-category-filter="all" class="rounded-lg bg-primary px-2.5 py-1 text-xs font-bold text-white transition-colors">Todas</button>
+                            {{#each cropCategories}}
+                            <button type="button" data-category-filter="{{this}}" class="rounded-lg bg-muted px-2.5 py-1 text-xs font-semibold text-muted-foreground hover:bg-muted/80 transition-colors">{{this}}</button>
+                            {{/each}}
+                        </div>
+                        <div data-crop-grid class="max-h-48 overflow-y-auto grid gap-2 sm:grid-cols-2 pr-1">
+                            {{#each crops}}
+                            <button
+                                type="button"
+                                data-crop-card-item
+                                data-id="{{this.id}}"
+                                data-name="{{this.name}}"
+                                data-scientific="{{this.scientific_name}}"
+                                data-category="{{this.category}}"
+                                data-harvest-days="{{this.harvest_days}}"
+                                class="rounded-xl border border-border bg-card p-2.5 text-left hover:border-primary/50 hover:bg-muted/50 transition-all flex flex-col justify-between"
+                            >
+                                <div class="flex items-start justify-between gap-1">
+                                    <span class="text-xs font-bold text-foreground">{{this.name}}</span>
+                                    <span class="rounded bg-muted px-1.5 py-0.5 text-[9px] font-semibold text-muted-foreground">{{this.category}}</span>
+                                </div>
+                                <div class="mt-1 flex items-center justify-between text-[11px] text-muted-foreground">
+                                    <span class="italic truncate max-w-[140px]">{{this.scientific_name}}</span>
+                                    <span class="font-bold text-primary">{{#if this.harvest_days}}~{{this.harvest_days}}d{{else}}Ciclo libre{{/if}}</span>
+                                </div>
+                            </button>
+                            {{/each}}
+                        </div>
+                    </div>
+
+                    <!-- Select original para accesibilidad y compatibilidad -->
+                    <select id="cycle-crop" name="crop_id" class="hidden">
                         <option value="">Seleccionar cultivo</option>
-                        {{#each crops}}<option value="{{this.id}}">{{this.name}} · {{this.scientific_name}}</option>{{/each}}
+                        {{#each crops}}
+                        <option value="{{this.id}}" data-name="{{this.name}}" data-scientific="{{this.scientific_name}}" data-category="{{this.category}}" data-harvest-days="{{this.harvest_days}}">
+                            {{this.name}} · {{this.scientific_name}}
+                        </option>
+                        {{/each}}
+                        <option value="custom">Cultivo personalizado / no catalogado</option>
                     </select>
-                    <p data-combobox-empty="cycle-crop" class="hidden mt-1.5 text-xs text-amber-600 font-medium">No se encontraron cultivos que coincidan con la búsqueda.</p>
+
+                    <p data-combobox-empty="cycle-crop" class="hidden text-xs text-amber-600 font-medium">No se encontraron cultivos que coincidan con la búsqueda.</p>
+
+                    <!-- Inputs ocultos para cultivar personalizado -->
+                    <input type="hidden" id="cycle-custom-crop-name" name="custom_crop_name" value="" />
+                    <input type="hidden" id="cycle-custom-harvest-days" name="custom_harvest_days" value="120" />
                 </div>
-                <div class="grid gap-4 sm:grid-cols-2">
-                    <div>
-                        <label for="cycle-date" class="mb-1.5 block text-xs font-bold text-muted-foreground">Fecha de siembra</label>
-                        <input id="cycle-date" name="planting_date" type="date" required class="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" />
+
+                <!-- SECCIÓN: PLANIFICACIÓN DE FECHAS (CÁLCULO AUTOMÁTICO) -->
+                <div class="rounded-xl border border-border bg-muted/20 p-4 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold uppercase tracking-wider text-muted-foreground">Planificación del ciclo</span>
+                        <span class="rounded-full bg-primary/10 px-2.5 py-0.5 text-[11px] font-bold text-primary">
+                            Ciclo: <span data-crop-cycle-days>120</span> días
+                        </span>
                     </div>
-                    <div>
-                        <label for="cycle-area" class="mb-1.5 block text-xs font-bold text-muted-foreground">Lote o sección</label>
-                        <input id="cycle-area" name="area_section" maxlength="100" placeholder="Ej. Lote norte" class="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" />
+
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <div>
+                            <label for="cycle-date" class="mb-1.5 block text-xs font-bold text-muted-foreground">Fecha de siembra</label>
+                            <input id="cycle-date" name="planting_date" type="date" required value="{{today}}" class="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" />
+                            <p class="mt-1 text-[11px] text-muted-foreground">Inicio del ciclo de cultivo.</p>
+                        </div>
+                        <div>
+                            <label for="cycle-harvest-date" class="mb-1.5 block text-xs font-bold text-muted-foreground">Fecha estimada de cosecha</label>
+                            <input id="cycle-harvest-date" name="estimated_harvest_date" type="date" class="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" />
+                            <p class="mt-1 text-[11px] text-muted-foreground">Calculada automáticamente según días de maduración.</p>
+                        </div>
                     </div>
+
+                    <!-- Resumen del cálculo agronómico -->
+                    <div class="flex items-center gap-2 rounded-lg bg-card border border-border px-3 py-2 text-xs text-muted-foreground">
+                        <span class="text-base">📅</span>
+                        <span>Cosecha proyectada alrededor del <strong data-harvest-date-display class="text-foreground">--</strong> (<span data-crop-cycle-name>Cultivo seleccionado</span>).</span>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN: LOTE O SECCIÓN -->
+                <div>
+                    <label for="cycle-area" class="mb-1.5 block text-xs font-bold text-muted-foreground">Lote o sección del terreno (opcional)</label>
+                    <input id="cycle-area" name="area_section" maxlength="100" placeholder="Ej. Lote norte, Sector A-2" class="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" />
                 </div>
             </div>
             <footer class="flex justify-end gap-3 border-t border-border bg-muted/50 px-6 py-4">

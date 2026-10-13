@@ -29,4 +29,29 @@ describe('componente de combobox en modales operativos de terrenos', () => {
     expect(content).toContain('data-combobox-empty="application-product"');
     expect(content).toContain('id="application-product"');
   });
+
+  it('incluye recomendaciones predictivas, selector por categorías, cultivo personalizado y cálculo de cosecha', async () => {
+    const templatePath = path.join(
+      __dirname,
+      '../../src/views/partials/private/lands/operation-modals.hbs',
+    );
+    const content = await fs.readFile(templatePath, 'utf-8');
+
+    // Panel interactivo de sugerencias y opción personalizada
+    expect(content).toContain('data-crop-suggestions-panel');
+    expect(content).toContain('data-crop-custom-btn');
+    expect(content).toContain('id="cycle-custom-crop-name"');
+
+    // Explorador por categorías y tarjeta seleccionada
+    expect(content).toContain('data-crop-catalog-toggle');
+    expect(content).toContain('data-crop-catalog-panel');
+    expect(content).toContain('data-category-filter="all"');
+    expect(content).toContain('data-crop-selected-card');
+    expect(content).toContain('data-crop-clear-btn');
+
+    // Planificación con cálculo de fecha de cosecha
+    expect(content).toContain('id="cycle-harvest-date"');
+    expect(content).toContain('data-crop-cycle-days');
+    expect(content).toContain('data-harvest-date-display');
+  });
 });

@@ -31,6 +31,42 @@ const sendOperationError = (res, result) => {
   return res.status(409).send('La etapa ya no puede avanzarse');
 };
 
+const resolveCycleCrop = async (validatedInput, userId, transaction) => {
+  if (validatedInput.crop_id) {
+    return Crop.findOne({
+      where: {
+        id: validatedInput.crop_id,
+        workflow_status: CROP_WORKFLOW_STATUSES.PUBLISHED,
+      },
+      transaction,
+    });
+  }
+
+  if (validatedInput.custom_crop_name) {
+    const existing = await Crop.findOne({
+      where: { name: validatedInput.custom_crop_name },
+      transaction,
+    });
+    if (existing) return existing;
+
+    return Crop.create(
+      {
+        name: validatedInput.custom_crop_name,
+        scientific_name: 'No especificado',
+        category: 'Personalizado',
+        harvest_days: validatedInput.custom_harvest_days || 120,
+        workflow_status: CROP_WORKFLOW_STATUSES.PUBLISHED,
+        status: 'aprobado',
+        created_by_user_id: userId,
+        updated_by_user_id: userId,
+      },
+      { transaction },
+    );
+  }
+
+  return null;
+};
+
 export const createLandCropCycle = async (req, res) => {
   const farmId = parseLandId(req.params.id);
   if (!farmId) return res.status(400).send('Identificador de terreno inválido');
@@ -45,13 +81,11 @@ export const createLandCropCycle = async (req, res) => {
       const farm = await findActiveLand(farmId, req.user, transaction);
       if (!farm) return 'farm_not_found';
 
-      const crop = await Crop.findOne({
-        where: {
-          id: validation.value.crop_id,
-          workflow_status: CROP_WORKFLOW_STATUSES.PUBLISHED,
-        },
+      const crop = await resolveCycleCrop(
+        validation.value,
+        req.user.id,
         transaction,
-      });
+      );
       if (!crop) return 'crop_not_found';
 
       const farmCrop = await FarmCrop.create(
