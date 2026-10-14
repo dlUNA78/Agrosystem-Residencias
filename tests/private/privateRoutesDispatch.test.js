@@ -78,6 +78,8 @@ const mockControllers = {
   createLandCropCycle: createMockController('createLandCropCycle'),
   advanceLandCropStage: createMockController('advanceLandCropStage'),
   finishLandCropCycle: createMockController('finishLandCropCycle'),
+  archiveLandCropCycle: createMockController('archiveLandCropCycle'),
+  restoreLandCropCycle: createMockController('restoreLandCropCycle'),
   createFarmHealthReport: createMockController('createFarmHealthReport'),
   createFarmApplication: createMockController('createFarmApplication'),
 
@@ -171,6 +173,8 @@ jest.unstable_mockModule(
     createLandCropCycle: mockControllers.createLandCropCycle,
     advanceLandCropStage: mockControllers.advanceLandCropStage,
     finishLandCropCycle: mockControllers.finishLandCropCycle,
+    archiveLandCropCycle: mockControllers.archiveLandCropCycle,
+    restoreLandCropCycle: mockControllers.restoreLandCropCycle,
     createFarmHealthReport: mockControllers.createFarmHealthReport,
     createFarmApplication: mockControllers.createFarmApplication,
   }),
@@ -637,6 +641,20 @@ const ALL_50_DISPATCH_ENDPOINTS = [
   },
   {
     method: 'post',
+    routePath: '/private/lands/:id/cycles/archive',
+    dispatchPath: '/private/lands/201/cycles/archive',
+    controller: 'archiveLandCropCycle',
+    params: { id: '201' },
+  },
+  {
+    method: 'post',
+    routePath: '/private/lands/:id/cycles/restore',
+    dispatchPath: '/private/lands/201/cycles/restore',
+    controller: 'restoreLandCropCycle',
+    params: { id: '201' },
+  },
+  {
+    method: 'post',
     routePath: '/private/lands/:id/health-reports',
     dispatchPath: '/private/lands/201/health-reports',
     controller: 'createFarmHealthReport',
@@ -752,15 +770,15 @@ describe('pruebas de despacho HTTP del router privado', () => {
   });
 
   // ════════════════════════════════════════════════════════════════════════════
-  // 1. COBERTURA PARAMETRIZADA DE LOS 53 ENDPOINTS
+  // 1. COBERTURA PARAMETRIZADA DE LOS 55 ENDPOINTS
   // ════════════════════════════════════════════════════════════════════════════
-  describe('cobertura parametrizada exhaustiva de los 53 endpoints', () => {
-    it('el catálogo de pruebas de despacho cubre exactamente 53 endpoints únicos', () => {
-      expect(ALL_50_DISPATCH_ENDPOINTS).toHaveLength(53);
+  describe('cobertura parametrizada exhaustiva de los 55 endpoints', () => {
+    it('el catálogo de pruebas de despacho cubre exactamente 55 endpoints únicos', () => {
+      expect(ALL_50_DISPATCH_ENDPOINTS).toHaveLength(55);
       const keys = ALL_50_DISPATCH_ENDPOINTS.map(
         (e) => `${e.method.toUpperCase()} ${e.routePath}`,
       );
-      expect(new Set(keys).size).toBe(53);
+      expect(new Set(keys).size).toBe(55);
     });
 
     test.each(ALL_50_DISPATCH_ENDPOINTS)(
@@ -827,7 +845,7 @@ describe('pruebas de despacho HTTP del router privado', () => {
       expect(res.body.params.id).toBe('888');
     });
 
-    it('los tres endpoints de ciclos de cultivo ejecutan sus controladores específicos', async () => {
+    it('los endpoints de ciclos de cultivo ejecutan sus controladores específicos', async () => {
       // Crear ciclo
       const createCycleRes = await request(app).post(
         '/private/lands/999/cycles',
@@ -851,6 +869,22 @@ describe('pruebas de despacho HTTP del router privado', () => {
       expect(finishRes.status).toBe(200);
       expect(mockControllers.finishLandCropCycle).toHaveBeenCalledTimes(1);
       expect(finishRes.body.params.id).toBe('999');
+
+      // Archivar ciclo
+      const archiveCycleRes = await request(app).post(
+        '/private/lands/999/cycles/archive',
+      );
+      expect(archiveCycleRes.status).toBe(200);
+      expect(mockControllers.archiveLandCropCycle).toHaveBeenCalledTimes(1);
+      expect(archiveCycleRes.body.params.id).toBe('999');
+
+      // Restaurar ciclo
+      const restoreCycleRes = await request(app).post(
+        '/private/lands/999/cycles/restore',
+      );
+      expect(restoreCycleRes.status).toBe(200);
+      expect(mockControllers.restoreLandCropCycle).toHaveBeenCalledTimes(1);
+      expect(restoreCycleRes.body.params.id).toBe('999');
     });
 
     it('los endpoints de reportes sanitarios y aplicaciones ejecutan sus controladores específicos', async () => {

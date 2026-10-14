@@ -156,8 +156,10 @@ export {
 } from './lands/landMutationController.js';
 export {
   advanceLandCropStage,
+  archiveLandCropCycle,
   createLandCropCycle,
   finishLandCropCycle,
+  restoreLandCropCycle,
 } from './lands/landCycleController.js';
 export {
   createFarmApplication,

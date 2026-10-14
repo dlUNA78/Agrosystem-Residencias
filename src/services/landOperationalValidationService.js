@@ -96,11 +96,41 @@ const setCropSelection = (input, value, fieldErrors) => {
   setRequiredId(input, 'crop_id', value, fieldErrors);
 };
 
+const validateHarvestDates = (input, value, fieldErrors) => {
+  if (input.estimated_harvest_date) {
+    setDate(
+      input,
+      'estimated_harvest_date',
+      value,
+      fieldErrors,
+      'La fecha estimada de cosecha',
+    );
+    if (
+      value.planting_date &&
+      value.estimated_harvest_date &&
+      value.estimated_harvest_date <= value.planting_date
+    ) {
+      addError(
+        fieldErrors,
+        'estimated_harvest_date',
+        'La fecha estimada de cosecha debe ser posterior a la fecha de siembra.',
+      );
+    }
+  }
+  if (input.custom_harvest_days && !value.custom_harvest_days) {
+    const days = Number(input.custom_harvest_days);
+    if (Number.isInteger(days) && days > 0 && days <= 3650) {
+      value.custom_harvest_days = days;
+    }
+  }
+};
+
 export const validateFarmCropInput = (input = {}) => {
   const value = {};
   const fieldErrors = {};
   setCropSelection(input, value, fieldErrors);
   setDate(input, 'planting_date', value, fieldErrors, 'La fecha de siembra');
+  validateHarvestDates(input, value, fieldErrors);
   setOptionalText(input, 'area_section', value, fieldErrors, {
     max: 100,
     label: 'La sección del terreno',

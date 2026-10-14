@@ -51,8 +51,13 @@ jest.unstable_mockModule('../../src/models/index.js', () => ({
   default: mockDb,
 }));
 
-const { advanceLandCropStage, createLandCropCycle, finishLandCropCycle } =
-  await import('../../src/controllers/private/lands/landCycleController.js');
+const {
+  advanceLandCropStage,
+  archiveLandCropCycle,
+  createLandCropCycle,
+  finishLandCropCycle,
+  restoreLandCropCycle,
+} = await import('../../src/controllers/private/lands/landCycleController.js');
 const { createFarmApplication, createFarmHealthReport } =
   await import('../../src/controllers/private/lands/landRecordController.js');
 
@@ -199,6 +204,57 @@ describe('operaciones del expediente de terrenos', () => {
 
     expect(farmCrop.update).toHaveBeenCalledWith(
       { is_active: false, status: 'completed' },
+      { transaction },
+    );
+  });
+
+  it('archiva un ciclo de cultivo cosechado', async () => {
+    const res = buildResponse();
+    await archiveLandCropCycle(
+      { ...requestContext, body: { farm_crop_id: '33' } },
+      res,
+    );
+
+    expect(farmCrop.update).toHaveBeenCalledWith(
+      { is_active: false, status: 'archived' },
+      { transaction },
+    );
+  });
+
+  it('desarchiva y restaura un ciclo de cultivo', async () => {
+    const res = buildResponse();
+    await restoreLandCropCycle(
+      { ...requestContext, body: { farm_crop_id: '33' } },
+      res,
+    );
+
+    expect(farmCrop.update).toHaveBeenCalledWith(
+      { is_active: false, status: 'completed' },
+      { transaction },
+    );
+  });
+
+  it('calcula la duración y etapas a partir de estimated_harvest_date', async () => {
+    const res = buildResponse();
+    await createLandCropCycle(
+      {
+        ...requestContext,
+        body: {
+          crop_id: '8',
+          planting_date: '2026-03-01',
+          estimated_harvest_date: '2026-06-09', // 100 días
+        },
+      },
+      res,
+    );
+
+    expect(mockDb.FarmCropStage.bulkCreate).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        expect.objectContaining({
+          stage_order: 5,
+          estimated_date: '2026-06-09',
+        }),
+      ]),
       { transaction },
     );
   });

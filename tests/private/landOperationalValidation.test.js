@@ -44,6 +44,32 @@ describe('validación del expediente operativo de terrenos', () => {
     );
   });
 
+  it('normaliza un ciclo con fecha estimada de cosecha válida', () => {
+    const result = validateFarmCropInput({
+      crop_id: '8',
+      planting_date: '2026-03-15',
+      estimated_harvest_date: '2026-07-15',
+    });
+
+    expect(result.isValid).toBe(true);
+    expect(result.value.estimated_harvest_date).toBe('2026-07-15');
+  });
+
+  it('rechaza fecha estimada de cosecha si es anterior o igual a la siembra', () => {
+    const result = validateFarmCropInput({
+      crop_id: '8',
+      planting_date: '2026-03-15',
+      estimated_harvest_date: '2026-03-10',
+    });
+
+    expect(result.isValid).toBe(false);
+    expect(result.fieldErrors.estimated_harvest_date).toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/posterior a la fecha de siembra/i),
+      ]),
+    );
+  });
+
   it('normaliza un ciclo con cultivo personalizado y días de cosecha', () => {
     const result = validateFarmCropInput({
       crop_id: 'custom',

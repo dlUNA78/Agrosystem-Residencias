@@ -168,8 +168,6 @@ const extractCropsFromSelect = (select) => {
 const syncDates = (plantingInput, harvestInput, cycleDays, caller) => {
   if (caller === 'planting' && plantingInput.value) {
     harvestInput.value = addDaysToDateString(plantingInput.value, cycleDays);
-  } else if (caller === 'harvest' && harvestInput.value) {
-    plantingInput.value = addDaysToDateString(harvestInput.value, -cycleDays);
   } else if (plantingInput.value && !harvestInput.value) {
     harvestInput.value = addDaysToDateString(plantingInput.value, cycleDays);
   }
@@ -256,8 +254,20 @@ const setupCycleModalUX = () => {
   const getCycleDays = () => Number(activeCrop?.harvestDays) || 120;
 
   const recalculateDates = (caller = 'planting') => {
-    const days = getCycleDays();
-    syncDates(plantingInput, harvestInput, days, caller);
+    let days = getCycleDays();
+    if (caller === 'harvest' && harvestInput.value && plantingInput.value) {
+      const [y1, m1, d1] = plantingInput.value.split('-').map(Number);
+      const [y2, m2, d2] = harvestInput.value.split('-').map(Number);
+      const diff = Math.round(
+        (Date.UTC(y2, m2 - 1, d2) - Date.UTC(y1, m1 - 1, d1)) / 86400000,
+      );
+      if (diff > 0) {
+        days = diff;
+        if (customDaysInput) customDaysInput.value = String(diff);
+      }
+    } else {
+      syncDates(plantingInput, harvestInput, days, caller);
+    }
     const cropName = activeCrop?.name || 'Cultivo seleccionado';
     updateSummaryLabels(displays, harvestInput.value, days, cropName);
   };

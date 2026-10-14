@@ -50,12 +50,29 @@ const toDateOnly = (value) =>
   value ? new Date(value).toISOString().slice(0, 10) : null;
 
 const prepareCropCycles = (cycles = []) =>
-  cycles.map((cycle) => ({
-    ...cycle,
-    plantingDate: toDateOnly(cycle.planting_date),
-    statusLabel: cycle.is_active ? 'En curso' : 'Finalizado',
-    ...summarizeLandCropStages(cycle.stages || []),
-  }));
+  cycles.map((cycle) => {
+    const isArchived = cycle.status === 'archived';
+    const isCompleted =
+      cycle.status === 'completed' || (!cycle.is_active && !isArchived);
+    const statusLabel = isArchived
+      ? 'Archivado'
+      : cycle.is_active
+        ? 'En curso'
+        : 'Cosechado / Finalizado';
+
+    return {
+      ...cycle,
+      plantingDate: toDateOnly(cycle.planting_date),
+      isArchived,
+      isCompleted,
+      statusLabel,
+      ...summarizeLandCropStages(cycle.stages || [], {
+        useTimeProgress: true,
+        isCycleActive: cycle.is_active,
+        cycleStatus: cycle.status,
+      }),
+    };
+  });
 
 const prepareHealthReports = (reports = []) => {
   const severityLabels = { low: 'Baja', medium: 'Media', high: 'Alta' };
@@ -173,6 +190,13 @@ export const landDetail = async (req, res) => {
     });
 
     const farmCrops = prepareCropCycles(land.farmCrops);
+    const activeFarmCrops = farmCrops.filter((farmCrop) => farmCrop.is_active);
+    const nonArchivedFarmCrops = farmCrops.filter(
+      (farmCrop) => !farmCrop.isArchived,
+    );
+    const archivedFarmCrops = farmCrops.filter(
+      (farmCrop) => farmCrop.isArchived,
+    );
     const healthReports = prepareHealthReports(land.healthReports);
     const applications = prepareApplications(land.applications);
     const permissions = buildPermissions(land, req.user);
@@ -206,12 +230,15 @@ export const landDetail = async (req, res) => {
       products,
       detectedPlagues,
       farmCrops,
-      activeFarmCrops: farmCrops.filter((farmCrop) => farmCrop.is_active),
+      activeFarmCrops,
+      nonArchivedFarmCrops,
+      archivedFarmCrops,
       healthReports,
       applications,
       farmCropsCount: farmCrops.length,
-      healthReportsCount: healthReports.length,
-      applicationsCount: applications.length,
+      activeFarmCropsCount: activeFarmCrops.length,
+      nonArchivedFarmCropsCount: nonArchivedFarmCrops.length,
+      archivedFarmCropsCount: archivedFarmCrops.length,
       today: new Date().toISOString().slice(0, 10),
       permissions,
       landLat: land.location_lat ? String(land.location_lat) : 'N/A',

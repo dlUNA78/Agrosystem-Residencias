@@ -10,6 +10,8 @@ import {
   createLandCropCycle,
   advanceLandCropStage,
   finishLandCropCycle,
+  archiveLandCropCycle,
+  restoreLandCropCycle,
   createFarmHealthReport,
   createFarmApplication,
 } from '../../controllers/private/landsController.js';
@@ -28,6 +30,8 @@ landRouter.post('/private/lands/restore/:id', restoreFarmPrivate);
 landRouter.post('/private/lands/:id/cycles', createLandCropCycle);
 landRouter.post('/private/lands/:id/cycles/advance', advanceLandCropStage);
 landRouter.post('/private/lands/:id/cycles/finish', finishLandCropCycle);
+landRouter.post('/private/lands/:id/cycles/archive', archiveLandCropCycle);
+landRouter.post('/private/lands/:id/cycles/restore', restoreLandCropCycle);
 landRouter.post('/private/lands/:id/health-reports', createFarmHealthReport);
 landRouter.post('/private/lands/:id/applications', createFarmApplication);
 
