@@ -104,7 +104,13 @@ const getCatalogs = () =>
     }),
     Product.findAll({
       where: { status: true },
-      attributes: ['id', 'name', 'active_ingredient', 'presentation'],
+      attributes: [
+        'id',
+        'name',
+        'active_ingredient',
+        'formulation_type',
+        'category',
+      ],
       include: [
         {
           model: Plague,
@@ -157,8 +163,10 @@ export const landDetail = async (req, res) => {
     const products = rawProducts.map((prod) => {
       const p = prod.toJSON ? prod.toJSON() : prod;
       const targetPlagues = Array.isArray(p.plagues) ? p.plagues : [];
+      const presentation = p.formulation_type || p.category || '';
       return {
         ...p,
+        presentation,
         targetPlagueIds: targetPlagues.map((pl) => pl.id).join(','),
         targetPlagueNames: targetPlagues.map((pl) => pl.name).join(', '),
       };
