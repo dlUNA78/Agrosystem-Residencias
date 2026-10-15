@@ -37,6 +37,12 @@ export const findActiveFarmCrop = (farmId, farmCropId, transaction) =>
     transaction,
   });
 
+export const findFarmCrop = (farmId, farmCropId, transaction) =>
+  FarmCrop.findOne({
+    where: { id: farmCropId, farm_id: farmId },
+    transaction,
+  });
+
 export const createLandAudit = (
   { action, recordId, oldValues = null, newValues, userId },
   transaction,

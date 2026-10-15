@@ -74,11 +74,63 @@ const buildResult = (value, fieldErrors) => {
   return { isValid: errors.length === 0, errors, fieldErrors, value };
 };
 
+const setCropSelection = (input, value, fieldErrors) => {
+  const isExplicitCustom = input.crop_id === 'custom' || !input.crop_id;
+  const customName = cleanText(input.custom_crop_name);
+  if (isExplicitCustom && customName) {
+    if (customName.length > 150) {
+      addError(
+        fieldErrors,
+        'custom_crop_name',
+        'El nombre del cultivo no puede exceder 150 caracteres.',
+      );
+      return;
+    }
+    value.custom_crop_name = customName;
+    const days = Number(input.custom_harvest_days);
+    if (Number.isInteger(days) && days > 0 && days <= 1500) {
+      value.custom_harvest_days = days;
+    }
+    return;
+  }
+  setRequiredId(input, 'crop_id', value, fieldErrors);
+};
+
+const validateHarvestDates = (input, value, fieldErrors) => {
+  if (input.estimated_harvest_date) {
+    setDate(
+      input,
+      'estimated_harvest_date',
+      value,
+      fieldErrors,
+      'La fecha estimada de cosecha',
+    );
+    if (
+      value.planting_date &&
+      value.estimated_harvest_date &&
+      value.estimated_harvest_date <= value.planting_date
+    ) {
+      addError(
+        fieldErrors,
+        'estimated_harvest_date',
+        'La fecha estimada de cosecha debe ser posterior a la fecha de siembra.',
+      );
+    }
+  }
+  if (input.custom_harvest_days && !value.custom_harvest_days) {
+    const days = Number(input.custom_harvest_days);
+    if (Number.isInteger(days) && days > 0 && days <= 3650) {
+      value.custom_harvest_days = days;
+    }
+  }
+};
+
 export const validateFarmCropInput = (input = {}) => {
   const value = {};
   const fieldErrors = {};
-  setRequiredId(input, 'crop_id', value, fieldErrors);
+  setCropSelection(input, value, fieldErrors);
   setDate(input, 'planting_date', value, fieldErrors, 'La fecha de siembra');
+  validateHarvestDates(input, value, fieldErrors);
   setOptionalText(input, 'area_section', value, fieldErrors, {
     max: 100,
     label: 'La sección del terreno',
@@ -104,10 +156,113 @@ export const validateStageAdvanceInput = (input = {}) => {
   return buildResult(value, fieldErrors);
 };
 
+export const validateStageRevertInput = (input = {}) => {
+  const value = {};
+  const fieldErrors = {};
+  setRequiredId(input, 'farm_crop_id', value, fieldErrors);
+
+  const targetOrder = Number(input.target_stage_order);
+  if (!Number.isInteger(targetOrder) || targetOrder < 1 || targetOrder > 5) {
+    addError(
+      fieldErrors,
+      'target_stage_order',
+      'La etapa objetivo a la que deseas retroceder no es válida.',
+    );
+  } else {
+    value.target_stage_order = targetOrder;
+  }
+  setOptionalText(input, 'notes', value, fieldErrors, {
+    max: 1000,
+    label: 'Las notas de corrección',
+  });
+  return buildResult(value, fieldErrors);
+};
+
+export const validateFarmLotInput = (input = {}) => {
+  const value = {};
+  const fieldErrors = {};
+  const name = cleanText(input.name);
+  if (!name) {
+    addError(
+      fieldErrors,
+      'name',
+      'El nombre del lote o bloque es obligatorio.',
+    );
+  } else if (name.length > 100) {
+    addError(
+      fieldErrors,
+      'name',
+      'El nombre del lote no puede exceder 100 caracteres.',
+    );
+  } else {
+    value.name = name;
+  }
+
+  const rawHectares = String(input.size_hectares ?? '').trim();
+  if (rawHectares) {
+    const hectares = Number(rawHectares);
+    if (!Number.isFinite(hectares) || hectares <= 0 || hectares > 100000) {
+      addError(
+        fieldErrors,
+        'size_hectares',
+        'La superficie del lote debe ser un número positivo válido.',
+      );
+    } else {
+      value.size_hectares = hectares;
+    }
+  }
+
+  setOptionalText(input, 'description', value, fieldErrors, {
+    max: 2000,
+    label: 'La descripción del lote',
+  });
+  return buildResult(value, fieldErrors);
+};
+
+const setPlagueSelection = (input, value, fieldErrors) => {
+  const isExplicitCustom = input.plague_id === 'custom' || !input.plague_id;
+  const customName = cleanText(input.custom_plague_name);
+  if (isExplicitCustom && customName) {
+    if (customName.length > 150) {
+      addError(
+        fieldErrors,
+        'custom_plague_name',
+        'El nombre de la plaga no puede exceder 150 caracteres.',
+      );
+      return;
+    }
+    value.custom_plague_name = customName;
+    return;
+  }
+  setRequiredId(input, 'plague_id', value, fieldErrors);
+};
+
+const setProductSelection = (input, value, fieldErrors) => {
+  const isExplicitCustom = input.product_id === 'custom' || !input.product_id;
+  const customName = cleanText(input.custom_product_name);
+  if (isExplicitCustom && customName) {
+    if (customName.length > 150) {
+      addError(
+        fieldErrors,
+        'custom_product_name',
+        'El nombre del producto no puede exceder 150 caracteres.',
+      );
+      return;
+    }
+    value.custom_product_name = customName;
+    const customActive = cleanText(input.custom_active_ingredient);
+    if (customActive) {
+      value.custom_active_ingredient = customActive.slice(0, 150);
+    }
+    return;
+  }
+  setRequiredId(input, 'product_id', value, fieldErrors);
+};
+
 export const validateFarmHealthReportInput = (input = {}) => {
   const value = {};
   const fieldErrors = {};
-  setRequiredId(input, 'plague_id', value, fieldErrors);
+  setPlagueSelection(input, value, fieldErrors);
   setOptionalId(input, 'farm_crop_id', value, fieldErrors);
   setDate(input, 'observed_at', value, fieldErrors, 'La fecha de observación');
 
@@ -126,7 +281,7 @@ export const validateFarmHealthReportInput = (input = {}) => {
 export const validateFarmApplicationInput = (input = {}) => {
   const value = {};
   const fieldErrors = {};
-  setRequiredId(input, 'product_id', value, fieldErrors);
+  setProductSelection(input, value, fieldErrors);
   setOptionalId(input, 'farm_crop_id', value, fieldErrors);
   setDate(input, 'applied_at', value, fieldErrors, 'La fecha de aplicación');
 
