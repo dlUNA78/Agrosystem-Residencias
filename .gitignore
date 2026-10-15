@@ -32,3 +32,15 @@ coverage/
 
 # Archivos temporales locales de herramientas y revisiones
 tmp/
+
+# Cargas dinámicas de usuarios y temporales de Multer
+public/images/uploads/*
+!public/images/uploads/.gitkeep
+public/images/products/[0-9]*
+
+# Carpetas de pruebas locales
+public/images/test/
+
+# Documentos pesados de ofimática (mantener sólo Markdown .md en docs/)
+docs/**/*.docx
+docs/**/*.pdf
