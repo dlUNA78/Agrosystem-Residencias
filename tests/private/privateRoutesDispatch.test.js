@@ -82,6 +82,7 @@ const mockControllers = {
   restoreLandCropCycle: createMockController('restoreLandCropCycle'),
   revertLandCropStage: createMockController('revertLandCropStage'),
   createLandLot: createMockController('createLandLot'),
+  updateLandLot: createMockController('updateLandLot'),
   deleteLandLot: createMockController('deleteLandLot'),
   createFarmHealthReport: createMockController('createFarmHealthReport'),
   createFarmApplication: createMockController('createFarmApplication'),
@@ -180,6 +181,7 @@ jest.unstable_mockModule(
     restoreLandCropCycle: mockControllers.restoreLandCropCycle,
     revertLandCropStage: mockControllers.revertLandCropStage,
     createLandLot: mockControllers.createLandLot,
+    updateLandLot: mockControllers.updateLandLot,
     deleteLandLot: mockControllers.deleteLandLot,
     createFarmHealthReport: mockControllers.createFarmHealthReport,
     createFarmApplication: mockControllers.createFarmApplication,
@@ -675,6 +677,13 @@ const ALL_50_DISPATCH_ENDPOINTS = [
   },
   {
     method: 'post',
+    routePath: '/private/lands/:id/lots/:lotId/update',
+    dispatchPath: '/private/lands/201/lots/301/update',
+    controller: 'updateLandLot',
+    params: { id: '201', lotId: '301' },
+  },
+  {
+    method: 'post',
     routePath: '/private/lands/:id/lots/:lotId/delete',
     dispatchPath: '/private/lands/201/lots/301/delete',
     controller: 'deleteLandLot',
@@ -799,13 +808,13 @@ describe('pruebas de despacho HTTP del router privado', () => {
   // ════════════════════════════════════════════════════════════════════════════
   // 1. COBERTURA PARAMETRIZADA DE LOS 58 ENDPOINTS
   // ════════════════════════════════════════════════════════════════════════════
-  describe('cobertura parametrizada exhaustiva de los 58 endpoints', () => {
-    it('el catálogo de pruebas de despacho cubre exactamente 58 endpoints únicos', () => {
-      expect(ALL_50_DISPATCH_ENDPOINTS).toHaveLength(58);
+  describe('cobertura parametrizada exhaustiva de los 59 endpoints', () => {
+    it('el catálogo de pruebas de despacho cubre exactamente 59 endpoints únicos', () => {
+      expect(ALL_50_DISPATCH_ENDPOINTS).toHaveLength(59);
       const keys = ALL_50_DISPATCH_ENDPOINTS.map(
         (e) => `${e.method.toUpperCase()} ${e.routePath}`,
       );
-      expect(new Set(keys).size).toBe(58);
+      expect(new Set(keys).size).toBe(59);
     });
 
     test.each(ALL_50_DISPATCH_ENDPOINTS)(

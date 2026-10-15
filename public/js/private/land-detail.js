@@ -946,6 +946,36 @@ const setupLotTabsFilter = () => {
   });
 };
 
+const setupLotEditUX = () => {
+  const editModal = document.querySelector('[data-land-modal="edit-lot"]');
+  const editButtons = document.querySelectorAll('[data-edit-lot-btn]');
+  if (!editModal || editButtons.length === 0) return;
+
+  const form = editModal.querySelector('#form-edit-lot');
+  const nameInput = editModal.querySelector('#edit-lot-name');
+  const sizeInput = editModal.querySelector('#edit-lot-size');
+  const descInput = editModal.querySelector('#edit-lot-desc');
+
+  editButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const lotId = btn.dataset.lotId;
+      if (nameInput) nameInput.value = btn.dataset.lotName || '';
+      if (sizeInput) sizeInput.value = btn.dataset.lotSize || '';
+      if (descInput) descInput.value = btn.dataset.lotDesc || '';
+
+      if (form) {
+        const baseAction = form.getAttribute('action') || '';
+        form.action = baseAction.replace(
+          /\/lots\/[^/]+\/update/,
+          `/lots/${lotId}/update`,
+        );
+      }
+
+      setModalVisibility(editModal, true, btn);
+    });
+  });
+};
+
 /* ══════════════════════════════════════════════════════════════════════════
    INICIALIZACIÓN PRINCIPAL
    ══════════════════════════════════════════════════════════════════════════ */
@@ -975,6 +1005,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setupCycleModalUX();
   setupCycleLotSelect();
   setupLotTabsFilter();
+  setupLotEditUX();
   setupHealthModalUX();
   setupApplicationModalUX();
 

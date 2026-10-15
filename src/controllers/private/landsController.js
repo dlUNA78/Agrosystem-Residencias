@@ -166,4 +166,8 @@ export {
   createFarmApplication,
   createFarmHealthReport,
 } from './lands/landRecordController.js';
-export { createLandLot, deleteLandLot } from './lands/landLotController.js';
+export {
+  createLandLot,
+  deleteLandLot,
+  updateLandLot,
+} from './lands/landLotController.js';

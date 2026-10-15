@@ -538,3 +538,37 @@
     </div>
 </div>
 
+<div data-land-modal="edit-lot" class="hidden fixed inset-0 z-[210] items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="edit-lot-modal-title">
+    <button type="button" data-land-modal-close class="absolute inset-0 bg-black/40 backdrop-blur-sm" aria-label="Cerrar"></button>
+    <div class="relative z-10 w-full max-w-lg overflow-hidden rounded-2xl border border-border bg-card shadow-2xl flex flex-col">
+        <header class="flex items-center justify-between border-b border-border px-6 py-4">
+            <div>
+                <h2 id="edit-lot-modal-title" class="text-lg font-extrabold text-foreground">Editar lote / bloque</h2>
+                <p class="text-xs text-muted-foreground">Modifica los datos del lote. Los ciclos asociados actualizarán su nombre automáticamente.</p>
+            </div>
+            <button type="button" data-land-modal-close class="rounded-lg px-3 py-2 text-sm font-bold text-muted-foreground hover:bg-muted">Cerrar</button>
+        </header>
+        <form id="form-edit-lot" action="/private/lands/{{land.id}}/lots/0/update" method="POST" class="flex flex-col">
+            <div class="space-y-4 p-6">
+                <div>
+                    <label for="edit-lot-name" class="mb-1.5 block text-xs font-bold text-muted-foreground">Nombre del lote o bloque *</label>
+                    <input id="edit-lot-name" name="name" required maxlength="100" class="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" />
+                </div>
+                <div>
+                    <label for="edit-lot-size" class="mb-1.5 block text-xs font-bold text-muted-foreground">Superficie estimada (ha)</label>
+                    <input id="edit-lot-size" name="size_hectares" type="number" min="0.01" max="100000" step="0.01" class="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" />
+                </div>
+                <div>
+                    <label for="edit-lot-desc" class="mb-1.5 block text-xs font-bold text-muted-foreground">Descripción o características del área (opcional)</label>
+                    <textarea id="edit-lot-desc" name="description" maxlength="2000" rows="3" class="w-full resize-y rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"></textarea>
+                </div>
+            </div>
+            <footer class="flex justify-end gap-3 border-t border-border bg-muted/50 px-6 py-4">
+                <button type="button" data-land-modal-close class="rounded-xl border border-border bg-card px-5 py-2.5 text-sm font-bold text-muted-foreground hover:bg-muted">Cancelar</button>
+                <button type="submit" class="rounded-xl bg-primary px-6 py-2.5 text-sm font-bold text-white hover:bg-primary/90">Guardar cambios</button>
+            </footer>
+        </form>
+    </div>
+</div>
+
+

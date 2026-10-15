@@ -199,6 +199,7 @@ const calculateProgress = (
   isFinished,
 ) => {
   if (orderedStages.length === 0) return 0;
+  if (isFinished) return 100;
   if (options.useTimeProgress) {
     return calculateTimeProgress({
       plantingDate: dateInfo.plantingDate,

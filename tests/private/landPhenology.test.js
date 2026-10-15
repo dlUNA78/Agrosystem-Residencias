@@ -79,4 +79,36 @@ describe('etapas de cultivo en terrenos', () => {
     expect(summary.progressPercent).toBe(100);
     expect(summary.stages.every((s) => s.isCompleted)).toBe(true);
   });
+
+  it('avanza o retrocede el porcentaje de progreso fenológico según la etapa del ciclo', () => {
+    const stages = generateLandCropStages('2026-01-01', 100);
+    // Inicialmente: etapa 1 completed, etapa 2 in_progress -> 20%
+    const initialSummary = summarizeLandCropStages(stages);
+    expect(initialSummary.progressPercent).toBe(20);
+
+    // Avanza a etapa 3 (etapa 1 y 2 completed): 40%
+    stages[1].status = 'completed';
+    stages[2].status = 'in_progress';
+    const advancedSummary = summarizeLandCropStages(stages);
+    expect(advancedSummary.progressPercent).toBe(40);
+
+    // Avanza a etapa 4 (etapa 1, 2 y 3 completed): 60%
+    stages[2].status = 'completed';
+    stages[3].status = 'in_progress';
+    const advanced4Summary = summarizeLandCropStages(stages);
+    expect(advanced4Summary.progressPercent).toBe(60);
+
+    // Retrocede a etapa 2 (etapa 2 in_progress, etapa 3 y 4 pending): vuelve a 20%
+    stages[1].status = 'in_progress';
+    stages[2].status = 'pending';
+    stages[3].status = 'pending';
+    const revertedSummary = summarizeLandCropStages(stages);
+    expect(revertedSummary.progressPercent).toBe(20);
+
+    // Retrocede a etapa 1 (etapa 1 in_progress, todas las demás pending): vuelve a 0%
+    stages[0].status = 'in_progress';
+    stages[1].status = 'pending';
+    const reverted1Summary = summarizeLandCropStages(stages);
+    expect(reverted1Summary.progressPercent).toBe(0);
+  });
 });

@@ -31,6 +31,7 @@ const mockDb = {
   FarmCrop: {
     create: jest.fn(async () => farmCrop),
     findOne: jest.fn(async () => farmCrop),
+    update: jest.fn(),
   },
   FarmCropStage: {
     bulkCreate: jest.fn(),
@@ -64,7 +65,7 @@ const {
   restoreLandCropCycle,
   revertLandCropStage,
 } = await import('../../src/controllers/private/lands/landCycleController.js');
-const { createLandLot, deleteLandLot } =
+const { createLandLot, deleteLandLot, updateLandLot } =
   await import('../../src/controllers/private/lands/landLotController.js');
 const { createFarmApplication, createFarmHealthReport } =
   await import('../../src/controllers/private/lands/landRecordController.js');
@@ -517,6 +518,16 @@ describe('operaciones del expediente de terrenos', () => {
       { status: false },
       { transaction },
     );
+    expect(mockDb.FarmCrop.update).toHaveBeenCalledWith(
+      { area_section: null },
+      expect.objectContaining({
+        where: {
+          farm_id: 18,
+          area_section: 'Lote Norte C',
+        },
+        transaction,
+      }),
+    );
     expect(mockDb.AuditLog.create).toHaveBeenCalledWith(
       expect.objectContaining({
         action: 'delete_farm_lot',
@@ -529,5 +540,99 @@ describe('operaciones del expediente de terrenos', () => {
         success: true,
       }),
     );
+  });
+
+  it('actualiza un lote existente y renombra los ciclos vinculados', async () => {
+    const res = buildResponse();
+    const existingLot = {
+      id: 10,
+      farm_id: 18,
+      name: 'Lote Antiguo',
+      size_hectares: 2.5,
+      description: 'Nota previa',
+      status: true,
+      update: jest.fn(),
+    };
+    mockDb.FarmLot.findOne
+      .mockResolvedValueOnce(existingLot) // find the lot
+      .mockResolvedValueOnce(null); // no conflict for new name
+
+    await updateLandLot(
+      {
+        ...requestContext,
+        params: { id: '18', lotId: '10' },
+        body: {
+          name: 'Lote Nuevo Renombrado',
+          size_hectares: '3.8',
+          description: 'Suelo mejorado con riego',
+        },
+      },
+      res,
+    );
+
+    expect(existingLot.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Lote Nuevo Renombrado',
+        size_hectares: 3.8,
+        description: 'Suelo mejorado con riego',
+      }),
+      { transaction },
+    );
+    expect(mockDb.FarmCrop.update).toHaveBeenCalledWith(
+      { area_section: 'Lote Nuevo Renombrado' },
+      expect.objectContaining({
+        where: {
+          farm_id: 18,
+          area_section: 'Lote Antiguo',
+        },
+        transaction,
+      }),
+    );
+    expect(mockDb.AuditLog.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'update_farm_lot',
+        record_id: 18,
+      }),
+      { transaction },
+    );
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        success: true,
+      }),
+    );
+  });
+
+  it('rechaza la actualización si el nuevo nombre ya está ocupado por otro lote activo', async () => {
+    const res = buildResponse();
+    const existingLot = {
+      id: 10,
+      farm_id: 18,
+      name: 'Lote A',
+      status: true,
+      update: jest.fn(),
+    };
+    const conflictingLot = {
+      id: 20,
+      farm_id: 18,
+      name: 'Lote B',
+      status: true,
+    };
+    mockDb.FarmLot.findOne
+      .mockResolvedValueOnce(existingLot)
+      .mockResolvedValueOnce(conflictingLot);
+
+    await updateLandLot(
+      {
+        ...requestContext,
+        params: { id: '18', lotId: '10' },
+        body: {
+          name: 'Lote B',
+        },
+      },
+      res,
+    );
+
+    expect(res.status).toHaveBeenCalledWith(409);
+    expect(existingLot.update).not.toHaveBeenCalled();
   });
 });

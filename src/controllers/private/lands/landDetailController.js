@@ -98,7 +98,6 @@ const prepareCropCycles = (cycles = []) =>
       isCompleted,
       statusLabel,
       ...summarizeLandCropStages(cycle.stages || [], {
-        useTimeProgress: true,
         isCycleActive: cycle.is_active,
         cycleStatus: cycle.status,
       }),
@@ -124,7 +123,7 @@ const prepareApplications = (applications = []) =>
     cropName: application.farmCrop?.crop?.name || null,
   }));
 
-const prepareLandLots = (rawLots = [], farmCrops = []) => {
+const prepareLandLots = async (farmId, rawLots = [], farmCrops = []) => {
   const lotMap = new Map();
 
   rawLots.forEach((lot) => {
@@ -138,21 +137,37 @@ const prepareLandLots = (rawLots = [], farmCrops = []) => {
     });
   });
 
-  farmCrops.forEach((c) => {
+  for (const c of farmCrops) {
     if (c.area_section && !lotMap.has(c.area_section)) {
-      lotMap.set(c.area_section, {
-        id: null,
-        name: c.area_section,
-        size_hectares: null,
-        description: null,
-        isPersisted: false,
-        activeCropsCount: 0,
-      });
+      try {
+        const created = await FarmLot.create({
+          farm_id: farmId,
+          name: c.area_section,
+          status: true,
+        });
+        lotMap.set(c.area_section, {
+          id: created.id,
+          name: created.name,
+          size_hectares: null,
+          description: null,
+          isPersisted: true,
+          activeCropsCount: 0,
+        });
+      } catch {
+        lotMap.set(c.area_section, {
+          id: null,
+          name: c.area_section,
+          size_hectares: null,
+          description: null,
+          isPersisted: false,
+          activeCropsCount: 0,
+        });
+      }
     }
     if (c.area_section && c.is_active && lotMap.has(c.area_section)) {
       lotMap.get(c.area_section).activeCropsCount += 1;
     }
-  });
+  }
 
   return Array.from(lotMap.values()).sort((a, b) =>
     a.name.localeCompare(b.name, 'es', { numeric: true }),
@@ -269,7 +284,11 @@ export const landDetail = async (req, res) => {
     );
     const healthReports = prepareHealthReports(land.healthReports);
     const applications = prepareApplications(land.applications);
-    const lots = prepareLandLots(land.lots || [], land.farmCrops || []);
+    const lots = await prepareLandLots(
+      farm.id,
+      land.lots || [],
+      land.farmCrops || [],
+    );
     const permissions = buildPermissions(land, req.user);
 
     const detectedPlagues = [

@@ -17,6 +17,7 @@ import {
   createFarmApplication,
   createLandLot,
   deleteLandLot,
+  updateLandLot,
 } from '../../controllers/private/landsController.js';
 
 const landRouter = Router();
@@ -37,6 +38,7 @@ landRouter.post('/private/lands/:id/cycles/finish', finishLandCropCycle);
 landRouter.post('/private/lands/:id/cycles/archive', archiveLandCropCycle);
 landRouter.post('/private/lands/:id/cycles/restore', restoreLandCropCycle);
 landRouter.post('/private/lands/:id/lots', createLandLot);
+landRouter.post('/private/lands/:id/lots/:lotId/update', updateLandLot);
 landRouter.post('/private/lands/:id/lots/:lotId/delete', deleteLandLot);
 landRouter.post('/private/lands/:id/health-reports', createFarmHealthReport);
 landRouter.post('/private/lands/:id/applications', createFarmApplication);
