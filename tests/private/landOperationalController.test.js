@@ -34,6 +34,11 @@ const mockDb = {
   },
   FarmCropStage: {
     bulkCreate: jest.fn(),
+    findAll: jest.fn(),
+    findOne: jest.fn(),
+  },
+  FarmLot: {
+    create: jest.fn(async (data) => ({ id: 10, ...data })),
     findOne: jest.fn(),
   },
   Crop: {
@@ -57,7 +62,10 @@ const {
   createLandCropCycle,
   finishLandCropCycle,
   restoreLandCropCycle,
+  revertLandCropStage,
 } = await import('../../src/controllers/private/lands/landCycleController.js');
+const { createLandLot, deleteLandLot } =
+  await import('../../src/controllers/private/lands/landLotController.js');
 const { createFarmApplication, createFarmHealthReport } =
   await import('../../src/controllers/private/lands/landRecordController.js');
 
@@ -381,5 +389,145 @@ describe('operaciones del expediente de terrenos', () => {
       { transaction },
     );
     expect(res.status).toHaveBeenCalledWith(201);
+  });
+
+  it('retrocede la etapa fenológica actualizando estados y auditando el cambio', async () => {
+    const res = buildResponse();
+    const stage1 = { stage_order: 1, status: 'completed', update: jest.fn() };
+    const stage2 = { stage_order: 2, status: 'completed', update: jest.fn() };
+    const stage3 = { stage_order: 3, status: 'in_progress', update: jest.fn() };
+    mockDb.FarmCropStage.findAll.mockResolvedValue([stage1, stage2, stage3]);
+
+    await revertLandCropStage(
+      {
+        ...requestContext,
+        body: {
+          farm_crop_id: '33',
+          target_stage_order: '2',
+          notes: 'Corrección por helada tardía',
+        },
+      },
+      res,
+    );
+
+    expect(stage2.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: 'in_progress',
+        actual_date: null,
+        notes: 'Corrección por helada tardía',
+      }),
+      { transaction },
+    );
+    expect(stage3.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: 'pending',
+        actual_date: null,
+      }),
+      { transaction },
+    );
+    expect(mockDb.AuditLog.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'revert_crop_stage',
+        record_id: 18,
+      }),
+      { transaction },
+    );
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        success: true,
+      }),
+    );
+  });
+
+  it('registra un lote o bloque nuevo y audita la acción', async () => {
+    const res = buildResponse();
+    mockDb.FarmLot.findOne.mockResolvedValue(null);
+
+    await createLandLot(
+      {
+        ...requestContext,
+        body: {
+          name: 'Lote Norte C',
+          size_hectares: '4.2',
+          description: 'Suelo arcilloso con riego',
+        },
+      },
+      res,
+    );
+
+    expect(mockDb.FarmLot.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        farm_id: 18,
+        name: 'Lote Norte C',
+        size_hectares: 4.2,
+        description: 'Suelo arcilloso con riego',
+        status: true,
+      }),
+      { transaction },
+    );
+    expect(mockDb.AuditLog.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'create_farm_lot',
+        record_id: 18,
+      }),
+      { transaction },
+    );
+    expect(res.status).toHaveBeenCalledWith(201);
+  });
+
+  it('rechaza la creación de un lote si ya existe uno activo con el mismo nombre', async () => {
+    const res = buildResponse();
+    mockDb.FarmLot.findOne.mockResolvedValue({ id: 9, name: 'Lote Norte C' });
+
+    await createLandLot(
+      {
+        ...requestContext,
+        body: {
+          name: 'Lote Norte C',
+          size_hectares: '4.2',
+        },
+      },
+      res,
+    );
+
+    expect(res.status).toHaveBeenCalledWith(409);
+    expect(mockDb.FarmLot.create).not.toHaveBeenCalled();
+  });
+
+  it('desactiva un lote existente y audita la eliminación', async () => {
+    const res = buildResponse();
+    const existingLot = {
+      id: 10,
+      farm_id: 18,
+      name: 'Lote Norte C',
+      status: true,
+      update: jest.fn(),
+    };
+    mockDb.FarmLot.findOne.mockResolvedValue(existingLot);
+
+    await deleteLandLot(
+      {
+        ...requestContext,
+        params: { id: '18', lotId: '10' },
+      },
+      res,
+    );
+
+    expect(existingLot.update).toHaveBeenCalledWith(
+      { status: false },
+      { transaction },
+    );
+    expect(mockDb.AuditLog.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'delete_farm_lot',
+        record_id: 18,
+      }),
+      { transaction },
+    );
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        success: true,
+      }),
+    );
   });
 });

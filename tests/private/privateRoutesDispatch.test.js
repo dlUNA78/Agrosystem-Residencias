@@ -80,6 +80,9 @@ const mockControllers = {
   finishLandCropCycle: createMockController('finishLandCropCycle'),
   archiveLandCropCycle: createMockController('archiveLandCropCycle'),
   restoreLandCropCycle: createMockController('restoreLandCropCycle'),
+  revertLandCropStage: createMockController('revertLandCropStage'),
+  createLandLot: createMockController('createLandLot'),
+  deleteLandLot: createMockController('deleteLandLot'),
   createFarmHealthReport: createMockController('createFarmHealthReport'),
   createFarmApplication: createMockController('createFarmApplication'),
 
@@ -175,6 +178,9 @@ jest.unstable_mockModule(
     finishLandCropCycle: mockControllers.finishLandCropCycle,
     archiveLandCropCycle: mockControllers.archiveLandCropCycle,
     restoreLandCropCycle: mockControllers.restoreLandCropCycle,
+    revertLandCropStage: mockControllers.revertLandCropStage,
+    createLandLot: mockControllers.createLandLot,
+    deleteLandLot: mockControllers.deleteLandLot,
     createFarmHealthReport: mockControllers.createFarmHealthReport,
     createFarmApplication: mockControllers.createFarmApplication,
   }),
@@ -634,6 +640,13 @@ const ALL_50_DISPATCH_ENDPOINTS = [
   },
   {
     method: 'post',
+    routePath: '/private/lands/:id/cycles/revert-stage',
+    dispatchPath: '/private/lands/201/cycles/revert-stage',
+    controller: 'revertLandCropStage',
+    params: { id: '201' },
+  },
+  {
+    method: 'post',
     routePath: '/private/lands/:id/cycles/finish',
     dispatchPath: '/private/lands/201/cycles/finish',
     controller: 'finishLandCropCycle',
@@ -652,6 +665,20 @@ const ALL_50_DISPATCH_ENDPOINTS = [
     dispatchPath: '/private/lands/201/cycles/restore',
     controller: 'restoreLandCropCycle',
     params: { id: '201' },
+  },
+  {
+    method: 'post',
+    routePath: '/private/lands/:id/lots',
+    dispatchPath: '/private/lands/201/lots',
+    controller: 'createLandLot',
+    params: { id: '201' },
+  },
+  {
+    method: 'post',
+    routePath: '/private/lands/:id/lots/:lotId/delete',
+    dispatchPath: '/private/lands/201/lots/301/delete',
+    controller: 'deleteLandLot',
+    params: { id: '201', lotId: '301' },
   },
   {
     method: 'post',
@@ -770,15 +797,15 @@ describe('pruebas de despacho HTTP del router privado', () => {
   });
 
   // ════════════════════════════════════════════════════════════════════════════
-  // 1. COBERTURA PARAMETRIZADA DE LOS 55 ENDPOINTS
+  // 1. COBERTURA PARAMETRIZADA DE LOS 58 ENDPOINTS
   // ════════════════════════════════════════════════════════════════════════════
-  describe('cobertura parametrizada exhaustiva de los 55 endpoints', () => {
-    it('el catálogo de pruebas de despacho cubre exactamente 55 endpoints únicos', () => {
-      expect(ALL_50_DISPATCH_ENDPOINTS).toHaveLength(55);
+  describe('cobertura parametrizada exhaustiva de los 58 endpoints', () => {
+    it('el catálogo de pruebas de despacho cubre exactamente 58 endpoints únicos', () => {
+      expect(ALL_50_DISPATCH_ENDPOINTS).toHaveLength(58);
       const keys = ALL_50_DISPATCH_ENDPOINTS.map(
         (e) => `${e.method.toUpperCase()} ${e.routePath}`,
       );
-      expect(new Set(keys).size).toBe(55);
+      expect(new Set(keys).size).toBe(58);
     });
 
     test.each(ALL_50_DISPATCH_ENDPOINTS)(

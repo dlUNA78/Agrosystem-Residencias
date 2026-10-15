@@ -160,8 +160,10 @@ export {
   createLandCropCycle,
   finishLandCropCycle,
   restoreLandCropCycle,
+  revertLandCropStage,
 } from './lands/landCycleController.js';
 export {
   createFarmApplication,
   createFarmHealthReport,
 } from './lands/landRecordController.js';
+export { createLandLot, deleteLandLot } from './lands/landLotController.js';

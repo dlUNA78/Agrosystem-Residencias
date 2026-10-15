@@ -340,6 +340,14 @@ export const EXPECTED_CONTRACT = [
   },
   {
     method: 'POST',
+    path: '/private/lands/:id/cycles/revert-stage',
+    domain: 'land',
+    controller: 'revertLandCropStage',
+    middlewares: [],
+    permissionArg: null,
+  },
+  {
+    method: 'POST',
     path: '/private/lands/:id/cycles/finish',
     domain: 'land',
     controller: 'finishLandCropCycle',
@@ -359,6 +367,22 @@ export const EXPECTED_CONTRACT = [
     path: '/private/lands/:id/cycles/restore',
     domain: 'land',
     controller: 'restoreLandCropCycle',
+    middlewares: [],
+    permissionArg: null,
+  },
+  {
+    method: 'POST',
+    path: '/private/lands/:id/lots',
+    domain: 'land',
+    controller: 'createLandLot',
+    middlewares: [],
+    permissionArg: null,
+  },
+  {
+    method: 'POST',
+    path: '/private/lands/:id/lots/:lotId/delete',
+    domain: 'land',
+    controller: 'deleteLandLot',
     middlewares: [],
     permissionArg: null,
   },
@@ -554,12 +578,12 @@ describe('pruebas estructurales y de inventario de rutas privadas por dominio', 
     });
   });
 
-  describe('equivalencia del inventario de rutas (55 endpoints)', () => {
+  describe('equivalencia del inventario de rutas (58 endpoints)', () => {
     const registeredRoutes = extractDetailedRoutes(privateRouter);
 
-    it('el total de registros explícitos coincide exactamente con los 55 del contrato base', () => {
-      expect(registeredRoutes).toHaveLength(55);
-      expect(EXPECTED_CONTRACT).toHaveLength(55);
+    it('el total de registros explícitos coincide exactamente con los 58 del contrato base', () => {
+      expect(registeredRoutes).toHaveLength(58);
+      expect(EXPECTED_CONTRACT).toHaveLength(58);
     });
 
     it('cada endpoint esperado existe con el método, path, controlador final y middlewares exactos', () => {
@@ -596,7 +620,7 @@ describe('pruebas estructurales y de inventario de rutas privadas por dominio', 
     it('no existen rutas adicionales, huérfanas ni duplicadas en el router compuesto', () => {
       const routeKeys = registeredRoutes.map((r) => `${r.method} ${r.path}`);
       const uniqueKeys = new Set(routeKeys);
-      expect(uniqueKeys.size).toBe(55);
+      expect(uniqueKeys.size).toBe(58);
 
       registeredRoutes.forEach((route) => {
         const expected = EXPECTED_CONTRACT.find(
@@ -612,16 +636,16 @@ describe('pruebas estructurales y de inventario de rutas privadas por dominio', 
       const adminRoutes = extractDetailedRoutes(adminRouter);
 
       expect(catalogRoutes).toHaveLength(26);
-      expect(landRoutes).toHaveLength(13);
+      expect(landRoutes).toHaveLength(16);
       expect(adminRoutes).toHaveLength(11);
 
-      // 26 catálogo + 13 parcelas + 11 admin + 5 agregador raíz = 55
+      // 26 catálogo + 16 parcelas + 11 admin + 5 agregador raíz = 58
       const totalModularRoutes =
         catalogRoutes.length + landRoutes.length + adminRoutes.length + 5;
-      expect(totalModularRoutes).toBe(55);
+      expect(totalModularRoutes).toBe(58);
     });
 
-    it('las 13 rutas de parcelas apuntan a sus controladores correspondientes (incluyendo archive/restore)', () => {
+    it('las 16 rutas de parcelas apuntan a sus controladores correspondientes (incluyendo archive/restore/revert/lots)', () => {
       const landRoutes = extractDetailedRoutes(landRouter);
 
       const archiveRoute = landRoutes.find(
@@ -642,6 +666,14 @@ describe('pruebas estructurales y de inventario de rutas privadas por dominio', 
       expect(cycleRoute).toBeDefined();
       expect(cycleRoute.controllerName).toBe('createLandCropCycle');
 
+      const revertStageRoute = landRoutes.find(
+        (r) =>
+          r.method === 'POST' &&
+          r.path === '/private/lands/:id/cycles/revert-stage',
+      );
+      expect(revertStageRoute).toBeDefined();
+      expect(revertStageRoute.controllerName).toBe('revertLandCropStage');
+
       const archiveCycleRoute = landRoutes.find(
         (r) =>
           r.method === 'POST' && r.path === '/private/lands/:id/cycles/archive',
@@ -655,6 +687,20 @@ describe('pruebas estructurales y de inventario de rutas privadas por dominio', 
       );
       expect(restoreCycleRoute).toBeDefined();
       expect(restoreCycleRoute.controllerName).toBe('restoreLandCropCycle');
+
+      const createLotRoute = landRoutes.find(
+        (r) => r.method === 'POST' && r.path === '/private/lands/:id/lots',
+      );
+      expect(createLotRoute).toBeDefined();
+      expect(createLotRoute.controllerName).toBe('createLandLot');
+
+      const deleteLotRoute = landRoutes.find(
+        (r) =>
+          r.method === 'POST' &&
+          r.path === '/private/lands/:id/lots/:lotId/delete',
+      );
+      expect(deleteLotRoute).toBeDefined();
+      expect(deleteLotRoute.controllerName).toBe('deleteLandLot');
 
       const healthRoute = landRoutes.find(
         (r) =>

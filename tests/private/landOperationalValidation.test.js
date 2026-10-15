@@ -4,7 +4,9 @@ import {
   validateFarmApplicationInput,
   validateFarmCropInput,
   validateFarmHealthReportInput,
+  validateFarmLotInput,
   validateStageAdvanceInput,
+  validateStageRevertInput,
 } from '../../src/services/landOperationalValidationService.js';
 
 describe('validación del expediente operativo de terrenos', () => {
@@ -230,5 +232,51 @@ describe('validación del expediente operativo de terrenos', () => {
         dose_unit: expect.any(Array),
       }),
     );
+  });
+
+  it('valida el retroceso de una etapa fenológica a una etapa previa válida', () => {
+    const valid = validateStageRevertInput({
+      farm_crop_id: '22',
+      target_stage_order: '1',
+      notes: 'Error de captura en campo, regresando a germinación',
+    });
+
+    expect(valid.isValid).toBe(true);
+    expect(valid.value).toEqual({
+      farm_crop_id: 22,
+      target_stage_order: 1,
+      notes: 'Error de captura en campo, regresando a germinación',
+    });
+
+    const invalid = validateStageRevertInput({
+      farm_crop_id: 'abc',
+      target_stage_order: '6',
+    });
+    expect(invalid.isValid).toBe(false);
+    expect(invalid.fieldErrors.farm_crop_id).toBeDefined();
+    expect(invalid.fieldErrors.target_stage_order).toBeDefined();
+  });
+
+  it('normaliza y valida la división de un lote de terreno', () => {
+    const valid = validateFarmLotInput({
+      name: '  Lote Norte B  ',
+      size_hectares: '2.75',
+      description: '  Área de riego por goteo  ',
+    });
+
+    expect(valid.isValid).toBe(true);
+    expect(valid.value).toEqual({
+      name: 'Lote Norte B',
+      size_hectares: 2.75,
+      description: 'Área de riego por goteo',
+    });
+
+    const invalid = validateFarmLotInput({
+      name: '   ',
+      size_hectares: '-5',
+    });
+    expect(invalid.isValid).toBe(false);
+    expect(invalid.fieldErrors.name).toBeDefined();
+    expect(invalid.fieldErrors.size_hectares).toBeDefined();
   });
 });

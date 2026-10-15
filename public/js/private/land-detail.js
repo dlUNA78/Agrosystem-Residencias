@@ -616,6 +616,122 @@ const extractProductsFromSelect = (select) => {
     }));
 };
 
+const filterPlaguesForLot = (allPlagues, cropId) => {
+  if (!cropId) return allPlagues;
+  return allPlagues.filter((p) => String(p.farmCropId) === String(cropId));
+};
+
+const renderLotPlaguesBadges = (badgesContainer, uniquePlagues) => {
+  if (!badgesContainer) return;
+  badgesContainer.innerHTML = '';
+  uniquePlagues.forEach((p) => {
+    const span = document.createElement('span');
+    span.className =
+      'rounded-full bg-amber-200/80 px-2.5 py-0.5 text-xs font-bold text-amber-900 flex items-center gap-1';
+    span.textContent = `🐛 ${p.name} (${p.severity})`;
+    badgesContainer.appendChild(span);
+  });
+};
+
+const updateProductRecommendationsForPlagues = (products, uniquePlagues) => {
+  if (uniquePlagues.length === 0) {
+    products.forEach((prod) => {
+      prod.isTargetForDetectedPest = false;
+    });
+    return;
+  }
+  const plagueNames = uniquePlagues.map((p) => normalizeText(p.name));
+  const plagueIds = uniquePlagues.map((p) => String(p.id)).filter(Boolean);
+  products.forEach((prod) => {
+    const matchesName = plagueNames.some((pName) =>
+      normalizeText(prod.targetPlagueNames).includes(pName),
+    );
+    const matchesId = prod.targetPlagueIds.some((id) =>
+      plagueIds.includes(String(id)),
+    );
+    prod.isTargetForDetectedPest = matchesName || matchesId;
+  });
+};
+
+const filterAndRenderProductSuggestions = ({
+  query,
+  products,
+  suggestionsList,
+  suggestionsPanel,
+  customPrompt,
+  customNamePreview,
+  searchInput,
+  onSelect,
+}) => {
+  suggestionsList.innerHTML = '';
+  if (!query) {
+    suggestionsPanel.classList.add('hidden');
+    return;
+  }
+  const matches = products.filter(
+    (prod) =>
+      normalizeText(prod.name).includes(query) ||
+      normalizeText(prod.activeIngredient).includes(query) ||
+      normalizeText(prod.targetPlagueNames).includes(query),
+  );
+  if (matches.length > 0) {
+    matches.sort(
+      (a, b) =>
+        Number(b.isTargetForDetectedPest) - Number(a.isTargetForDetectedPest),
+    );
+    matches
+      .slice(0, 8)
+      .forEach((prod) =>
+        suggestionsList.appendChild(buildProductSuggestionItem(prod, onSelect)),
+      );
+    customPrompt.classList.add('hidden');
+  } else {
+    customNamePreview.textContent = searchInput.value.trim();
+    customPrompt.classList.remove('hidden');
+  }
+  suggestionsPanel.classList.remove('hidden');
+};
+
+const parsePlaguesJson = (raw) => {
+  try {
+    return JSON.parse(raw || '[]');
+  } catch (_err) {
+    return [];
+  }
+};
+
+const setupLotRecommendationUX = ({
+  cycleSelect,
+  recommendationsBox,
+  badgesContainer,
+  allDetectedPlagues,
+  products,
+  modal,
+  applyProductSelection,
+}) => {
+  const refresh = () => {
+    if (!recommendationsBox) return;
+    const selectedCropId = cycleSelect?.value || '';
+    const lotPlagues = filterPlaguesForLot(allDetectedPlagues, selectedCropId);
+    const uniquePlagues = [
+      ...new Map(lotPlagues.map((p) => [p.name, p])).values(),
+    ];
+
+    if (uniquePlagues.length === 0) {
+      recommendationsBox.classList.add('hidden');
+      updateProductRecommendationsForPlagues(products, []);
+    } else {
+      recommendationsBox.classList.remove('hidden');
+      renderLotPlaguesBadges(badgesContainer, uniquePlagues);
+      updateProductRecommendationsForPlagues(products, uniquePlagues);
+    }
+    setupQuickRecommendedProducts(modal, products, applyProductSelection);
+  };
+
+  cycleSelect?.addEventListener('change', refresh);
+  refresh();
+};
+
 const setupQuickRecommendedProducts = (modal, products, onSelect) => {
   const listContainer = modal.querySelector(
     '[data-smart-recommended-products-list]',
@@ -674,18 +790,16 @@ const setupApplicationModalUX = () => {
   );
   const productCards = modal.querySelectorAll('[data-product-card-item]');
 
-  const products = extractProductsFromSelect(select);
-
-  // Marcar productos recomendados para las plagas detectadas en el predio
-  const detectedPestElements = modal.querySelectorAll(
-    '[data-detected-plagues-recommendations] span',
+  const cycleSelect = document.getElementById('application-cycle');
+  const recommendationsBox = modal.querySelector(
+    '[data-detected-plagues-recommendations]',
   );
-  const hasDetectedPests = detectedPestElements.length > 0;
+  const badgesContainer = modal.querySelector('[data-lot-plagues-badges]');
+  const allDetectedPlagues = parsePlaguesJson(
+    recommendationsBox?.dataset.plaguesJson,
+  );
 
-  products.forEach((prod) => {
-    prod.isTargetForDetectedPest =
-      hasDetectedPests && prod.targetPlagueNames.length > 0;
-  });
+  const products = extractProductsFromSelect(select);
 
   const applyProductSelection = (prod) => {
     select.value = prod.id;
@@ -724,40 +838,16 @@ const setupApplicationModalUX = () => {
 
   searchInput?.addEventListener('input', () => {
     const query = normalizeText(searchInput.value.trim());
-    suggestionsList.innerHTML = '';
-
-    if (!query) {
-      suggestionsPanel.classList.add('hidden');
-      return;
-    }
-
-    const matches = products.filter(
-      (prod) =>
-        normalizeText(prod.name).includes(query) ||
-        normalizeText(prod.activeIngredient).includes(query) ||
-        normalizeText(prod.targetPlagueNames).includes(query),
-    );
-
-    if (matches.length > 0) {
-      // Poner al principio los recomendados para plagas
-      matches.sort(
-        (a, b) =>
-          Number(b.isTargetForDetectedPest) - Number(a.isTargetForDetectedPest),
-      );
-      matches
-        .slice(0, 8)
-        .forEach((prod) =>
-          suggestionsList.appendChild(
-            buildProductSuggestionItem(prod, applyProductSelection),
-          ),
-        );
-      customPrompt.classList.add('hidden');
-    } else {
-      customNamePreview.textContent = searchInput.value.trim();
-      customPrompt.classList.remove('hidden');
-    }
-
-    suggestionsPanel.classList.remove('hidden');
+    filterAndRenderProductSuggestions({
+      query,
+      products,
+      suggestionsList,
+      suggestionsPanel,
+      customPrompt,
+      customNamePreview,
+      searchInput,
+      onSelect: applyProductSelection,
+    });
   });
 
   customProductBtn?.addEventListener('click', () => {
@@ -784,7 +874,76 @@ const setupApplicationModalUX = () => {
     });
   });
 
-  setupQuickRecommendedProducts(modal, products, applyProductSelection);
+  setupLotRecommendationUX({
+    cycleSelect,
+    recommendationsBox,
+    badgesContainer,
+    allDetectedPlagues,
+    products,
+    modal,
+    applyProductSelection,
+  });
+};
+
+const setupCycleLotSelect = () => {
+  const lotSelect = document.getElementById('cycle-lot-select');
+  const areaInput = document.getElementById('cycle-area');
+  if (!lotSelect || !areaInput) return;
+
+  lotSelect.addEventListener('change', () => {
+    if (lotSelect.value === '__custom__') {
+      areaInput.value = '';
+      areaInput.focus();
+    } else if (lotSelect.value) {
+      areaInput.value = lotSelect.value;
+    }
+  });
+};
+
+const setupLotTabsFilter = () => {
+  const filterBtns = document.querySelectorAll('[data-lot-filter]');
+  const activeIndicator = document.querySelector('[data-active-lot-indicator]');
+  if (filterBtns.length === 0) return;
+
+  filterBtns.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const selectedLot = btn.dataset.lotFilter;
+
+      filterBtns.forEach((b) => {
+        b.classList.remove('bg-primary', 'text-white', 'shadow-sm');
+        b.classList.add('bg-card', 'text-muted-foreground');
+        b.setAttribute('aria-selected', 'false');
+      });
+      btn.classList.add('bg-primary', 'text-white', 'shadow-sm');
+      btn.classList.remove('bg-card', 'text-muted-foreground');
+      btn.setAttribute('aria-selected', 'true');
+
+      if (activeIndicator) {
+        activeIndicator.textContent =
+          selectedLot === 'all'
+            ? 'Viendo: Todos los lotes'
+            : `Viendo: Lote ${selectedLot}`;
+      }
+
+      document.querySelectorAll('[data-cycle-lot]').forEach((card) => {
+        const matches =
+          selectedLot === 'all' || card.dataset.cycleLot === selectedLot;
+        card.classList.toggle('hidden', !matches);
+      });
+
+      document.querySelectorAll('[data-health-lot]').forEach((row) => {
+        const matches =
+          selectedLot === 'all' || row.dataset.healthLot === selectedLot;
+        row.classList.toggle('hidden', !matches);
+      });
+
+      document.querySelectorAll('[data-application-lot]').forEach((row) => {
+        const matches =
+          selectedLot === 'all' || row.dataset.applicationLot === selectedLot;
+        row.classList.toggle('hidden', !matches);
+      });
+    });
+  });
 };
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -814,6 +973,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   setupComboboxFilters();
   setupCycleModalUX();
+  setupCycleLotSelect();
+  setupLotTabsFilter();
   setupHealthModalUX();
   setupApplicationModalUX();
 

@@ -22,6 +22,7 @@ const {
   FarmCrop,
   FarmCropStage,
   FarmHealthReport,
+  FarmLot,
   Plague,
   Product,
   Region,
@@ -42,8 +43,38 @@ const operationalIncludes = [
       { model: FarmCropStage, as: 'stages', required: false },
     ],
   },
-  { model: FarmHealthReport, as: 'healthReports', required: false },
-  { model: FarmApplication, as: 'applications', required: false },
+  {
+    model: FarmHealthReport,
+    as: 'healthReports',
+    required: false,
+    include: [
+      {
+        model: FarmCrop,
+        as: 'farmCrop',
+        attributes: ['id', 'area_section'],
+        include: [{ model: Crop, as: 'crop', attributes: ['id', 'name'] }],
+      },
+    ],
+  },
+  {
+    model: FarmApplication,
+    as: 'applications',
+    required: false,
+    include: [
+      {
+        model: FarmCrop,
+        as: 'farmCrop',
+        attributes: ['id', 'area_section'],
+        include: [{ model: Crop, as: 'crop', attributes: ['id', 'name'] }],
+      },
+    ],
+  },
+  {
+    model: FarmLot,
+    as: 'lots',
+    required: false,
+    where: { status: true },
+  },
 ];
 
 const toDateOnly = (value) =>
@@ -80,6 +111,8 @@ const prepareHealthReports = (reports = []) => {
     ...report,
     observedDate: toDateOnly(report.observed_at),
     severityLabel: severityLabels[report.severity] || report.severity,
+    lotName: report.farmCrop?.area_section || 'General',
+    cropName: report.farmCrop?.crop?.name || null,
   }));
 };
 
@@ -87,7 +120,44 @@ const prepareApplications = (applications = []) =>
   applications.map((application) => ({
     ...application,
     appliedDate: toDateOnly(application.applied_at),
+    lotName: application.farmCrop?.area_section || 'General',
+    cropName: application.farmCrop?.crop?.name || null,
   }));
+
+const prepareLandLots = (rawLots = [], farmCrops = []) => {
+  const lotMap = new Map();
+
+  rawLots.forEach((lot) => {
+    lotMap.set(lot.name, {
+      id: lot.id,
+      name: lot.name,
+      size_hectares: lot.size_hectares ? String(lot.size_hectares) : null,
+      description: lot.description || null,
+      isPersisted: true,
+      activeCropsCount: 0,
+    });
+  });
+
+  farmCrops.forEach((c) => {
+    if (c.area_section && !lotMap.has(c.area_section)) {
+      lotMap.set(c.area_section, {
+        id: null,
+        name: c.area_section,
+        size_hectares: null,
+        description: null,
+        isPersisted: false,
+        activeCropsCount: 0,
+      });
+    }
+    if (c.area_section && c.is_active && lotMap.has(c.area_section)) {
+      lotMap.get(c.area_section).activeCropsCount += 1;
+    }
+  });
+
+  return Array.from(lotMap.values()).sort((a, b) =>
+    a.name.localeCompare(b.name, 'es', { numeric: true }),
+  );
+};
 
 const buildPermissions = (land, user) =>
   getContextualLandPermissions({
@@ -199,6 +269,7 @@ export const landDetail = async (req, res) => {
     );
     const healthReports = prepareHealthReports(land.healthReports);
     const applications = prepareApplications(land.applications);
+    const lots = prepareLandLots(land.lots || [], land.farmCrops || []);
     const permissions = buildPermissions(land, req.user);
 
     const detectedPlagues = [
@@ -216,6 +287,16 @@ export const landDetail = async (req, res) => {
       ).values(),
     ];
 
+    const detectedPlaguesByCrop = healthReports
+      .filter((report) => report.plague_name)
+      .map((report) => ({
+        farmCropId: report.farm_crop_id ? String(report.farm_crop_id) : '',
+        lotName: report.lotName || 'General',
+        id: report.plague_id ? String(report.plague_id) : '',
+        name: report.plague_name,
+        severity: report.severityLabel,
+      }));
+
     return res.render('private/lands/detail', {
       layout: privateLayout,
       pageTitle: `Expediente — ${land.name}`,
@@ -229,6 +310,9 @@ export const landDetail = async (req, res) => {
       plagueCategories,
       products,
       detectedPlagues,
+      detectedPlaguesJson: JSON.stringify(detectedPlaguesByCrop),
+      lots,
+      lotsCount: lots.length,
       farmCrops,
       activeFarmCrops,
       nonArchivedFarmCrops,
@@ -239,6 +323,8 @@ export const landDetail = async (req, res) => {
       activeFarmCropsCount: activeFarmCrops.length,
       nonArchivedFarmCropsCount: nonArchivedFarmCrops.length,
       archivedFarmCropsCount: archivedFarmCrops.length,
+      healthReportsCount: healthReports.length,
+      applicationsCount: applications.length,
       today: new Date().toISOString().slice(0, 10),
       permissions,
       landLat: land.location_lat ? String(land.location_lat) : 'N/A',

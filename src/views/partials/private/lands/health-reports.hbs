@@ -13,11 +13,40 @@
     <div class="mt-5 overflow-x-auto">
         <table class="w-full min-w-[640px] text-left text-sm">
             <thead class="border-b border-border text-xs uppercase text-muted-foreground">
-                <tr><th class="px-3 py-3">Fecha</th><th class="px-3 py-3">Plaga</th><th class="px-3 py-3">Severidad</th><th class="px-3 py-3">Descripción</th></tr>
+                <tr>
+                    <th class="px-3 py-3">Fecha</th>
+                    <th class="px-3 py-3">Lote / Sección</th>
+                    <th class="px-3 py-3">Plaga u Organismo</th>
+                    <th class="px-3 py-3">Severidad</th>
+                    <th class="px-3 py-3">Descripción</th>
+                </tr>
             </thead>
             <tbody class="divide-y divide-border">
                 {{#each healthReports}}
-                <tr><td class="px-3 py-3 text-muted-foreground">{{this.observedDate}}</td><td class="px-3 py-3 font-bold text-foreground">{{this.plague_name}}</td><td class="px-3 py-3">{{this.severityLabel}}</td><td class="max-w-sm px-3 py-3 text-muted-foreground">{{#if this.description}}{{this.description}}{{else}}Sin descripción{{/if}}</td></tr>
+                <tr data-health-lot="{{this.lotName}}">
+                    <td class="px-3 py-3 text-muted-foreground whitespace-nowrap">{{this.observedDate}}</td>
+                    <td class="px-3 py-3 whitespace-nowrap">
+                        <span class="inline-flex items-center gap-1 rounded bg-muted px-2 py-0.5 text-xs font-semibold text-foreground">
+                            📍 {{this.lotName}}{{#if this.cropName}} · {{this.cropName}}{{/if}}
+                        </span>
+                    </td>
+                    <td class="px-3 py-3">
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <span class="font-bold text-foreground">{{this.plague_name}}</span>
+                            {{#if this.plague_id}}
+                            <a href="/private/plagues/{{this.plague_id}}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 rounded bg-red-100/70 px-1.5 py-0.5 text-[10px] font-bold text-red-700 hover:bg-red-200 transition-colors" title="Ver ficha fitosanitaria oficial">
+                                🔬 Ficha ↗
+                            </a>
+                            {{/if}}
+                        </div>
+                    </td>
+                    <td class="px-3 py-3 whitespace-nowrap">
+                        <span class="rounded-full px-2 py-0.5 text-xs font-bold {{#if (eq this.severity 'high')}}bg-red-50 text-red-700 border border-red-200{{else if (eq this.severity 'medium')}}bg-amber-50 text-amber-700 border border-amber-200{{else}}bg-slate-100 text-slate-700{{/if}}">
+                            {{this.severityLabel}}
+                        </span>
+                    </td>
+                    <td class="max-w-sm px-3 py-3 text-muted-foreground">{{#if this.description}}{{this.description}}{{else}}Sin descripción{{/if}}</td>
+                </tr>
                 {{/each}}
             </tbody>
         </table>

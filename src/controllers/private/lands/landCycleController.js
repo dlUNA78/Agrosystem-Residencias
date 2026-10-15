@@ -4,6 +4,7 @@ import { generateLandCropStages } from '../../../services/landPhenologyService.j
 import {
   validateFarmCropInput,
   validateStageAdvanceInput,
+  validateStageRevertInput,
 } from '../../../services/landOperationalValidationService.js';
 import { parseLandId } from '../../../services/landValidationService.js';
 import {
@@ -28,6 +29,11 @@ const sendOperationError = (res, result) => {
   }
   if (result === 'cycle_not_found') {
     return res.status(404).send('Ciclo de cultivo no encontrado');
+  }
+  if (result === 'invalid_stage') {
+    return res
+      .status(400)
+      .send('La etapa especificada no es válida para esta operación');
   }
   return res.status(409).send('La etapa ya no puede avanzarse');
 };
@@ -365,5 +371,104 @@ export const restoreLandCropCycle = async (req, res) => {
   } catch (error) {
     console.error('Error al desarchivar el ciclo del cultivo:', error);
     return res.status(500).send('Error al desarchivar el ciclo del cultivo');
+  }
+};
+
+const applyStageRevert = async (stages, targetOrder, notes, transaction) => {
+  for (const st of stages) {
+    if (st.stage_order < targetOrder) {
+      if (st.status !== 'completed') {
+        await st.update({ status: 'completed' }, { transaction });
+      }
+    } else if (st.stage_order === targetOrder) {
+      await st.update(
+        {
+          status: 'in_progress',
+          actual_date: null,
+          notes: notes || st.notes,
+        },
+        { transaction },
+      );
+    } else {
+      await st.update(
+        {
+          status: 'pending',
+          actual_date: null,
+        },
+        { transaction },
+      );
+    }
+  }
+};
+
+export const revertLandCropStage = async (req, res) => {
+  const farmId = parseLandId(req.params.id);
+  if (!farmId) return res.status(400).send('Identificador de terreno inválido');
+
+  const validation = validateStageRevertInput(req.body);
+  if (!validation.isValid) {
+    return sendValidationError(req, res, validation.fieldErrors);
+  }
+
+  try {
+    const result = await sequelize.transaction(async (transaction) => {
+      const farm = await findActiveLand(farmId, req.user, transaction);
+      if (!farm) return 'farm_not_found';
+      const farmCrop = await findFarmCrop(
+        farm.id,
+        validation.value.farm_crop_id,
+        transaction,
+      );
+      if (!farmCrop) return 'cycle_not_found';
+
+      const targetOrder = validation.value.target_stage_order;
+      const stages = await FarmCropStage.findAll({
+        where: { farm_crop_id: farmCrop.id },
+        order: [['stage_order', 'ASC']],
+        transaction,
+      });
+      if (!stages || stages.length === 0) return 'invalid_stage';
+
+      const targetStage = stages.find((s) => s.stage_order === targetOrder);
+      if (!targetStage) return 'invalid_stage';
+
+      await applyStageRevert(
+        stages,
+        targetOrder,
+        validation.value.notes,
+        transaction,
+      );
+
+      if (!farmCrop.is_active || farmCrop.status === 'completed') {
+        await farmCrop.update(
+          { is_active: true, status: 'active' },
+          { transaction },
+        );
+      }
+
+      await createLandAudit(
+        {
+          action: 'revert_crop_stage',
+          recordId: farm.id,
+          newValues: {
+            farm_crop_id: farmCrop.id,
+            target_stage_order: targetOrder,
+            notes: validation.value.notes || null,
+          },
+          userId: req.user.id,
+        },
+        transaction,
+      );
+
+      return 'reverted';
+    });
+
+    if (result !== 'reverted') return sendOperationError(res, result);
+    return sendOperationSuccess(req, res, {
+      redirectTo: `/private/lands/${farmId}/expediente`,
+    });
+  } catch (error) {
+    console.error('Error al retroceder la etapa del cultivo:', error);
+    return res.status(500).send('Error al retroceder la etapa del cultivo');
   }
 };

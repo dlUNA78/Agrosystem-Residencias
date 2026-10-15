@@ -20,12 +20,19 @@
     {{#if nonArchivedFarmCrops}}
     <div class="mt-5 grid gap-4 lg:grid-cols-2">
         {{#each nonArchivedFarmCrops}}
-        <article class="rounded-xl border border-border bg-card p-5 shadow-sm flex flex-col justify-between">
+        <article class="rounded-xl border border-border bg-card p-5 shadow-sm flex flex-col justify-between" data-cycle-lot="{{#if this.area_section}}{{this.area_section}}{{else}}General{{/if}}">
             <div>
                 <!-- Encabezado del cultivo -->
                 <div class="flex items-start justify-between gap-3">
                     <div>
-                        <p class="font-extrabold text-foreground text-base">{{this.crop.name}}</p>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <p class="font-extrabold text-foreground text-base">{{this.crop.name}}</p>
+                            {{#if this.crop.id}}
+                            <a href="/private/crops/{{this.crop.id}}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 rounded bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary hover:bg-primary/20 transition-colors" title="Ver ficha agronómica del INIFAP">
+                                📄 Ficha técnica ↗
+                            </a>
+                            {{/if}}
+                        </div>
                         <p class="text-xs italic text-muted-foreground">{{this.crop.scientific_name}}</p>
                         <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
                             <span>🌱 Siembra: <strong class="text-foreground">{{this.plantingDate}}</strong></span>
@@ -92,7 +99,18 @@
                         </div>
 
                         {{#if this.isCompleted}}
-                        <span class="font-bold text-emerald-700 flex items-center gap-1 text-[11px]">✓ Completada</span>
+                        <div class="flex items-center gap-2">
+                            <span class="font-bold text-emerald-700 flex items-center gap-1 text-[11px]">✓ Completada</span>
+                            {{#if @root.permissions.canEdit}}
+                            <form action="/private/lands/{{@root.land.id}}/cycles/revert-stage" method="POST" class="inline">
+                                <input type="hidden" name="farm_crop_id" value="{{../id}}" />
+                                <input type="hidden" name="target_stage_order" value="{{this.stage_order}}" />
+                                <button type="submit" class="rounded px-2 py-0.5 text-[10px] font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200/60 transition-colors flex items-center gap-0.5" title="Revertir a esta etapa si el cálculo de días o avance en campo fue erróneo">
+                                    ↺ Volver aquí
+                                </button>
+                            </form>
+                            {{/if}}
+                        </div>
                         {{/if}}
                         {{#if this.isPending}}
                         <span class="font-medium text-muted-foreground text-[11px]">Pendiente</span>
@@ -167,12 +185,17 @@
 
         <div class="mt-4 grid gap-4 lg:grid-cols-2 pt-2 border-t border-border/50">
             {{#each archivedFarmCrops}}
-            <article class="rounded-xl border border-border/80 bg-card/60 p-4 shadow-sm opacity-90 hover:opacity-100 transition-opacity">
+            <article class="rounded-xl border border-border/80 bg-card/60 p-4 shadow-sm opacity-90 hover:opacity-100 transition-opacity" data-cycle-lot="{{#if this.area_section}}{{this.area_section}}{{else}}General{{/if}}">
                 <div class="flex items-start justify-between gap-3">
                     <div>
-                        <div class="flex items-center gap-2">
+                        <div class="flex flex-wrap items-center gap-2">
                             <p class="font-extrabold text-foreground">{{this.crop.name}}</p>
-                            <span class="rounded bg-muted px-1.5 py-0.2 text-[9px] font-bold text-muted-foreground">Archivado</span>
+                            {{#if this.crop.id}}
+                            <a href="/private/crops/{{this.crop.id}}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 rounded bg-primary/10 px-1.5 py-0.5 text-[9px] font-bold text-primary hover:bg-primary/20 transition-colors" title="Ver ficha técnica agronómica">
+                                📄 Ficha ↗
+                            </a>
+                            {{/if}}
+                            <span class="rounded bg-muted px-1.5 py-0.5 text-[9px] font-bold text-muted-foreground">Archivado</span>
                         </div>
                         <p class="text-xs italic text-muted-foreground">{{this.crop.scientific_name}}</p>
                         <p class="mt-1 text-xs text-muted-foreground">

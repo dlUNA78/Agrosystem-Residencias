@@ -156,6 +156,69 @@ export const validateStageAdvanceInput = (input = {}) => {
   return buildResult(value, fieldErrors);
 };
 
+export const validateStageRevertInput = (input = {}) => {
+  const value = {};
+  const fieldErrors = {};
+  setRequiredId(input, 'farm_crop_id', value, fieldErrors);
+
+  const targetOrder = Number(input.target_stage_order);
+  if (!Number.isInteger(targetOrder) || targetOrder < 1 || targetOrder > 5) {
+    addError(
+      fieldErrors,
+      'target_stage_order',
+      'La etapa objetivo a la que deseas retroceder no es válida.',
+    );
+  } else {
+    value.target_stage_order = targetOrder;
+  }
+  setOptionalText(input, 'notes', value, fieldErrors, {
+    max: 1000,
+    label: 'Las notas de corrección',
+  });
+  return buildResult(value, fieldErrors);
+};
+
+export const validateFarmLotInput = (input = {}) => {
+  const value = {};
+  const fieldErrors = {};
+  const name = cleanText(input.name);
+  if (!name) {
+    addError(
+      fieldErrors,
+      'name',
+      'El nombre del lote o bloque es obligatorio.',
+    );
+  } else if (name.length > 100) {
+    addError(
+      fieldErrors,
+      'name',
+      'El nombre del lote no puede exceder 100 caracteres.',
+    );
+  } else {
+    value.name = name;
+  }
+
+  const rawHectares = String(input.size_hectares ?? '').trim();
+  if (rawHectares) {
+    const hectares = Number(rawHectares);
+    if (!Number.isFinite(hectares) || hectares <= 0 || hectares > 100000) {
+      addError(
+        fieldErrors,
+        'size_hectares',
+        'La superficie del lote debe ser un número positivo válido.',
+      );
+    } else {
+      value.size_hectares = hectares;
+    }
+  }
+
+  setOptionalText(input, 'description', value, fieldErrors, {
+    max: 2000,
+    label: 'La descripción del lote',
+  });
+  return buildResult(value, fieldErrors);
+};
+
 const setPlagueSelection = (input, value, fieldErrors) => {
   const isExplicitCustom = input.plague_id === 'custom' || !input.plague_id;
   const customName = cleanText(input.custom_plague_name);
