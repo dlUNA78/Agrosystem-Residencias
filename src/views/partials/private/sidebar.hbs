@@ -27,7 +27,7 @@
         <div>
             <span class="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-widest px-3 block mb-2">OPERACIÓN</span>
             <div class="space-y-1">
-                <a class="flex items-center gap-3 px-3 py-2 rounded-xl transition-colors font-bold {{#if (eq activePage 'dashboard')}}bg-[#e2f1e8] text-[#1b4332]{{else}}text-muted-foreground hover:bg-muted hover:text-foreground{{/if}}"
+                <a class="flex items-center gap-3 px-3 py-2 rounded-xl transition-colors font-bold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1b4332] {{#if (eq activePage 'dashboard')}}bg-[#e2f1e8] text-[#1b4332]{{else}}text-muted-foreground hover:bg-muted hover:text-foreground{{/if}}"
                     href="/dashboard">
                     <i data-lucide="layout-dashboard" class="w-4 h-4 shrink-0"></i>
                     <span>Dashboard</span>
@@ -95,11 +95,6 @@
                     <span>Auditoría</span>
                 </a>
                 {{/if}}
-                <a class="flex items-center gap-3 px-3 py-2 rounded-xl transition-colors font-bold text-muted-foreground hover:bg-muted hover:text-foreground"
-                    href="#">
-                    <i data-lucide="settings" class="w-4 h-4 shrink-0"></i>
-                    <span>Configuración</span>
-                </a>
             </div>
         </div>
 

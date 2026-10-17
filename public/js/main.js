@@ -170,6 +170,60 @@
     if (backdrop)
       backdrop.addEventListener('click', () => setSidebarOpen(false));
 
+    // ── Búsqueda rápida de secciones del panel ─────────────────
+    const searchInput = document.getElementById('private-nav-search');
+    const searchStatus = document.getElementById('private-nav-search-status');
+    if (searchInput) {
+      const sections = Array.from(sidebar.querySelectorAll('nav > div:not(.mt-auto)'));
+      const searchableLinks = sections.flatMap((section) =>
+        Array.from(section.querySelectorAll('a[href]:not([href="#"])')).map((link) => ({
+          link,
+          section,
+          label: link.textContent.trim(),
+        })),
+      );
+
+      function filterNavigation() {
+        const query = searchInput.value.trim().toLocaleLowerCase('es');
+        let matches = 0;
+
+        searchableLinks.forEach(({ link, section, label }) => {
+          const visible = !query || label.toLocaleLowerCase('es').includes(query);
+          link.classList.toggle('hidden', !visible);
+          if (visible) matches += 1;
+          const sectionHasVisibleLink = searchableLinks.some(
+            (item) => item.section === section && (!query || item.label.toLocaleLowerCase('es').includes(query)),
+          );
+          section.classList.toggle('hidden', !sectionHasVisibleLink);
+        });
+
+        if (searchStatus) {
+          searchStatus.textContent = query
+            ? matches === 1
+              ? 'Se encontró 1 sección.'
+              : `Se encontraron ${matches} secciones.`
+            : '';
+        }
+      }
+
+      searchInput.addEventListener('input', filterNavigation);
+      searchInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+          searchInput.value = '';
+          filterNavigation();
+          searchInput.blur();
+        } else if (event.key === 'Enter') {
+          const query = searchInput.value.trim().toLocaleLowerCase('es');
+          const matches = searchableLinks.filter(
+            ({ label }) => label.toLocaleLowerCase('es').includes(query),
+          );
+          if (query && matches.length === 1) {
+            window.location.assign(matches[0].link.href);
+          }
+        }
+      });
+    }
+
     // ── Swipe touch ────────────────────────────────────────────
     document.addEventListener('touchstart', onTouchStart, { passive: true });
     document.addEventListener('touchend', onTouchEnd, { passive: true });
