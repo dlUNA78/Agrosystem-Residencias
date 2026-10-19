@@ -5,22 +5,22 @@
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
       
       <!-- Lado Izquierdo: Títulos, Buscador y Tendencias -->
-      <div class="lg:col-span-8 space-y-6 reveal-on-scroll">
-        <div class="text-mono-label text-emerald-800 font-semibold tracking-wider flex items-center gap-2">
+      <div class="lg:col-span-8 space-y-6">
+        <div class="text-mono-label text-emerald-800 font-semibold tracking-wider flex items-center gap-2 animate-hero-badge">
           <span class="inline-block w-2 h-2 rounded-full bg-emerald-600 animate-pulse"></span>
           SISTEMA NACIONAL DE VIGILANCIA FITOSANITARIA · CONSULTA PÚBLICA
         </div>
         
-        <h1 class="text-4xl md:text-5xl lg:text-6xl font-headline font-extrabold text-foreground tracking-tight leading-[1.1]">
+        <h1 class="text-4xl md:text-5xl lg:text-6xl font-headline font-extrabold text-foreground tracking-tight leading-[1.1] animate-hero-title">
           Consulta la sanidad vegetal de México, <span class="text-[#1b4332]">cultivo por cultivo.</span>
         </h1>
 
-        <p class="text-base md:text-lg text-muted-foreground max-w-2xl leading-relaxed">
+        <p class="text-base md:text-lg text-muted-foreground max-w-2xl leading-relaxed animate-hero-desc">
           Base de datos técnica de plagas, paquetes tecnológicos e insumos autorizados. Cada ficha se valida contra la investigación de los campos experimentales del INIFAP.
         </p>
 
         <!-- Selector de Alcance de Búsqueda (Tabs / Segmented Control) -->
-        <div class="pt-2">
+        <div class="pt-2 animate-hero-tabs">
           <div class="flex flex-wrap items-center gap-1.5 p-1 bg-secondary/80 border border-border rounded-lg w-fit text-xs font-medium" role="tablist" aria-label="Ámbito de búsqueda">
             <button
               type="button"
@@ -74,7 +74,7 @@
         </div>
 
         <!-- Formulario de Búsqueda Dinámico -->
-        <form action="/plagues" method="GET" id="hero-search-form" class="pt-1">
+        <form action="/plagues" method="GET" id="hero-search-form" class="pt-1 animate-hero-search">
           <div class="flex flex-col sm:flex-row gap-2 max-w-2xl bg-card border border-border p-1.5 rounded-lg shadow-xs focus-within:ring-2 focus-within:ring-[#1b4332]/30 focus-within:border-[#1b4332] transition-all">
             <div class="relative flex-1 flex items-center">
               <span class="material-symbols-outlined text-muted-foreground pl-3 pr-2 text-xl select-none transition-transform duration-200" id="hero-search-icon">pest_control</span>
@@ -109,7 +109,7 @@
         </form>
 
         <!-- Consultas Frecuentes -->
-        <div class="flex flex-wrap items-center gap-2 pt-1">
+        <div class="flex flex-wrap items-center gap-2 pt-1 animate-hero-tags">
           <span class="text-mono-label text-muted-foreground font-semibold">CONSULTAS FRECUENTES:</span>
           {{#each frequentSearches}}
             <button
@@ -124,7 +124,7 @@
       </div>
 
       <!-- Lado Derecho: Imagen Referencial y Tarjeta de Métricas Institucionales -->
-      <div class="lg:col-span-4 space-y-4 reveal-on-scroll stagger-2">
+      <div class="lg:col-span-4 space-y-4 animate-hero-card">
         
         <!-- Imagen Referencial con Badge Institucional -->
         <div class="relative w-full h-36 md:h-40 rounded-lg overflow-hidden border border-border shadow-2xs group">
@@ -195,7 +195,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
       
       <!-- Mapa Vectorial SVG de México Flotante -->
-      <div class="lg:col-span-7 flex flex-col justify-between reveal-on-scroll stagger-1">
+      <div class="lg:col-span-7 flex flex-col justify-between reveal-scale stagger-1">
         
         <!-- Selector Rápido de Entidad (Accesibilidad y Móviles) -->
         <div class="block lg:hidden mb-4 bg-card border border-border rounded-lg p-3 shadow-2xs">
@@ -515,7 +515,7 @@
         <!-- Filas de Cultivos -->
         {{#each cultivosTemporada}}
           <li
-            class="crop-calendar-row flex items-center gap-4 py-3 hover:bg-secondary/30 transition-all"
+            class="crop-calendar-row flex items-center gap-4 py-3 hover:bg-secondary/30 transition-all reveal-on-scroll {{#if (eq @index 0)}}stagger-1{{else}}{{#if (eq @index 1)}}stagger-2{{else}}{{#if (eq @index 2)}}stagger-3{{else}}{{#if (eq @index 3)}}stagger-4{{else}}stagger-5{{/if}}{{/if}}{{/if}}{{/if}}"
             data-season="{{this.estadoTemporada}}"
           >
             <div class="flex w-56 shrink-0 flex-col gap-0.5">

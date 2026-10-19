@@ -322,10 +322,13 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         });
       },
-      { threshold: 0.08, rootMargin: '0px 0px -30px 0px' },
+      { threshold: 0.12, rootMargin: '0px 0px -40px 0px' },
     );
 
-    revealElements.forEach((el) => observer.observe(el));
+    // Permitir un frame para que el navegador procese los estilos iniciales antes de observar
+    requestAnimationFrame(() => {
+      revealElements.forEach((el) => observer.observe(el));
+    });
   }
 
   function animateCounter(el) {
@@ -333,7 +336,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const targetNum = parseInt(rawTarget.replace(/[^\d]/g, ''), 10);
     if (isNaN(targetNum) || targetNum <= 0) return;
 
-    const duration = 1000;
+    el.textContent = '0';
+    const duration = 1200;
     const startTime = performance.now();
 
     function step(currentTime) {
@@ -356,21 +360,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function initCounters() {
     const counters = document.querySelectorAll('.counter-stat');
-    if (!counters.length || !('IntersectionObserver' in window)) return;
+    if (!counters.length) return;
 
-    const observer = new IntersectionObserver(
-      (entries, obs) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            animateCounter(entry.target);
-            obs.unobserve(entry.target);
-          }
-        });
-      },
-      { threshold: 0.3 },
-    );
-
-    counters.forEach((c) => observer.observe(c));
+    // Coordinar el inicio del conteo con la animación de entrada de la tarjeta hero (300ms)
+    setTimeout(() => {
+      counters.forEach((c) => animateCounter(c));
+    }, 300);
   }
 
   initScrollReveal();

@@ -7,7 +7,7 @@
   <title>{{#if pageTitle}}{{pageTitle}} — INIFAP Agrosystem{{else}}Agrosystem INIFAP{{/if}}</title>
 
   <!-- Tipografía e Iconografía Locales Servidas desde /fonts y /css/style.css (Cero CDNs) -->
-  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/style.css?v=2.2">
 
   {{#if extraHead}}{{{extraHead}}}{{/if}}
 </head>
@@ -33,10 +33,10 @@
 
   {{> public/footer}}
 
-  <script src="/js/public/navbar.js"></script>
-  <script src="/js/main.js"></script>
+  <script src="/js/public/navbar.js?v=2.2"></script>
+  <script src="/js/main.js?v=2.2"></script>
   {{#if (eq activePage 'home')}}
-  <script src="/js/public/home-map.js"></script>
+  <script src="/js/public/home-map.js?v=2.2"></script>
   {{/if}}
   {{#if extraScripts}}{{{extraScripts}}}{{/if}}
 </body>
