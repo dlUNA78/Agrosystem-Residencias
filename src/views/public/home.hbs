@@ -1,8 +1,12 @@
 <div class="space-y-16 pb-20 font-sans">
 
   <!-- ── SECCIÓN 1: HERO & BUSCADOR ────────────────────────────────────────── -->
-  <section class="pt-10 pb-12 px-6 md:px-12 max-w-7xl mx-auto border-b border-border/60">
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+  <section class="relative pt-10 pb-12 px-6 md:px-12 max-w-7xl mx-auto border-b border-border/60 overflow-hidden">
+    <!-- Orbes sutiles de ambiente institucional -->
+    <div class="pointer-events-none absolute -top-20 -left-20 w-80 h-80 bg-emerald-500/5 rounded-full blur-3xl" aria-hidden="true"></div>
+    <div class="pointer-events-none absolute top-1/2 -right-20 w-80 h-80 bg-[#1b4332]/5 rounded-full blur-3xl" aria-hidden="true"></div>
+
+    <div class="relative grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
       
       <!-- Lado Izquierdo: Títulos, Buscador y Tendencias -->
       <div class="lg:col-span-8 space-y-6">
@@ -19,12 +23,12 @@
           Base de datos técnica de plagas, paquetes tecnológicos e insumos autorizados. Cada ficha se valida contra la investigación de los campos experimentales del INIFAP.
         </p>
 
-        <!-- Selector de Alcance de Búsqueda (Tabs / Segmented Control) -->
+        <!-- Selector de Alcance de Búsqueda (Tabs con Touch-Scroll Móvil) -->
         <div class="pt-2 animate-hero-tabs">
-          <div class="flex flex-wrap items-center gap-1.5 p-1 bg-secondary/80 border border-border rounded-lg w-fit text-xs font-medium" role="tablist" aria-label="Ámbito de búsqueda">
+          <div class="flex overflow-x-auto no-scrollbar gap-1.5 p-1 bg-secondary/80 border border-border rounded-lg w-full sm:w-fit text-xs font-medium scroll-smooth" role="tablist" aria-label="Ámbito de búsqueda">
             <button
               type="button"
-              class="search-scope-btn px-3.5 py-1.5 rounded-md transition-all font-semibold bg-card text-[#1b4332] shadow-2xs flex items-center gap-1.5 cursor-pointer active:scale-95"
+              class="search-scope-btn px-3.5 py-1.5 rounded-md transition-all font-semibold bg-card text-[#1b4332] shadow-2xs flex items-center gap-1.5 cursor-pointer shrink-0 whitespace-nowrap active:scale-95"
               data-scope="plagues"
               data-action="/plagues"
               data-icon="pest_control"
@@ -36,7 +40,7 @@
             </button>
             <button
               type="button"
-              class="search-scope-btn px-3.5 py-1.5 rounded-md transition-all font-medium text-muted-foreground hover:text-foreground flex items-center gap-1.5 cursor-pointer active:scale-95"
+              class="search-scope-btn px-3.5 py-1.5 rounded-md transition-all font-medium text-muted-foreground hover:text-foreground flex items-center gap-1.5 cursor-pointer shrink-0 whitespace-nowrap active:scale-95"
               data-scope="crops"
               data-action="/crops"
               data-icon="psychiatry"
@@ -48,7 +52,7 @@
             </button>
             <button
               type="button"
-              class="search-scope-btn px-3.5 py-1.5 rounded-md transition-all font-medium text-muted-foreground hover:text-foreground flex items-center gap-1.5 cursor-pointer active:scale-95"
+              class="search-scope-btn px-3.5 py-1.5 rounded-md transition-all font-medium text-muted-foreground hover:text-foreground flex items-center gap-1.5 cursor-pointer shrink-0 whitespace-nowrap active:scale-95"
               data-scope="products"
               data-action="/products"
               data-icon="science"
@@ -60,7 +64,7 @@
             </button>
             <button
               type="button"
-              class="search-scope-btn px-3.5 py-1.5 rounded-md transition-all font-medium text-muted-foreground hover:text-foreground flex items-center gap-1.5 cursor-pointer active:scale-95"
+              class="search-scope-btn px-3.5 py-1.5 rounded-md transition-all font-medium text-muted-foreground hover:text-foreground flex items-center gap-1.5 cursor-pointer shrink-0 whitespace-nowrap active:scale-95"
               data-scope="lands"
               data-action="/lands"
               data-icon="travel_explore"
@@ -82,16 +86,18 @@
                 id="hero-search-input"
                 name="search"
                 type="text"
+                inputmode="search"
+                enterkeyhint="search"
                 placeholder="Nombre científico, plaga, cultivo o síntoma..."
-                class="w-full bg-transparent py-2.5 text-sm md:text-base text-foreground placeholder:text-muted-foreground outline-none pr-8"
+                class="w-full bg-transparent py-2.5 text-sm md:text-base text-foreground placeholder:text-muted-foreground outline-none pr-10"
                 required
                 autocomplete="off"
               />
-              <!-- Botón Limpiar Texto (aparece al teclear) -->
+              <!-- Botón Limpiar Texto (Área táctil de 40px) -->
               <button
                 type="button"
                 id="hero-search-clear"
-                class="hidden absolute right-2 text-muted-foreground hover:text-foreground p-1 rounded-full hover:bg-secondary transition-all cursor-pointer"
+                class="hidden absolute right-1.5 text-muted-foreground hover:text-foreground w-8 h-8 flex items-center justify-center rounded-full hover:bg-secondary transition-all cursor-pointer active:scale-90"
                 title="Limpiar búsqueda"
                 aria-label="Limpiar campo de búsqueda"
               >
@@ -108,13 +114,13 @@
           </div>
         </form>
 
-        <!-- Consultas Frecuentes -->
-        <div class="flex flex-wrap items-center gap-2 pt-1 animate-hero-tags">
-          <span class="text-mono-label text-muted-foreground font-semibold">CONSULTAS FRECUENTES:</span>
+        <!-- Consultas Frecuentes (Touch Carousel en Móvil) -->
+        <div class="flex items-center gap-2 pt-1 overflow-x-auto no-scrollbar pb-1 animate-hero-tags">
+          <span class="text-mono-label text-muted-foreground font-semibold shrink-0">CONSULTAS FRECUENTES:</span>
           {{#each frequentSearches}}
             <button
               type="button"
-              class="frequent-tag-btn px-3 py-1 bg-secondary text-secondary-foreground text-xs font-medium rounded-md hover:bg-emerald-100 hover:text-emerald-900 border border-border transition-all cursor-pointer hover:-translate-y-0.5 active:scale-95 shadow-2xs"
+              class="frequent-tag-btn px-3 py-1 bg-secondary text-secondary-foreground text-xs font-medium rounded-md hover:bg-emerald-100 hover:text-emerald-900 border border-border transition-all cursor-pointer hover:-translate-y-0.5 active:scale-95 shadow-2xs shrink-0 whitespace-nowrap"
               data-query="{{this}}"
             >
               {{this}}
@@ -198,20 +204,41 @@
       <div class="lg:col-span-7 flex flex-col justify-between reveal-scale stagger-1">
         
         <!-- Selector Rápido de Entidad (Accesibilidad y Móviles) -->
-        <div class="block lg:hidden mb-4 bg-card border border-border rounded-lg p-3 shadow-2xs">
-          <label for="state-select-control" class="block text-mono-label font-bold text-muted-foreground mb-1.5">
-            SELECCIONAR ENTIDAD FEDERATIVA
-          </label>
-          <div class="relative">
-            <select
-              id="state-select-control"
-              class="w-full h-11 appearance-none border border-border bg-background px-3.5 pr-10 text-sm font-semibold rounded-md outline-none transition-all focus:border-[#1b4332] focus:ring-2 focus:ring-[#1b4332]/20 text-foreground cursor-pointer"
-            >
-              {{#each estadosList}}
-                <option value="{{this}}" {{#if (eq this ../estadoInicial.estado)}}selected{{/if}}>{{this}}</option>
+        <div class="block lg:hidden mb-4 bg-card border border-border rounded-lg p-3.5 shadow-2xs space-y-3">
+          <!-- Chips Rápidos de Entidades con Mayor Incidencia -->
+          <div>
+            <div class="text-[10px] font-mono text-muted-foreground uppercase font-bold mb-1.5 flex items-center justify-between">
+              <span>FOCO RÁPIDO</span>
+              <span class="text-emerald-700">Mayor riesgo nacional</span>
+            </div>
+            <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5" id="mobile-state-chips">
+              {{#each ranking}}
+                <button
+                  type="button"
+                  class="mobile-state-chip px-2.5 py-1 text-xs rounded-md border shrink-0 transition-all font-semibold cursor-pointer active:scale-95 {{#if (eq this.estado ../estadoInicial.estado)}}bg-[#1b4332] text-white border-[#1b4332] shadow-2xs{{else}}bg-secondary text-foreground border-border hover:bg-emerald-50{{/if}}"
+                  data-estado="{{this.estado}}"
+                >
+                  {{this.estado}} <span class="font-mono text-[10px] opacity-75">({{this.alertas}})</span>
+                </button>
               {{/each}}
-            </select>
-            <span class="material-symbols-outlined pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-lg">expand_more</span>
+            </div>
+          </div>
+
+          <div>
+            <label for="state-select-control" class="block text-mono-label font-bold text-muted-foreground mb-1.5">
+              TODAS LAS ENTIDADES (A-Z)
+            </label>
+            <div class="relative">
+              <select
+                id="state-select-control"
+                class="w-full h-11 appearance-none border border-border bg-background px-3.5 pr-10 text-sm font-semibold rounded-md outline-none transition-all focus:border-[#1b4332] focus:ring-2 focus:ring-[#1b4332]/20 text-foreground cursor-pointer"
+              >
+                {{#each estadosList}}
+                  <option value="{{this}}" {{#if (eq this ../estadoInicial.estado)}}selected{{/if}}>{{this}}</option>
+                {{/each}}
+              </select>
+              <span class="material-symbols-outlined pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-lg">expand_more</span>
+            </div>
           </div>
         </div>
 
@@ -316,14 +343,22 @@
             </div>
           </div>
 
-          <div class="pt-3 border-t border-border/60 flex items-center justify-between">
+          <div class="pt-3 border-t border-border/60 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
             <a
               id="card-link"
               href="/plagues?search={{urlEncode estadoInicial.principal}}"
               class="text-xs font-bold text-[#1b4332] hover:underline flex items-center gap-1 transition-colors"
             >
-              <span>Ver expediente completo</span>
+              <span>Ver ficha de la plaga</span>
               <span class="material-symbols-outlined text-sm">arrow_forward</span>
+            </a>
+            <a
+              id="card-state-search-btn"
+              href="/plagues?search={{urlEncode estadoInicial.estado}}"
+              class="px-3.5 py-1.5 bg-[#1b4332] hover:bg-[#133426] text-white text-xs font-semibold rounded-md flex items-center justify-center gap-1.5 shadow-2xs transition-all active:scale-95"
+            >
+              <span class="material-symbols-outlined text-sm">filter_alt</span>
+              <span id="card-state-search-label">Plagas en {{estadoInicial.estado}}</span>
             </a>
           </div>
         </article>
@@ -387,6 +422,23 @@
       </a>
     </div>
 
+    <!-- Filtros de Severidad (Desktop y Móvil) -->
+    <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar mb-4 py-1" id="boletin-severity-filters">
+      <span class="text-mono-label text-muted-foreground font-semibold shrink-0 mr-1 hidden sm:inline">SEVERIDAD:</span>
+      <button type="button" class="boletin-filter-btn px-3 py-1 rounded-md text-xs font-semibold bg-[#1b4332] text-white shadow-2xs transition-all cursor-pointer shrink-0 active:scale-95" data-severity="all">
+        Todos
+      </button>
+      <button type="button" class="boletin-filter-btn px-3 py-1 rounded-md text-xs font-medium text-muted-foreground hover:text-foreground bg-secondary hover:bg-border transition-all cursor-pointer shrink-0 active:scale-95" data-severity="crítico">
+        Crítico
+      </button>
+      <button type="button" class="boletin-filter-btn px-3 py-1 rounded-md text-xs font-medium text-muted-foreground hover:text-foreground bg-secondary hover:bg-border transition-all cursor-pointer shrink-0 active:scale-95" data-severity="alto">
+        Alto
+      </button>
+      <button type="button" class="boletin-filter-btn px-3 py-1 rounded-md text-xs font-medium text-muted-foreground hover:text-foreground bg-secondary hover:bg-border transition-all cursor-pointer shrink-0 active:scale-95" data-severity="moderado">
+        Moderado
+      </button>
+    </div>
+
     <!-- Vista Desktop: Tabla Institucional -->
     <div class="hidden md:block bg-card border border-border rounded-xl overflow-x-auto shadow-xs reveal-on-scroll stagger-1">
       <table class="w-full text-left border-collapse min-w-175">
@@ -402,7 +454,7 @@
         </thead>
         <tbody class="divide-y divide-border text-xs md:text-sm">
           {{#each boletin}}
-            <tr class="hover:bg-secondary/40 transition-colors group">
+            <tr class="boletin-table-row hover:bg-secondary/40 transition-colors group" data-level="{{this.level}}">
               <td class="py-3.5 px-4 font-mono font-medium text-muted-foreground">{{this.folio}}</td>
               <td class="py-3.5 px-4 font-mono text-muted-foreground">{{this.date}}</td>
               <td class="py-3.5 px-4 font-bold text-foreground">{{this.state}}</td>
@@ -427,7 +479,7 @@
     <!-- Vista Móvil: Tarjetas Fluidas (Sin scroll horizontal) -->
     <div class="md:hidden space-y-3 reveal-on-scroll stagger-1">
       {{#each boletin}}
-        <article class="bg-card border border-border rounded-xl p-4 shadow-2xs space-y-2.5 hover:border-[#1b4332]/40 transition-all">
+        <article class="boletin-card-item bg-card border border-border rounded-xl p-4 shadow-2xs space-y-2.5 hover:border-[#1b4332]/40 transition-all" data-level="{{this.level}}">
           <div class="flex items-center justify-between text-xs">
             <span class="font-mono font-semibold text-muted-foreground">{{this.folio}}</span>
             <span class="font-mono text-muted-foreground">{{this.date}}</span>
@@ -489,8 +541,55 @@
       </div>
     </div>
 
+    <!-- Selector de Modo Móvil (Fichas del Mes vs Matriz Completa) -->
+    <div class="flex md:hidden items-center p-1 bg-secondary rounded-lg border border-border w-fit mb-4 text-xs font-semibold" role="tablist">
+      <button type="button" id="calendar-view-cards-btn" class="px-3.5 py-1.5 rounded-md bg-card text-[#1b4332] shadow-2xs transition-all cursor-pointer" aria-selected="true">
+        Fichas del Mes
+      </button>
+      <button type="button" id="calendar-view-matrix-btn" class="px-3.5 py-1.5 rounded-md text-muted-foreground hover:text-foreground transition-all cursor-pointer" aria-selected="false">
+        Matriz Anual (12M)
+      </button>
+    </div>
+
+    <!-- Vista Móvil: Fichas Rápidas de Temporada -->
+    <div id="calendar-mobile-cards" class="md:hidden space-y-3 mb-6">
+      {{#each cultivosTemporada}}
+        <div class="crop-mobile-card bg-card border border-border rounded-xl p-4 shadow-2xs space-y-3 transition-all hover:border-[#1b4332]/40" data-season="{{this.estadoTemporada}}">
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <a href="/crops?search={{urlEncode this.nombre}}" class="font-bold text-sm text-foreground hover:text-[#1b4332] hover:underline">{{this.nombre}}</a>
+              <p class="font-mono text-xs italic text-muted-foreground">{{this.cientifico}}</p>
+            </div>
+            {{#if this.enCosecha}}
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-mono font-bold rounded-md bg-[#1b4332] text-white shadow-2xs uppercase">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                En Cosecha
+              </span>
+            {{else}}{{#if this.enSiembra}}
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-mono font-bold rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 uppercase">
+                <span class="w-1.5 h-1.5 rounded-full bg-[#73b398]"></span>
+                En Siembra
+              </span>
+            {{else}}
+              <span class="inline-flex items-center px-2 py-0.5 text-[10px] font-mono text-muted-foreground bg-secondary rounded uppercase">
+                Fuera de ciclo
+              </span>
+            {{/if}}{{/if}}
+          </div>
+
+          <div class="flex items-center justify-between text-xs pt-2.5 border-t border-border/60">
+            <span class="text-muted-foreground font-mono">Fichas técnicas: <strong class="text-foreground">{{this.fichas}}</strong></span>
+            <a href="/crops?search={{urlEncode this.nombre}}" class="font-bold text-[#1b4332] hover:underline flex items-center gap-1">
+              <span>Ver ficha</span>
+              <span class="material-symbols-outlined text-xs">arrow_forward</span>
+            </a>
+          </div>
+        </div>
+      {{/each}}
+    </div>
+
     <!-- Matriz del Calendario Agrícola -->
-    <div class="bg-card border border-border rounded-xl p-4 md:p-6 overflow-x-auto shadow-xs reveal-on-scroll stagger-1">
+    <div id="calendar-matrix-wrapper" class="hidden md:block bg-card border border-border rounded-xl p-4 md:p-6 overflow-x-auto shadow-xs reveal-on-scroll stagger-1">
       <ul class="flex flex-col divide-y divide-border min-w-187.5" id="cultivos-calendar-list">
         <!-- Encabezado de Meses Clarificado -->
         <li class="flex items-center gap-4 pb-3 font-mono text-xs font-bold text-muted-foreground text-center select-none">

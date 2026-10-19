@@ -18,7 +18,8 @@
   <div class="bg-[#1b4332] text-white/90 px-6 md:px-12 py-2 text-xs font-medium border-b border-white/10 flex flex-wrap justify-between items-center gap-2">
     <div class="flex items-center gap-2 tracking-wide font-headline uppercase text-[11px] font-semibold">
       <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-      INSTITUTO NACIONAL DE INVESTIGACIONES FORESTALES, AGRÍCOLAS Y PECUARIAS
+      <span class="sm:hidden">INIFAP · VIGILANCIA FITOSANITARIA</span>
+      <span class="hidden sm:inline">INSTITUTO NACIONAL DE INVESTIGACIONES FORESTALES, AGRÍCOLAS Y PECUARIAS</span>
     </div>
     <div class="text-mono-label text-emerald-200/80 font-mono">
       ACTUALIZADO {{#if lastUpdate}}{{lastUpdate}}{{else}}22.08.2026 · 06:00 H (CDMX){{/if}}
@@ -27,11 +28,46 @@
 
   {{> public/navbar}}
 
-  <main id="main-content" class="min-h-screen">
+  <main id="main-content" class="min-h-screen pb-20 md:pb-0">
     {{{body}}}
   </main>
 
   {{> public/footer}}
+
+  <!-- Botón Flotante Volver Arriba (Scroll to Top FAB) -->
+  <button
+    id="scroll-to-top"
+    type="button"
+    class="fixed bottom-20 md:bottom-8 right-5 z-40 p-3 rounded-full bg-[#1b4332] text-white shadow-lg border border-emerald-500/30 opacity-0 pointer-events-none translate-y-4 hover:bg-[#133426] active:scale-95 transition-all cursor-pointer"
+    aria-label="Volver arriba"
+    title="Volver arriba"
+  >
+    <span class="material-symbols-outlined text-xl">arrow_upward</span>
+  </button>
+
+  <!-- Barra de Navegación Inferior Móvil (Thumb-friendly Tab Bar) -->
+  <nav class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-card/95 backdrop-blur-md border-t border-border px-2 py-1 flex justify-around items-center text-xs pb-safe shadow-lg">
+    <a href="/" class="flex flex-col items-center py-1 px-3 rounded-lg transition-colors {{#if (eq activePage 'home')}}text-[#1b4332] font-bold{{else}}text-muted-foreground hover:text-foreground{{/if}}">
+      <span class="material-symbols-outlined text-xl">home</span>
+      <span class="text-[10px] mt-0.5">Inicio</span>
+    </a>
+    <a href="/plagues" class="flex flex-col items-center py-1 px-3 rounded-lg transition-colors {{#if (eq activePage 'plagues')}}text-[#1b4332] font-bold{{else}}text-muted-foreground hover:text-foreground{{/if}}">
+      <span class="material-symbols-outlined text-xl">pest_control</span>
+      <span class="text-[10px] mt-0.5">Plagas</span>
+    </a>
+    <a href="/crops" class="flex flex-col items-center py-1 px-3 rounded-lg transition-colors {{#if (eq activePage 'crops')}}text-[#1b4332] font-bold{{else}}text-muted-foreground hover:text-foreground{{/if}}">
+      <span class="material-symbols-outlined text-xl">psychiatry</span>
+      <span class="text-[10px] mt-0.5">Cultivos</span>
+    </a>
+    <a href="/products" class="flex flex-col items-center py-1 px-3 rounded-lg transition-colors {{#if (eq activePage 'products')}}text-[#1b4332] font-bold{{else}}text-muted-foreground hover:text-foreground{{/if}}">
+      <span class="material-symbols-outlined text-xl">science</span>
+      <span class="text-[10px] mt-0.5">Insumos</span>
+    </a>
+    <button id="bottom-bar-menu-btn" type="button" class="flex flex-col items-center py-1 px-3 rounded-lg text-muted-foreground hover:text-foreground transition-colors cursor-pointer active:scale-95" aria-label="Abrir menú completo">
+      <span class="material-symbols-outlined text-xl">menu</span>
+      <span class="text-[10px] mt-0.5">Menú</span>
+    </button>
+  </nav>
 
   <script src="/js/public/navbar.js?v=2.2"></script>
   <script src="/js/main.js?v=2.2"></script>

@@ -2,14 +2,18 @@
  * home-map.js — Comportamiento interactivo de la página de inicio (Home)
  * Gestiona:
  *   - Buscador multifacético con tabs de ámbito y botón de borrado rápido
- *   - Sincronización bidireccional entre el Mapa SVG, el selector móvil y el Ranking
+ *   - Sincronización bidireccional entre el Mapa SVG, selector móvil, chips rápidos y Ranking
  *   - Tooltip flotante interactivo para desktop en el mapa de México
- *   - Actualización dinámica de la tarjeta de la entidad con badges de severidad
- *   - Filtros de temporada del calendario agrícola (siembra / cosecha / todos)
+ *   - Actualización dinámica de la tarjeta de la entidad con badges de severidad y enlace directo
+ *   - Filtros de severidad para el Boletín Oficial (desktop y móvil)
+ *   - Filtros de temporada y vista dual móvil del calendario agrícola
+ *   - Botón flotante volver arriba (Scroll to Top FAB)
+ *   - Animaciones de revelado al scroll y contadores dinámicos
  * Cumple con RULES.MD (JS en public/js/public/).
  */
-document.addEventListener('DOMContentLoaded', () => {
-  // ─── 1. BUSCADOR MULTIFACÉTICO (HERO) ────────────────────────────────────
+
+// ─── 1. BUSCADOR MULTIFACÉTICO (HERO) ──────────────────────────────────────
+function initHeroSearch() {
   const scopeButtons = document.querySelectorAll('.search-scope-btn');
   const searchForm = document.getElementById('hero-search-form');
   const searchInput = document.getElementById('hero-search-input');
@@ -17,11 +21,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const clearBtn = document.getElementById('hero-search-clear');
   const frequentBtns = document.querySelectorAll('.frequent-tag-btn');
 
-  // Alternancia entre pestañas de ámbito (Plagas, Cultivos, Insumos, Regiones)
   if (scopeButtons.length && searchForm && searchInput) {
     scopeButtons.forEach((btn) => {
       btn.addEventListener('click', () => {
-        // Desactivar todas las pestañas
         scopeButtons.forEach((b) => {
           b.setAttribute('aria-selected', 'false');
           b.classList.remove(
@@ -33,7 +35,6 @@ document.addEventListener('DOMContentLoaded', () => {
           b.classList.add('text-muted-foreground', 'font-medium');
         });
 
-        // Activar pestaña seleccionada
         btn.setAttribute('aria-selected', 'true');
         btn.classList.add(
           'bg-card',
@@ -43,32 +44,23 @@ document.addEventListener('DOMContentLoaded', () => {
         );
         btn.classList.remove('text-muted-foreground', 'font-medium');
 
-        // Actualizar acción del formulario, icono y placeholder
-        const action = btn.dataset.action || '/plagues';
-        const placeholder = btn.dataset.placeholder || '';
-        const icon = btn.dataset.icon || 'search';
-
-        searchForm.setAttribute('action', action);
-        searchInput.setAttribute('placeholder', placeholder);
-        if (searchIcon) searchIcon.textContent = icon;
-
+        searchForm.setAttribute('action', btn.dataset.action || '/plagues');
+        searchInput.setAttribute('placeholder', btn.dataset.placeholder || '');
+        if (searchIcon) searchIcon.textContent = btn.dataset.icon || 'search';
         searchInput.focus();
       });
     });
   }
 
-  // Botón para limpiar el texto de búsqueda
   if (searchInput && clearBtn) {
     const toggleClearBtn = () => {
-      if (searchInput.value.trim().length > 0) {
-        clearBtn.classList.remove('hidden');
-      } else {
-        clearBtn.classList.add('hidden');
-      }
+      clearBtn.classList.toggle(
+        'hidden',
+        searchInput.value.trim().length === 0,
+      );
     };
 
     searchInput.addEventListener('input', toggleClearBtn);
-
     clearBtn.addEventListener('click', () => {
       searchInput.value = '';
       toggleClearBtn();
@@ -76,7 +68,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Consultas frecuentes
   frequentBtns.forEach((btn) => {
     btn.addEventListener('click', () => {
       const query = btn.getAttribute('data-query');
@@ -87,11 +78,14 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   });
+}
 
-  // ─── 2. MAPA DE MÉXICO, SELECTOR MÓVIL Y RANKING ──────────────────────────
+// ─── 2. MAPA DE MÉXICO, CHIPS MÓVILES Y RANKING ────────────────────────────
+function initMexicoMap() {
   const paths = document.querySelectorAll('.state-path');
   const rankingButtons = document.querySelectorAll('.btn-ranking');
   const stateSelect = document.getElementById('state-select-control');
+  const mobileChips = document.querySelectorAll('.mobile-state-chip');
 
   const cardEstado = document.getElementById('card-estado');
   const cardAlertas = document.getElementById('card-alertas');
@@ -101,12 +95,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const cardCultivo = document.getElementById('card-cultivo');
   const cardPrincipal = document.getElementById('card-principal');
   const cardLink = document.getElementById('card-link');
+  const cardStateSearchBtn = document.getElementById('card-state-search-btn');
+  const cardStateSearchLabel = document.getElementById(
+    'card-state-search-label',
+  );
 
   const tooltip = document.getElementById('map-tooltip');
   const tooltipState = document.getElementById('tooltip-state');
   const tooltipAlertas = document.getElementById('tooltip-alerts');
 
-  // Estilos de badge según severidad
   const riskStyles = {
     alta: {
       badge: ['bg-rose-50', 'text-rose-700', 'border-rose-200'],
@@ -153,70 +150,87 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!cardNivelBadge || !cardNivelDot) return;
     cardNivelBadge.classList.remove(...allBadgeClasses);
     cardNivelDot.classList.remove(...allDotClasses);
-
     const style = riskStyles[nivel] || riskStyles.baja;
     cardNivelBadge.classList.add(...style.badge);
     cardNivelDot.classList.add(...style.dot);
   }
 
+  function setElText(el, val) {
+    if (el && val !== undefined) el.textContent = val;
+  }
+
   function actualizarTarjeta(data) {
     if (!data) return;
-
-    if (cardEstado) cardEstado.textContent = data.estado;
-    if (cardAlertas) cardAlertas.textContent = data.alertas;
-    if (cardCultivo) cardCultivo.textContent = data.cultivo;
-    if (cardPrincipal) cardPrincipal.textContent = data.principal;
-    if (cardNivelText) cardNivelText.textContent = data.nivel;
-
+    setElText(cardEstado, data.estado);
+    setElText(cardAlertas, data.alertas);
+    setElText(cardCultivo, data.cultivo);
+    setElText(cardPrincipal, data.principal);
+    setElText(cardNivelText, data.nivel);
     actualizarBadgeRiesgo(data.nivel);
 
     if (cardLink && data.principal) {
       cardLink.href = `/plagues?search=${encodeURIComponent(data.principal)}`;
     }
+    if (cardStateSearchBtn && data.estado) {
+      cardStateSearchBtn.href = `/plagues?search=${encodeURIComponent(data.estado)}`;
+      if (cardStateSearchLabel) {
+        cardStateSearchLabel.textContent = `Plagas en ${data.estado}`;
+      }
+    }
+  }
+
+  function syncMobileChips(nombreEstado) {
+    mobileChips.forEach((chip) => {
+      const isSel = chip.dataset.estado === nombreEstado;
+      chip.classList.toggle('bg-[#1b4332]', isSel);
+      chip.classList.toggle('text-white', isSel);
+      chip.classList.toggle('border-[#1b4332]', isSel);
+      chip.classList.toggle('shadow-2xs', isSel);
+      chip.classList.toggle('bg-secondary', !isSel);
+      chip.classList.toggle('text-foreground', !isSel);
+      chip.classList.toggle('border-border', !isSel);
+    });
   }
 
   function seleccionarEstado(nombreEstado) {
     if (!nombreEstado) return;
 
-    // Sincronizar selector dropdown si existe
     if (stateSelect && stateSelect.value !== nombreEstado) {
       stateSelect.value = nombreEstado;
     }
+    syncMobileChips(nombreEstado);
 
-    // Resaltar en SVG
     paths.forEach((path) => {
       const esSeleccionado = path.dataset.estado === nombreEstado;
+      path.classList.toggle('is-selected', esSeleccionado);
+      path.style.opacity = esSeleccionado ? '1' : '0.85';
       if (esSeleccionado) {
-        path.classList.add('is-selected');
-        path.style.opacity = '1';
         actualizarTarjeta(path.dataset);
-      } else {
-        path.classList.remove('is-selected');
-        path.style.opacity = '0.85';
       }
     });
 
-    // Resaltar en la lista del Ranking
     rankingButtons.forEach((btn) => {
-      if (btn.dataset.estado === nombreEstado) {
-        btn.classList.add('bg-secondary', 'ring-1', 'ring-[#1b4332]/30');
-      } else {
-        btn.classList.remove('bg-secondary', 'ring-1', 'ring-[#1b4332]/30');
-      }
+      const esSel = btn.dataset.estado === nombreEstado;
+      btn.classList.toggle('bg-secondary', esSel);
+      btn.classList.toggle('ring-1', esSel);
+      btn.classList.toggle('ring-[#1b4332]/30', esSel);
     });
   }
 
-  // Evento para el selector móvil accesible
   if (stateSelect) {
-    stateSelect.addEventListener('change', () => {
-      seleccionarEstado(stateSelect.value);
-    });
+    stateSelect.addEventListener('change', () =>
+      seleccionarEstado(stateSelect.value),
+    );
   }
 
-  // Eventos para el SVG del mapa de México
+  mobileChips.forEach((chip) => {
+    chip.addEventListener('click', () =>
+      seleccionarEstado(chip.dataset.estado),
+    );
+  });
+
   paths.forEach((path) => {
     path.addEventListener('mouseenter', () => {
-      // Mostrar tooltip en desktop
       if (tooltip && tooltipState && tooltipAlertas) {
         tooltipState.textContent = path.dataset.estado;
         tooltipAlertas.textContent = `${path.dataset.alertas} avisos`;
@@ -239,11 +253,9 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    path.addEventListener('click', () => {
-      seleccionarEstado(path.dataset.estado);
-    });
-
-    // Soporte de navegación por teclado (Enter / Space)
+    path.addEventListener('click', () =>
+      seleccionarEstado(path.dataset.estado),
+    );
     path.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
@@ -252,122 +264,231 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Eventos para los botones del Ranking
   rankingButtons.forEach((btn) => {
+    btn.addEventListener('click', () => seleccionarEstado(btn.dataset.estado));
+  });
+}
+
+// ─── 3. FILTROS DE SEVERIDAD DEL BOLETÍN OFICIAL ───────────────────────────
+function initBoletinFilters() {
+  const boletinFilterBtns = document.querySelectorAll('.boletin-filter-btn');
+  const boletinTableRows = document.querySelectorAll('.boletin-table-row');
+  const boletinCardItems = document.querySelectorAll('.boletin-card-item');
+
+  if (!boletinFilterBtns.length) return;
+
+  boletinFilterBtns.forEach((btn) => {
     btn.addEventListener('click', () => {
-      const estado = btn.dataset.estado;
-      seleccionarEstado(estado);
+      const severity = (btn.dataset.severity || 'all').toLowerCase();
+
+      boletinFilterBtns.forEach((b) => {
+        b.classList.remove(
+          'bg-[#1b4332]',
+          'text-white',
+          'shadow-2xs',
+          'font-semibold',
+        );
+        b.classList.add('bg-secondary', 'text-muted-foreground', 'font-medium');
+      });
+      btn.classList.add(
+        'bg-[#1b4332]',
+        'text-white',
+        'shadow-2xs',
+        'font-semibold',
+      );
+      btn.classList.remove(
+        'bg-secondary',
+        'text-muted-foreground',
+        'font-medium',
+      );
+
+      const filterElement = (el) => {
+        const itemLevel = (el.dataset.level || '').toLowerCase();
+        el.style.display =
+          severity === 'all' || itemLevel.includes(severity) ? '' : 'none';
+      };
+
+      boletinTableRows.forEach(filterElement);
+      boletinCardItems.forEach(filterElement);
     });
   });
+}
 
-  // ─── 3. FILTROS DEL CALENDARIO AGRÍCOLA ────────────────────────────────────
+// ─── 4. CALENDARIO AGRÍCOLA (MODO MÓVIL Y FILTROS) ─────────────────────────
+function initCalendarControls() {
+  const calViewCardsBtn = document.getElementById('calendar-view-cards-btn');
+  const calViewMatrixBtn = document.getElementById('calendar-view-matrix-btn');
+  const calMobileCards = document.getElementById('calendar-mobile-cards');
+  const calMatrixWrapper = document.getElementById('calendar-matrix-wrapper');
+
+  if (
+    calViewCardsBtn &&
+    calViewMatrixBtn &&
+    calMobileCards &&
+    calMatrixWrapper
+  ) {
+    calViewCardsBtn.addEventListener('click', () => {
+      calViewCardsBtn.classList.add('bg-card', 'text-[#1b4332]', 'shadow-2xs');
+      calViewCardsBtn.classList.remove('text-muted-foreground');
+      calViewMatrixBtn.classList.remove(
+        'bg-card',
+        'text-[#1b4332]',
+        'shadow-2xs',
+      );
+      calViewMatrixBtn.classList.add('text-muted-foreground');
+
+      calMobileCards.classList.remove('hidden');
+      calMatrixWrapper.classList.add('hidden');
+      calMatrixWrapper.classList.remove('block');
+    });
+
+    calViewMatrixBtn.addEventListener('click', () => {
+      calViewMatrixBtn.classList.add('bg-card', 'text-[#1b4332]', 'shadow-2xs');
+      calViewMatrixBtn.classList.remove('text-muted-foreground');
+      calViewCardsBtn.classList.remove(
+        'bg-card',
+        'text-[#1b4332]',
+        'shadow-2xs',
+      );
+      calViewCardsBtn.classList.add('text-muted-foreground');
+
+      calMobileCards.classList.add('hidden');
+      calMatrixWrapper.classList.remove('hidden');
+      calMatrixWrapper.classList.add('block');
+    });
+  }
+
   const seasonFilters = document.querySelectorAll('.season-filter-btn');
   const cropRows = document.querySelectorAll('.crop-calendar-row');
+  const cropMobileCards = document.querySelectorAll('.crop-mobile-card');
 
-  if (seasonFilters.length && cropRows.length) {
-    seasonFilters.forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const filter = btn.dataset.filter || 'all';
+  if (!seasonFilters.length) return;
 
-        // Actualizar apariencia de los botones de filtro
-        seasonFilters.forEach((b) => {
-          b.classList.remove(
-            'bg-card',
-            'text-[#1b4332]',
-            'shadow-2xs',
-            'font-semibold',
-          );
-          b.classList.add('text-muted-foreground');
-        });
-        btn.classList.add(
+  seasonFilters.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const filter = btn.dataset.filter || 'all';
+
+      seasonFilters.forEach((b) => {
+        b.classList.remove(
           'bg-card',
           'text-[#1b4332]',
           'shadow-2xs',
           'font-semibold',
         );
-        btn.classList.remove('text-muted-foreground');
-
-        // Filtrar filas
-        cropRows.forEach((row) => {
-          const rowSeason = row.dataset.season;
-          if (filter === 'all' || rowSeason === filter) {
-            row.style.display = 'flex';
-            row.style.opacity = '1';
-          } else {
-            row.style.display = 'none';
-          }
-        });
+        b.classList.add('text-muted-foreground');
       });
+      btn.classList.add(
+        'bg-card',
+        'text-[#1b4332]',
+        'shadow-2xs',
+        'font-semibold',
+      );
+      btn.classList.remove('text-muted-foreground');
+
+      const filterSeason = (el) => {
+        const rowSeason = el.dataset.season;
+        el.style.display =
+          filter === 'all' || rowSeason === filter ? '' : 'none';
+      };
+
+      cropRows.forEach(filterSeason);
+      cropMobileCards.forEach(filterSeason);
     });
+  });
+}
+
+// ─── 5. BOTÓN FLOTANTE VOLVER ARRIBA (SCROLL TO TOP FAB) ───────────────────
+function initScrollTopFAB() {
+  const scrollTopBtn = document.getElementById('scroll-to-top');
+  if (!scrollTopBtn) return;
+
+  window.addEventListener('scroll', () => {
+    const isVisible = window.scrollY > 350;
+    scrollTopBtn.classList.toggle('opacity-0', !isVisible);
+    scrollTopBtn.classList.toggle('pointer-events-none', !isVisible);
+    scrollTopBtn.classList.toggle('translate-y-4', !isVisible);
+    scrollTopBtn.classList.toggle('opacity-100', isVisible);
+    scrollTopBtn.classList.toggle('pointer-events-auto', isVisible);
+    scrollTopBtn.classList.toggle('translate-y-0', isVisible);
+  });
+
+  scrollTopBtn.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+}
+
+// ─── 6. ANIMACIONES DE ENTRADA Y REVELADO AL SCROLL ────────────────────────
+function initScrollReveal() {
+  const revealElements = document.querySelectorAll(
+    '.reveal-on-scroll, .reveal-scale',
+  );
+  if (!revealElements.length) return;
+
+  if (!('IntersectionObserver' in window)) {
+    revealElements.forEach((el) => el.classList.add('is-revealed'));
+    return;
   }
 
-  // ─── 4. ANIMACIONES DE ENTRADA Y REVELADO AL SCROLL ──────────────────────
-  function initScrollReveal() {
-    const revealElements = document.querySelectorAll(
-      '.reveal-on-scroll, .reveal-scale',
-    );
-    if (!revealElements.length) return;
+  const observer = new IntersectionObserver(
+    (entries, obs) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-revealed');
+          obs.unobserve(entry.target);
+        }
+      });
+    },
+    { threshold: 0.12, rootMargin: '0px 0px -40px 0px' },
+  );
 
-    if (!('IntersectionObserver' in window)) {
-      revealElements.forEach((el) => el.classList.add('is-revealed'));
-      return;
+  requestAnimationFrame(() => {
+    revealElements.forEach((el) => observer.observe(el));
+  });
+}
+
+function animateCounter(el) {
+  const rawTarget = el.dataset.target || el.textContent || '0';
+  const targetNum = parseInt(rawTarget.replace(/[^\d]/g, ''), 10);
+  if (isNaN(targetNum) || targetNum <= 0) return;
+
+  el.textContent = '0';
+  const duration = 1200;
+  const startTime = performance.now();
+
+  function step(currentTime) {
+    const elapsed = currentTime - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const easeProgress = 1 - Math.pow(1 - progress, 3);
+    const currentVal = Math.round(targetNum * easeProgress);
+
+    el.textContent = currentVal.toLocaleString('es-MX');
+
+    if (progress < 1) {
+      requestAnimationFrame(step);
+    } else {
+      el.textContent = rawTarget;
     }
-
-    const observer = new IntersectionObserver(
-      (entries, obs) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('is-revealed');
-            obs.unobserve(entry.target);
-          }
-        });
-      },
-      { threshold: 0.12, rootMargin: '0px 0px -40px 0px' },
-    );
-
-    // Permitir un frame para que el navegador procese los estilos iniciales antes de observar
-    requestAnimationFrame(() => {
-      revealElements.forEach((el) => observer.observe(el));
-    });
   }
 
-  function animateCounter(el) {
-    const rawTarget = el.dataset.target || el.textContent || '0';
-    const targetNum = parseInt(rawTarget.replace(/[^\d]/g, ''), 10);
-    if (isNaN(targetNum) || targetNum <= 0) return;
+  requestAnimationFrame(step);
+}
 
-    el.textContent = '0';
-    const duration = 1200;
-    const startTime = performance.now();
+function initCounters() {
+  const counters = document.querySelectorAll('.counter-stat');
+  if (!counters.length) return;
 
-    function step(currentTime) {
-      const elapsed = currentTime - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      const easeProgress = 1 - Math.pow(1 - progress, 3);
-      const currentVal = Math.round(targetNum * easeProgress);
+  setTimeout(() => {
+    counters.forEach((c) => animateCounter(c));
+  }, 300);
+}
 
-      el.textContent = currentVal.toLocaleString('es-MX');
-
-      if (progress < 1) {
-        requestAnimationFrame(step);
-      } else {
-        el.textContent = rawTarget;
-      }
-    }
-
-    requestAnimationFrame(step);
-  }
-
-  function initCounters() {
-    const counters = document.querySelectorAll('.counter-stat');
-    if (!counters.length) return;
-
-    // Coordinar el inicio del conteo con la animación de entrada de la tarjeta hero (300ms)
-    setTimeout(() => {
-      counters.forEach((c) => animateCounter(c));
-    }, 300);
-  }
-
+// ─── ARRANQUE GLOBAL EN DOMCONTENTLOADED ────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  initHeroSearch();
+  initMexicoMap();
+  initBoletinFilters();
+  initCalendarControls();
+  initScrollTopFAB();
   initScrollReveal();
   initCounters();
 });

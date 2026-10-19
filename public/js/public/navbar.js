@@ -31,22 +31,45 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // ─── 2. DRAWER MÓVIL OFF-CANVAS & BOTTOM BAR ───────────────────────────
   const navToggle = document.getElementById('public-nav-toggle');
-  const mobileMenu = document.getElementById('mobile-menu');
-  const navIcon = document.getElementById('public-nav-icon');
+  const drawerBackdrop = document.getElementById('mobile-drawer-backdrop');
+  const drawer = document.getElementById('mobile-drawer');
+  const drawerClose = document.getElementById('mobile-drawer-close');
+  const bottomBarMenuBtn = document.getElementById('bottom-bar-menu-btn');
 
-  if (navToggle && mobileMenu) {
-    navToggle.addEventListener('click', () => {
-      const isHidden = mobileMenu.classList.contains('hidden');
-      if (isHidden) {
-        mobileMenu.classList.remove('hidden');
-        if (navIcon) navIcon.textContent = 'close';
-        navToggle.setAttribute('aria-expanded', 'true');
-      } else {
-        mobileMenu.classList.add('hidden');
-        if (navIcon) navIcon.textContent = 'menu';
-        navToggle.setAttribute('aria-expanded', 'false');
-      }
+  function openDrawer() {
+    if (!drawer || !drawerBackdrop) return;
+    drawerBackdrop.classList.remove('hidden');
+    requestAnimationFrame(() => {
+      drawerBackdrop.classList.remove('opacity-0');
+      drawerBackdrop.classList.add('opacity-100');
+      drawer.classList.remove('translate-x-full');
+      drawer.classList.add('translate-x-0');
     });
+    document.body.style.overflow = 'hidden';
+    if (navToggle) navToggle.setAttribute('aria-expanded', 'true');
   }
+
+  function closeDrawer() {
+    if (!drawer || !drawerBackdrop) return;
+    drawerBackdrop.classList.remove('opacity-100');
+    drawerBackdrop.classList.add('opacity-0');
+    drawer.classList.remove('translate-x-0');
+    drawer.classList.add('translate-x-full');
+    setTimeout(() => {
+      drawerBackdrop.classList.add('hidden');
+      document.body.style.overflow = '';
+    }, 300);
+    if (navToggle) navToggle.setAttribute('aria-expanded', 'false');
+  }
+
+  if (navToggle) navToggle.addEventListener('click', openDrawer);
+  if (bottomBarMenuBtn) bottomBarMenuBtn.addEventListener('click', openDrawer);
+  if (drawerClose) drawerClose.addEventListener('click', closeDrawer);
+  if (drawerBackdrop) drawerBackdrop.addEventListener('click', closeDrawer);
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeDrawer();
+  });
 });

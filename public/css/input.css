@@ -306,3 +306,44 @@
     transition: none !important;
   }
 }
+
+/* ─── Utilidades de Ergonomía Móvil y UX Táctil ───────────────────────────── */
+@utility no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@utility pb-safe {
+  padding-bottom: max(env(safe-area-inset-bottom, 0px), 0.75rem);
+}
+
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button,
+a,
+select,
+input {
+  touch-action: manipulation;
+}
+
+/* Efecto de halo brillante en la entidad activa del mapa */
+@keyframes statePulseHalo {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 0 rgba(27, 67, 50, 0));
+  }
+  50% {
+    filter: drop-shadow(0 0 6px rgba(27, 67, 50, 0.6));
+  }
+}
+
+.state-path.is-selected {
+  stroke: #092116;
+  stroke-width: 2.5px;
+  animation: statePulseHalo 2.5s infinite ease-in-out;
+}
