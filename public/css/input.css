@@ -3,6 +3,47 @@
 @source "../../src/controllers/**/*.js";
 @source "../../public/js/**/*.js";
 
+/* Fuentes Locales Oficiales (Cero CDNs / 100% Offline-ready) */
+@font-face {
+  font-family: 'Geist';
+  font-style: normal;
+  font-weight: 300 800;
+  font-display: swap;
+  src: url('/fonts/geist-latin.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Geist Mono';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('/fonts/geist-mono-latin.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Material Symbols Outlined';
+  font-style: normal;
+  font-weight: 100 700;
+  font-display: swap;
+  src: url('/fonts/material-symbols-outlined.woff2') format('woff2');
+}
+
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}
+
 @layer components {
   .product-image-gallery {
     max-height: 18rem;
@@ -150,4 +191,56 @@
   stroke: #092116;
   stroke-width: 2.5px;
   filter: brightness(0.85);
+}
+
+/* ─── Animaciones de Entrada y Revelado al Scroll ─────────────────────────── */
+.reveal-on-scroll {
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.reveal-on-scroll.is-revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reveal-scale {
+  opacity: 0;
+  transform: scale(0.96);
+  transition:
+    opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.reveal-scale.is-revealed {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.stagger-1 {
+  transition-delay: 80ms;
+}
+.stagger-2 {
+  transition-delay: 160ms;
+}
+.stagger-3 {
+  transition-delay: 240ms;
+}
+.stagger-4 {
+  transition-delay: 320ms;
+}
+
+/* Respeto a accesibilidad para reducción de movimiento */
+@media (prefers-reduced-motion: reduce) {
+  .reveal-on-scroll,
+  .reveal-scale {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
 }
