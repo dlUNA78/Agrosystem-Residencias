@@ -41,6 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function openDrawer() {
     if (!drawer || !drawerBackdrop) return;
     drawerBackdrop.classList.remove('hidden');
+    drawer.classList.remove('invisible', 'pointer-events-none');
     requestAnimationFrame(() => {
       drawerBackdrop.classList.remove('opacity-0');
       drawerBackdrop.classList.add('opacity-100');
@@ -59,6 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
     drawer.classList.add('translate-x-full');
     setTimeout(() => {
       drawerBackdrop.classList.add('hidden');
+      drawer.classList.add('invisible', 'pointer-events-none');
       document.body.style.overflow = '';
     }, 300);
     if (navToggle) navToggle.setAttribute('aria-expanded', 'false');

@@ -1,7 +1,7 @@
 <div class="space-y-16 pb-20 font-sans">
 
   <!-- ── SECCIÓN 1: HERO & BUSCADOR ────────────────────────────────────────── -->
-  <section class="relative pt-10 pb-12 px-6 md:px-12 max-w-7xl mx-auto border-b border-border/60 overflow-hidden">
+  <section class="relative pt-10 pb-12 px-4 sm:px-6 md:px-12 max-w-7xl mx-auto border-b border-border/60 overflow-hidden">
     <!-- Orbes sutiles de ambiente institucional -->
     <div class="pointer-events-none absolute -top-20 -left-20 w-80 h-80 bg-emerald-500/5 rounded-full blur-3xl" aria-hidden="true"></div>
     <div class="pointer-events-none absolute top-1/2 -right-20 w-80 h-80 bg-[#1b4332]/5 rounded-full blur-3xl" aria-hidden="true"></div>
@@ -15,7 +15,7 @@
           SISTEMA NACIONAL DE VIGILANCIA FITOSANITARIA · CONSULTA PÚBLICA
         </div>
         
-        <h1 class="text-4xl md:text-5xl lg:text-6xl font-headline font-extrabold text-foreground tracking-tight leading-[1.1] animate-hero-title">
+        <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-headline font-extrabold text-foreground tracking-tight leading-[1.1] animate-hero-title">
           Consulta la sanidad vegetal de México, <span class="text-[#1b4332]">cultivo por cultivo.</span>
         </h1>
 
@@ -175,7 +175,7 @@
   </section>
 
   <!-- ── SECCIÓN 2: PANORAMA NACIONAL (MAPA VECTORIAL DE MÉXICO Y RANKING) ──── -->
-  <section id="panorama-nacional" class="scroll-mt-24 pt-4 px-6 md:px-12 max-w-7xl mx-auto border-b border-border/60 pb-16">
+  <section id="panorama-nacional" class="scroll-mt-24 pt-4 px-4 sm:px-6 md:px-12 max-w-7xl mx-auto border-b border-border/60 pb-16 overflow-hidden">
     
     <!-- Encabezado del Panorama Nacional -->
     <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-6 reveal-on-scroll">
@@ -242,7 +242,7 @@
           </div>
         </div>
 
-        <div class="w-full relative">
+        <div class="w-full relative overflow-hidden">
           <!-- Tooltip flotante interactivo para desktop -->
           <div
             id="map-tooltip"
@@ -252,7 +252,7 @@
             <span id="tooltip-alerts" class="text-emerald-300 ml-1.5"></span>
           </div>
 
-          <svg viewBox="0 0 {{mapWidth}} {{mapHeight}}" class="w-full h-auto select-none overflow-visible" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Mapa de México">
+          <svg viewBox="0 0 {{mapWidth}} {{mapHeight}}" class="w-full h-auto select-none overflow-hidden max-w-full" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Mapa de México">
             <g id="mexico-map-states">
               {{#each mapPaths}}
                 <path
@@ -405,7 +405,7 @@
   </section>
 
   <!-- ── SECCIÓN 3: BOLETÍN DE AVISOS PUBLICADOS ESTA SEMANA ────────────────── -->
-  <section class="px-6 md:px-12 max-w-7xl mx-auto border-b border-border/60 pb-16">
+  <section class="px-4 sm:px-6 md:px-12 max-w-7xl mx-auto border-b border-border/60 pb-16 overflow-hidden">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-6 reveal-on-scroll">
       <div>
         <div class="text-mono-label text-emerald-800 font-semibold tracking-wider">
@@ -507,7 +507,7 @@
   </section>
 
   <!-- ── SECCIÓN 4: CICLO AGRÍCOLA 2026 ────────────────────────────────────── -->
-  <section class="px-6 md:px-12 max-w-7xl mx-auto border-b border-border/60 pb-16">
+  <section class="px-4 sm:px-6 md:px-12 max-w-7xl mx-auto border-b border-border/60 pb-16 overflow-hidden">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-6 reveal-on-scroll">
       <div>
         <div class="text-mono-label text-emerald-800 font-semibold tracking-wider">
@@ -654,7 +654,7 @@
   </section>
 
   <!-- ── SECCIÓN 5: ACERVO (ÍNDICE DE LA BASE DE DATOS) ────────────────────── -->
-  <section class="px-6 md:px-12 max-w-7xl mx-auto">
+  <section class="px-4 sm:px-6 md:px-12 max-w-7xl mx-auto overflow-hidden">
     <div class="space-y-2 mb-8 reveal-on-scroll">
       <div class="text-mono-label text-emerald-800 font-semibold tracking-wider flex items-center gap-2">
         <span class="w-2 h-2 rounded-full bg-emerald-700"></span>
