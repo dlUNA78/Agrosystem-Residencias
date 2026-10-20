@@ -12,6 +12,321 @@
  * Cumple con RULES.MD (JS en public/js/public/).
  */
 
+const MEXICAN_STATES = [
+  'Aguascalientes',
+  'Baja California',
+  'Baja California Sur',
+  'Campeche',
+  'Chiapas',
+  'Chihuahua',
+  'Ciudad de México',
+  'Coahuila',
+  'Colima',
+  'Durango',
+  'Guanajuato',
+  'Guerrero',
+  'Hidalgo',
+  'Jalisco',
+  'México',
+  'Michoacán',
+  'Morelos',
+  'Nayarit',
+  'Nuevo León',
+  'Oaxaca',
+  'Puebla',
+  'Querétaro',
+  'Quintana Roo',
+  'San Luis Potosí',
+  'Sinaloa',
+  'Sonora',
+  'Tabasco',
+  'Tamaulipas',
+  'Tlaxcala',
+  'Veracruz',
+  'Yucatán',
+  'Zacatecas',
+];
+
+const mapPlagueItem = (p) => ({
+  url: `/plagues/${p.id}`,
+  title: p.name,
+  subtitle: p.scientificName || p.category,
+  icon: 'pest_control',
+  badge: p.riskLabel || p.category,
+  badgeClass:
+    p.riskBadgeClass || 'bg-emerald-50 text-emerald-800 border-emerald-200',
+});
+
+const mapCropItem = (c) => ({
+  url: `/crops/${c.id}`,
+  title: c.name,
+  subtitle: c.scientific_name || c.category,
+  icon: 'psychiatry',
+  badge: c.category || 'Cultivo',
+  badgeClass: 'bg-emerald-50 text-emerald-800 border-emerald-200',
+});
+
+const mapProductItem = (pr) => ({
+  url: `/products/${pr.id}`,
+  title: pr.name,
+  subtitle: pr.active_ingredient || pr.manufacturer || '',
+  icon: 'science',
+  badge: pr.category || 'Insumo',
+  badgeClass: 'bg-secondary text-foreground border-border',
+});
+
+const mapScopeItems = (scope, data) => {
+  if (scope === 'plagues') return (data.plagues || []).map(mapPlagueItem);
+  if (scope === 'crops') return (data.crops || []).map(mapCropItem);
+  if (scope === 'products') return (data.products || []).map(mapProductItem);
+  return [];
+};
+
+const filterLandsSuggestions = (query) => {
+  const normalized = query
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+  return MEXICAN_STATES.filter((s) =>
+    s
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .includes(normalized),
+  )
+    .slice(0, 6)
+    .map((state) => ({
+      url: `/lands?search=${encodeURIComponent(state)}`,
+      title: state,
+      subtitle: 'Entidad Federativa · Cobertura INIFAP',
+      icon: 'travel_explore',
+      badge: 'Región',
+      badgeClass: 'bg-emerald-50 text-emerald-800 border-emerald-200',
+    }));
+};
+
+const getScopeEndpoint = (scope, query) => {
+  const endpoints = {
+    plagues: `/api/plagues?search=${encodeURIComponent(query)}&limit=5`,
+    crops: `/api/crops?search=${encodeURIComponent(query)}&limit=5`,
+    products: `/api/products?search=${encodeURIComponent(query)}&limit=5`,
+  };
+  return endpoints[scope] || '';
+};
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function initHeroAutocomplete(searchForm, searchInput, clearBtn) {
+  const dropdown = document.getElementById('hero-autocomplete-dropdown');
+  const dropdownList = document.getElementById('hero-autocomplete-list');
+  const scopeLabel = document.getElementById('hero-autocomplete-scope-label');
+  const seeAllText = document.getElementById('hero-autocomplete-see-all');
+  const loadingIndicator = document.getElementById('hero-search-loading');
+
+  if (!dropdown || !dropdownList || !searchInput || !searchForm) return;
+
+  let debounceTimer = null;
+  let activeAbortController = null;
+  let currentIndex = -1;
+
+  const getScope = () => {
+    const activeBtn = document.querySelector(
+      '.search-scope-btn[aria-selected="true"]',
+    );
+    return activeBtn?.dataset?.scope || 'plagues';
+  };
+
+  const showDropdown = () => {
+    dropdown.classList.remove('hidden');
+    searchInput.setAttribute('aria-expanded', 'true');
+  };
+
+  const hideDropdown = () => {
+    dropdown.classList.add('hidden');
+    searchInput.setAttribute('aria-expanded', 'false');
+    currentIndex = -1;
+  };
+
+  const updateActiveItem = (items, index) => {
+    items.forEach((item, i) => {
+      if (i === index) {
+        item.classList.add('bg-secondary', 'ring-1', 'ring-[#1b4332]/40');
+        item.scrollIntoView({ block: 'nearest' });
+      } else {
+        item.classList.remove('bg-secondary', 'ring-1', 'ring-[#1b4332]/40');
+      }
+    });
+  };
+
+  const renderSuggestions = (items, scope, query) => {
+    currentIndex = -1;
+    if (!items.length) {
+      dropdownList.innerHTML = `
+        <div class="p-4 text-center text-muted-foreground text-xs">
+          <span class="material-symbols-outlined text-2xl text-muted-foreground/60 block mb-1">search_off</span>
+          No se encontraron coincidencias para "<strong class="text-foreground">${escapeHtml(query)}</strong>".
+        </div>
+      `;
+      showDropdown();
+      return;
+    }
+
+    const scopeLabels = {
+      plagues: 'PLAGAS COINCIDENTES',
+      crops: 'CULTIVOS COINCIDENTES',
+      products: 'INSUMOS COINCIDENTES',
+      lands: 'REGIONES COINCIDENTES',
+    };
+    if (scopeLabel) {
+      scopeLabel.textContent = scopeLabels[scope] || 'SUGERENCIAS DISPONIBLES';
+    }
+    if (seeAllText) {
+      seeAllText.textContent = `Ver todas las coincidencias para "${query}"...`;
+    }
+
+    dropdownList.innerHTML = items
+      .map(
+        (item, index) => `
+      <a
+        href="${item.url}"
+        class="autocomplete-item flex items-center justify-between gap-3 px-3.5 py-2.5 hover:bg-secondary/70 transition-colors text-foreground group text-left"
+        role="option"
+        tabindex="-1"
+        data-index="${index}"
+      >
+        <div class="flex items-center gap-2.5 min-w-0">
+          <div class="w-8 h-8 rounded-md bg-secondary text-[#1b4332] flex items-center justify-center shrink-0 border border-border group-hover:bg-[#1b4332] group-hover:text-white transition-colors">
+            <span class="material-symbols-outlined text-base">${item.icon}</span>
+          </div>
+          <div class="min-w-0 truncate">
+            <p class="font-bold text-xs text-foreground group-hover:text-[#1b4332] truncate">${escapeHtml(item.title)}</p>
+            ${item.subtitle ? `<p class="text-[11px] font-mono italic text-muted-foreground truncate">${escapeHtml(item.subtitle)}</p>` : ''}
+          </div>
+        </div>
+        ${
+          item.badge
+            ? `<span class="inline-block px-2 py-0.5 text-[9px] font-mono font-bold uppercase rounded border shrink-0 ${item.badgeClass || 'bg-secondary text-foreground border-border'}">
+                ${escapeHtml(item.badge)}
+              </span>`
+            : ''
+        }
+      </a>
+    `,
+      )
+      .join('');
+
+    showDropdown();
+  };
+
+  const fetchSuggestions = async (query) => {
+    if (activeAbortController) {
+      activeAbortController.abort();
+    }
+    activeAbortController = new AbortController();
+    const { signal } = activeAbortController;
+
+    const scope = getScope();
+
+    if (loadingIndicator) loadingIndicator.classList.remove('hidden');
+
+    try {
+      if (scope === 'lands') {
+        const items = filterLandsSuggestions(query);
+        renderSuggestions(items, 'lands', query);
+        return;
+      }
+
+      const endpoint = getScopeEndpoint(scope, query);
+      if (!endpoint) return;
+
+      const res = await fetch(endpoint, {
+        signal,
+        headers: { Accept: 'application/json' },
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      const items = mapScopeItems(scope, data);
+
+      renderSuggestions(items, scope, query);
+    } catch (err) {
+      if (err.name === 'AbortError') return;
+      dropdownList.innerHTML = `
+        <div class="p-3 text-center text-muted-foreground text-xs">
+          No fue posible cargar sugerencias en este momento.
+        </div>
+      `;
+      showDropdown();
+    } finally {
+      if (loadingIndicator) loadingIndicator.classList.add('hidden');
+    }
+  };
+
+  searchInput.addEventListener('input', () => {
+    clearTimeout(debounceTimer);
+    const q = searchInput.value.trim();
+    if (q.length < 2) {
+      hideDropdown();
+      if (loadingIndicator) loadingIndicator.classList.add('hidden');
+      return;
+    }
+    debounceTimer = setTimeout(() => {
+      fetchSuggestions(q);
+    }, 220);
+  });
+
+  searchInput.addEventListener('keydown', (e) => {
+    if (dropdown.classList.contains('hidden')) return;
+    const items = dropdownList.querySelectorAll('.autocomplete-item');
+    if (!items.length) return;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      currentIndex = (currentIndex + 1) % items.length;
+      updateActiveItem(items, currentIndex);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      currentIndex = (currentIndex - 1 + items.length) % items.length;
+      updateActiveItem(items, currentIndex);
+    } else if (e.key === 'Enter') {
+      if (currentIndex >= 0 && items[currentIndex]) {
+        e.preventDefault();
+        items[currentIndex].click();
+      }
+    } else if (e.key === 'Escape') {
+      hideDropdown();
+    }
+  });
+
+  searchInput.addEventListener('focus', () => {
+    const q = searchInput.value.trim();
+    if (q.length >= 2 && dropdownList.children.length > 0) {
+      showDropdown();
+    }
+  });
+
+  if (clearBtn) {
+    clearBtn.addEventListener('click', () => {
+      hideDropdown();
+      if (activeAbortController) activeAbortController.abort();
+      if (loadingIndicator) loadingIndicator.classList.add('hidden');
+    });
+  }
+
+  document.addEventListener('click', (e) => {
+    if (!searchForm.contains(e.target)) {
+      hideDropdown();
+    }
+  });
+}
+
 // ─── 1. BUSCADOR MULTIFACÉTICO (HERO) ──────────────────────────────────────
 function initHeroSearch() {
   const scopeButtons = document.querySelectorAll('.search-scope-btn');
@@ -48,6 +363,10 @@ function initHeroSearch() {
         searchInput.setAttribute('placeholder', btn.dataset.placeholder || '');
         if (searchIcon) searchIcon.textContent = btn.dataset.icon || 'search';
         searchInput.focus();
+
+        if (searchInput.value.trim().length >= 2) {
+          searchInput.dispatchEvent(new Event('input'));
+        }
       });
     });
   }
@@ -78,6 +397,8 @@ function initHeroSearch() {
       }
     });
   });
+
+  initHeroAutocomplete(searchForm, searchInput, clearBtn);
 }
 
 // ─── 2. MAPA DE MÉXICO, CHIPS MÓVILES Y RANKING ────────────────────────────
