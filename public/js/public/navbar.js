@@ -50,6 +50,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     document.body.style.overflow = 'hidden';
     if (navToggle) navToggle.setAttribute('aria-expanded', 'true');
+    if (bottomBarMenuBtn)
+      bottomBarMenuBtn.setAttribute('aria-expanded', 'true');
   }
 
   function closeDrawer() {
@@ -64,6 +66,8 @@ document.addEventListener('DOMContentLoaded', () => {
       document.body.style.overflow = '';
     }, 300);
     if (navToggle) navToggle.setAttribute('aria-expanded', 'false');
+    if (bottomBarMenuBtn)
+      bottomBarMenuBtn.setAttribute('aria-expanded', 'false');
   }
 
   if (navToggle) navToggle.addEventListener('click', openDrawer);
