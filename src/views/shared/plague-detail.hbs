@@ -1,30 +1,30 @@
 <div class="min-h-screen font-['Geist'] antialiased bg-background text-foreground pb-20">
 
   {{! ── SUB-NAVBAR PEGAJOSO (NAVEGACIÓN RÁPIDA GLASSMORPHIC) ─────────────── }}
-  <header class="sticky top-16 z-30 bg-background/80 backdrop-blur-md border-b border-border shadow-2xs transition-all">
-    <div class="max-w-7xl mx-auto px-4 md:px-10 py-2.5 flex items-center justify-between gap-4 overflow-x-auto no-scrollbar">
-      <nav class="flex items-center gap-1.5 md:gap-3 text-xs font-medium text-muted-foreground whitespace-nowrap">
-        <a href="#resumen" class="px-3 py-1.5 rounded-lg hover:text-foreground hover:bg-muted transition-colors flex items-center gap-1.5 font-bold text-foreground">
+  <header class="sticky top-0 md:top-16 z-30 bg-card/90 backdrop-blur-md border-b border-border shadow-2xs transition-all">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 md:px-10 py-2.5 flex items-center justify-between gap-4">
+      <nav id="sub-nav" class="flex items-center gap-1.5 sm:gap-2 text-xs font-medium text-muted-foreground whitespace-nowrap overflow-x-auto no-scrollbar scroll-smooth py-0.5">
+        <a href="#resumen" data-spy-link="resumen" class="px-3 py-1.5 rounded-lg border border-transparent text-[#1b4332] bg-emerald-50 border-emerald-200/80 font-bold transition-all flex items-center gap-1.5 shadow-2xs">
           <span class="material-symbols-outlined text-sm text-[#1b4332]">info</span> Resumen
         </a>
-        <a href="#ciclo-biologico" class="px-3 py-1.5 rounded-lg hover:text-foreground hover:bg-muted transition-colors flex items-center gap-1.5">
+        <a href="#ciclo-biologico" data-spy-link="ciclo-biologico" class="px-3 py-1.5 rounded-lg border border-transparent hover:text-foreground hover:bg-muted transition-all flex items-center gap-1.5">
           <span class="material-symbols-outlined text-sm">sync</span> Ciclo Biológico
         </a>
-        <a href="#distribucion" class="px-3 py-1.5 rounded-lg hover:text-foreground hover:bg-muted transition-colors flex items-center gap-1.5">
+        <a href="#distribucion" data-spy-link="distribucion" class="px-3 py-1.5 rounded-lg border border-transparent hover:text-foreground hover:bg-muted transition-all flex items-center gap-1.5">
           <span class="material-symbols-outlined text-sm">map</span> Distribución
         </a>
-        <a href="#manejo-integrado" class="px-3 py-1.5 rounded-lg hover:text-foreground hover:bg-muted transition-colors flex items-center gap-1.5">
+        <a href="#manejo-integrado" data-spy-link="manejo-integrado" class="px-3 py-1.5 rounded-lg border border-transparent hover:text-foreground hover:bg-muted transition-all flex items-center gap-1.5">
           <span class="material-symbols-outlined text-sm">shield</span> Manejo Integrado
         </a>
-        <a href="#danos" class="px-3 py-1.5 rounded-lg hover:text-foreground hover:bg-muted transition-colors flex items-center gap-1.5">
+        <a href="#danos" data-spy-link="danos" class="px-3 py-1.5 rounded-lg border border-transparent hover:text-foreground hover:bg-muted transition-all flex items-center gap-1.5">
           <span class="material-symbols-outlined text-sm">warning</span> Daños
         </a>
-        <a href="#productos" class="px-3 py-1.5 rounded-lg hover:text-foreground hover:bg-muted transition-colors flex items-center gap-1.5">
+        <a href="#productos" data-spy-link="productos" class="px-3 py-1.5 rounded-lg border border-transparent hover:text-foreground hover:bg-muted transition-all flex items-center gap-1.5">
           <span class="material-symbols-outlined text-sm">science</span> Productos
           {{#if relatedProducts.length}}<span class="px-1.5 py-0.5 text-[10px] font-mono bg-blue-50 text-blue-700 rounded-full font-bold">{{relatedProducts.length}}</span>{{/if}}
         </a>
         {{#if isPrivate}}
-          <a href="#relaciones-tecnicas" class="px-3 py-1.5 rounded-lg hover:text-foreground hover:bg-muted transition-colors flex items-center gap-1.5">
+          <a href="#relaciones-tecnicas" data-spy-link="relaciones-tecnicas" class="px-3 py-1.5 rounded-lg border border-transparent hover:text-foreground hover:bg-muted transition-all flex items-center gap-1.5">
             <span class="material-symbols-outlined text-sm">account_tree</span> Relaciones
           </a>
         {{/if}}
@@ -32,24 +32,27 @@
 
       <div class="flex items-center gap-2 shrink-0">
         {{#if isPrivate}}
-          <a href="/private/plagues" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-card border border-border text-foreground font-bold text-xs rounded-md hover:bg-secondary transition-colors shadow-2xs">
-            <span class="material-symbols-outlined text-xs">arrow_back</span> Panel
+          <a href="/private/plagues" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-card border border-border text-foreground font-bold text-xs rounded-lg hover:bg-secondary transition-colors shadow-2xs active:scale-95">
+            <span class="material-symbols-outlined text-xs">arrow_back</span>
+            <span class="hidden sm:inline">Panel</span>
           </a>
         {{else}}
-          <a href="/plagues" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-card border border-border text-foreground font-bold text-xs rounded-md hover:bg-secondary transition-colors shadow-2xs">
-            <span class="material-symbols-outlined text-xs">arrow_back</span> Catálogo
+          <a href="/plagues" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-card border border-border text-foreground font-bold text-xs rounded-lg hover:bg-secondary transition-colors shadow-2xs active:scale-95">
+            <span class="material-symbols-outlined text-xs">arrow_back</span>
+            <span class="hidden sm:inline">Catálogo</span>
+            <span class="sm:hidden">Volver</span>
           </a>
         {{/if}}
       </div>
     </div>
   </header>
 
-  <main class="max-w-7xl mx-auto px-4 md:px-10 pt-6">
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 md:px-10 pt-6">
 
     {{! ── BREADCRUMBS & ENCABEZADO ────────────────────────────────────────── }}
-    <div class="mb-4">
-      <nav aria-label="Breadcrumb" class="flex mb-2">
-        <ol class="inline-flex items-center space-x-1.5 text-xs font-mono tracking-widest uppercase text-muted-foreground">
+    <div class="mb-5">
+      <nav aria-label="Breadcrumb" class="flex">
+        <ol class="inline-flex items-center space-x-1 sm:space-x-1.5 text-xs font-mono tracking-wider uppercase text-muted-foreground flex-wrap">
           <li>
             {{#if isPrivate}}
               <a class="hover:text-[#1b4332] transition-colors" href="/dashboard">Dashboard</a>
@@ -57,21 +60,17 @@
               <a class="hover:text-[#1b4332] transition-colors" href="/">Inicio</a>
             {{/if}}
           </li>
-          <li>
-            <div class="flex items-center">
-              <span class="material-symbols-outlined text-xs mx-1">chevron_right</span>
-              {{#if isPrivate}}
-                <a class="hover:text-[#1b4332] transition-colors" href="/private/plagues">Plagas</a>
-              {{else}}
-                <a class="hover:text-[#1b4332] transition-colors" href="/plagues">Catálogo de Plagas</a>
-              {{/if}}
-            </div>
+          <li class="flex items-center">
+            <span class="material-symbols-outlined text-xs mx-1">chevron_right</span>
+            {{#if isPrivate}}
+              <a class="hover:text-[#1b4332] transition-colors" href="/private/plagues">Plagas</a>
+            {{else}}
+              <a class="hover:text-[#1b4332] transition-colors" href="/plagues">Catálogo</a>
+            {{/if}}
           </li>
-          <li aria-current="page">
-            <div class="flex items-center">
-              <span class="material-symbols-outlined text-xs mx-1">chevron_right</span>
-              <span class="text-[#1b4332] font-bold">{{plague.name}}</span>
-            </div>
+          <li aria-current="page" class="flex items-center min-w-0">
+            <span class="material-symbols-outlined text-xs mx-1">chevron_right</span>
+            <span class="text-[#1b4332] font-bold truncate max-w-[180px] sm:max-w-xs">{{plague.name}}</span>
           </li>
         </ol>
       </nav>
@@ -316,79 +315,97 @@
     {{/if}}
 
     {{! ── HERO SECTION (2 COLUMNAS) ────────────────────────────────────────── }}
-    <div id="resumen" class="scroll-mt-32 mb-6 bg-white border border-border rounded-xl p-6 md:p-8 shadow-2xs">
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+    <div id="resumen" class="scroll-mt-24 md:scroll-mt-28 mb-8 bg-card border border-border rounded-2xl p-5 sm:p-6 md:p-8 shadow-2xs">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-stretch">
         
-        {{! Columna Izquierda: Vista Previa Fotográfica }}
-        <div class="col-span-1 lg:col-span-6">
-          <div class="relative overflow-hidden rounded-lg bg-muted border border-border h-[320px] md:h-[350px] group" id="hero-carousel">
-            <div class="flex h-full transition-transform duration-700 ease-in-out" id="hero-slides">
+        {{! Columna Izquierda: Vista Previa Fotográfica con Swiper y Lightbox }}
+        <div class="col-span-1 lg:col-span-6 flex flex-col justify-center">
+          <div class="relative overflow-hidden rounded-xl bg-muted border border-border h-[280px] sm:h-[340px] md:h-[380px] group select-none" id="hero-carousel">
+            <div class="flex h-full transition-transform duration-500 ease-out" id="hero-slides">
               {{#each carouselImages}}
-                <div class="flex-none min-w-full w-full h-full relative">
-                  <img class="w-full h-full object-cover" src="{{this.url}}" alt="{{this.caption}}" />
-                  <div aria-hidden="true" class="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none"></div>
+                <div class="flex-none min-w-full w-full h-full relative cursor-zoom-in" data-lightbox-src="{{this.url}}" data-lightbox-caption="{{this.caption}}">
+                  <img class="w-full h-full object-cover" src="{{this.url}}" alt="{{this.caption}}" loading="lazy" decoding="async" />
+                  <div aria-hidden="true" class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none"></div>
                   <span class="absolute left-3 bottom-3 text-[10px] text-white/90 font-mono tracking-wider drop-shadow-xs select-none">
-                    {{#if this.source}}{{this.source}}{{else}}FUENTE NO REGISTRADA{{/if}}
+                    {{#if this.source}}{{this.source}}{{else}}ARCHIVO INIFAP{{/if}}
                   </span>
+                  <div class="absolute right-3 top-3 px-2 py-1 bg-black/60 backdrop-blur-md rounded-md text-white text-[10px] font-mono border border-white/20 flex items-center gap-1 pointer-events-none">
+                    <span class="material-symbols-outlined text-xs">zoom_in</span>
+                    <span class="hidden sm:inline">Ampliar</span>
+                  </div>
                 </div>
               {{else}}
-                <div class="flex-none min-w-full w-full h-full bg-muted flex items-center justify-center">
-                  <span class="material-symbols-outlined text-6xl text-muted-foreground/40">pest_control</span>
+                <div class="flex-none min-w-full w-full h-full bg-muted flex flex-col items-center justify-center text-muted-foreground/50 gap-2">
+                  <span class="material-symbols-outlined text-6xl">pest_control</span>
+                  <span class="text-xs font-mono">Sin imagen registrada</span>
                 </div>
               {{/each}}
             </div>
 
-            <button id="hero-prev" class="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/40 hover:bg-black/70 text-white flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 backdrop-blur cursor-pointer" aria-label="Anterior">
+            <!-- Controles del Carrusel -->
+            <button id="hero-prev" type="button" class="absolute left-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 hover:bg-black/80 text-white flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 backdrop-blur-md cursor-pointer active:scale-95 shadow-md" aria-label="Imagen anterior">
               <span class="material-symbols-outlined text-base">chevron_left</span>
             </button>
-            <button id="hero-next" class="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/40 hover:bg-black/70 text-white flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 backdrop-blur cursor-pointer" aria-label="Siguiente">
+            <button id="hero-next" type="button" class="absolute right-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 hover:bg-black/80 text-white flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 backdrop-blur-md cursor-pointer active:scale-95 shadow-md" aria-label="Siguiente imagen">
               <span class="material-symbols-outlined text-base">chevron_right</span>
             </button>
+
+            <!-- Indicador Numérico y Dots -->
+            <span id="hero-counter" class="absolute bottom-3 left-3 px-2 py-0.5 rounded-md bg-black/60 backdrop-blur text-white text-[10px] font-mono border border-white/10">1 / {{carouselImages.length}}</span>
             <div id="hero-dots" class="absolute bottom-3 right-3 flex gap-1.5 z-10"></div>
           </div>
         </div>
 
-        {{! Columna Derecha: Título, Badges, Tarjeta de Riesgo Rojo & Botón Verde }}
+        {{! Columna Derecha: Título, Badges, Tarjeta de Riesgo & Acciones }}
         <div class="col-span-1 lg:col-span-6 flex flex-col justify-between">
           <div>
             <!-- Badges superiores -->
             <div class="flex items-center gap-2 mb-3 flex-wrap">
-              <span class="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-[11px] font-bold uppercase tracking-wider">
-                🌿 {{#if plague.category}}{{plague.category}}{{else}}SIN CATEGORÍA{{/if}} — VIGILANCIA
+              <span class="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-[11px] font-bold uppercase tracking-wider inline-flex items-center gap-1">
+                <span class="material-symbols-outlined text-xs">eco</span>
+                {{#if plague.category}}{{plague.category}}{{else}}SIN CATEGORÍA{{/if}} · VIGILANCIA
               </span>
               {{#if plague.isVerified}}
-                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-[11px] font-bold uppercase tracking-wider">
-                  <span class="material-symbols-outlined text-xs">verified</span> Verificado
+                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-[11px] font-bold uppercase tracking-wider">
+                  <span class="material-symbols-outlined text-xs text-emerald-700">verified</span>
+                  Verificado INIFAP
                 </span>
               {{else}}{{#if isPrivate}}
-                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200 text-[11px] font-bold uppercase tracking-wider">
-                  <span class="material-symbols-outlined text-xs">pending</span> Pendiente de verificación
+                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-200 text-[11px] font-bold uppercase tracking-wider">
+                  <span class="material-symbols-outlined text-xs">pending</span>
+                  Pendiente de verificación
                 </span>
               {{/if}}{{/if}}
             </div>
 
-            <!-- Nombre de la Plaga -->
-            <h1 class="text-3xl md:text-4xl font-headline font-extrabold text-foreground tracking-tight mb-1">
+            <!-- Nombre de la Plaga y Nombre Científico con Copiado Rápido -->
+            <h1 class="text-2xl sm:text-3xl md:text-4xl font-headline font-black text-foreground tracking-tight mb-1.5">
               {{plague.name}}
             </h1>
-            <p class="font-mono text-sm italic font-semibold text-muted-foreground mb-4">
-              {{plague.scientificName}}
-            </p>
+            <div class="flex items-center gap-2 mb-4 flex-wrap">
+              <span id="scientific-name" class="font-mono text-sm sm:text-base italic font-semibold text-muted-foreground">{{#if plague.scientificName}}{{plague.scientificName}}{{else}}Nombre científico no registrado{{/if}}</span>
+              {{#if plague.scientificName}}
+                <button id="copy-scientific-btn" type="button" class="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-mono text-muted-foreground hover:text-foreground bg-muted hover:bg-secondary rounded-md border border-border transition-colors cursor-pointer active:scale-95" title="Copiar nombre científico" aria-label="Copiar nombre científico">
+                  <span class="material-symbols-outlined text-xs">content_copy</span>
+                  <span id="copy-feedback" class="text-[10px]">Copiar</span>
+                </button>
+              {{/if}}
+            </div>
 
             <!-- Descripción Corta -->
-            <p class="text-xs md:text-sm text-muted-foreground leading-relaxed mb-6">
-              {{#if plague.description}}{{plague.description}}{{else}}Sin descripción registrada.{{/if}}
+            <p class="text-xs sm:text-sm text-muted-foreground leading-relaxed mb-5">
+              {{#if plague.description}}{{plague.description}}{{else}}Sin descripción registrada en la base institucional.{{/if}}
             </p>
 
-            <!-- Tarjeta Dinámica de Alerta de Riesgo (Crítico = Rose, Moderado = Amber, Bajo = Emerald) -->
-            <div class="p-4 rounded-lg {{#if plague.riskTheme.alertBgClass}}{{plague.riskTheme.alertBgClass}}{{else if (eq plague.riskLabel 'Crítico')}}bg-rose-50 border border-rose-200 text-rose-950{{else if (eq plague.riskLabel 'Moderado')}}bg-amber-50 border border-amber-200 text-amber-950{{else}}bg-emerald-50 border border-emerald-200 text-emerald-950{{/if}} mb-6">
-              <div class="flex items-center gap-2.5 mb-1">
+            <!-- Tarjeta Dinámica de Alerta de Riesgo -->
+            <div class="p-4 rounded-xl {{#if plague.riskTheme.alertBgClass}}{{plague.riskTheme.alertBgClass}}{{else if (eq plague.riskLabel 'Crítico')}}bg-rose-50 border border-rose-200 text-rose-950{{else if (eq plague.riskLabel 'Moderado')}}bg-amber-50 border border-amber-200 text-amber-950{{else}}bg-emerald-50 border border-emerald-200 text-emerald-950{{/if}} mb-5 shadow-2xs">
+              <div class="flex items-center gap-2 mb-1">
                 <span class="material-symbols-outlined {{#if plague.riskTheme.alertIconClass}}{{plague.riskTheme.alertIconClass}}{{else if (eq plague.riskLabel 'Crítico')}}text-rose-600{{else if (eq plague.riskLabel 'Moderado')}}text-amber-600{{else}}text-emerald-600{{/if}} text-lg">
                   {{#if plague.riskTheme.alertIcon}}{{plague.riskTheme.alertIcon}}{{else if (eq plague.riskLabel 'Bajo')}}check_circle{{else}}warning{{/if}}
                 </span>
-                <h3 class="text-sm font-bold tracking-tight">Riesgo {{plague.riskLabel}}</h3>
+                <h3 class="text-xs sm:text-sm font-bold tracking-tight">Nivel de Riesgo: {{plague.riskLabel}}</h3>
               </div>
-              <p class="text-xs opacity-90 leading-normal pl-7">
+              <p class="text-xs opacity-90 leading-relaxed pl-6">
                 {{#if plague.riskTheme.alertText}}{{plague.riskTheme.alertText}}{{else if (eq plague.riskLabel 'Crítico')}}Requiere monitoreo y acción inmediata en zonas hortícolas y cerealeras.{{else if (eq plague.riskLabel 'Moderado')}}Requiere monitoreo continuo y control fitosanitario preventivo.{{else}}Bajo impacto fitosanitario. Mantener vigilancia preventiva estándar.{{/if}}
               </p>
               <!-- Barra de progreso dinámica -->
@@ -398,61 +415,98 @@
             </div>
           </div>
 
-          <!-- Botón Verde Sólido CTA Principal -->
-          <a href="#manejo-integrado" class="w-full py-3 bg-[#1b4332] hover:bg-[#1b4332]/90 text-white font-bold text-xs rounded-md transition-colors flex items-center justify-center gap-2 shadow-2xs cursor-pointer">
-            <span class="material-symbols-outlined text-base">verified_user</span> Ver ficha sanitaria completa
-          </a>
+          <!-- Botonera de Acciones Rápidas -->
+          <div class="flex flex-col sm:flex-row items-center gap-2.5 pt-2">
+            <a href="#manejo-integrado" class="w-full sm:flex-1 py-3 bg-[#1b4332] hover:bg-[#133426] text-white font-bold text-xs rounded-lg transition-colors flex items-center justify-center gap-2 shadow-2xs cursor-pointer active:scale-95">
+              <span class="material-symbols-outlined text-base">verified_user</span> Ver manejo integrado
+            </a>
+            <button id="share-plague-btn" type="button" class="w-full sm:w-auto px-4 py-3 bg-secondary hover:bg-muted text-foreground border border-border font-bold text-xs rounded-lg transition-colors flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer active:scale-95" title="Compartir ficha técnica">
+              <span class="material-symbols-outlined text-base text-[#1b4332]">share</span>
+              <span>Compartir</span>
+            </button>
+            <button id="print-plague-btn" type="button" class="w-full sm:w-auto px-4 py-3 bg-secondary hover:bg-muted text-foreground border border-border font-bold text-xs rounded-lg transition-colors flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer active:scale-95" title="Imprimir ficha técnica">
+              <span class="material-symbols-outlined text-base">print</span>
+              <span class="sm:hidden lg:inline">Imprimir</span>
+            </button>
+          </div>
         </div>
 
       </div>
     </div>
 
     {{! ── KPI SUMMARY BAR (4 TARJETAS) ────────────────────────────────────── }}
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-8 sm:mb-10">
       
-      <div class="bg-white p-5 rounded-xl border border-border shadow-2xs flex flex-col justify-center">
-        <span class="text-[10px] font-mono font-bold uppercase tracking-widest text-muted-foreground block mb-1">NIVEL DE RIESGO</span>
-        <span class="text-base font-bold {{#if plague.riskTheme.kpiTextClass}}{{plague.riskTheme.kpiTextClass}}{{else if (eq plague.riskLabel 'Crítico')}}text-rose-600{{else if (eq plague.riskLabel 'Moderado')}}text-amber-600{{else}}text-emerald-600{{/if}} capitalize">{{plague.riskLabel}}</span>
+      <div class="bg-card p-4 sm:p-5 rounded-xl border border-border shadow-2xs flex items-center gap-3.5 hover:border-border/80 transition-all">
+        <div class="w-10 h-10 rounded-lg {{#if (eq plague.riskLabel 'Crítico')}}bg-rose-50 text-rose-600 border border-rose-200{{else if (eq plague.riskLabel 'Moderado')}}bg-amber-50 text-amber-600 border border-amber-200{{else}}bg-emerald-50 text-emerald-700 border border-emerald-200{{/if}} flex items-center justify-center shrink-0">
+          <span class="material-symbols-outlined text-lg">warning</span>
+        </div>
+        <div class="min-w-0">
+          <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground block truncate">NIVEL DE RIESGO</span>
+          <span class="text-sm sm:text-base font-bold {{#if plague.riskTheme.kpiTextClass}}{{plague.riskTheme.kpiTextClass}}{{else if (eq plague.riskLabel 'Crítico')}}text-rose-600{{else if (eq plague.riskLabel 'Moderado')}}text-amber-600{{else}}text-emerald-600{{/if}} capitalize truncate block">{{plague.riskLabel}}</span>
+        </div>
       </div>
 
-      <div class="bg-white p-5 rounded-xl border border-border shadow-2xs flex flex-col justify-center">
-        <span class="text-[10px] font-mono font-bold uppercase tracking-widest text-muted-foreground block mb-1">REGIONES AFECTADAS</span>
-        <span class="text-base font-bold text-foreground">
-          {{#if incidenceRegions.length}}{{incidenceRegions.length}}{{else}}Sin regiones{{/if}}
-        </span>
+      <div class="bg-card p-4 sm:p-5 rounded-xl border border-border shadow-2xs flex items-center gap-3.5 hover:border-border/80 transition-all">
+        <div class="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center justify-center shrink-0">
+          <span class="material-symbols-outlined text-lg">public</span>
+        </div>
+        <div class="min-w-0">
+          <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground block truncate">REGIONES AFECTADAS</span>
+          <span class="text-sm sm:text-base font-bold text-foreground truncate block">
+            {{#if incidenceRegions.length}}{{incidenceRegions.length}}{{else}}Sin regiones{{/if}}
+          </span>
+        </div>
       </div>
 
-      <div class="bg-white p-5 rounded-xl border border-border shadow-2xs flex flex-col justify-center">
-        <span class="text-[10px] font-mono font-bold uppercase tracking-widest text-muted-foreground block mb-1">CULTIVOS HOSPEDEROS</span>
-        <span class="text-base font-bold text-foreground">{{#if cropSummary}}{{cropSummary}}{{else}}Sin cultivos{{/if}}</span>
+      <div class="bg-card p-4 sm:p-5 rounded-xl border border-border shadow-2xs flex items-center gap-3.5 hover:border-border/80 transition-all">
+        <div class="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center justify-center shrink-0">
+          <span class="material-symbols-outlined text-lg">agriculture</span>
+        </div>
+        <div class="min-w-0">
+          <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground block truncate">HOSPEDEROS</span>
+          <span class="text-sm sm:text-base font-bold text-foreground truncate block" title="{{#if cropSummary}}{{cropSummary}}{{else}}Sin cultivos{{/if}}">
+            {{#if cropSummary}}{{cropSummary}}{{else}}Sin cultivos{{/if}}
+          </span>
+        </div>
       </div>
 
-      <div class="bg-white p-5 rounded-xl border border-border shadow-2xs flex flex-col justify-center">
-        <span class="text-[10px] font-mono font-bold uppercase tracking-widest text-muted-foreground block mb-1">ÚLTIMO REGISTRO</span>
-        <span class="text-base font-mono font-bold text-foreground">{{#if plague.updatedAt}}{{plague.updatedAt}}{{else}}Sin fecha{{/if}}</span>
+      <div class="bg-card p-4 sm:p-5 rounded-xl border border-border shadow-2xs flex items-center gap-3.5 hover:border-border/80 transition-all">
+        <div class="w-10 h-10 rounded-lg bg-secondary text-muted-foreground border border-border flex items-center justify-center shrink-0">
+          <span class="material-symbols-outlined text-lg">event_available</span>
+        </div>
+        <div class="min-w-0">
+          <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground block truncate">ÚLTIMO REGISTRO</span>
+          <span class="text-xs sm:text-sm font-mono font-bold text-foreground truncate block">{{#if plague.updatedAt}}{{plague.updatedAt}}{{else}}Sin fecha{{/if}}</span>
+        </div>
       </div>
 
     </div>
 
-    {{! ── SECCIÓN 1: CICLO BIOLÓGICO (HIGH-FIDELITY WIREFRAME V0.1) ────────────── }}
-    <section id="ciclo-biologico" class="scroll-mt-32 mb-10">
-      <div class="flex items-center gap-2 mb-4">
-        <span class="material-symbols-outlined text-[#1b4332] text-xl">sync</span>
-        <h2 class="text-lg font-headline font-bold text-foreground tracking-tight">Ciclo biológico</h2>
+    {{! ── SECCIÓN 1: CICLO BIOLÓGICO ─────────────────────────────────────── }}
+    <section id="ciclo-biologico" class="scroll-mt-24 md:scroll-mt-28 mb-10">
+      <div class="flex items-center gap-2.5 mb-4">
+        <div class="w-8 h-8 rounded-lg bg-emerald-50 text-[#1b4332] flex items-center justify-center border border-emerald-200">
+          <span class="material-symbols-outlined text-lg">sync</span>
+        </div>
+        <div>
+          <h2 class="text-base sm:text-lg font-headline font-bold text-foreground tracking-tight">Ciclo Biológico y Cronología Fitosanitaria</h2>
+          <p class="text-xs text-muted-foreground">Etapas de desarrollo y ventanas críticas de intervención técnica.</p>
+        </div>
       </div>
 
       <!-- Grilla de Tarjetas de Etapas (01, 02, 03, 04) -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-2">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {{#each plague.biologicalCycle}}
-          <div class="bg-white p-5 rounded-xl border {{#if this.isControlWindow}}border-2 border-rose-300 shadow-xs{{else}}border-border shadow-2xs{{/if}} flex flex-col justify-between relative transition-all">
+          <div class="bg-card p-5 rounded-xl border {{#if this.isControlWindow}}border-2 border-rose-300 ring-2 ring-rose-100 shadow-xs{{else}}border-border shadow-2xs{{/if}} flex flex-col justify-between relative transition-all hover:border-emerald-600/30">
             <div>
               <div class="flex items-center justify-between mb-3">
-                <div class="w-8 h-8 rounded-lg {{#if this.isControlWindow}}bg-rose-50 text-rose-600 border border-rose-100{{else}}bg-emerald-50 text-emerald-800 border border-emerald-100{{/if}} flex items-center justify-center">
+                <div class="w-9 h-9 rounded-lg {{#if this.isControlWindow}}bg-rose-50 text-rose-600 border border-rose-200{{else}}bg-emerald-50 text-emerald-800 border border-emerald-200{{/if}} flex items-center justify-center shadow-2xs">
                   <span class="material-symbols-outlined text-base">
-                    {{#if this.icon}}{{this.icon}}{{else if (eq @index 0)}}egg{{else if (eq @index 1)}}bug_report{{else if (eq @index 2)}}eco{{else}}air{{/if}}
+                    {{#if this.icon}}{{this.icon}}{{else if (eq @index 0)}}egg{{else if (eq @index 1)}}pest_control{{else if (eq @index 2)}}eco{{else}}air{{/if}}
                   </span>
                 </div>
-                <span class="font-mono text-xs {{#if this.isControlWindow}}text-rose-400 font-bold{{else}}text-muted-foreground/60 font-semibold{{/if}}">
+                <span class="font-mono text-xs {{#if this.isControlWindow}}text-rose-500 font-black{{else}}text-muted-foreground/60 font-bold{{/if}}">
                   {{#if this.step}}{{this.step}}{{else}}0{{add @index 1}}{{/if}}
                 </span>
               </div>
@@ -468,132 +522,175 @@
               </div>
 
               {{#if this.isControlWindow}}
-                <div class="bg-rose-50 text-rose-700 border border-rose-200/60 rounded-full px-2.5 py-1 text-[11px] font-bold flex items-center justify-center gap-1.5 shadow-2xs">
-                  <span class="material-symbols-outlined text-xs">target</span>
+                <div class="bg-rose-50 text-rose-700 border border-rose-200 rounded-full px-2.5 py-1 text-[11px] font-bold flex items-center justify-center gap-1.5 shadow-2xs">
+                  <span class="material-symbols-outlined text-xs animate-pulse text-rose-600">target</span>
                   <span>Ventana óptima de control</span>
                 </div>
               {{/if}}
             </div>
           </div>
         {{else}}
-          <div class="sm:col-span-2 lg:col-span-4 bg-white p-6 rounded-xl border border-dashed border-border text-center text-xs text-muted-foreground">
-            Sin información registrada sobre el ciclo biológico.
+          <div class="sm:col-span-2 lg:col-span-4 bg-card p-8 rounded-xl border border-dashed border-border text-center text-xs text-muted-foreground">
+            <span class="material-symbols-outlined text-3xl text-muted-foreground/40 mb-2">sync_problem</span>
+            <p class="font-medium text-foreground">Sin información registrada sobre el ciclo biológico</p>
+            <p class="text-[11px] text-muted-foreground mt-0.5">Los datos cronológicos serán incorporados tras su validación agronómica.</p>
           </div>
         {{/each}}
       </div>
     </section>
 
     {{! ── SECCIÓN 2: DISTRIBUCIÓN E INCIDENCIA ───────────────────────────── }}
-    <section id="distribucion" class="scroll-mt-32 mb-10">
-      <div class="flex items-center gap-2 mb-4">
-        <span class="material-symbols-outlined text-[#1b4332] text-xl">location_on</span>
-        <h2 class="text-lg font-headline font-bold text-foreground tracking-tight">Distribución e incidencia</h2>
+    <section id="distribucion" class="scroll-mt-24 md:scroll-mt-28 mb-10">
+      <div class="flex items-center gap-2.5 mb-4">
+        <div class="w-8 h-8 rounded-lg bg-emerald-50 text-[#1b4332] flex items-center justify-center border border-emerald-200">
+          <span class="material-symbols-outlined text-lg">location_on</span>
+        </div>
+        <div>
+          <h2 class="text-base sm:text-lg font-headline font-bold text-foreground tracking-tight">Distribución Geográfica e Incidencia</h2>
+          <p class="text-xs text-muted-foreground">Zonas agroecológicas con presencia documentada y cultivos susceptibles.</p>
+        </div>
       </div>
 
       {{#if incidenceRegions.length}}
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
           {{#each incidenceRegions}}
-            <article class="bg-white p-5 rounded-xl border border-border shadow-2xs">
+            <article class="bg-card p-5 rounded-xl border border-border shadow-2xs hover:border-emerald-600/30 transition-all">
               <div class="flex items-start justify-between gap-3">
                 <div>
-                  <span class="text-[10px] font-mono font-bold uppercase tracking-widest text-muted-foreground">Región registrada</span>
+                  <span class="text-[10px] font-mono font-bold uppercase tracking-widest text-muted-foreground block">Región fitosanitaria</span>
                   <h3 class="mt-1 text-sm font-bold text-foreground">{{this.name}}</h3>
                 </div>
-                <span class="px-2 py-1 rounded-full border text-[10px] font-bold {{this.riskBadgeClass}}">
+                <span class="px-2.5 py-1 rounded-full border text-[10px] font-bold {{this.riskBadgeClass}} shadow-2xs">
                   {{this.riskLabel}}
                 </span>
               </div>
               {{#if this.hasCoords}}
-                <p class="mt-4 text-xs font-mono text-muted-foreground">{{this.lat}}, {{this.lng}}</p>
+                <div class="mt-4 flex items-center gap-1.5 text-xs font-mono text-muted-foreground bg-muted/50 px-2.5 py-1 rounded-md w-fit border border-border">
+                  <span class="material-symbols-outlined text-xs text-[#1b4332]">pin_drop</span>
+                  <span>{{this.lat}}, {{this.lng}}</span>
+                </div>
               {{else}}
-                <p class="mt-4 text-xs text-muted-foreground">Sin coordenadas registradas.</p>
+                <p class="mt-4 text-[11px] text-muted-foreground italic">Coordenadas en proceso de georreferenciación.</p>
               {{/if}}
             </article>
           {{/each}}
         </div>
       {{else}}
-        <div class="bg-white p-6 rounded-xl border border-dashed border-border text-center text-xs text-muted-foreground">
-          Esta plaga todavía no tiene regiones relacionadas.
+        <div class="bg-card p-8 rounded-xl border border-dashed border-border text-center text-xs text-muted-foreground mb-6">
+          <span class="material-symbols-outlined text-3xl text-muted-foreground/40 mb-2">map</span>
+          <p class="font-medium text-foreground">Esta plaga todavía no tiene regiones asociadas</p>
+          <p class="text-[11px] text-muted-foreground mt-0.5">El mapeo satelital y regional se actualiza según la vigilancia en campo.</p>
+        </div>
+      {{/if}}
+
+      <!-- Sub-bloque Cultivos Hospederos Afectados -->
+      {{#if relatedCrops.length}}
+        <div class="bg-card p-5 rounded-xl border border-border shadow-2xs">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="material-symbols-outlined text-emerald-800 text-sm">psychiatry</span>
+            <h3 class="text-xs font-bold text-foreground uppercase tracking-wider font-mono">Cultivos hospederos principales</h3>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            {{#each relatedCrops}}
+              <a href="/crops/{{this.id}}" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-muted/60 hover:bg-emerald-50 hover:text-emerald-900 border border-border hover:border-emerald-300 rounded-lg text-xs font-medium transition-colors">
+                <span class="font-bold text-foreground">{{this.name}}</span>
+                {{#if this.scientificName}}<span class="text-[11px] font-mono italic text-muted-foreground">({{this.scientificName}})</span>{{/if}}
+                <span class="material-symbols-outlined text-xs">arrow_forward</span>
+              </a>
+            {{/each}}
+          </div>
         </div>
       {{/if}}
     </section>
 
     {{! ── SECCIÓN 3: ESTRATEGIAS DE MANEJO INTEGRADO ──────────────────────── }}
-    <section id="manejo-integrado" class="scroll-mt-32 mb-10">
-      <div class="flex items-center gap-2 mb-4">
-        <span class="material-symbols-outlined text-[#1b4332] text-xl">shield</span>
-        <h2 class="text-lg font-headline font-bold text-foreground tracking-tight">Estrategias de manejo integrado</h2>
+    <section id="manejo-integrado" class="scroll-mt-24 md:scroll-mt-28 mb-10">
+      <div class="flex items-center gap-2.5 mb-4">
+        <div class="w-8 h-8 rounded-lg bg-emerald-50 text-[#1b4332] flex items-center justify-center border border-emerald-200">
+          <span class="material-symbols-outlined text-lg">shield</span>
+        </div>
+        <div>
+          <h2 class="text-base sm:text-lg font-headline font-bold text-foreground tracking-tight">Estrategias de Manejo Integrado (MIP)</h2>
+          <p class="text-xs text-muted-foreground">Diagnóstico de síntomas, control biológico y medidas químicas oficiales.</p>
+        </div>
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
         {{! Columna Izquierda: 3 Bloques Fitosanitarios }}
-        <div class="col-span-1 lg:col-span-7 flex flex-col gap-3">
+        <div class="col-span-1 lg:col-span-7 flex flex-col gap-3.5">
           
           <!-- Bloque 1: Síntomas registrados -->
-          <div class="bg-white p-5 rounded-xl border border-border shadow-2xs flex items-start gap-4">
-            <div class="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-800 flex items-center justify-center shrink-0 border border-emerald-100">
-              <span class="material-symbols-outlined text-base">troubleshoot</span>
+          <div class="bg-card p-5 rounded-xl border border-border shadow-2xs flex items-start gap-4 hover:border-emerald-600/30 transition-all">
+            <div class="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-800 flex items-center justify-center shrink-0 border border-emerald-200 shadow-2xs">
+              <span class="material-symbols-outlined text-lg">troubleshoot</span>
             </div>
             <div>
-              <h3 class="font-bold text-xs text-foreground mb-1">Síntomas registrados</h3>
-              <p class="text-xs text-muted-foreground leading-relaxed">
-                {{#if plague.symptoms}}{{plague.symptoms}}{{else}}Sin síntomas registrados.{{/if}}
+              <h3 class="font-bold text-xs sm:text-sm text-foreground mb-1">Síntomas y Daños Visibles</h3>
+              <p class="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                {{#if plague.symptoms}}{{plague.symptoms}}{{else}}Sin sintomatología registrada en el expediente.{{/if}}
               </p>
             </div>
           </div>
 
           <!-- Bloque 2: Control Biológico -->
-          <div class="bg-white p-5 rounded-xl border border-border shadow-2xs flex items-start gap-4">
-            <div class="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-800 flex items-center justify-center shrink-0 border border-emerald-100">
-              <span class="material-symbols-outlined text-base">biotech</span>
+          <div class="bg-card p-5 rounded-xl border border-border shadow-2xs flex items-start gap-4 hover:border-emerald-600/30 transition-all">
+            <div class="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-800 flex items-center justify-center shrink-0 border border-emerald-200 shadow-2xs">
+              <span class="material-symbols-outlined text-lg">biotech</span>
             </div>
             <div>
-              <h3 class="font-bold text-xs text-foreground mb-1">Control biológico</h3>
-              <p class="text-xs text-muted-foreground leading-relaxed">
-                {{#if plague.biologicalControl}}{{plague.biologicalControl}}{{else}}Sin información de control biológico.{{/if}}
+              <h3 class="font-bold text-xs sm:text-sm text-foreground mb-1">Control Biológico y Enemigos Naturales</h3>
+              <p class="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                {{#if plague.biologicalControl}}{{plague.biologicalControl}}{{else}}Sin agentes biológicos registrados hasta el momento.{{/if}}
               </p>
             </div>
           </div>
 
-          <!-- Bloque 3: Control Químico -->
-          <div class="bg-white p-5 rounded-xl border border-border shadow-2xs flex items-start gap-4">
-            <div class="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-800 flex items-center justify-center shrink-0 border border-emerald-100">
-              <span class="material-symbols-outlined text-base">opacity</span>
+          <!-- Bloque 3: Control Químico / Cultural -->
+          <div class="bg-card p-5 rounded-xl border border-border shadow-2xs flex items-start gap-4 hover:border-emerald-600/30 transition-all">
+            <div class="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-800 flex items-center justify-center shrink-0 border border-emerald-200 shadow-2xs">
+              <span class="material-symbols-outlined text-lg">opacity</span>
             </div>
             <div>
-              <h3 class="font-bold text-xs text-foreground mb-1">Control químico</h3>
-              <p class="text-xs text-muted-foreground leading-relaxed">
-                {{#if plague.controlMethods}}{{plague.controlMethods}}{{else}}Sin métodos de control registrados.{{/if}}
+              <h3 class="font-bold text-xs sm:text-sm text-foreground mb-1">Control Químico y Manejo Cultural</h3>
+              <p class="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                {{#if plague.controlMethods}}{{plague.controlMethods}}{{else}}Sin métodos de control químico o cultural registrados.{{/if}}
               </p>
             </div>
           </div>
 
         </div>
 
-        {{! Columna Derecha: trazabilidad del expediente }}
-        <div class="col-span-1 lg:col-span-5 bg-white p-6 rounded-xl border border-border shadow-2xs flex flex-col justify-between">
+        {{! Columna Derecha: Validación Técnica Institucional }}
+        <div class="col-span-1 lg:col-span-5 bg-card p-6 rounded-xl border border-border shadow-2xs flex flex-col justify-between">
           <div>
-            <h3 class="text-sm font-bold text-foreground mb-4">Trazabilidad del expediente</h3>
+            <div class="flex items-center gap-2 mb-4">
+              <span class="material-symbols-outlined text-[#1b4332] text-lg">verified</span>
+              <h3 class="text-sm font-bold text-foreground">Validación Técnica Institucional</h3>
+            </div>
 
-            <div class="p-3.5 rounded-lg {{#if plague.riskTheme.bannerClass}}{{plague.riskTheme.bannerClass}}{{else if (eq plague.riskLabel 'Crítico')}}bg-rose-50 border border-rose-200 text-rose-950{{else if (eq plague.riskLabel 'Moderado')}}bg-amber-50 border border-amber-200 text-amber-950{{else}}bg-emerald-50 border border-emerald-200 text-emerald-950{{/if}} mb-6">
-              <span class="text-[10px] font-mono font-bold {{plague.riskTheme.bannerTagClass}} uppercase block mb-1">Regiones relacionadas</span>
-              <p class="text-xs font-semibold">{{#if regionSummary}}{{regionSummary}}{{else}}Sin regiones relacionadas{{/if}}</p>
+            <div class="p-4 rounded-xl {{#if plague.riskTheme.bannerClass}}{{plague.riskTheme.bannerClass}}{{else if (eq plague.riskLabel 'Crítico')}}bg-rose-50 border border-rose-200 text-rose-950{{else if (eq plague.riskLabel 'Moderado')}}bg-amber-50 border border-amber-200 text-amber-950{{else}}bg-emerald-50 border border-emerald-200 text-emerald-950{{/if}} mb-5 shadow-2xs">
+              <span class="text-[10px] font-mono font-bold {{plague.riskTheme.bannerTagClass}} uppercase block mb-1">Área Geográfica de Cobertura</span>
+              <p class="text-xs font-semibold leading-relaxed">{{#if regionSummary}}{{regionSummary}}{{else}}Sin regiones asociadas al expediente{{/if}}</p>
             </div>
           </div>
 
           <div class="space-y-3 text-xs">
             <div class="flex justify-between gap-4 border-t border-border pt-3">
-              <span class="text-muted-foreground">Verificación</span>
-              <span class="font-semibold text-right">{{#if plague.isVerified}}{{plague.verifiedBy}}{{else}}Pendiente{{/if}}</span>
+              <span class="text-muted-foreground">Especialista validador</span>
+              <span class="font-semibold text-right text-foreground">{{#if plague.isVerified}}{{plague.verifiedBy}}{{else}}Pendiente de asignación{{/if}}</span>
             </div>
             <div class="flex justify-between gap-4 border-t border-border pt-3">
-              <span class="text-muted-foreground">Fecha de verificación</span>
-              <span class="font-semibold text-right">{{#if plague.verifiedAt}}{{plague.verifiedAt}}{{else}}Sin fecha{{/if}}</span>
+              <span class="text-muted-foreground">Fecha de validación</span>
+              <span class="font-semibold text-right text-foreground">{{#if plague.verifiedAt}}{{plague.verifiedAt}}{{else}}Sin fecha{{/if}}</span>
             </div>
             <div class="flex justify-between gap-4 border-t border-border pt-3">
               <span class="text-muted-foreground">Última actualización</span>
-              <span class="font-semibold text-right">{{#if plague.updatedAt}}{{plague.updatedAt}}{{else}}Sin fecha{{/if}}</span>
+              <span class="font-semibold text-right text-foreground">{{#if plague.updatedAt}}{{plague.updatedAt}}{{else}}Sin fecha{{/if}}</span>
+            </div>
+            <div class="flex justify-between gap-4 border-t border-border pt-3">
+              <span class="text-muted-foreground">Sello institucional</span>
+              <span class="font-semibold text-right text-emerald-800">INIFAP · Campo Experimental</span>
             </div>
           </div>
         </div>
@@ -602,43 +699,58 @@
     </section>
 
     {{! ── SECCIÓN 4: REFERENCIA VISUAL DE DAÑOS ─────────────────────────── }}
-    <section id="danos" class="scroll-mt-32 mb-10">
-      <div class="flex items-center gap-2 mb-4">
-        <span class="material-symbols-outlined text-[#1b4332] text-xl">photo_library</span>
-        <h2 class="text-lg font-headline font-bold text-foreground tracking-tight">Referencia visual de daños</h2>
+    <section id="danos" class="scroll-mt-24 md:scroll-mt-28 mb-10">
+      <div class="flex items-center gap-2.5 mb-4">
+        <div class="w-8 h-8 rounded-lg bg-emerald-50 text-[#1b4332] flex items-center justify-center border border-emerald-200">
+          <span class="material-symbols-outlined text-lg">photo_library</span>
+        </div>
+        <div>
+          <h2 class="text-base sm:text-lg font-headline font-bold text-foreground tracking-tight">Referencia Visual de Daños en Campo</h2>
+          <p class="text-xs text-muted-foreground">Evidencia fotográfica documentada. Toca cualquier imagen para ampliar.</p>
+        </div>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
         {{#each carouselImages}}
-          <div class="bg-white p-3 rounded-xl border border-border shadow-2xs">
-            <div class="aspect-[4/3] rounded-lg overflow-hidden bg-muted mb-2 border border-border">
-              <img src="{{this.url}}" alt="{{this.caption}}" class="w-full h-full object-cover" />
+          <div class="bg-card p-3 rounded-xl border border-border shadow-2xs group cursor-zoom-in hover:border-emerald-600/30 transition-all" data-lightbox-src="{{this.url}}" data-lightbox-caption="{{this.caption}}">
+            <div class="aspect-4/3 rounded-lg overflow-hidden bg-muted mb-2 border border-border relative">
+              <img src="{{this.url}}" alt="{{this.caption}}" loading="lazy" decoding="async" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+              <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
+                <span class="material-symbols-outlined text-2xl">zoom_in</span>
+              </div>
             </div>
-            <span class="text-[10px] font-mono font-bold text-muted-foreground uppercase block">{{this.caption}}</span>
+            <span class="text-[10px] font-mono font-bold text-muted-foreground uppercase block truncate">{{this.caption}}</span>
           </div>
         {{else}}
-          <div class="sm:col-span-2 md:col-span-4 bg-white p-6 rounded-xl border border-dashed border-border text-center text-xs text-muted-foreground">
-            Sin imágenes de referencia registradas.
+          <div class="sm:col-span-2 md:col-span-4 bg-card p-8 rounded-xl border border-dashed border-border text-center text-xs text-muted-foreground">
+            <span class="material-symbols-outlined text-3xl text-muted-foreground/40 mb-2">hide_image</span>
+            <p class="font-medium text-foreground">Sin imágenes de referencia registradas</p>
+            <p class="text-[11px] text-muted-foreground mt-0.5">El archivo fotográfico se actualizará conforme se reciban muestras de campo.</p>
           </div>
         {{/each}}
       </div>
     </section>
 
     {{! ── SECCIÓN 5: PRODUCTOS RECOMENDADOS INIFAP ──────────────────────── }}
-    <section id="productos" class="scroll-mt-32 mb-10">
-      <div class="flex items-center gap-2 mb-4">
-        <span class="material-symbols-outlined text-[#1b4332] text-xl">science</span>
-        <h2 class="text-lg font-headline font-bold text-foreground tracking-tight">Productos recomendados INIFAP</h2>
+    <section id="productos" class="scroll-mt-24 md:scroll-mt-28 mb-10">
+      <div class="flex items-center gap-2.5 mb-4">
+        <div class="w-8 h-8 rounded-lg bg-emerald-50 text-[#1b4332] flex items-center justify-center border border-emerald-200">
+          <span class="material-symbols-outlined text-lg">science</span>
+        </div>
+        <div>
+          <h2 class="text-base sm:text-lg font-headline font-bold text-foreground tracking-tight">Productos Fitosanitarios Recomendados INIFAP</h2>
+          <p class="text-xs text-muted-foreground">Insumos y tratamientos agrícolas validados con efectividad documentada.</p>
+        </div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         {{#if relatedProducts.length}}
           {{#each relatedProducts}}
-            <div class="bg-white p-5 rounded-xl border border-border shadow-2xs flex flex-col justify-between">
+            <div class="bg-card p-5 rounded-xl border border-border shadow-2xs flex flex-col justify-between hover:border-emerald-600/30 transition-all">
               <div>
-                <div class="h-36 rounded-lg bg-muted/30 border border-border flex items-center justify-center mb-4 overflow-hidden p-2">
+                <div class="h-36 rounded-lg bg-muted/40 border border-border flex items-center justify-center mb-4 overflow-hidden p-2">
                   {{#if this.image_url}}
-                    <img src="{{this.image_url}}" alt="{{this.name}}" class="w-full h-full object-contain transition-transform hover:scale-105" />
+                    <img src="{{this.image_url}}" alt="{{this.name}}" loading="lazy" decoding="async" class="w-full h-full object-contain transition-transform hover:scale-105" />
                   {{else}}
                     <span class="material-symbols-outlined text-4xl text-muted-foreground/40">science</span>
                   {{/if}}
@@ -646,31 +758,46 @@
 
                 <span class="text-[10px] font-mono font-bold text-emerald-800 uppercase flex items-center gap-1 mb-1">
                   <span class="material-symbols-outlined text-xs">{{#if this.isValidated}}verified{{else}}link{{/if}}</span>
-                  {{#if this.isValidated}}Validado{{else}}Relacionado{{/if}}
+                  {{#if this.isValidated}}Validado INIFAP{{else}}Relacionado{{/if}}
                 </span>
                 <h3 class="font-headline font-bold text-sm text-foreground mb-0.5">{{this.name}}</h3>
                 <p class="text-xs text-muted-foreground font-semibold mb-3">{{#if this.activeIngredient}}{{this.activeIngredient}}{{else}}Ingrediente activo no registrado{{/if}}</p>
               </div>
 
-              <a href="{{#if ../isPrivate}}/private/products/{{this.id}}{{else}}/products/{{this.id}}{{/if}}" class="w-full py-2 bg-white hover:bg-muted text-foreground font-bold text-xs rounded-md transition-colors border border-border text-center inline-block">
-                Ver producto
+              <a href="{{#if ../isPrivate}}/private/products/{{this.id}}{{else}}/products/{{this.id}}{{/if}}" class="w-full py-2.5 bg-card hover:bg-secondary text-foreground font-bold text-xs rounded-lg transition-colors border border-border text-center inline-flex items-center justify-center gap-1 shadow-2xs active:scale-95">
+                <span>Ver ficha de producto</span>
+                <span class="material-symbols-outlined text-xs">arrow_forward</span>
               </a>
             </div>
           {{/each}}
         {{else}}
-          <div class="md:col-span-3 bg-white p-6 rounded-xl border border-dashed border-border text-center text-xs text-muted-foreground">
-            Esta plaga todavía no tiene productos relacionados.
+          <div class="col-span-full bg-card p-8 rounded-xl border border-dashed border-border text-center text-xs text-muted-foreground">
+            <span class="material-symbols-outlined text-3xl text-muted-foreground/40 mb-2">science</span>
+            <p class="font-medium text-foreground">Esta plaga todavía no tiene productos relacionados</p>
+            <p class="text-[11px] text-muted-foreground mt-0.5">Consulta el catálogo general para revisar insumos autorizados.</p>
           </div>
         {{/if}}
       </div>
 
       <!-- Botón Verde Sólido al Centro -->
       <div class="text-center">
-        <a href="{{#if isPrivate}}/private/products{{else}}/products{{/if}}" class="inline-flex items-center justify-center px-6 py-3 bg-[#1b4332] hover:bg-[#1b4332]/90 text-white font-bold text-xs rounded-md transition-colors shadow-2xs">
-          Ver catálogo completo de productos
+        <a href="{{#if isPrivate}}/private/products{{else}}/products{{/if}}" class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-[#1b4332] hover:bg-[#133426] text-white font-bold text-xs rounded-lg transition-colors shadow-2xs active:scale-95">
+          <span>Consultar catálogo general de productos</span>
+          <span class="material-symbols-outlined text-xs">arrow_forward</span>
         </a>
       </div>
     </section>
 
   </main>
+
+  <!-- Modal Lightbox Accesible para Inspección de Imágenes -->
+  <div id="image-lightbox-modal" role="dialog" aria-modal="true" aria-label="Visualizador ampliado de imagen" class="fixed inset-0 z-50 hidden bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
+    <button id="lightbox-close-btn" type="button" class="absolute top-4 right-4 p-2 text-white/80 hover:text-white bg-white/10 hover:bg-white/20 rounded-full transition-colors cursor-pointer" aria-label="Cerrar vista ampliada">
+      <span class="material-symbols-outlined text-2xl">close</span>
+    </button>
+    <div class="max-w-4xl max-h-[85vh] flex flex-col items-center">
+      <img id="lightbox-img" src="" alt="Vista ampliada de plaga" class="max-h-[75vh] w-auto max-w-full rounded-lg object-contain shadow-2xl" />
+      <p id="lightbox-caption" class="mt-3 text-xs sm:text-sm font-mono text-white/90 text-center"></p>
+    </div>
+  </div>
 </div>
