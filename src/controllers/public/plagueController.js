@@ -260,7 +260,7 @@ export const renderPlagueDetail = async (req, res) => {
       activePage: 'plagues',
       isPrivate: false,
       ...detail,
-      extraScripts: '<script src="/js/shared/plague-detail.js"></script>',
+      extraScripts: '<script src="/js/shared/plague-detail.js?v=2.3"></script>',
     });
   } catch (error) {
     console.log('=== CATCH ERROR IN RENDER PLAGUE DETAIL ===');

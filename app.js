@@ -199,7 +199,7 @@ hbs.registerHelper('userInitial', function (user, options) {
 // Archivos estáticos y Middlewares base con política de caché
 app.use(
   express.static(path.join(__dirname, 'public'), {
-    maxAge: process.env.NODE_ENV === 'production' ? '1y' : '1h',
+    maxAge: process.env.NODE_ENV === 'production' ? '1y' : 0,
     etag: true,
   }),
 );

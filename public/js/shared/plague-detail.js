@@ -101,7 +101,7 @@ const getBestIntersectingEntry = (entries) => {
 };
 
 const scrollSubNavToActiveLink = (subNav, link) => {
-  if (!subNav || !link) return;
+  if (!subNav || !link || subNav.scrollWidth <= subNav.clientWidth) return;
   const linkLeft = link.offsetLeft;
   const linkWidth = link.offsetWidth;
   const navWidth = subNav.clientWidth;
@@ -111,10 +111,7 @@ const scrollSubNavToActiveLink = (subNav, link) => {
     linkLeft < navScrollLeft ||
     linkLeft + linkWidth > navScrollLeft + navWidth
   ) {
-    subNav.scrollTo({
-      left: linkLeft - navWidth / 2 + linkWidth / 2,
-      behavior: 'smooth',
-    });
+    subNav.scrollLeft = Math.max(0, linkLeft - navWidth / 2 + linkWidth / 2);
   }
 };
 
@@ -234,16 +231,21 @@ const initImageLightbox = () => {
   const closeBtn = document.getElementById('lightbox-close-btn');
   if (!modal || !lightboxImg) return;
 
+  const EMPTY_PIXEL =
+    'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+
   const openLightbox = (src, caption) => {
     lightboxImg.src = src;
     if (lightboxCaption) lightboxCaption.textContent = caption || '';
     modal.classList.remove('hidden');
+    modal.classList.add('flex');
     document.body.classList.add('overflow-hidden');
   };
 
   const closeLightbox = () => {
+    modal.classList.remove('flex');
     modal.classList.add('hidden');
-    lightboxImg.src = '';
+    lightboxImg.src = EMPTY_PIXEL;
     document.body.classList.remove('overflow-hidden');
   };
 
