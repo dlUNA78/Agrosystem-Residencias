@@ -87,20 +87,27 @@
 
                     <template id="biological-cycle-stage-template">
                         <article data-biological-stage class="rounded-2xl border border-border/80 bg-muted/20 p-4">
-                            <div class="mb-3 flex items-center justify-between gap-3">
+                            <div class="mb-3 flex flex-wrap items-center justify-between gap-3">
                                 <div class="flex items-center gap-2">
                                     <span class="flex h-7 w-7 items-center justify-center rounded-full bg-[#1b4332] text-[11px] font-bold text-white" data-stage-number></span>
                                     <span class="text-xs font-bold text-foreground">Etapa del ciclo</span>
                                 </div>
-                                <button type="button" class="remove-biological-stage inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-[11px] font-bold text-rose-600 transition-colors hover:bg-rose-50 cursor-pointer" aria-label="Eliminar etapa">
-                                    <i data-lucide="trash-2" class="h-3.5 w-3.5"></i>
-                                    Eliminar
-                                </button>
+                                <div class="flex items-center gap-3">
+                                    <label class="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-rose-200 bg-rose-50/70 px-2.5 py-1 text-[11px] font-bold text-rose-800">
+                                        <input type="hidden" name="biological_cycle_control_window[]" value="false">
+                                        <input type="checkbox" data-control-window-toggle class="h-3.5 w-3.5 rounded border-rose-300 text-rose-600">
+                                        Ventana óptima de control
+                                    </label>
+                                    <button type="button" class="remove-biological-stage inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-[11px] font-bold text-rose-600 transition-colors hover:bg-rose-50 cursor-pointer" aria-label="Eliminar etapa">
+                                        <i data-lucide="trash-2" class="h-3.5 w-3.5"></i>
+                                        Eliminar
+                                    </button>
+                                </div>
                             </div>
                             <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
                                 <div>
-                                    <label class="mb-1 block text-[11px] font-bold text-foreground">Nombre de la etapa</label>
-                                    <input type="text" name="biological_cycle_title[]" maxlength="150" placeholder="Ej. Huevo, larva o adulto"
+                                    <label class="mb-1 block text-[11px] font-bold text-foreground">Nombre de la etapa *</label>
+                                    <input type="text" name="biological_cycle_title[]" maxlength="150" placeholder="Ej. Huevo, Larva L1-L3 o Adulto"
                                         class="w-full rounded-xl border border-input bg-card px-3.5 py-2.5 text-xs text-foreground transition-all focus:border-[#1b4332] focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20">
                                 </div>
                                 <div>
@@ -108,10 +115,31 @@
                                     <input type="text" name="biological_cycle_duration[]" maxlength="100" placeholder="Ej. 3 a 5 días"
                                         class="w-full rounded-xl border border-input bg-card px-3.5 py-2.5 text-xs text-foreground transition-all focus:border-[#1b4332] focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20">
                                 </div>
+                                <div>
+                                    <label class="mb-1 block text-[11px] font-bold text-foreground">Ubicación en planta / suelo</label>
+                                    <input type="text" name="biological_cycle_zone[]" maxlength="150" placeholder="Ej. Envés foliar, cogollo, suelo (2-5 cm)"
+                                        class="w-full rounded-xl border border-input bg-card px-3.5 py-2.5 text-xs text-foreground transition-all focus:border-[#1b4332] focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20">
+                                </div>
+                                <div>
+                                    <label class="mb-1 block text-[11px] font-bold text-foreground">Severidad de daño en esta fase</label>
+                                    <select name="biological_cycle_damage[]"
+                                        class="w-full rounded-xl border border-input bg-card px-3.5 py-2.5 text-xs text-foreground transition-all focus:border-[#1b4332] focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20">
+                                        <option value="">No especificada</option>
+                                        <option value="Sin daño directo">Sin daño directo</option>
+                                        <option value="Bajo">Bajo</option>
+                                        <option value="Moderado">Moderado</option>
+                                        <option value="Severo">Severo</option>
+                                    </select>
+                                </div>
                                 <div class="md:col-span-2">
-                                    <label class="mb-1 block text-[11px] font-bold text-foreground">Descripción</label>
-                                    <textarea name="biological_cycle_description[]" maxlength="500" rows="2" placeholder="Describe qué ocurre durante esta etapa..."
+                                    <label class="mb-1 block text-[11px] font-bold text-foreground">Hábito biológico y signos en campo</label>
+                                    <textarea name="biological_cycle_description[]" maxlength="500" rows="2" placeholder="Describe qué ocurre durante esta etapa y cómo identificarla..."
                                         class="w-full resize-none rounded-xl border border-input bg-card px-3.5 py-2.5 text-xs text-foreground transition-all focus:border-[#1b4332] focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20"></textarea>
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label class="mb-1 block text-[11px] font-bold text-foreground">Acción técnica recomendada en esta fase</label>
+                                    <input type="text" name="biological_cycle_action[]" maxlength="300" placeholder="Ej. Liberación de parasitoides o aspersión dirigida antes del barrenado"
+                                        class="w-full rounded-xl border border-input bg-card px-3.5 py-2.5 text-xs text-foreground transition-all focus:border-[#1b4332] focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20">
                                 </div>
                             </div>
                         </article>

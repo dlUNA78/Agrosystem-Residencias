@@ -182,4 +182,83 @@ describe('detalle privado de plagas con datos verificables', () => {
     expect(controller).toContain('/js/shared/plague-detail.js');
     expect(privateController).toContain('/js/shared/plague-detail.js');
   });
+
+  it('calcula métricas proporcionales del ciclo biológico, checklist de síntomas y agentes benéficos', () => {
+    const detail = buildPlagueDetailView({
+      id: 21,
+      name: 'Gusano cogollero',
+      symptoms: 'Raspado foliar; Perforaciones en cogollo; Excremento húmedo.',
+      biological_control: 'Trichogramma spp., Bacillus thuringiensis.',
+      control_methods:
+        'Monitoreo con feromonas; Aplicación dirigida al verticilo.',
+      biological_cycle: [
+        {
+          title: 'Huevo',
+          duration: '2-4 días',
+          plantZone: 'Envés foliar',
+          damageLevel: 'Sin daño directo',
+          isControlWindow: true,
+          recommendedAction: 'Liberar Trichogramma spp.',
+        },
+        {
+          title: 'Larva L1-L3',
+          duration: '6-8 días',
+          plantZone: 'Cogollo',
+          damageLevel: 'Severo',
+          isControlWindow: true,
+          recommendedAction: 'Aplicar Bt al verticilo.',
+        },
+      ],
+    });
+
+    expect(detail.cycleSummary).toEqual(
+      expect.objectContaining({
+        hasCycle: true,
+        stageCount: 2,
+        totalDurationLabel: '8–12 días',
+        controlWindowCount: 2,
+        hasNumericShares: true,
+      }),
+    );
+    expect(detail.plague.biologicalCycle[0]).toEqual(
+      expect.objectContaining({
+        title: 'Huevo',
+        icon: 'egg',
+        plantZone: 'Envés foliar',
+        damageLevel: 'Sin daño directo',
+        isControlWindow: true,
+        recommendedAction: 'Liberar Trichogramma spp.',
+        sharePercent: 30,
+      }),
+    );
+    expect(detail.plague.biologicalCycle[1].sharePercent).toBe(70);
+    expect(detail.symptomItems).toHaveLength(3);
+    expect(detail.biologicalAgents).toEqual([
+      'Trichogramma spp.',
+      'Bacillus thuringiensis',
+    ]);
+    expect(detail.controlMethodItems).toHaveLength(2);
+  });
+
+  it('estructura la ficha técnica en orden de decisión agronómica (resumen, diagnóstico, ciclo, manejo, productos y distribución)', () => {
+    const template = fs.readFileSync(
+      new URL('../../src/views/shared/plague-detail.hbs', import.meta.url),
+      'utf8',
+    );
+
+    const orderedAnchors = [
+      'id="resumen"',
+      'id="diagnostico"',
+      'id="ciclo-biologico"',
+      'id="manejo-integrado"',
+      'id="productos"',
+      'id="distribucion"',
+    ];
+    const positions = orderedAnchors.map((anchor) => template.indexOf(anchor));
+
+    positions.forEach((pos) => expect(pos).toBeGreaterThan(-1));
+    for (let i = 1; i < positions.length; i += 1) {
+      expect(positions[i]).toBeGreaterThan(positions[i - 1]);
+    }
+  });
 });

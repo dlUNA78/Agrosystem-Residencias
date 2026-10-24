@@ -108,4 +108,45 @@ describe('validación de entradas de plagas', () => {
       ]),
     );
   });
+
+  it('conserva ubicación en planta, severidad de daño, ventana óptima y acción recomendada por etapa', () => {
+    const result = validatePlagueInput({
+      name: 'Gusano cogollero',
+      scientific_name: 'Spodoptera frugiperda',
+      biological_cycle_title: ['Larva L1-L2'],
+      biological_cycle_duration: ['4-6 días'],
+      biological_cycle_description: ['Raspado epidérmico inicial'],
+      biological_cycle_zone: ['Cogollo y verticilo'],
+      biological_cycle_damage: ['Moderado'],
+      biological_cycle_action: ['Aplicación dirigida de Bt'],
+      biological_cycle_control_window: ['true'],
+    });
+
+    expect(result.isValid).toBe(true);
+    expect(result.value.biological_cycle).toEqual([
+      {
+        title: 'Larva L1-L2',
+        description: 'Raspado epidérmico inicial',
+        duration: '4-6 días',
+        plantZone: 'Cogollo y verticilo',
+        damageLevel: 'Moderado',
+        recommendedAction: 'Aplicación dirigida de Bt',
+        isControlWindow: true,
+      },
+    ]);
+  });
+
+  it('rechaza severidades de daño no permitidas en etapas del ciclo biológico', () => {
+    const result = validatePlagueInput({
+      name: 'Plaga inválida',
+      scientific_name: 'Invalidus damnum',
+      biological_cycle_title: ['Adulto'],
+      biological_cycle_damage: ['Catastrófico inventado'],
+    });
+
+    expect(result.isValid).toBe(false);
+    expect(result.errors).toEqual(
+      expect.arrayContaining([expect.stringContaining('severidad de daño')]),
+    );
+  });
 });

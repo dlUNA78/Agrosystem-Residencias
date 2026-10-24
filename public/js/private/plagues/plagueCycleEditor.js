@@ -7,6 +7,24 @@ const formatHistoricalStageTitle = (value) => {
   return words ? `${words.charAt(0).toUpperCase()}${words.slice(1)}` : '';
 };
 
+const pickString = (...values) => values.find(Boolean) || '';
+
+const mapObjectStage = (stage) => {
+  if (typeof stage === 'string') {
+    return { title: stage, description: '', duration: '' };
+  }
+  const item = stage || {};
+  return {
+    title: pickString(item.title, item.name, item.stage),
+    description: pickString(item.description, item.details, item.detail),
+    duration: pickString(item.duration, item.time),
+    plantZone: pickString(item.plantZone, item.zone),
+    damageLevel: pickString(item.damageLevel),
+    recommendedAction: pickString(item.recommendedAction, item.action),
+    isControlWindow: item.isControlWindow === true,
+  };
+};
+
 const normalizeStages = (rawCycle) => {
   if (!rawCycle) return [];
   let cycle = rawCycle;
@@ -24,28 +42,61 @@ const normalizeStages = (rawCycle) => {
 
   if (Array.isArray(cycle)) {
     return cycle
-      .map((stage) =>
-        typeof stage === 'string'
-          ? { title: stage, description: '', duration: '' }
-          : {
-              title: stage?.title || stage?.name || stage?.stage || '',
-              description:
-                stage?.description || stage?.details || stage?.detail || '',
-              duration: stage?.duration || stage?.time || '',
-            },
-      )
+      .map(mapObjectStage)
       .filter((stage) => stage.title || stage.description || stage.duration);
   }
 
   if (cycle && typeof cycle === 'object') {
-    return Object.entries(cycle).map(([stage, duration]) => ({
-      title: formatHistoricalStageTitle(stage),
-      description: '',
-      duration: String(duration || ''),
-    }));
+    return Object.entries(cycle).map(([stage, value]) => {
+      if (value && typeof value === 'object') {
+        return mapObjectStage({
+          ...value,
+          title: value.title || formatHistoricalStageTitle(stage),
+        });
+      }
+      return {
+        title: formatHistoricalStageTitle(stage),
+        description: '',
+        duration: String(value || ''),
+      };
+    });
   }
 
   return [];
+};
+
+const populateStageInputs = (stageElement, stage) => {
+  const fieldMap = [
+    ['[name="biological_cycle_title[]"]', stage.title],
+    ['[name="biological_cycle_duration[]"]', stage.duration],
+    ['[name="biological_cycle_description[]"]', stage.description],
+    ['[name="biological_cycle_zone[]"]', stage.plantZone],
+    ['[name="biological_cycle_damage[]"]', stage.damageLevel],
+    ['[name="biological_cycle_action[]"]', stage.recommendedAction],
+  ];
+
+  fieldMap.forEach(([selector, val]) => {
+    const el = stageElement?.querySelector(selector);
+    if (el) el.value = val || '';
+  });
+
+  const hiddenControl = stageElement?.querySelector(
+    '[name="biological_cycle_control_window[]"]',
+  );
+  const toggleControl = stageElement?.querySelector(
+    '[data-control-window-toggle]',
+  );
+  const isOptimal = stage.isControlWindow === true;
+
+  if (hiddenControl) hiddenControl.value = isOptimal ? 'true' : 'false';
+  if (toggleControl) {
+    toggleControl.checked = isOptimal;
+    toggleControl.addEventListener('change', () => {
+      if (hiddenControl) {
+        hiddenControl.value = toggleControl.checked ? 'true' : 'false';
+      }
+    });
+  }
 };
 
 export const createPlagueCycleEditor = () => {
@@ -76,22 +127,11 @@ export const createPlagueCycleEditor = () => {
 
     const fragment = template.content.cloneNode(true);
     const stageElement = fragment.querySelector('[data-biological-stage]');
-    const title = stageElement?.querySelector(
-      '[name="biological_cycle_title[]"]',
-    );
-    const duration = stageElement?.querySelector(
-      '[name="biological_cycle_duration[]"]',
-    );
-    const description = stageElement?.querySelector(
-      '[name="biological_cycle_description[]"]',
-    );
     const removeButton = stageElement?.querySelector(
       '.remove-biological-stage',
     );
 
-    if (title) title.value = stage.title || '';
-    if (duration) duration.value = stage.duration || '';
-    if (description) description.value = stage.description || '';
+    populateStageInputs(stageElement, stage);
     removeButton?.addEventListener('click', () => {
       stageElement.remove();
       if (builder.querySelectorAll('[data-biological-stage]').length === 0) {

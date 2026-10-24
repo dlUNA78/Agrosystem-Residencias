@@ -279,6 +279,38 @@ const initImageFallbacks = () => {
   });
 };
 
+const focusCycleStageCard = (stageIndex) => {
+  const targetCard = document.querySelector(
+    `[data-stage-card="${stageIndex}"]`,
+  );
+  if (!targetCard) return;
+
+  const topOffset =
+    targetCard.getBoundingClientRect().top + window.scrollY - 128;
+  window.scrollTo({ top: Math.max(0, topOffset), behavior: 'smooth' });
+
+  targetCard.classList.add('ring-2', 'ring-[#1b4332]');
+  setTimeout(() => {
+    targetCard.classList.remove('ring-2', 'ring-[#1b4332]');
+  }, 1800);
+};
+
+const initBiologicalCycleTimeline = () => {
+  document.querySelectorAll('[data-stage-share]').forEach((segment) => {
+    const share = Number(segment.getAttribute('data-stage-share'));
+    if (Number.isFinite(share) && share > 0) {
+      segment.style.width = `${share}%`;
+    }
+  });
+
+  document.querySelectorAll('[data-stage-focus-btn]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const index = button.getAttribute('data-stage-focus-btn');
+      if (index !== null) focusCycleStageCard(index);
+    });
+  });
+};
+
 document.addEventListener('DOMContentLoaded', () => {
   initHeroCarousel();
   initScrollSpy();
@@ -286,4 +318,5 @@ document.addEventListener('DOMContentLoaded', () => {
   initShareAndPrint();
   initImageLightbox();
   initImageFallbacks();
+  initBiologicalCycleTimeline();
 });

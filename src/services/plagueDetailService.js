@@ -1,3 +1,9 @@
+import {
+  buildEnrichedBiologicalCycle,
+  extractBiologicalAgents,
+  splitTextClauses,
+} from './plagueCycleFormatter.js';
+
 const riskThemes = Object.freeze({
   alto: {
     label: 'Crítico',
@@ -102,68 +108,6 @@ const formatDate = (value) => {
   });
 };
 
-const buildBiologicalCycle = (cycle) => {
-  let normalizedCycle = cycle;
-
-  if (typeof normalizedCycle === 'string') {
-    try {
-      normalizedCycle = JSON.parse(normalizedCycle);
-    } catch {
-      normalizedCycle = [normalizedCycle];
-    }
-  }
-
-  if (
-    normalizedCycle &&
-    typeof normalizedCycle === 'object' &&
-    !Array.isArray(normalizedCycle)
-  ) {
-    normalizedCycle = Object.entries(normalizedCycle).map(([key, value]) => ({
-      title: `${key.charAt(0).toUpperCase()}${key.slice(1)}`.replaceAll(
-        '_',
-        ' ',
-      ),
-      description:
-        value && typeof value === 'object' ? value.description || null : null,
-      duration:
-        value && typeof value === 'object'
-          ? value.duration || null
-          : String(value),
-    }));
-  }
-
-  if (!Array.isArray(normalizedCycle)) return [];
-
-  return normalizedCycle
-    .filter(
-      (stage) =>
-        typeof stage === 'string' || stage?.description || stage?.title,
-    )
-    .map((stage, index) => {
-      const step = String(index + 1).padStart(2, '0');
-
-      if (typeof stage === 'string') {
-        return {
-          step,
-          title: `Etapa ${index + 1}`,
-          description: stage,
-          duration: null,
-          icon: 'pest_control',
-          isControlWindow: false,
-        };
-      }
-
-      return {
-        step: stage.step || step,
-        title: stage.title || `Etapa ${index + 1}`,
-        description: stage.description || null,
-        duration: stage.duration || null,
-        icon: stage.icon || 'pest_control',
-        isControlWindow: stage.isControlWindow === true,
-      };
-    });
-};
-
 const buildImages = (images, plagueName) => {
   if (!Array.isArray(images)) return [];
 
@@ -262,6 +206,13 @@ export const buildPlagueDetailView = (plagueData) => {
   const verifiedAt = formatDate(plagueData.verified_at);
   const legacyImageUrl = normalizeUrl(plagueData.image_url);
   const mainImageUrl = carouselImages[0]?.url || legacyImageUrl;
+  const { stages: biologicalCycle, summary: cycleSummary } =
+    buildEnrichedBiologicalCycle(plagueData.biological_cycle);
+  const symptomItems = splitTextClauses(plagueData.symptoms);
+  const controlMethodItems = splitTextClauses(plagueData.control_methods);
+  const biologicalAgents = extractBiologicalAgents(
+    plagueData.biological_control,
+  );
 
   return {
     plague: {
@@ -273,9 +224,12 @@ export const buildPlagueDetailView = (plagueData) => {
       image_url: mainImageUrl,
       imageUrl: mainImageUrl,
       symptoms: plagueData.symptoms || null,
+      symptomItems,
       controlMethods: plagueData.control_methods || null,
+      controlMethodItems,
       biologicalControl: plagueData.biological_control || null,
-      biologicalCycle: buildBiologicalCycle(plagueData.biological_cycle),
+      biologicalAgents,
+      biologicalCycle,
       region: plagueData.region || null,
       riskLabel: riskTheme.label,
       riskBadgeClass: riskTheme.badgeClass,
@@ -289,6 +243,10 @@ export const buildPlagueDetailView = (plagueData) => {
       workflowStatus: plagueData.workflow_status || null,
       reviewNotes: plagueData.review_notes || null,
     },
+    cycleSummary,
+    symptomItems,
+    controlMethodItems,
+    biologicalAgents,
     carouselImages,
     relatedProducts,
     incidenceRegions,
