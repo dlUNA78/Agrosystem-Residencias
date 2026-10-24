@@ -92,7 +92,34 @@ const initHeroCarousel = () => {
   render(0);
 };
 
+const getBestIntersectingEntry = (entries) => {
+  const visibleEntries = entries.filter((entry) => entry.isIntersecting);
+  if (visibleEntries.length === 0) return null;
+  return visibleEntries.sort(
+    (a, b) => b.intersectionRatio - a.intersectionRatio,
+  )[0];
+};
+
+const scrollSubNavToActiveLink = (subNav, link) => {
+  if (!subNav || !link) return;
+  const linkLeft = link.offsetLeft;
+  const linkWidth = link.offsetWidth;
+  const navWidth = subNav.clientWidth;
+  const navScrollLeft = subNav.scrollLeft;
+
+  if (
+    linkLeft < navScrollLeft ||
+    linkLeft + linkWidth > navScrollLeft + navWidth
+  ) {
+    subNav.scrollTo({
+      left: linkLeft - navWidth / 2 + linkWidth / 2,
+      behavior: 'smooth',
+    });
+  }
+};
+
 const initScrollSpy = () => {
+  const subNav = document.getElementById('sub-nav');
   const navLinks = Array.from(document.querySelectorAll('[data-spy-link]'));
   if (navLinks.length === 0) return;
 
@@ -103,7 +130,12 @@ const initScrollSpy = () => {
 
   if (sections.length === 0) return;
 
+  let activeId = null;
+
   const setActiveLink = (currentId) => {
+    if (activeId === currentId) return;
+    activeId = currentId;
+
     navLinks.forEach((link) => {
       const targetId = link.getAttribute('data-spy-link');
       const isActive = targetId === currentId;
@@ -113,24 +145,19 @@ const initScrollSpy = () => {
       link.classList.toggle('font-bold', isActive);
       link.classList.toggle('shadow-2xs', isActive);
       if (isActive) {
-        link.scrollIntoView({
-          behavior: 'smooth',
-          inline: 'nearest',
-          block: 'nearest',
-        });
+        scrollSubNavToActiveLink(subNav, link);
       }
     });
   };
 
   const observer = new IntersectionObserver(
     (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          setActiveLink(entry.target.id);
-        }
-      });
+      const best = getBestIntersectingEntry(entries);
+      if (best) {
+        setActiveLink(best.target.id);
+      }
     },
-    { rootMargin: '-10% 0px -75% 0px', threshold: 0.1 },
+    { rootMargin: '-15% 0px -60% 0px', threshold: [0, 0.2, 0.5] },
   );
 
   sections.forEach((section) => observer.observe(section));
