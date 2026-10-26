@@ -160,6 +160,8 @@ describe('detalle privado de plagas con datos verificables', () => {
     expect(template).toContain('readiness.items');
     expect(template).toContain('readiness.isReady');
     expect(template).toContain('Requisitos para revisión y publicación');
+    expect(template).toContain('data-relation-search');
+    expect(template).toContain('data-relation-counter');
   });
 
   it('no inyecta fallbacks científicos ni dependencias CDN desde el controlador público', () => {

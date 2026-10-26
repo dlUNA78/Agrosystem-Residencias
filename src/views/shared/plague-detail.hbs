@@ -77,24 +77,59 @@
       </nav>
     </div>
 
-    {{! ── BLOQUES EDITORIALES PRIVADOS (INTACTOS PARA FLUJO DE PUBLICACIÓN) ── }}
+    {{! ── PANEL EDITORIAL PRIVADO (WORKFLOW, CHECKLIST Y RELACIONES ESCALABLES) ── }}
     {{#if isPrivate}}
-      <section class="mb-6 rounded-xl border border-border bg-white p-5 shadow-2xs">
+      <section class="mb-6 rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-2xs">
         <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <span class="text-[10px] font-mono font-bold uppercase tracking-widest text-muted-foreground">Estado editorial</span>
-            <div class="mt-1 flex items-center gap-2">
-              <span class="inline-flex rounded-full border border-border bg-muted px-3 py-1 text-xs font-bold text-foreground">
-                {{#if (eq plague.workflowStatus 'draft')}}Borrador
-                {{else if (eq plague.workflowStatus 'in_review')}}En revisión
-                {{else if (eq plague.workflowStatus 'changes_requested')}}Cambios solicitados
-                {{else if (eq plague.workflowStatus 'verified')}}Verificada
-                {{else if (eq plague.workflowStatus 'published')}}Publicada
-                {{else if (eq plague.workflowStatus 'archived')}}Archivada
-                {{else}}Sin estado editorial{{/if}}
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="text-[10px] font-mono font-bold uppercase tracking-widest text-muted-foreground">
+                Expediente editorial · #{{plague.id}}
               </span>
-              {{#if plague.reviewNotes}}
-                <span class="text-xs text-amber-700">{{plague.reviewNotes}}</span>
+              <a href="#publication-checklist" class="inline-flex items-center gap-1 rounded-md border border-border bg-muted/40 px-2 py-0.5 text-[10px] font-bold text-muted-foreground hover:text-foreground transition-colors">
+                <span class="material-symbols-outlined text-xs">checklist</span>
+                Checklist ({{readiness.completeCount}}/{{readiness.totalCount}})
+              </a>
+              <a href="#relaciones-tecnicas" class="inline-flex items-center gap-1 rounded-md border border-border bg-muted/40 px-2 py-0.5 text-[10px] font-bold text-muted-foreground hover:text-foreground transition-colors">
+                <span class="material-symbols-outlined text-xs">hub</span>
+                Relaciones técnicas
+              </a>
+            </div>
+            <div class="mt-2 flex flex-wrap items-center gap-2.5">
+              {{#if (eq plague.workflowStatus 'draft')}}
+                <span class="inline-flex items-center gap-1.5 rounded-full border border-neutral-300 bg-neutral-100 px-3 py-1 text-xs font-bold text-neutral-800">
+                  <span class="h-2 w-2 rounded-full bg-neutral-500"></span>
+                  Borrador en edición
+                </span>
+              {{else if (eq plague.workflowStatus 'changes_requested')}}
+                <span class="inline-flex items-center gap-1.5 rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-xs font-bold text-amber-900">
+                  <span class="h-2 w-2 rounded-full bg-amber-500 animate-pulse"></span>
+                  Cambios solicitados
+                </span>
+              {{else if (eq plague.workflowStatus 'in_review')}}
+                <span class="inline-flex items-center gap-1.5 rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-xs font-bold text-sky-900">
+                  <span class="h-2 w-2 rounded-full bg-sky-500"></span>
+                  En revisión técnica
+                </span>
+              {{else if (eq plague.workflowStatus 'verified')}}
+                <span class="inline-flex items-center gap-1.5 rounded-full border border-teal-200 bg-teal-50 px-3 py-1 text-xs font-bold text-teal-900">
+                  <span class="h-2 w-2 rounded-full bg-teal-600"></span>
+                  Verificada por especialista
+                </span>
+              {{else if (eq plague.workflowStatus 'published')}}
+                <span class="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-900">
+                  <span class="h-2 w-2 rounded-full bg-emerald-600"></span>
+                  Publicada en catálogo oficial
+                </span>
+              {{else if (eq plague.workflowStatus 'archived')}}
+                <span class="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 bg-neutral-100 px-3 py-1 text-xs font-bold text-neutral-600">
+                  <span class="h-2 w-2 rounded-full bg-neutral-400"></span>
+                  Archivada (fuera de consulta pública)
+                </span>
+              {{else}}
+                <span class="inline-flex rounded-full border border-border bg-muted px-3 py-1 text-xs font-bold text-foreground">
+                  Sin estado editorial
+                </span>
               {{/if}}
             </div>
           </div>
@@ -105,10 +140,16 @@
                 {{#if readiness.isReady}}
                   <form method="POST" action="/private/plagues/{{plague.id}}/workflow">
                     <input type="hidden" name="action" value="submit_review" />
-                    <button type="submit" class="rounded-lg bg-[#1b4332] px-4 py-2 text-xs font-bold text-white hover:bg-[#2d6a4f]">Enviar a revisión</button>
+                    <button type="submit" class="inline-flex items-center gap-1.5 rounded-xl bg-[#1b4332] px-4 py-2.5 text-xs font-bold text-white shadow-2xs transition-colors hover:bg-[#2d6a4f] cursor-pointer">
+                      <span class="material-symbols-outlined text-base">send</span>
+                      Enviar a revisión
+                    </button>
                   </form>
                 {{else}}
-                  <button type="button" disabled class="cursor-not-allowed rounded-lg bg-muted px-4 py-2 text-xs font-bold text-muted-foreground opacity-70">Completa el checklist para enviar</button>
+                  <button type="button" disabled class="inline-flex cursor-not-allowed items-center gap-1.5 rounded-xl border border-border bg-muted px-4 py-2.5 text-xs font-bold text-muted-foreground opacity-75">
+                    <span class="material-symbols-outlined text-base">lock_clock</span>
+                    Completa el checklist para enviar
+                  </button>
                 {{/if}}
               {{/if}}
             {{/if}}
@@ -118,10 +159,16 @@
                 {{#if readiness.isReady}}
                   <form method="POST" action="/private/plagues/{{plague.id}}/workflow">
                     <input type="hidden" name="action" value="submit_review" />
-                    <button type="submit" class="rounded-lg bg-[#1b4332] px-4 py-2 text-xs font-bold text-white hover:bg-[#2d6a4f]">Reenviar a revisión</button>
+                    <button type="submit" class="inline-flex items-center gap-1.5 rounded-xl bg-[#1b4332] px-4 py-2.5 text-xs font-bold text-white shadow-2xs transition-colors hover:bg-[#2d6a4f] cursor-pointer">
+                      <span class="material-symbols-outlined text-base">forward_to_inbox</span>
+                      Reenviar a revisión
+                    </button>
                   </form>
                 {{else}}
-                  <button type="button" disabled class="cursor-not-allowed rounded-lg bg-muted px-4 py-2 text-xs font-bold text-muted-foreground opacity-70">Completa el checklist para reenviar</button>
+                  <button type="button" disabled class="inline-flex cursor-not-allowed items-center gap-1.5 rounded-xl border border-border bg-muted px-4 py-2.5 text-xs font-bold text-muted-foreground opacity-75">
+                    <span class="material-symbols-outlined text-base">lock_clock</span>
+                    Completa el checklist para reenviar
+                  </button>
                 {{/if}}
               {{/if}}
             {{/if}}
@@ -130,16 +177,24 @@
               {{#if permissions.canVerify}}
                 <form method="POST" action="/private/plagues/{{plague.id}}/workflow" class="flex flex-wrap items-center gap-2">
                   <input type="hidden" name="action" value="request_changes" />
-                  <input type="text" name="review_notes" required maxlength="500" placeholder="Observaciones requeridas" class="rounded-lg border border-input bg-background px-3 py-2 text-xs" />
-                  <button type="submit" class="rounded-lg border border-amber-300 bg-amber-50 px-4 py-2 text-xs font-bold text-amber-800 hover:bg-amber-100">Solicitar cambios</button>
+                  <input type="text" name="review_notes" required maxlength="500" placeholder="Indica correcciones requeridas..." class="min-w-[220px] rounded-xl border border-input bg-background px-3.5 py-2 text-xs text-foreground focus:border-[#1b4332] focus:outline-none" />
+                  <button type="submit" class="inline-flex items-center gap-1.5 rounded-xl border border-amber-300 bg-amber-50 px-3.5 py-2 text-xs font-bold text-amber-900 transition-colors hover:bg-amber-100 cursor-pointer">
+                    <span class="material-symbols-outlined text-base">edit_note</span>
+                    Solicitar cambios
+                  </button>
                 </form>
                 {{#if readiness.isReady}}
                   <form method="POST" action="/private/plagues/{{plague.id}}/workflow">
                     <input type="hidden" name="action" value="verify" />
-                    <button type="submit" class="rounded-lg bg-[#1b4332] px-4 py-2 text-xs font-bold text-white hover:bg-[#2d6a4f]">Verificar</button>
+                    <button type="submit" class="inline-flex items-center gap-1.5 rounded-xl bg-[#1b4332] px-4 py-2.5 text-xs font-bold text-white shadow-2xs transition-colors hover:bg-[#2d6a4f] cursor-pointer">
+                      <span class="material-symbols-outlined text-base">verified</span>
+                      Verificar ficha
+                    </button>
                   </form>
                 {{else}}
-                  <button type="button" disabled class="cursor-not-allowed rounded-lg bg-muted px-4 py-2 text-xs font-bold text-muted-foreground opacity-70">Ficha incompleta</button>
+                  <button type="button" disabled class="inline-flex cursor-not-allowed items-center gap-1.5 rounded-xl bg-muted px-4 py-2.5 text-xs font-bold text-muted-foreground opacity-75">
+                    Ficha incompleta
+                  </button>
                 {{/if}}
               {{/if}}
             {{/if}}
@@ -149,10 +204,15 @@
                 {{#if readiness.isReady}}
                   <form method="POST" action="/private/plagues/{{plague.id}}/workflow">
                     <input type="hidden" name="action" value="publish" />
-                    <button type="submit" class="rounded-lg bg-[#1b4332] px-4 py-2 text-xs font-bold text-white hover:bg-[#2d6a4f]">Publicar</button>
+                    <button type="submit" class="inline-flex items-center gap-1.5 rounded-xl bg-[#1b4332] px-4 py-2.5 text-xs font-bold text-white shadow-2xs transition-colors hover:bg-[#2d6a4f] cursor-pointer">
+                      <span class="material-symbols-outlined text-base">public</span>
+                      Publicar en portal
+                    </button>
                   </form>
                 {{else}}
-                  <button type="button" disabled class="cursor-not-allowed rounded-lg bg-muted px-4 py-2 text-xs font-bold text-muted-foreground opacity-70">Ficha incompleta</button>
+                  <button type="button" disabled class="inline-flex cursor-not-allowed items-center gap-1.5 rounded-xl bg-muted px-4 py-2.5 text-xs font-bold text-muted-foreground opacity-75">
+                    Ficha incompleta
+                  </button>
                 {{/if}}
               {{/if}}
             {{/if}}
@@ -161,7 +221,10 @@
               {{#if permissions.canArchive}}
                 <form method="POST" action="/private/plagues/{{plague.id}}/workflow">
                   <input type="hidden" name="action" value="archive" />
-                  <button type="submit" class="rounded-lg border border-border bg-white px-4 py-2 text-xs font-bold text-foreground hover:bg-muted">Archivar</button>
+                  <button type="submit" class="inline-flex items-center gap-1.5 rounded-xl border border-border bg-white px-4 py-2.5 text-xs font-bold text-foreground transition-colors hover:bg-muted cursor-pointer">
+                    <span class="material-symbols-outlined text-base">archive</span>
+                    Archivar expediente
+                  </button>
                 </form>
               {{/if}}
             {{/if}}
@@ -170,41 +233,98 @@
               {{#if permissions.canRestore}}
                 <form method="POST" action="/private/plagues/{{plague.id}}/workflow">
                   <input type="hidden" name="action" value="restore" />
-                  <button type="submit" class="rounded-lg border border-border bg-white px-4 py-2 text-xs font-bold text-foreground hover:bg-muted">Restaurar como borrador</button>
+                  <button type="submit" class="inline-flex items-center gap-1.5 rounded-xl border border-border bg-white px-4 py-2.5 text-xs font-bold text-foreground transition-colors hover:bg-muted cursor-pointer">
+                    <span class="material-symbols-outlined text-base">settings_backup_restore</span>
+                    Restaurar como borrador
+                  </button>
                 </form>
               {{/if}}
             {{/if}}
           </div>
         </div>
+
+        {{! Pipeline visual de 4 etapas editoriales }}
+        <div class="mt-5 grid grid-cols-2 gap-2 border-t border-border/70 pt-4 sm:grid-cols-4">
+          <div class="flex items-center gap-2.5 rounded-xl border px-3 py-2 {{#if (eq plague.workflowStatus 'draft')}}border-neutral-400 bg-neutral-50{{else if (eq plague.workflowStatus 'changes_requested')}}border-amber-300 bg-amber-50/70{{else}}border-emerald-200/70 bg-emerald-50/30{{/if}}">
+            <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-mono font-bold {{#if (eq plague.workflowStatus 'changes_requested')}}bg-amber-600 text-white{{else if (eq plague.workflowStatus 'draft')}}bg-neutral-800 text-white{{else}}bg-emerald-700 text-white{{/if}}">01</span>
+            <div class="min-w-0">
+              <p class="truncate text-xs font-bold text-foreground">Captura técnica</p>
+              <p class="truncate text-[10px] text-muted-foreground">{{#if (eq plague.workflowStatus 'changes_requested')}}Atender observaciones{{else}}Autoría e insumos{{/if}}</p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2.5 rounded-xl border px-3 py-2 {{#if (eq plague.workflowStatus 'in_review')}}border-sky-300 bg-sky-50/70{{else if (eq plague.workflowStatus 'verified')}}border-emerald-200/70 bg-emerald-50/30{{else if (eq plague.workflowStatus 'published')}}border-emerald-200/70 bg-emerald-50/30{{else}}border-border bg-muted/20 opacity-70{{/if}}">
+            <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-mono font-bold {{#if (eq plague.workflowStatus 'in_review')}}bg-sky-700 text-white{{else if (eq plague.workflowStatus 'verified')}}bg-emerald-700 text-white{{else if (eq plague.workflowStatus 'published')}}bg-emerald-700 text-white{{else}}bg-neutral-200 text-neutral-600{{/if}}">02</span>
+            <div class="min-w-0">
+              <p class="truncate text-xs font-bold text-foreground">Revisión par</p>
+              <p class="truncate text-[10px] text-muted-foreground">Cotejo fitosanitario</p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2.5 rounded-xl border px-3 py-2 {{#if (eq plague.workflowStatus 'verified')}}border-teal-300 bg-teal-50/70{{else if (eq plague.workflowStatus 'published')}}border-emerald-200/70 bg-emerald-50/30{{else}}border-border bg-muted/20 opacity-70{{/if}}">
+            <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-mono font-bold {{#if (eq plague.workflowStatus 'verified')}}bg-teal-700 text-white{{else if (eq plague.workflowStatus 'published')}}bg-emerald-700 text-white{{else}}bg-neutral-200 text-neutral-600{{/if}}">03</span>
+            <div class="min-w-0">
+              <p class="truncate text-xs font-bold text-foreground">Verificación</p>
+              <p class="truncate text-[10px] text-muted-foreground">Aval especialista</p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2.5 rounded-xl border px-3 py-2 {{#if (eq plague.workflowStatus 'published')}}border-emerald-300 bg-emerald-50/80{{else}}border-border bg-muted/20 opacity-70{{/if}}">
+            <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-mono font-bold {{#if (eq plague.workflowStatus 'published')}}bg-[#1b4332] text-white{{else}}bg-neutral-200 text-neutral-600{{/if}}">04</span>
+            <div class="min-w-0">
+              <p class="truncate text-xs font-bold text-foreground">Publicación</p>
+              <p class="truncate text-[10px] text-muted-foreground">Consulta pública</p>
+            </div>
+          </div>
+        </div>
+
+        {{#if plague.reviewNotes}}
+          <div class="mt-4 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50/90 p-3.5 text-amber-950">
+            <span class="material-symbols-outlined mt-0.5 text-lg text-amber-700">rate_review</span>
+            <div>
+              <p class="text-[11px] font-mono font-bold uppercase tracking-wider text-amber-800">Observaciones del revisor técnico</p>
+              <p class="mt-0.5 text-xs leading-relaxed">{{plague.reviewNotes}}</p>
+            </div>
+          </div>
+        {{/if}}
       </section>
 
-      <section id="publication-checklist" class="mb-6 rounded-xl border border-border bg-white p-5 shadow-2xs">
+      <section id="publication-checklist" class="scroll-mt-28 mb-6 rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-2xs">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <span class="text-[10px] font-mono font-bold uppercase tracking-widest text-muted-foreground">Control de calidad</span>
+            <span class="text-[10px] font-mono font-bold uppercase tracking-widest text-muted-foreground">Control de calidad documental</span>
             <h2 class="mt-1 text-base font-headline font-bold text-foreground">Requisitos para revisión y publicación</h2>
-            <p class="mt-1 text-xs text-muted-foreground">La ficha debe cumplir todos los requisitos antes de verificarse o hacerse pública.</p>
+            <p class="mt-0.5 text-xs text-muted-foreground">La ficha debe cumplir los {{readiness.totalCount}} criterios técnicos antes de verificarse o publicarse en el portal.</p>
           </div>
           {{#if readiness.isReady}}
-            <span class="inline-flex w-fit items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-800">
+            <span class="inline-flex w-fit items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3.5 py-1.5 text-xs font-bold text-emerald-800">
               <span class="material-symbols-outlined text-sm">task_alt</span>
-              Lista para revisión
+              Lista para revisión ({{readiness.completeCount}}/{{readiness.totalCount}})
             </span>
           {{else}}
-            <span class="inline-flex w-fit items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-800">
+            <span class="inline-flex w-fit items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3.5 py-1.5 text-xs font-bold text-amber-800">
               <span class="material-symbols-outlined text-sm">pending_actions</span>
               {{readiness.completeCount}} de {{readiness.totalCount}} completos
             </span>
           {{/if}}
         </div>
 
-        <div class="mt-4 grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
+        <div class="mt-3.5 h-2 w-full overflow-hidden rounded-full bg-muted" aria-hidden="true">
+          <div
+            id="readiness-progress-bar"
+            data-readiness-complete="{{readiness.completeCount}}"
+            data-readiness-total="{{readiness.totalCount}}"
+            class="h-full w-0 rounded-full transition-all duration-500 {{#if readiness.isReady}}bg-emerald-600{{else}}bg-amber-500{{/if}}"
+          ></div>
+        </div>
+
+        <div class="mt-4 grid grid-cols-1 gap-2.5 md:grid-cols-2 xl:grid-cols-3">
           {{#each readiness.items}}
-            <div class="flex items-start gap-3 rounded-lg border p-3 {{#if this.complete}}border-emerald-100 bg-emerald-50/60{{else}}border-amber-100 bg-amber-50/60{{/if}}">
+            <div class="flex items-start gap-3 rounded-xl border p-3 transition-colors {{#if this.complete}}border-emerald-200/70 bg-emerald-50/40{{else}}border-amber-200 bg-amber-50/60{{/if}}">
               <span class="material-symbols-outlined mt-0.5 text-base {{#if this.complete}}text-emerald-700{{else}}text-amber-600{{/if}}">
                 {{#if this.complete}}check_circle{{else}}radio_button_unchecked{{/if}}
               </span>
-              <div>
+              <div class="min-w-0">
                 <p class="text-xs font-bold text-foreground">{{this.label}}</p>
                 <p class="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">{{this.hint}}</p>
               </div>
@@ -213,17 +333,17 @@
         </div>
       </section>
 
-      <section id="relaciones-tecnicas" class="scroll-mt-32 mb-6 rounded-xl border border-border bg-white p-5 shadow-2xs">
+      <section id="relaciones-tecnicas" class="scroll-mt-28 mb-6 rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-2xs">
         <div class="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
           <div>
-            <span class="text-[10px] font-mono font-bold uppercase tracking-widest text-muted-foreground">Relaciones técnicas</span>
+            <span class="text-[10px] font-mono font-bold uppercase tracking-widest text-muted-foreground">Vinculación relacional escalable</span>
             <h2 class="mt-1 text-base font-headline font-bold text-foreground">Productos, cultivos y regiones asociados</h2>
-            <p class="mt-1 max-w-3xl text-xs leading-relaxed text-muted-foreground">
-              Estas relaciones alimentan la ficha pública cuando la plaga se publica. Guardar reemplaza la selección actual completa.
+            <p class="mt-0.5 max-w-3xl text-xs leading-relaxed text-muted-foreground">
+              Filtra rápidamente en catálogos extensos y marca las asociaciones que alimentarán la ficha pública. Al guardar se actualiza la selección completa.
             </p>
           </div>
           {{#if relationsLocked}}
-            <span class="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-bold text-amber-800">
+            <span class="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-800">
               <span class="material-symbols-outlined text-sm">lock</span>
               Bloqueadas por estado editorial
             </span>
@@ -233,78 +353,161 @@
         {{#if canEditRelations}}
           <form method="POST" action="/private/plagues/{{plague.id}}/relations" class="mt-5">
             <div class="grid grid-cols-1 gap-5 lg:grid-cols-3">
-              <fieldset class="rounded-xl border border-border bg-muted/20 p-4">
-                <legend class="px-2 text-xs font-bold text-foreground">Productos autorizados</legend>
-                <div class="mt-2 max-h-64 space-y-2 overflow-y-auto pr-1">
+              {{! Columna 1: Productos autorizados }}
+              <fieldset data-relation-group="products" class="flex flex-col rounded-xl border border-border bg-muted/20 p-4">
+                <legend class="sr-only">Productos autorizados</legend>
+                <div class="flex items-center justify-between gap-2">
+                  <span class="inline-flex items-center gap-1.5 text-xs font-bold text-foreground">
+                    <span class="material-symbols-outlined text-base text-[#1b4332]">science</span>
+                    Productos autorizados
+                  </span>
+                  <div class="flex items-center gap-1.5">
+                    <button type="button" data-relation-only-selected class="rounded-md border border-border bg-white px-2 py-0.5 text-[10px] font-semibold text-muted-foreground hover:text-foreground transition-colors cursor-pointer" title="Alternar vista de sólo seleccionados">
+                      Seleccionados
+                    </button>
+                    <span data-relation-counter class="rounded-full bg-[#1b4332]/10 px-2.5 py-0.5 text-[10px] font-mono font-bold text-[#1b4332]">0</span>
+                  </div>
+                </div>
+                <div class="relative mt-2.5">
+                  <span class="material-symbols-outlined pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">search</span>
+                  <input
+                    type="search"
+                    data-relation-search
+                    placeholder="Buscar insumo o ingrediente..."
+                    aria-label="Filtrar productos autorizados"
+                    class="w-full rounded-lg border border-input bg-white py-1.5 pl-8 pr-3 text-xs text-foreground placeholder:text-muted-foreground focus:border-[#1b4332] focus:outline-none"
+                  />
+                </div>
+                <div class="mt-2.5 max-h-64 space-y-2 overflow-y-auto pr-1">
                   {{#each relationEditor.products}}
-                    <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-transparent bg-white p-3 text-xs transition-colors hover:border-border">
+                    <label data-relation-item class="flex cursor-pointer items-start gap-3 rounded-lg border border-transparent bg-white p-2.5 text-xs transition-colors hover:border-border">
                       <input type="checkbox" name="product_ids" value="{{this.id}}" {{#if this.isSelected}}checked{{/if}} class="mt-0.5 h-4 w-4 rounded border-input text-[#1b4332]" />
-                      <span>
-                        <span class="block font-bold text-foreground">{{this.name}}</span>
-                        <span class="mt-0.5 block text-muted-foreground">{{#if this.activeIngredient}}{{this.activeIngredient}}{{else}}Sin ingrediente activo registrado{{/if}}</span>
+                      <span class="min-w-0">
+                        <span class="block truncate font-bold text-foreground">{{this.name}}</span>
+                        <span class="mt-0.5 block truncate text-[11px] text-muted-foreground">{{#if this.activeIngredient}}{{this.activeIngredient}}{{else}}Sin ingrediente activo registrado{{/if}}</span>
                       </span>
                     </label>
                   {{else}}
                     <p class="rounded-lg border border-dashed border-border bg-white p-4 text-center text-xs text-muted-foreground">No hay productos en el catálogo.</p>
                   {{/each}}
+                  <p data-relation-empty class="hidden rounded-lg border border-dashed border-border bg-white p-3 text-center text-xs text-muted-foreground">
+                    Sin coincidencias para el filtro actual.
+                  </p>
                 </div>
               </fieldset>
 
-              <fieldset class="rounded-xl border border-border bg-muted/20 p-4">
-                <legend class="px-2 text-xs font-bold text-foreground">Cultivos afectados</legend>
-                <div class="mt-2 max-h-64 space-y-2 overflow-y-auto pr-1">
+              {{! Columna 2: Cultivos afectados }}
+              <fieldset data-relation-group="crops" class="flex flex-col rounded-xl border border-border bg-muted/20 p-4">
+                <legend class="sr-only">Cultivos afectados</legend>
+                <div class="flex items-center justify-between gap-2">
+                  <span class="inline-flex items-center gap-1.5 text-xs font-bold text-foreground">
+                    <span class="material-symbols-outlined text-base text-[#1b4332]">psychiatry</span>
+                    Cultivos afectados
+                  </span>
+                  <div class="flex items-center gap-1.5">
+                    <button type="button" data-relation-only-selected class="rounded-md border border-border bg-white px-2 py-0.5 text-[10px] font-semibold text-muted-foreground hover:text-foreground transition-colors cursor-pointer" title="Alternar vista de sólo seleccionados">
+                      Seleccionados
+                    </button>
+                    <span data-relation-counter class="rounded-full bg-[#1b4332]/10 px-2.5 py-0.5 text-[10px] font-mono font-bold text-[#1b4332]">0</span>
+                  </div>
+                </div>
+                <div class="relative mt-2.5">
+                  <span class="material-symbols-outlined pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">search</span>
+                  <input
+                    type="search"
+                    data-relation-search
+                    placeholder="Buscar cultivo o nombre científico..."
+                    aria-label="Filtrar cultivos afectados"
+                    class="w-full rounded-lg border border-input bg-white py-1.5 pl-8 pr-3 text-xs text-foreground placeholder:text-muted-foreground focus:border-[#1b4332] focus:outline-none"
+                  />
+                </div>
+                <div class="mt-2.5 max-h-64 space-y-2 overflow-y-auto pr-1">
                   {{#each relationEditor.crops}}
-                    <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-transparent bg-white p-3 text-xs transition-colors hover:border-border">
+                    <label data-relation-item class="flex cursor-pointer items-start gap-3 rounded-lg border border-transparent bg-white p-2.5 text-xs transition-colors hover:border-border">
                       <input type="checkbox" name="crop_ids" value="{{this.id}}" {{#if this.isSelected}}checked{{/if}} class="mt-0.5 h-4 w-4 rounded border-input text-[#1b4332]" />
-                      <span>
-                        <span class="block font-bold text-foreground">{{this.name}}</span>
-                        <span class="mt-0.5 block italic text-muted-foreground">{{#if this.scientificName}}{{this.scientificName}}{{else}}Sin nombre científico registrado{{/if}}</span>
+                      <span class="min-w-0">
+                        <span class="block truncate font-bold text-foreground">{{this.name}}</span>
+                        <span class="mt-0.5 block truncate text-[11px] italic text-muted-foreground">{{#if this.scientificName}}{{this.scientificName}}{{else}}Sin nombre científico registrado{{/if}}</span>
                       </span>
                     </label>
                   {{else}}
                     <p class="rounded-lg border border-dashed border-border bg-white p-4 text-center text-xs text-muted-foreground">No hay cultivos en el catálogo.</p>
                   {{/each}}
+                  <p data-relation-empty class="hidden rounded-lg border border-dashed border-border bg-white p-3 text-center text-xs text-muted-foreground">
+                    Sin coincidencias para el filtro actual.
+                  </p>
                 </div>
               </fieldset>
 
-              <fieldset class="rounded-xl border border-border bg-muted/20 p-4">
-                <legend class="px-2 text-xs font-bold text-foreground">Regiones y riesgo</legend>
-                <div class="mt-2 max-h-64 space-y-2 overflow-y-auto pr-1">
+              {{! Columna 3: Regiones y nivel de riesgo }}
+              <fieldset data-relation-group="regions" class="flex flex-col rounded-xl border border-border bg-muted/20 p-4">
+                <legend class="sr-only">Regiones y riesgo</legend>
+                <div class="flex items-center justify-between gap-2">
+                  <span class="inline-flex items-center gap-1.5 text-xs font-bold text-foreground">
+                    <span class="material-symbols-outlined text-base text-[#1b4332]">pin_drop</span>
+                    Regiones y riesgo
+                  </span>
+                  <div class="flex items-center gap-1.5">
+                    <button type="button" data-relation-only-selected class="rounded-md border border-border bg-white px-2 py-0.5 text-[10px] font-semibold text-muted-foreground hover:text-foreground transition-colors cursor-pointer" title="Alternar vista de sólo seleccionados">
+                      Seleccionados
+                    </button>
+                    <span data-relation-counter class="rounded-full bg-[#1b4332]/10 px-2.5 py-0.5 text-[10px] font-mono font-bold text-[#1b4332]">0</span>
+                  </div>
+                </div>
+                <div class="relative mt-2.5">
+                  <span class="material-symbols-outlined pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">search</span>
+                  <input
+                    type="search"
+                    data-relation-search
+                    placeholder="Buscar estado o zona agrícola..."
+                    aria-label="Filtrar regiones de incidencia"
+                    class="w-full rounded-lg border border-input bg-white py-1.5 pl-8 pr-3 text-xs text-foreground placeholder:text-muted-foreground focus:border-[#1b4332] focus:outline-none"
+                  />
+                </div>
+                <div class="mt-2.5 max-h-64 space-y-2 overflow-y-auto pr-1">
                   {{#each relationEditor.regions}}
-                    <div class="rounded-lg border border-transparent bg-white p-3 transition-colors hover:border-border">
-                      <label class="flex cursor-pointer items-center gap-3 text-xs font-bold text-foreground">
-                        <input type="checkbox" name="region_ids" value="{{this.id}}" {{#if this.isSelected}}checked{{/if}} class="h-4 w-4 rounded border-input text-[#1b4332]" />
-                        {{this.name}}
-                      </label>
-                      <label class="mt-2 block text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground" for="region-risk-{{this.id}}">Nivel de riesgo</label>
-                      <select id="region-risk-{{this.id}}" name="region_risk_{{this.id}}" class="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 text-xs text-foreground">
-                        <option value="Bajo" {{#if this.isRiskLow}}selected{{/if}}>Bajo</option>
-                        <option value="Medio" {{#if this.isRiskMedium}}selected{{/if}}>Medio</option>
-                        <option value="Alto" {{#if this.isRiskHigh}}selected{{/if}}>Alto</option>
-                        <option value="Crítico" {{#if this.isRiskCritical}}selected{{/if}}>Crítico</option>
-                      </select>
+                    <div data-relation-item class="rounded-lg border border-transparent bg-white p-2.5 transition-colors hover:border-border">
+                      <div class="flex items-center justify-between gap-2">
+                        <label class="flex cursor-pointer items-center gap-2.5 text-xs font-bold text-foreground">
+                          <input type="checkbox" name="region_ids" value="{{this.id}}" {{#if this.isSelected}}checked{{/if}} class="h-4 w-4 rounded border-input text-[#1b4332]" />
+                          <span>{{this.name}}</span>
+                        </label>
+                        <label class="sr-only" for="region-risk-{{this.id}}">Nivel de riesgo en {{this.name}}</label>
+                        <select id="region-risk-{{this.id}}" name="region_risk_{{this.id}}" class="rounded-md border border-input bg-background px-2 py-1 text-[11px] font-semibold text-foreground focus:border-[#1b4332] focus:outline-none">
+                          <option value="Bajo" {{#if this.isRiskLow}}selected{{/if}}>Bajo</option>
+                          <option value="Medio" {{#if this.isRiskMedium}}selected{{/if}}>Medio</option>
+                          <option value="Alto" {{#if this.isRiskHigh}}selected{{/if}}>Alto</option>
+                          <option value="Crítico" {{#if this.isRiskCritical}}selected{{/if}}>Crítico</option>
+                        </select>
+                      </div>
                     </div>
                   {{else}}
                     <p class="rounded-lg border border-dashed border-border bg-white p-4 text-center text-xs text-muted-foreground">No hay regiones en el catálogo.</p>
                   {{/each}}
+                  <p data-relation-empty class="hidden rounded-lg border border-dashed border-border bg-white p-3 text-center text-xs text-muted-foreground">
+                    Sin coincidencias para el filtro actual.
+                  </p>
                 </div>
               </fieldset>
             </div>
 
-            <div class="mt-5 flex justify-end">
-              <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-lg bg-[#1b4332] px-5 py-2.5 text-xs font-bold text-white shadow-2xs transition-colors hover:bg-[#2d6a4f]">
+            <div class="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-border/60 pt-4">
+              <p class="text-[11px] text-muted-foreground">
+                Nota: Los filtros de búsqueda sólo ocultan filas visualmente; tus casillas marcadas se conservan al guardar.
+              </p>
+              <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#1b4332] px-5 py-2.5 text-xs font-bold text-white shadow-2xs transition-colors hover:bg-[#2d6a4f] cursor-pointer">
                 <span class="material-symbols-outlined text-base">save</span>
-                Guardar relaciones
+                Guardar relaciones técnicas
               </button>
             </div>
           </form>
         {{else}}
           {{#if relationsLocked}}
-            <p class="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4 text-xs leading-relaxed text-amber-900">
+            <p class="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs leading-relaxed text-amber-900">
               Para modificar las relaciones, la ficha debe volver a borrador o recibir una solicitud de correcciones.
             </p>
           {{else if relationsOwnershipRestricted}}
-            <p class="mt-4 rounded-lg border border-sky-200 bg-sky-50 p-4 text-xs leading-relaxed text-sky-900">
+            <p class="mt-4 rounded-xl border border-sky-200 bg-sky-50 p-4 text-xs leading-relaxed text-sky-900">
               Estás consultando el expediente de otro autor. Sólo su autor o un administrador puede modificar las relaciones técnicas.
             </p>
           {{/if}}

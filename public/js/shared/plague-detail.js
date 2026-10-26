@@ -311,6 +311,96 @@ const initBiologicalCycleTimeline = () => {
   });
 };
 
+const normalizeSearchTerm = (value) =>
+  String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+
+const initReadinessProgressBar = () => {
+  const bar = document.getElementById('readiness-progress-bar');
+  if (!bar) return;
+
+  const complete = Number(bar.getAttribute('data-readiness-complete'));
+  const total = Number(bar.getAttribute('data-readiness-total'));
+  if (Number.isFinite(complete) && total > 0) {
+    const pct = Math.min(100, Math.round((complete / total) * 100));
+    bar.style.width = `${pct}%`;
+  }
+};
+
+const syncRelationRowVisualState = (item) => {
+  const checkbox = item.querySelector('input[type="checkbox"]');
+  if (!checkbox) return false;
+
+  const checked = checkbox.checked;
+  item.classList.toggle('border-emerald-300', checked);
+  item.classList.toggle('bg-emerald-50/40', checked);
+  item.classList.toggle('border-transparent', !checked);
+
+  const select = item.querySelector('select');
+  if (select) {
+    select.classList.toggle('opacity-55', !checked);
+  }
+  return checked;
+};
+
+const doesRelationItemMatch = (item, query, onlySelected) => {
+  const checkbox = item.querySelector('input[type="checkbox"]');
+  const isChecked = Boolean(checkbox && checkbox.checked);
+  if (onlySelected && !isChecked) return false;
+  if (!query) return true;
+  return normalizeSearchTerm(item.textContent).includes(query);
+};
+
+const setupRelationGroup = (group) => {
+  const items = Array.from(group.querySelectorAll('[data-relation-item]'));
+  if (items.length === 0) return;
+
+  const searchInput = group.querySelector('[data-relation-search]');
+  const counterEl = group.querySelector('[data-relation-counter]');
+  const emptyEl = group.querySelector('[data-relation-empty]');
+  const onlySelectedBtn = group.querySelector('[data-relation-only-selected]');
+  let onlySelected = false;
+
+  const refresh = () => {
+    const query = normalizeSearchTerm(searchInput ? searchInput.value : '');
+    let selectedCount = 0;
+    let visibleCount = 0;
+
+    items.forEach((item) => {
+      if (syncRelationRowVisualState(item)) selectedCount += 1;
+      const visible = doesRelationItemMatch(item, query, onlySelected);
+      item.classList.toggle('hidden', !visible);
+      if (visible) visibleCount += 1;
+    });
+
+    if (counterEl) counterEl.textContent = `${selectedCount} / ${items.length}`;
+    if (emptyEl) emptyEl.classList.toggle('hidden', visibleCount > 0);
+  };
+
+  searchInput?.addEventListener('input', refresh);
+  group.addEventListener('change', refresh);
+  onlySelectedBtn?.addEventListener('click', () => {
+    onlySelected = !onlySelected;
+    onlySelectedBtn.classList.toggle('border-[#1b4332]', onlySelected);
+    onlySelectedBtn.classList.toggle('bg-[#1b4332]', onlySelected);
+    onlySelectedBtn.classList.toggle('text-white', onlySelected);
+    onlySelectedBtn.classList.toggle('bg-white', !onlySelected);
+    onlySelectedBtn.classList.toggle('text-muted-foreground', !onlySelected);
+    refresh();
+  });
+
+  refresh();
+};
+
+const initPrivateRelationEditor = () => {
+  document
+    .querySelectorAll('[data-relation-group]')
+    .forEach(setupRelationGroup);
+};
+
 document.addEventListener('DOMContentLoaded', () => {
   initHeroCarousel();
   initScrollSpy();
@@ -319,4 +409,6 @@ document.addEventListener('DOMContentLoaded', () => {
   initImageLightbox();
   initImageFallbacks();
   initBiologicalCycleTimeline();
+  initReadinessProgressBar();
+  initPrivateRelationEditor();
 });

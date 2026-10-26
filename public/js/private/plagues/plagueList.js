@@ -17,8 +17,46 @@ const initializeImageFallbacks = () => {
 
 const initializeFilters = () => {
   const form = document.getElementById('plague-filter-form');
+  const workflowSelect = document.getElementById('filter-workflow');
+
   document.querySelectorAll('.filter-select').forEach((select) => {
     select.addEventListener('change', () => form?.requestSubmit());
+  });
+
+  document.querySelectorAll('[data-workflow-pill]').forEach((pill) => {
+    pill.addEventListener('click', () => {
+      if (!form || !workflowSelect) return;
+      workflowSelect.value = pill.getAttribute('data-workflow-pill') || '';
+      form.requestSubmit();
+    });
+  });
+};
+
+const isTypingTarget = (element) => {
+  if (!element) return false;
+  const tag = element.tagName;
+  return (
+    tag === 'INPUT' ||
+    tag === 'TEXTAREA' ||
+    tag === 'SELECT' ||
+    element.isContentEditable
+  );
+};
+
+const initializeSearchShortcut = () => {
+  const searchInput = document.getElementById('plague-search');
+  if (!searchInput) return;
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== '/' || isTypingTarget(event.target)) return;
+    const modalOpen = !document
+      .getElementById('modal-plague')
+      ?.classList.contains('hidden');
+    if (modalOpen) return;
+
+    event.preventDefault();
+    searchInput.focus();
+    searchInput.select();
   });
 };
 
@@ -107,6 +145,7 @@ export const initializePlagueList = () => {
     ?.addEventListener('click', () => window.print());
   initializeImageFallbacks();
   initializeFilters();
+  initializeSearchShortcut();
   initializeViewToggle();
   initializeDeleteModal();
   initializeDetailLinks();

@@ -160,6 +160,19 @@ describe('listado privado paginado de plagas', () => {
       /<input[^>]+id="plague-images"[^>]+name="images"[^>]+multiple/,
     );
     expect(template).toContain('id="plague-image-previews"');
+    expect(template).toContain('id="plague-image-dropzone"');
     expect(clientScript).toContain('buildImagePreview');
+    expect(clientScript).toContain('wireDropzoneEvents');
+  });
+
+  it('incluye plantillas rápidas de ciclo biológico, metadatos colapsables y bandejas de estatus', () => {
+    const template = readPlagueViewSources();
+    const clientScript = readPlagueClientSources();
+
+    expect(template).toContain('data-cycle-preset="holometabolo"');
+    expect(template).toContain('data-cycle-preset="hongo"');
+    expect(template).toContain('data-stage-advanced');
+    expect(template).toContain('data-workflow-pill=');
+    expect(clientScript).toContain('CYCLE_PRESETS');
   });
 });

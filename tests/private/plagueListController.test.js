@@ -114,6 +114,13 @@ describe('controlador del listado privado de plagas', () => {
         { url: '/images/plagues/dos.webp', sort_order: 1 },
       ]),
     );
+    expect(res.render.mock.calls[0][1].plagues[0]).toEqual(
+      expect.objectContaining({
+        imageCount: 2,
+        stageCount: 1,
+        hasMip: false,
+      }),
+    );
   });
 
   it('ajusta una página superior al total antes de calcular el offset', async () => {

@@ -1,165 +1,182 @@
 <!-- ===================================================== -->
-        <!-- VISTA DE TARJETAS (GRID VIEW EN GEIST) -->
-        <!-- ===================================================== -->
-        <section id="plagues-grid-view" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+<!-- VISTA DE TARJETAS TÉCNICAS (GRID VIEW EN GEIST)       -->
+<!-- ===================================================== -->
+<section id="plagues-grid-view" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
 
-            {{#each plagues}}
-            <article class="group bg-card border border-border/80 rounded-2xl overflow-hidden shadow-2xs flex flex-col hover:border-[#1b4332]/50 hover:shadow-md transition-all duration-300">
-                
-                <!-- Imagen con Badges Fitosanitarios -->
-                <div class="relative h-48 overflow-hidden bg-muted/50">
-                    {{#if image_url}}
-                    <img class="plague-list-image w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        src="{{image_url}}" alt="{{name}}">
-                    <div class="plague-image-fallback hidden w-full h-full flex-col items-center justify-center text-muted-foreground/40 gap-2">
-                        <i data-lucide="bug" class="w-10 h-10 stroke-[1.5]"></i>
-                        <span class="text-[10px] font-mono uppercase tracking-widest">Imagen no disponible</span>
-                    </div>
-                    {{else}}
-                    <div class="w-full h-full flex flex-col items-center justify-center text-muted-foreground/40 gap-2">
-                        <i data-lucide="bug" class="w-10 h-10 stroke-[1.5]"></i>
-                        <span class="text-[10px] font-mono uppercase tracking-widest">Sin imagen</span>
-                    </div>
-                    {{/if}}
+    {{#each plagues}}
+    <article class="group bg-card border border-border/80 rounded-2xl overflow-hidden shadow-2xs flex flex-col hover:border-[#1b4332]/50 hover:shadow-md transition-all duration-300">
 
-                    <!-- Risk Level Badge -->
-                    {{#if risk_level}}
-                    <div class="absolute top-3 left-3">
-                        <span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-2xs backdrop-blur-md 
-                            {{#if (eq risk_level 'Crítico')}}bg-rose-600/90 text-white
-                            {{else}}{{#if (eq risk_level 'Alto')}}bg-amber-600/90 text-white
-                            {{else}}{{#if (eq risk_level 'Medio')}}bg-yellow-500/90 text-slate-900
-                            {{else}}bg-emerald-600/90 text-white{{/if}}{{/if}}{{/if}}">
-                            {{risk_level}}
-                        </span>
-                    </div>
-                    {{/if}}
-
-                    <!-- Status Badge -->
-                    <div class="absolute top-3 right-3">
-                        {{#if (eq workflow_status 'published')}}
-                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/90 backdrop-blur-md text-[10px] font-bold text-[#1b4332] shadow-2xs">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                            Publicada
-                        </span>
-                        {{else if (eq workflow_status 'in_review')}}
-                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/90 backdrop-blur-md text-[10px] font-bold text-amber-700 shadow-2xs">En revisión</span>
-                        {{else if (eq workflow_status 'verified')}}
-                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/90 backdrop-blur-md text-[10px] font-bold text-blue-700 shadow-2xs">Verificada</span>
-                        {{else if (eq workflow_status 'changes_requested')}}
-                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/90 backdrop-blur-md text-[10px] font-bold text-orange-700 shadow-2xs">Cambios solicitados</span>
-                        {{else if (eq workflow_status 'archived')}}
-                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/90 backdrop-blur-md text-[10px] font-bold text-slate-600 shadow-2xs">Archivada</span>
-                        {{else}}
-                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/90 backdrop-blur-md text-[10px] font-bold text-muted-foreground shadow-2xs">
-                            <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
-                            Borrador
-                        </span>
-                        {{/if}}
-                    </div>
-                </div>
-
-                <!-- Detalles de la Plaga -->
-                <div class="p-5 flex-1 flex flex-col">
-                    <div class="flex items-center justify-between gap-2 mb-1.5">
-                        <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-[#2d6a4f] bg-[#e6f0e6] px-2 py-0.5 rounded-md">
-                            {{#if category}}{{category}}{{else}}Plaga General{{/if}}
-                        </span>
-                        {{#if verified_by}}
-                        <span class="flex items-center gap-1 text-[10px] text-emerald-700 font-bold" title="Verificado por INIFAP">
-                            <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
-                            <span>INIFAP</span>
-                        </span>
-                        {{/if}}
-                    </div>
-
-                    <h3 class="text-base font-headline font-bold text-foreground group-hover:text-[#1b4332] transition-colors leading-snug">
-                        {{name}}
-                    </h3>
-                    
-                    {{#if scientific_name}}
-                    <p class="text-xs italic text-muted-foreground mb-3 font-serif">
-                        {{scientific_name}}
-                    </p>
-                    {{/if}}
-
-                    <div class="space-y-1.5 text-xs text-muted-foreground mb-4">
-                        {{#if region}}
-                        <div class="flex items-center gap-1.5">
-                            <i data-lucide="map-pin" class="w-3.5 h-3.5 shrink-0 text-[#2d6a4f]"></i>
-                            <span class="truncate">{{region}}</span>
-                        </div>
-                        {{/if}}
-                        {{#if verified_by}}
-                        <div class="flex items-center gap-1.5">
-                            <i data-lucide="user-check" class="w-3.5 h-3.5 shrink-0 text-muted-foreground"></i>
-                            <span class="truncate">Por: {{verified_by}}</span>
-                        </div>
-                        {{/if}}
-                    </div>
-
-                    <!-- Footer de Acciones con RBAC Control -->
-                    <div class="mt-auto pt-3 border-t border-border/60 flex items-center justify-between gap-2">
-                        <a href="/private/plagues/{{id}}"
-                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#e6f0e6] text-[#1b4332] text-xs font-bold hover:bg-[#1b4332] hover:text-white transition-all">
-                            <i data-lucide="eye" class="w-3.5 h-3.5"></i>
-                            <span>Ver Detalles</span>
-                        </a>
-
-                        <div class="flex items-center gap-1">
-                            {{#if canEditRecord}}
-                            <button type="button"
-                                class="btn-edit-plague p-2 rounded-lg text-muted-foreground hover:text-[#1b4332] hover:bg-muted transition-colors cursor-pointer"
-                                title="Editar plaga" data-id="{{id}}" data-name="{{name}}"
-                                data-scientific-name="{{scientific_name}}" data-category="{{category}}"
-                                data-region="{{region}}" data-risk-level="{{risk_level}}"
-                                data-description="{{description}}" data-symptoms="{{symptoms}}"
-                                data-control-methods="{{control_methods}}"
-                                data-biological-control="{{biological_control}}"
-                                data-biological-cycle="{{biological_cycle_json}}" data-images="{{images_json}}" data-image-url="{{image_url}}">
-                                <i data-lucide="edit-2" class="w-4 h-4"></i>
-                            </button>
-                            {{/if}}
-
-                            {{#if ../permissions.canDelete}}
-                            <button type="button"
-                                class="btn-delete-plague p-2 rounded-lg text-muted-foreground hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
-                                title="Eliminar plaga" data-id="{{id}}" data-name="{{name}}">
-                                <i data-lucide="trash-2" class="w-4 h-4"></i>
-                            </button>
-                            {{/if}}
-                        </div>
-                    </div>
-                </div>
-            </article>
-
-            {{else}}
-            <div class="col-span-full bg-card border border-border/80 rounded-2xl p-12 text-center flex flex-col items-center justify-center">
-                <div class="w-14 h-14 rounded-2xl bg-[#e6f0e6] text-[#1b4332] flex items-center justify-center mb-3">
-                    <i data-lucide="bug" class="w-7 h-7"></i>
-                </div>
-                <h3 class="text-base font-bold text-foreground">No hay plagas registradas</h3>
-                <p class="text-xs text-muted-foreground mt-1 max-w-sm">
-                    No se encontraron registros que coincidan con la búsqueda o filtros aplicados.
-                </p>
+        <!-- Imagen con Badges Fitosanitarios -->
+        <a href="/private/plagues/{{id}}" class="relative h-44 overflow-hidden bg-muted/50 block">
+            {{#if image_url}}
+            <img class="plague-list-image w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                src="{{image_url}}" alt="{{name}}" loading="lazy">
+            <div class="plague-image-fallback hidden w-full h-full flex-col items-center justify-center text-muted-foreground/40 gap-2">
+                <i data-lucide="bug" class="w-10 h-10 stroke-[1.5]"></i>
+                <span class="text-[10px] font-mono uppercase tracking-widest">Imagen no disponible</span>
             </div>
-            {{/each}}
-
-            <!-- CTA Crear Plaga -->
-            {{#if permissions.canCreate}}
-            <button type="button" id="btn-add-plague-card"
-                class="group bg-card/50 hover:bg-card border-2 border-dashed border-border hover:border-[#1b4332]/50 rounded-2xl p-6 min-h-70 flex flex-col items-center justify-center text-center transition-all cursor-pointer shadow-2xs hover:shadow-md">
-                <div class="w-12 h-12 rounded-2xl bg-[#e6f0e6] text-[#1b4332] group-hover:bg-[#1b4332] group-hover:text-white flex items-center justify-center mb-3 transition-colors">
-                    <i data-lucide="plus" class="w-6 h-6"></i>
-                </div>
-                <h3 class="text-sm font-bold text-foreground group-hover:text-[#1b4332] transition-colors">¿Registrar Nueva Plaga?</h3>
-                <p class="text-xs text-muted-foreground mt-1 mb-4 max-w-xs">
-                    Añade un nuevo patógeno o amenaza fitosanitaria al catálogo oficial INIFAP.
-                </p>
-                <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#e6f0e6] text-[#1b4332] text-xs font-bold group-hover:bg-[#1b4332] group-hover:text-white transition-colors">
-                    <span>Añadir Registro</span>
-                </span>
-            </button>
+            {{else}}
+            <div class="w-full h-full flex flex-col items-center justify-center text-muted-foreground/40 gap-2">
+                <i data-lucide="bug" class="w-10 h-10 stroke-[1.5]"></i>
+                <span class="text-[10px] font-mono uppercase tracking-widest">Sin evidencia</span>
+            </div>
             {{/if}}
 
-        </section>
+            <!-- Risk Level Badge -->
+            {{#if risk_level}}
+            <div class="absolute top-3 left-3">
+                <span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-2xs backdrop-blur-md
+                    {{#if (eq risk_level 'Crítico')}}bg-rose-600/95 text-white
+                    {{else}}{{#if (eq risk_level 'Alto')}}bg-amber-600/95 text-white
+                    {{else}}{{#if (eq risk_level 'Medio')}}bg-yellow-500/95 text-slate-900
+                    {{else}}bg-emerald-600/95 text-white{{/if}}{{/if}}{{/if}}">
+                    {{risk_level}}
+                </span>
+            </div>
+            {{/if}}
+
+            <!-- Status Badge -->
+            <div class="absolute top-3 right-3">
+                {{#if (eq workflow_status 'published')}}
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/95 backdrop-blur-md text-[10px] font-bold text-[#1b4332] shadow-2xs">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    Publicada
+                </span>
+                {{else if (eq workflow_status 'in_review')}}
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/95 backdrop-blur-md text-[10px] font-bold text-amber-700 shadow-2xs">En revisión</span>
+                {{else if (eq workflow_status 'verified')}}
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/95 backdrop-blur-md text-[10px] font-bold text-blue-700 shadow-2xs">Verificada</span>
+                {{else if (eq workflow_status 'changes_requested')}}
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/95 backdrop-blur-md text-[10px] font-bold text-orange-700 shadow-2xs">Con cambios</span>
+                {{else if (eq workflow_status 'archived')}}
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/95 backdrop-blur-md text-[10px] font-bold text-slate-600 shadow-2xs">Archivada</span>
+                {{else}}
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/95 backdrop-blur-md text-[10px] font-bold text-slate-700 shadow-2xs">
+                    <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                    Borrador
+                </span>
+                {{/if}}
+            </div>
+
+            <!-- ID Chip -->
+            <span class="absolute bottom-2.5 left-3 px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-xs text-[10px] font-mono text-white/90">
+                #{{id}}
+            </span>
+        </a>
+
+        <!-- Detalles de la Plaga -->
+        <div class="p-4 sm:p-5 flex-1 flex flex-col">
+            <div class="flex items-center justify-between gap-2 mb-1.5">
+                <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-[#2d6a4f] bg-[#e6f0e6] px-2 py-0.5 rounded-md">
+                    {{#if category}}{{category}}{{else}}Sin categoría{{/if}}
+                </span>
+                {{#if verified_by}}
+                <span class="flex items-center gap-1 text-[10px] text-emerald-700 font-bold" title="Verificado por {{verified_by}}">
+                    <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+                    <span>INIFAP</span>
+                </span>
+                {{/if}}
+            </div>
+
+            <a href="/private/plagues/{{id}}" class="text-base font-headline font-bold text-foreground group-hover:text-[#1b4332] transition-colors leading-snug line-clamp-1">
+                {{name}}
+            </a>
+
+            <p class="text-xs italic text-muted-foreground mb-3 font-serif line-clamp-1">
+                {{#if scientific_name}}{{scientific_name}}{{else}}Especie pendiente{{/if}}
+            </p>
+
+            <!-- Indicadores de Completitud Técnica (Ciclo, Fotos y MIP) -->
+            <div class="flex flex-wrap items-center gap-1.5 mb-3.5 text-[10px] font-mono">
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md border {{#if stageCount}}bg-emerald-50/70 text-[#1b4332] border-emerald-200{{else}}bg-amber-50/70 text-amber-800 border-amber-200{{/if}}" title="Etapas del ciclo biológico">
+                    <i data-lucide="refresh-cw" class="w-3 h-3"></i>
+                    {{#if stageCount}}{{stageCount}} fases{{else}}Sin ciclo{{/if}}
+                </span>
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md border {{#if imageCount}}bg-muted/60 text-foreground border-border{{else}}bg-amber-50/70 text-amber-800 border-amber-200{{/if}}" title="Imágenes en galería">
+                    <i data-lucide="image" class="w-3 h-3"></i>
+                    {{imageCount}} fotos
+                </span>
+                {{#if hasMip}}
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md border bg-muted/60 text-foreground border-border" title="Estrategia MIP documentada">
+                    <i data-lucide="shield" class="w-3 h-3 text-[#2d6a4f]"></i>
+                    MIP
+                </span>
+                {{/if}}
+            </div>
+
+            {{#if review_notes}}
+            <div class="mb-3 rounded-lg border border-orange-200 bg-orange-50/80 px-2.5 py-1.5 text-[11px] text-orange-900 line-clamp-2">
+                <strong class="font-bold">Nota:</strong> {{review_notes}}
+            </div>
+            {{/if}}
+
+            <!-- Footer de Acciones con RBAC Control -->
+            <div class="mt-auto pt-3 border-t border-border/60 flex items-center justify-between gap-2">
+                <a href="/private/plagues/{{id}}"
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#e6f0e6] text-[#1b4332] text-xs font-bold hover:bg-[#1b4332] hover:text-white transition-all">
+                    <i data-lucide="folder-open" class="w-3.5 h-3.5"></i>
+                    <span>Expediente</span>
+                </a>
+
+                <div class="flex items-center gap-1">
+                    {{#if canEditRecord}}
+                    <button type="button"
+                        class="btn-edit-plague inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold text-foreground hover:text-[#1b4332] hover:bg-muted border border-transparent hover:border-border transition-colors cursor-pointer"
+                        title="Editar información y ciclo biológico" data-id="{{id}}" data-name="{{name}}"
+                        data-scientific-name="{{scientific_name}}" data-category="{{category}}"
+                        data-region="{{region}}" data-risk-level="{{risk_level}}"
+                        data-description="{{description}}" data-symptoms="{{symptoms}}"
+                        data-control-methods="{{control_methods}}"
+                        data-biological-control="{{biological_control}}"
+                        data-biological-cycle="{{biological_cycle_json}}" data-images="{{images_json}}" data-image-url="{{image_url}}">
+                        <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+                        <span>Editar</span>
+                    </button>
+                    {{else}}
+                    <span class="p-1.5 text-muted-foreground/50" title="Edición bloqueada en estado actual (abre el expediente para gestionar su flujo editorial)">
+                        <i data-lucide="lock" class="w-3.5 h-3.5"></i>
+                    </span>
+                    {{/if}}
+
+                    {{#if ../permissions.canDelete}}
+                    <button type="button"
+                        class="btn-delete-plague p-1.5 rounded-lg text-muted-foreground hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                        title="Eliminar plaga" data-id="{{id}}" data-name="{{name}}">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    </button>
+                    {{/if}}
+                </div>
+            </div>
+        </div>
+    </article>
+
+    {{else}}
+    <div class="col-span-full bg-card border border-border/80 rounded-2xl p-12 text-center flex flex-col items-center justify-center">
+        <div class="w-14 h-14 rounded-2xl bg-[#e6f0e6] text-[#1b4332] flex items-center justify-center mb-3">
+            <i data-lucide="bug" class="w-7 h-7"></i>
+        </div>
+        <h3 class="text-base font-bold text-foreground">No hay expedientes que coincidan</h3>
+        <p class="text-xs text-muted-foreground mt-1 max-w-sm">
+            Ajusta los términos de búsqueda o cambia la bandeja de estado editorial.
+        </p>
+    </div>
+    {{/each}}
+
+    <!-- CTA Crear Plaga -->
+    {{#if permissions.canCreate}}
+    <button type="button" id="btn-add-plague-card"
+        class="group bg-card/50 hover:bg-card border-2 border-dashed border-border hover:border-[#1b4332]/50 rounded-2xl p-6 min-h-70 flex flex-col items-center justify-center text-center transition-all cursor-pointer shadow-2xs hover:shadow-md">
+        <div class="w-12 h-12 rounded-2xl bg-[#e6f0e6] text-[#1b4332] group-hover:bg-[#1b4332] group-hover:text-white flex items-center justify-center mb-3 transition-colors">
+            <i data-lucide="plus" class="w-6 h-6"></i>
+        </div>
+        <h3 class="text-sm font-bold text-foreground group-hover:text-[#1b4332] transition-colors">Registrar Nueva Plaga</h3>
+        <p class="text-xs text-muted-foreground mt-1 mb-4 max-w-xs">
+            Inicia un borrador rápido con plantillas preconfiguradas de ciclo biológico.
+        </p>
+        <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#e6f0e6] text-[#1b4332] text-xs font-bold group-hover:bg-[#1b4332] group-hover:text-white transition-colors">
+            <span>Crear borrador</span>
+        </span>
+    </button>
+    {{/if}}
+
+</section>

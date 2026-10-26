@@ -62,16 +62,36 @@ const buildSearchWhere = ({ search, category, workflow }, Op) => {
   return where;
 };
 
-const serializePlague = (plague, currentUser) => {
-  const data = plague.toJSON();
-  const images = Array.isArray(data.images) ? data.images : [];
-  const normalizedImages = images.map((image) => ({
+const normalizeRecordImages = (images) => {
+  if (!Array.isArray(images)) return [];
+  return images.map((image) => ({
     id: image.id,
     url: `/${String(image.url).replace(/^\/+/, '')}`,
     ...(image.caption ? { caption: image.caption } : {}),
     ...(image.source ? { source: image.source } : {}),
     sort_order: image.sort_order || 0,
   }));
+};
+
+const countBiologicalStages = (rawCycle) => {
+  if (!rawCycle) return 0;
+  let cycle = rawCycle;
+  if (typeof cycle === 'string') {
+    try {
+      cycle = JSON.parse(cycle);
+    } catch {
+      return cycle.split(/\r?\n/).filter((s) => s.trim()).length;
+    }
+  }
+  if (Array.isArray(cycle)) return cycle.length;
+  if (typeof cycle === 'object') return Object.keys(cycle).length;
+  return 0;
+};
+
+const serializePlague = (plague, currentUser) => {
+  const data = plague.toJSON();
+  const images = Array.isArray(data.images) ? data.images : [];
+  const normalizedImages = normalizeRecordImages(images);
   const recordPermissions = getContextualPlaguePermissions({
     role: currentUser.role,
     userId: currentUser.id,
@@ -82,6 +102,9 @@ const serializePlague = (plague, currentUser) => {
     ...data,
     image_url: normalizedImages.length > 0 ? normalizedImages[0].url : null,
     images,
+    imageCount: normalizedImages.length,
+    stageCount: countBiologicalStages(data.biological_cycle),
+    hasMip: Boolean(data.control_methods || data.biological_control),
     images_json: JSON.stringify(normalizedImages),
     biological_cycle_json: JSON.stringify(data.biological_cycle || []),
     canEditRecord:
