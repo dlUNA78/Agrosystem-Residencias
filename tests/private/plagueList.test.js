@@ -25,6 +25,7 @@ const readPlagueViewSources = () =>
 
 const readPlagueClientSources = () =>
   readSources([
+    '../../public/js/private/asyncUi.js',
     '../../public/js/private/plagues.js',
     '../../public/js/private/plagues/plagueForm.js',
     '../../public/js/private/plagues/plagueImageEditor.js',
@@ -174,5 +175,18 @@ describe('listado privado paginado de plagas', () => {
     expect(template).toContain('data-stage-advanced');
     expect(template).toContain('data-workflow-pill=');
     expect(clientScript).toContain('CYCLE_PRESETS');
+  });
+
+  it('integra estados de carga asíncronos y actualización parcial sin recargar toda la página', () => {
+    const template = readPlagueViewSources();
+    const clientScript = readPlagueClientSources();
+
+    expect(template).toContain('id="plagues-kpi-region"');
+    expect(template).toContain('id="plagues-results-region"');
+    expect(template).toContain('id="plague-form-server-error"');
+    expect(clientScript).toContain('withButtonLoading');
+    expect(clientScript).toContain('setRegionLoading');
+    expect(clientScript).toContain('swapFragments');
+    expect(clientScript).toContain('refreshPlagueCatalogView');
   });
 });

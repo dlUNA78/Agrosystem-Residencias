@@ -156,6 +156,7 @@ describe('detalle privado de plagas con datos verificables', () => {
       'utf8',
     );
 
+    expect(template).toContain('id="private-editorial-panel"');
     expect(template).toContain('id="publication-checklist"');
     expect(template).toContain('readiness.items');
     expect(template).toContain('readiness.isReady');

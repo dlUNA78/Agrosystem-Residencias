@@ -55,7 +55,7 @@
         <!-- ===================================================== -->
         <!-- TARJETAS KPIS INTERACTIVAS DE FLUJO EDITORIAL         -->
         <!-- ===================================================== -->
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
+        <div id="plagues-kpi-region" class="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
 
             <!-- KPI 1: Total Plagas (Acceso rápido a Todos) -->
             <a href="/private/plagues"
@@ -188,17 +188,19 @@
                         Filtrar
                     </button>
 
-                    {{#if hasActiveFilters}}
-                    <a href="/private/plagues" class="inline-flex items-center justify-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-2.5 text-xs font-bold text-rose-700 transition-colors hover:bg-rose-100">
-                        <i data-lucide="rotate-ccw" class="h-3.5 w-3.5"></i>
-                        Limpiar
-                    </a>
-                    {{/if}}
+                    <span id="plague-clear-filters-slot">
+                        {{#if hasActiveFilters}}
+                        <a href="/private/plagues" data-async-filter-link class="inline-flex items-center justify-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-2.5 text-xs font-bold text-rose-700 transition-colors hover:bg-rose-100">
+                            <i data-lucide="rotate-ccw" class="h-3.5 w-3.5"></i>
+                            Limpiar
+                        </a>
+                        {{/if}}
+                    </span>
                 </div>
             </form>
 
             <!-- Píldoras Rápidas de Bandeja Editorial -->
-            <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5 text-xs">
+            <div id="plagues-toolbar-pills" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5 text-xs">
                 <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground mr-1 shrink-0">Bandeja:</span>
                 <button type="button" data-workflow-pill=""
                     class="px-2.5 py-1 rounded-lg border transition-colors shrink-0 cursor-pointer {{#unless filters.workflow}}bg-[#1b4332] text-white border-[#1b4332] font-bold{{else}}bg-card text-muted-foreground border-border hover:text-foreground hover:bg-muted{{/unless}}">
@@ -231,20 +233,22 @@
             </div>
         </div>
 
-        <div class="flex flex-col gap-1 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-            <p>
-                Mostrando <strong class="text-foreground">{{pagination.fromItem}}–{{pagination.toItem}}</strong>
-                de <strong class="text-foreground">{{pagination.totalItems}}</strong> expedientes fitosanitarios.
-            </p>
-            {{#if hasActiveFilters}}
-            <p class="font-mono text-[10px] uppercase tracking-wider text-[#2d6a4f] font-bold">Vista filtrada activa</p>
-            {{/if}}
+        <div id="plagues-results-region" class="space-y-6">
+            <div class="flex flex-col gap-1 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+                <p>
+                    Mostrando <strong class="text-foreground">{{pagination.fromItem}}–{{pagination.toItem}}</strong>
+                    de <strong class="text-foreground">{{pagination.totalItems}}</strong> expedientes fitosanitarios.
+                </p>
+                {{#if hasActiveFilters}}
+                <p class="font-mono text-[10px] uppercase tracking-wider text-[#2d6a4f] font-bold">Vista filtrada activa</p>
+                {{/if}}
+            </div>
+            {{> private/plagues/grid}}
+            {{> private/plagues/table}}
         </div>
-        {{> private/plagues/grid}}
-        {{> private/plagues/table}}
     </div>
 </main>
 {{> private/plagues/delete-modal}}
 {{> private/plagues/form-modal}}
 <!-- JS de la vista -->
-<script type="module" src="/js/private/plagues.js?v=2.5"></script>
+<script type="module" src="/js/private/plagues.js?v=2.6"></script>

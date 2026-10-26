@@ -1,3 +1,14 @@
+import {
+  buildFormRequest,
+  fetchHtmlDocument,
+  showAsyncToast,
+  swapFragments,
+  withButtonLoading,
+} from '../private/asyncUi.js';
+
+let carouselTimer = null;
+let scrollSpyObserver = null;
+
 const setupCarouselTouch = (slides, onSwipeLeft, onSwipeRight) => {
   if (!slides) return;
   let startX = 0;
@@ -44,12 +55,15 @@ const updateCarouselCounter = (counterEl, currentIndex, total) => {
 };
 
 const initHeroCarousel = () => {
+  clearInterval(carouselTimer);
   const slides = document.getElementById('hero-slides');
   const previousButton = document.getElementById('hero-prev');
   const nextButton = document.getElementById('hero-next');
   const dotsContainer = document.getElementById('hero-dots');
   const counterEl = document.getElementById('hero-counter');
   const items = slides ? Array.from(slides.children) : [];
+
+  if (dotsContainer) dotsContainer.innerHTML = '';
 
   if (items.length <= 1) {
     previousButton?.classList.add('hidden');
@@ -59,15 +73,14 @@ const initHeroCarousel = () => {
   }
 
   let currentIndex = 0;
-  let timer;
 
   const render = (nextIndex) => {
     currentIndex = (nextIndex + items.length) % items.length;
     slides.style.transform = `translateX(-${currentIndex * 100}%)`;
     updateCarouselDots(dotsContainer, currentIndex);
     updateCarouselCounter(counterEl, currentIndex, items.length);
-    clearInterval(timer);
-    timer = setInterval(() => render(currentIndex + 1), 5000);
+    clearInterval(carouselTimer);
+    carouselTimer = setInterval(() => render(currentIndex + 1), 5000);
   };
 
   items.forEach((_, index) => {
@@ -116,6 +129,7 @@ const scrollSubNavToActiveLink = (subNav, link) => {
 };
 
 const initScrollSpy = () => {
+  scrollSpyObserver?.disconnect();
   const subNav = document.getElementById('sub-nav');
   const navLinks = Array.from(document.querySelectorAll('[data-spy-link]'));
   if (navLinks.length === 0) return;
@@ -147,7 +161,7 @@ const initScrollSpy = () => {
     });
   };
 
-  const observer = new IntersectionObserver(
+  scrollSpyObserver = new IntersectionObserver(
     (entries) => {
       const best = getBestIntersectingEntry(entries);
       if (best) {
@@ -157,17 +171,17 @@ const initScrollSpy = () => {
     { rootMargin: '-15% 0px -60% 0px', threshold: [0, 0.2, 0.5] },
   );
 
-  sections.forEach((section) => observer.observe(section));
+  sections.forEach((section) => scrollSpyObserver.observe(section));
 };
 
 const initCopyScientificName = () => {
-  const copyBtn = document.getElementById('copy-scientific-btn');
-  const scientificNameEl = document.getElementById('scientific-name');
-  const feedbackEl = document.getElementById('copy-feedback');
-  if (!copyBtn || !scientificNameEl) return;
+  document.addEventListener('click', async (event) => {
+    const copyBtn = event.target.closest('#copy-scientific-btn');
+    if (!copyBtn) return;
 
-  copyBtn.addEventListener('click', async () => {
-    const textToCopy = scientificNameEl.textContent?.trim();
+    const scientificNameEl = document.getElementById('scientific-name');
+    const feedbackEl = document.getElementById('copy-feedback');
+    const textToCopy = scientificNameEl?.textContent?.trim();
     if (!textToCopy) return;
 
     try {
@@ -203,7 +217,6 @@ const initShareAndPrint = () => {
         });
         return;
       } catch {
-        // Usuario canceló el share nativo
         return;
       }
     }
@@ -249,12 +262,12 @@ const initImageLightbox = () => {
     document.body.classList.remove('overflow-hidden');
   };
 
-  document.querySelectorAll('[data-lightbox-src]').forEach((trigger) => {
-    trigger.addEventListener('click', () => {
-      const src = trigger.getAttribute('data-lightbox-src');
-      const caption = trigger.getAttribute('data-lightbox-caption') || '';
-      if (src) openLightbox(src, caption);
-    });
+  document.addEventListener('click', (event) => {
+    const trigger = event.target.closest('[data-lightbox-src]');
+    if (!trigger) return;
+    const src = trigger.getAttribute('data-lightbox-src');
+    const caption = trigger.getAttribute('data-lightbox-caption') || '';
+    if (src) openLightbox(src, caption);
   });
 
   closeBtn?.addEventListener('click', closeLightbox);
@@ -269,8 +282,9 @@ const initImageLightbox = () => {
 };
 
 const initImageFallbacks = () => {
-  const images = document.querySelectorAll('img');
-  images.forEach((img) => {
+  document.querySelectorAll('img').forEach((img) => {
+    if (img.dataset.fallbackBound === 'true') return;
+    img.dataset.fallbackBound = 'true';
     img.addEventListener('error', () => {
       if (!img.src.includes('/images/test/default.png')) {
         img.src = '/images/test/default.png';
@@ -401,6 +415,56 @@ const initPrivateRelationEditor = () => {
     .forEach(setupRelationGroup);
 };
 
+const rehydrateDetailFragments = () => {
+  initHeroCarousel();
+  initScrollSpy();
+  initImageFallbacks();
+  initReadinessProgressBar();
+  initPrivateRelationEditor();
+};
+
+const submitEditorialFormAsync = (form, submitter) => {
+  const isRelations = form.action.includes('/relations');
+  const loadingLabel = isRelations
+    ? 'Guardando relaciones...'
+    : 'Actualizando estado...';
+
+  withButtonLoading(submitter, loadingLabel, async () => {
+    const { url, init } = buildFormRequest(form, submitter);
+    const result = await fetchHtmlDocument(url, init);
+
+    if (!result.ok) {
+      showAsyncToast(result.errorMessage, 'error');
+      return;
+    }
+
+    swapFragments(result.doc, [
+      '#private-editorial-panel',
+      '#resumen',
+      '#productos',
+      '#distribucion',
+    ]);
+    rehydrateDetailFragments();
+    showAsyncToast(
+      isRelations
+        ? 'Relaciones técnicas guardadas correctamente.'
+        : 'Estado editorial actualizado.',
+      'success',
+    );
+  });
+};
+
+const initPrivateEditorialForms = () => {
+  document.addEventListener('submit', (event) => {
+    const form = event.target.closest('#private-editorial-panel form');
+    if (!form) return;
+    event.preventDefault();
+    const submitter =
+      event.submitter || form.querySelector('button[type="submit"]');
+    submitEditorialFormAsync(form, submitter);
+  });
+};
+
 document.addEventListener('DOMContentLoaded', () => {
   initHeroCarousel();
   initScrollSpy();
@@ -411,4 +475,5 @@ document.addEventListener('DOMContentLoaded', () => {
   initBiologicalCycleTimeline();
   initReadinessProgressBar();
   initPrivateRelationEditor();
+  initPrivateEditorialForms();
 });

@@ -1,5 +1,15 @@
+import {
+  buildFormRequest,
+  fetchHtmlDocument,
+  showAsyncToast,
+  withButtonLoading,
+} from '../asyncUi.js';
 import { createPlagueCycleEditor } from './plagueCycleEditor.js';
 import { createPlagueImageEditor } from './plagueImageEditor.js';
+import {
+  applyCatalogDocument,
+  refreshPlagueCatalogView,
+} from './plagueList.js';
 
 const setInputValue = (form, name, value) => {
   const input = form.querySelector(`[name="${name}"]`);
@@ -13,6 +23,21 @@ const normalizeCategoryForSelect = (rawCategory) => {
     Ácaros: 'Ácaro',
   };
   return map[rawCategory] || rawCategory || '';
+};
+
+const setServerFormError = (message) => {
+  const errorBox = document.getElementById('plague-form-server-error');
+  if (!errorBox) return;
+  if (!message) {
+    errorBox.textContent = '';
+    errorBox.classList.add('hidden');
+    return;
+  }
+  errorBox.textContent = message;
+  errorBox.classList.remove('hidden');
+  document
+    .getElementById('plague-form-scroll')
+    ?.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
 const initModalSectionNav = (modal) => {
@@ -52,18 +77,55 @@ const initModalSectionNav = (modal) => {
   };
 };
 
+const submitPlagueModalForm = ({ form, saveButton, hideModal }) => {
+  const isUpdate = form.action.includes('/private/plagues/update/');
+  const loadingLabel = isUpdate
+    ? 'Guardando cambios...'
+    : 'Creando borrador...';
+
+  withButtonLoading(saveButton, loadingLabel, async () => {
+    setServerFormError('');
+    const { url, init } = buildFormRequest(form);
+    const result = await fetchHtmlDocument(url, init);
+
+    if (!result.ok) {
+      setServerFormError(result.errorMessage);
+      showAsyncToast(result.errorMessage, 'error');
+      return;
+    }
+
+    hideModal();
+    if (isUpdate) {
+      await refreshPlagueCatalogView(
+        window.location.pathname + window.location.search,
+        { pushHistory: false, syncInputs: false },
+      );
+      showAsyncToast('Expediente actualizado correctamente.', 'success');
+      return;
+    }
+
+    applyCatalogDocument(result.doc, '/private/plagues', {
+      pushHistory: true,
+      syncInputs: true,
+    });
+    showAsyncToast('Borrador registrado correctamente.', 'success');
+  });
+};
+
 export const initializePlagueForm = () => {
   const modal = document.getElementById('modal-plague');
   const form = document.getElementById('plague-form');
   if (!modal || !form) return;
 
   const title = document.getElementById('modal-plague-title');
+  const saveButton = document.getElementById('btn-save-plague');
   const saveButtonText = document.getElementById('btn-save-plague-text');
   const imageEditor = createPlagueImageEditor();
   const cycleEditor = createPlagueCycleEditor();
   const resetModalScroll = initModalSectionNav(modal);
 
   const showModal = () => {
+    setServerFormError('');
     modal.classList.remove('hidden');
     modal.classList.add('flex');
     document.body.classList.add('overflow-hidden');
@@ -73,14 +135,13 @@ export const initializePlagueForm = () => {
   const hideModal = () => {
     modal.classList.remove('flex');
     modal.classList.add('hidden');
+    setServerFormError('');
     imageEditor.releasePreviewUrls();
     document.body.classList.remove('overflow-hidden');
   };
 
   const setSaveButtonLabel = (label) => {
-    if (saveButtonText) {
-      saveButtonText.textContent = label;
-    }
+    if (saveButtonText) saveButtonText.textContent = label;
   };
 
   const openCreateModal = () => {
@@ -94,13 +155,9 @@ export const initializePlagueForm = () => {
   };
 
   const openEditModal = (button) => {
-    if (!button) return;
-    const data = button.dataset;
-    const id = data.id || '';
-    if (!id) {
-      console.error('No se encontró el ID de la plaga.');
-      return;
-    }
+    const data = button?.dataset;
+    const id = data?.id || '';
+    if (!id) return;
 
     setInputValue(form, 'name', data.name);
     setInputValue(form, 'scientific_name', data.scientificName);
@@ -119,15 +176,20 @@ export const initializePlagueForm = () => {
     showModal();
   };
 
-  document
-    .getElementById('btn-add-plague')
-    ?.addEventListener('click', openCreateModal);
-  document
-    .getElementById('btn-add-plague-card')
-    ?.addEventListener('click', openCreateModal);
-  document.querySelectorAll('.btn-edit-plague').forEach((button) => {
-    button.addEventListener('click', () => openEditModal(button));
+  document.addEventListener('click', (event) => {
+    if (event.target.closest('#btn-add-plague, #btn-add-plague-card')) {
+      openCreateModal();
+      return;
+    }
+    const editBtn = event.target.closest('.btn-edit-plague');
+    if (editBtn) openEditModal(editBtn);
   });
+
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    submitPlagueModalForm({ form, saveButton, hideModal });
+  });
+
   document
     .getElementById('modal-plague-close')
     ?.addEventListener('click', hideModal);

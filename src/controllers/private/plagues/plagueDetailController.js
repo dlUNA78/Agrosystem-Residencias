@@ -114,7 +114,8 @@ export const getPlagueDetail = async (req, res) => {
         !permissions.canManageRelations,
       relationEditor,
       ...detail,
-      extraScripts: '<script src="/js/shared/plague-detail.js?v=2.5"></script>',
+      extraScripts:
+        '<script type="module" src="/js/shared/plague-detail.js?v=2.6"></script>',
     });
   } catch (error) {
     console.error('Error al cargar el detalle de la plaga:', error);
