@@ -2,6 +2,10 @@ import { describe, expect, it } from '@jest/globals';
 import fs from 'node:fs';
 
 import { buildPlagueDetailView } from '../../src/services/plagueDetailService.js';
+import {
+  buildPlaguePdfFilename,
+  generatePlaguePdfBuffer,
+} from '../../src/services/plaguePdfService.js';
 
 describe('detalle privado de plagas con datos verificables', () => {
   it('presenta el ciclo biológico y las relaciones cargadas desde Sequelize', () => {
@@ -323,5 +327,74 @@ describe('detalle privado de plagas con datos verificables', () => {
     expect(template).not.toMatch(/\sstyle=/i);
     expect(detailClient).toContain('confirmAsyncAction');
     expect(detailClient).toContain('initializePlagueForm');
+  });
+
+  it('genera localmente un PDF institucional válido con los datos del expediente y ofrece modal de vista previa sin código inline', async () => {
+    const detail = buildPlagueDetailView({
+      id: 12,
+      name: 'Gusano cogollero',
+      scientific_name: 'Spodoptera frugiperda',
+      category: 'Insectos',
+      risk_level: 'Alto',
+      description: 'Lepidóptero polífago de importancia económica.',
+      symptoms: 'Ventanas translúcidas en hojas; Daño en cogollo.',
+      control_methods: 'Monitoreo con trampas de feromonas.',
+      biological_control: 'Trichogramma spp.',
+      biological_cycle: [
+        {
+          title: 'Larva',
+          duration: '14 días',
+          plantZone: 'Cogollo',
+          damageLevel: 'Severo',
+          isControlWindow: true,
+          recommendedAction: 'Aplicación dirigida al verticilo.',
+        },
+      ],
+      crops: [{ id: 1, name: 'Maíz', scientific_name: 'Zea mays' }],
+      products: [
+        {
+          id: 2,
+          name: 'Insumo biológico',
+          active_ingredient: 'Bacillus thuringiensis',
+          validation_status: 'Validado',
+        },
+      ],
+      regions: [
+        {
+          name: 'Sinaloa',
+          lat: 25.17,
+          lng: -107.48,
+          PlagueRegions: { risk_level: 'Alto' },
+        },
+      ],
+      verified_by: 'Dra. Elena Pérez',
+      verified_at: '2026-08-20T12:00:00.000Z',
+    });
+
+    expect(buildPlaguePdfFilename(detail.plague)).toBe(
+      'INIFAP-Expediente-Plaga-12-gusano-cogollero.pdf',
+    );
+
+    const pdfBuffer = await generatePlaguePdfBuffer(detail, {
+      isPrivate: true,
+    });
+    expect(Buffer.isBuffer(pdfBuffer)).toBe(true);
+    expect(pdfBuffer.length).toBeGreaterThan(800);
+    expect(pdfBuffer.subarray(0, 6).toString('ascii')).toBe('%PDF-1');
+
+    const pdfModalPartial = fs.readFileSync(
+      new URL(
+        '../../src/views/partials/shared/plague-pdf-modal.hbs',
+        import.meta.url,
+      ),
+      'utf8',
+    );
+    expect(pdfModalPartial).toContain('id="plague-pdf-preview-modal"');
+    expect(pdfModalPartial).toContain('id="pdf-download-btn"');
+    expect(pdfModalPartial).toContain('format=pdf&download=1');
+    expect(pdfModalPartial).toContain('id="pdf-print-action-btn"');
+    expect(pdfModalPartial).not.toMatch(
+      /<script\b|<style\b|\sstyle=|\sonclick=|\sonerror=/i,
+    );
   });
 });

@@ -1,6 +1,7 @@
 import db from '../../models/index.js';
 import { Op } from 'sequelize';
 import { buildPlagueDetailView } from '../../services/plagueDetailService.js';
+import { sendPlaguePdfResponse } from '../../services/plaguePdfService.js';
 import { PLAGUE_WORKFLOW_STATUSES } from '../../services/plagueWorkflowService.js';
 import { PRODUCT_WORKFLOW_STATUSES } from '../../services/productWorkflowService.js';
 import {
@@ -363,6 +364,12 @@ export const renderPlagueDetail = async (req, res) => {
 
     const plainPlague = plague.toJSON();
     const detail = buildPlagueDetailView(plainPlague);
+    if (req.query?.format === 'pdf') {
+      return sendPlaguePdfResponse(res, detail, {
+        download: req.query.download === '1',
+        isPrivate: false,
+      });
+    }
     const similarPlagues = await loadSimilarPublishedPlagues(plainPlague);
 
     res.render('shared/plague-detail', {
@@ -373,7 +380,7 @@ export const renderPlagueDetail = async (req, res) => {
       similarPlagues,
       ...detail,
       extraScripts:
-        '<script type="module" src="/js/shared/plague-detail.js?v=2.7"></script>',
+        '<script type="module" src="/js/shared/plague-detail.js?v=2.8"></script>',
     });
   } catch (error) {
     console.log('=== CATCH ERROR IN RENDER PLAGUE DETAIL ===');

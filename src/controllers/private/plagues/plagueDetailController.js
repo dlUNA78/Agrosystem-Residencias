@@ -4,6 +4,7 @@ import {
   getPlaguePermissions,
 } from '../../../services/plagueAuthorizationService.js';
 import { buildPlagueDetailView } from '../../../services/plagueDetailService.js';
+import { sendPlaguePdfResponse } from '../../../services/plaguePdfService.js';
 import { buildPlagueRelationEditor } from '../../../services/plagueRelationService.js';
 import { buildPlaguePublicationReadiness } from '../../../services/plagueReadinessService.js';
 import { isPlagueEditable } from '../../../services/plagueWorkflowService.js';
@@ -147,6 +148,12 @@ export const getPlagueDetail = async (req, res) => {
 
     const plagueData = plague.toJSON();
     const detail = buildPlagueDetailView(plagueData);
+    if (req.query?.format === 'pdf') {
+      return sendPlaguePdfResponse(res, detail, {
+        download: req.query.download === '1',
+        isPrivate: true,
+      });
+    }
     const readiness = buildPlaguePublicationReadiness(plagueData);
     const editState = resolveDetailEditState(req.user, plagueData);
     const relationEditor = editState.canEditRelations
@@ -164,7 +171,7 @@ export const getPlagueDetail = async (req, res) => {
       relationEditor,
       ...detail,
       extraScripts:
-        '<script type="module" src="/js/shared/plague-detail.js?v=2.7"></script>',
+        '<script type="module" src="/js/shared/plague-detail.js?v=2.8"></script>',
     });
   } catch (error) {
     console.error('Error al cargar el detalle de la plaga:', error);

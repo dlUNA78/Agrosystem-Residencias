@@ -54,6 +54,24 @@ describe('🧪 Suite de Pruebas Públicas - Módulo de Plagas', () => {
       expect(response.status).toBe(404);
       expect(response.status).not.toBe(500);
     });
+
+    it('GET /plagues/:id?format=pdf&download=1 debe generar y entregar un PDF institucional descargable', async () => {
+      const response = await request(app)
+        .get(`/plagues/${samplePlague.id}?format=pdf&download=1`)
+        .buffer(true)
+        .parse((res, callback) => {
+          const chunks = [];
+          res.on('data', (chunk) => chunks.push(chunk));
+          res.on('end', () => callback(null, Buffer.concat(chunks)));
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.headers['content-type']).toContain('application/pdf');
+      expect(response.headers['content-disposition']).toContain(
+        'attachment; filename="INIFAP-Expediente-Plaga-',
+      );
+      expect(response.body.subarray(0, 6).toString('ascii')).toBe('%PDF-1');
+    });
   });
 
   // 2. Paginación y Filtros

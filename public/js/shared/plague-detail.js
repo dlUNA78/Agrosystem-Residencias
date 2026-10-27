@@ -230,15 +230,131 @@ const shareCurrentPlagueSheet = async (shareBtn) => {
   }
 };
 
+const setPdfPreviewTab = (modal, activeTab) => {
+  const sheetPane = modal.querySelector('#pdf-sheet-preview-pane');
+  const nativePane = modal.querySelector('#pdf-native-preview-pane');
+  const nativeIframe = modal.querySelector('#pdf-native-iframe');
+  const isNative = activeTab === 'native';
+
+  sheetPane?.classList.toggle('hidden', isNative);
+  nativePane?.classList.toggle('hidden', !isNative);
+
+  modal.querySelectorAll('[data-pdf-tab]').forEach((tabBtn) => {
+    const selected = tabBtn.getAttribute('data-pdf-tab') === activeTab;
+    tabBtn.classList.toggle('bg-card', selected);
+    tabBtn.classList.toggle('font-bold', selected);
+    tabBtn.classList.toggle('text-[#1b4332]', selected);
+    tabBtn.classList.toggle('shadow-2xs', selected);
+    tabBtn.classList.toggle('text-muted-foreground', !selected);
+  });
+
+  if (isNative && nativeIframe) {
+    const baseUrl = nativeIframe.getAttribute('data-pdf-url');
+    if (baseUrl) {
+      nativeIframe.src = `${baseUrl}&t=${Date.now()}#view=FitH`;
+    }
+  }
+};
+
+const openPdfPreviewModal = () => {
+  const modal = document.getElementById('plague-pdf-preview-modal');
+  if (!modal) return;
+  setPdfPreviewTab(modal, 'sheet');
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+  document.body.classList.add('overflow-hidden');
+};
+
+const closePdfPreviewModal = () => {
+  const modal = document.getElementById('plague-pdf-preview-modal');
+  if (!modal) return;
+  modal.classList.remove('flex');
+  modal.classList.add('hidden');
+  document.body.classList.remove('overflow-hidden');
+};
+
+const triggerPdfDocumentPrint = (printBtn) => {
+  const pdfUrl = printBtn.getAttribute('data-pdf-print-url');
+  const printFrame = document.getElementById('pdf-hidden-print-frame');
+  if (!pdfUrl || !printFrame) {
+    window.print();
+    return;
+  }
+
+  withButtonLoading(printBtn, 'Preparando...', async () => {
+    await new Promise((resolve) => {
+      const done = () => {
+        printFrame.removeEventListener('load', done);
+        resolve();
+      };
+      printFrame.addEventListener('load', done);
+      printFrame.src = `${pdfUrl}&t=${Date.now()}`;
+      setTimeout(done, 3500);
+    });
+
+    try {
+      printFrame.contentWindow?.focus();
+      printFrame.contentWindow?.print();
+    } catch {
+      window.open(pdfUrl, '_blank', 'noopener');
+    }
+  });
+};
+
+const handlePdfModalClick = (event) => {
+  const tabBtn = event.target.closest('[data-pdf-tab]');
+  if (tabBtn) {
+    const modal = document.getElementById('plague-pdf-preview-modal');
+    if (modal) setPdfPreviewTab(modal, tabBtn.getAttribute('data-pdf-tab'));
+    return true;
+  }
+
+  const printActionBtn = event.target.closest('#pdf-print-action-btn');
+  if (printActionBtn) {
+    triggerPdfDocumentPrint(printActionBtn);
+    return true;
+  }
+
+  if (event.target.closest('#pdf-download-btn')) {
+    showAsyncToast('Descargando ficha técnica en PDF...', 'info');
+    return true;
+  }
+
+  if (
+    event.target.closest('#pdf-preview-close-btn') ||
+    event.target.id === 'plague-pdf-preview-modal'
+  ) {
+    closePdfPreviewModal();
+    return true;
+  }
+
+  return false;
+};
+
 const initShareAndPrint = () => {
   document.addEventListener('click', (event) => {
     if (event.target.closest('#print-plague-btn')) {
-      window.print();
+      openPdfPreviewModal();
       return;
     }
+
     const shareBtn = event.target.closest('#share-plague-btn');
     if (shareBtn) {
       shareCurrentPlagueSheet(shareBtn);
+      return;
+    }
+
+    handlePdfModalClick(event);
+  });
+
+  document.addEventListener('keydown', (event) => {
+    const modal = document.getElementById('plague-pdf-preview-modal');
+    if (
+      event.key === 'Escape' &&
+      modal &&
+      !modal.classList.contains('hidden')
+    ) {
+      closePdfPreviewModal();
     }
   });
 };
@@ -436,6 +552,7 @@ const DETAIL_SWAP_SELECTORS = [
   '#manejo-integrado',
   '#productos',
   '#distribucion',
+  '#plague-pdf-preview-modal',
 ];
 
 const DEFAULT_MAP_HINT =

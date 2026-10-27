@@ -361,9 +361,13 @@ input {
     margin: 1.2cm;
   }
 
+  html,
   body {
     background: #ffffff !important;
     color: #111827 !important;
+    overflow: visible !important;
+    height: auto !important;
+    max-width: none !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
@@ -376,6 +380,7 @@ input {
   #sidebar-backdrop,
   #private-editorial-panel,
   #image-lightbox-modal,
+  #plague-pdf-preview-modal,
   #modal-plague,
   #modal-delete-plague,
   #async-toast-stack,
