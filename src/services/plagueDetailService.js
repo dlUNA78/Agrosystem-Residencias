@@ -1,4 +1,10 @@
 import {
+  MAP_HEIGHT,
+  MAP_WIDTH,
+  getStatePaths,
+  projectMexicoPoint,
+} from './mexicoGeo.js';
+import {
   buildEnrichedBiologicalCycle,
   extractBiologicalAgents,
   splitTextClauses,
@@ -190,6 +196,120 @@ const buildCrops = (crops) => {
   }));
 };
 
+const normalizeGeoKey = (value) =>
+  String(value || '')
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .toLowerCase()
+    .trim();
+
+const STATE_NAME_ALIASES = Object.freeze({
+  'estado de mexico': 'mexico',
+  edomex: 'mexico',
+  cdmx: 'ciudad de mexico',
+  'distrito federal': 'ciudad de mexico',
+  'coahuila de zaragoza': 'coahuila',
+  'michoacan de ocampo': 'michoacan',
+  'veracruz de ignacio de la llave': 'veracruz',
+});
+
+const MAP_RISK_STYLES = Object.freeze({
+  Crítico: {
+    stateClass: 'fill-rose-400/80 stroke-rose-800',
+    pinClass: 'fill-rose-600 stroke-white',
+    haloClass: 'fill-rose-500/30',
+  },
+  Moderado: {
+    stateClass: 'fill-amber-300/85 stroke-amber-800',
+    pinClass: 'fill-amber-500 stroke-white',
+    haloClass: 'fill-amber-500/30',
+  },
+  Bajo: {
+    stateClass: 'fill-emerald-400/80 stroke-emerald-800',
+    pinClass: 'fill-emerald-600 stroke-white',
+    haloClass: 'fill-emerald-500/30',
+  },
+});
+
+const DEFAULT_MAP_RISK_STYLE = Object.freeze({
+  stateClass: 'fill-emerald-400/75 stroke-emerald-800',
+  pinClass: 'fill-[#1b4332] stroke-white',
+  haloClass: 'fill-emerald-600/25',
+});
+
+const getMapRiskStyle = (riskLabel) =>
+  MAP_RISK_STYLES[riskLabel] || DEFAULT_MAP_RISK_STYLE;
+
+const buildStateIncidenceLookup = (incidenceRegions) => {
+  const byStateKey = new Map();
+  incidenceRegions.forEach((region, index) => {
+    const rawKey = normalizeGeoKey(region.name);
+    const canonicalKey = STATE_NAME_ALIASES[rawKey] || rawKey;
+    if (canonicalKey && !byStateKey.has(canonicalKey)) {
+      byStateKey.set(canonicalKey, { region, index });
+    }
+  });
+  return byStateKey;
+};
+
+const buildMexicoIncidenceMap = (incidenceRegions) => {
+  if (!Array.isArray(incidenceRegions) || incidenceRegions.length === 0) {
+    return null;
+  }
+
+  const byStateKey = buildStateIncidenceLookup(incidenceRegions);
+  let matchedStateCount = 0;
+
+  const states = getStatePaths().map((state) => {
+    const stateKey = normalizeGeoKey(state.estado);
+    const match = byStateKey.get(stateKey);
+    if (!match) {
+      return {
+        ...state,
+        isAffected: false,
+        regionIndex: null,
+        riskLabel: null,
+        stateClass: 'fill-slate-200/80 stroke-white',
+      };
+    }
+
+    matchedStateCount += 1;
+    const style = getMapRiskStyle(match.region.riskLabel);
+    return {
+      ...state,
+      isAffected: true,
+      regionIndex: match.index,
+      riskLabel: match.region.riskLabel,
+      stateClass: style.stateClass,
+    };
+  });
+
+  const markers = incidenceRegions.flatMap((region, index) => {
+    if (!region.hasCoords) return [];
+    const point = projectMexicoPoint(region.lng, region.lat);
+    if (!point) return [];
+    const style = getMapRiskStyle(region.riskLabel);
+    return [
+      {
+        regionIndex: index,
+        name: region.name,
+        riskLabel: region.riskLabel,
+        x: point.x,
+        y: point.y,
+        pinClass: style.pinClass,
+        haloClass: style.haloClass,
+      },
+    ];
+  });
+
+  return {
+    viewBox: `0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`,
+    states,
+    markers,
+    matchedStateCount,
+  };
+};
+
 export const buildPlagueDetailView = (plagueData) => {
   const riskKey = String(plagueData.risk_level || '')
     .toLowerCase()
@@ -251,6 +371,7 @@ export const buildPlagueDetailView = (plagueData) => {
     relatedProducts,
     incidenceRegions,
     incidenceRegionsJson: JSON.stringify(incidenceRegions),
+    mexicoMap: buildMexicoIncidenceMap(incidenceRegions),
     relatedCrops,
     regionSummary: incidenceRegions.map((region) => region.name).join(', '),
     cropSummary: relatedCrops

@@ -23,6 +23,24 @@ const TOAST_THEMES = {
   },
 };
 
+const CONFIRM_THEMES = {
+  editorial: {
+    badge: 'bg-[#e6f0e6] text-[#1b4332]',
+    button: 'bg-[#1b4332] hover:bg-[#2d6a4f] text-white',
+    icon: TOAST_THEMES.success.icon,
+  },
+  warning: {
+    badge: 'bg-amber-100 text-amber-800',
+    button: 'bg-amber-600 hover:bg-amber-700 text-white',
+    icon: TOAST_THEMES.error.icon,
+  },
+  danger: {
+    badge: 'bg-rose-100 text-rose-700',
+    button: 'bg-rose-600 hover:bg-rose-700 text-white',
+    icon: TOAST_THEMES.error.icon,
+  },
+};
+
 const ensureProgressBar = () => {
   let root = document.getElementById('async-top-progress');
   if (!root) {
@@ -321,3 +339,114 @@ export const swapFragments = (doc, selectors = []) => {
   });
   refreshLucideIcons();
 };
+
+const buildConfirmDialogElements = ({
+  title,
+  description,
+  confirmLabel,
+  cancelLabel,
+  variant,
+}) => {
+  const theme = CONFIRM_THEMES[variant] || CONFIRM_THEMES.editorial;
+
+  const wrapper = document.createElement('div');
+  wrapper.setAttribute('role', 'dialog');
+  wrapper.setAttribute('aria-modal', 'true');
+  wrapper.className =
+    "no-print fixed inset-0 z-[90] flex items-center justify-center p-4 font-['Geist']";
+
+  const backdrop = document.createElement('div');
+  backdrop.className = 'absolute inset-0 bg-black/45 backdrop-blur-xs';
+
+  const panel = document.createElement('div');
+  panel.className =
+    'relative z-10 w-full max-w-md overflow-hidden rounded-2xl border border-border/80 bg-card shadow-2xl';
+
+  const body = document.createElement('div');
+  body.className = 'flex items-start gap-3.5 p-6';
+
+  const badge = document.createElement('span');
+  badge.className = `flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${theme.badge}`;
+  badge.innerHTML = theme.icon;
+
+  const copy = document.createElement('div');
+  copy.className = 'min-w-0 flex-1';
+
+  const heading = document.createElement('h3');
+  heading.className = 'text-base font-headline font-bold text-foreground';
+  heading.textContent = title;
+
+  const desc = document.createElement('p');
+  desc.className = 'mt-1.5 text-xs leading-relaxed text-muted-foreground';
+  desc.textContent = description;
+
+  copy.append(heading, desc);
+  body.append(badge, copy);
+
+  const footer = document.createElement('div');
+  footer.className =
+    'flex items-center justify-end gap-2 border-t border-border/60 bg-muted/35 px-6 py-3.5';
+
+  const cancelBtn = document.createElement('button');
+  cancelBtn.type = 'button';
+  cancelBtn.className =
+    'rounded-xl border border-border/80 bg-card px-4 py-2 text-xs font-bold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground cursor-pointer';
+  cancelBtn.textContent = cancelLabel;
+
+  const confirmBtn = document.createElement('button');
+  confirmBtn.type = 'button';
+  confirmBtn.className = `rounded-xl px-4 py-2 text-xs font-bold shadow-2xs transition-colors cursor-pointer ${theme.button}`;
+  confirmBtn.textContent = confirmLabel;
+
+  footer.append(cancelBtn, confirmBtn);
+  panel.append(body, footer);
+  wrapper.append(backdrop, panel);
+
+  return { wrapper, backdrop, cancelBtn, confirmBtn };
+};
+
+export const confirmAsyncAction = ({
+  title = '¿Confirmar acción?',
+  description = 'Verifica que deseas continuar con esta operación.',
+  confirmLabel = 'Confirmar',
+  cancelLabel = 'Cancelar',
+  variant = 'editorial',
+} = {}) =>
+  new Promise((resolve) => {
+    const previousFocus = document.activeElement;
+    const { wrapper, backdrop, cancelBtn, confirmBtn } =
+      buildConfirmDialogElements({
+        title,
+        description,
+        confirmLabel,
+        cancelLabel,
+        variant,
+      });
+
+    let settled = false;
+    const finish = (accepted) => {
+      if (settled) return;
+      settled = true;
+      document.removeEventListener('keydown', onKeyDown, true);
+      wrapper.remove();
+      if (previousFocus && typeof previousFocus.focus === 'function') {
+        previousFocus.focus();
+      }
+      resolve(accepted);
+    };
+
+    const onKeyDown = (event) => {
+      if (event.key !== 'Escape') return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      finish(false);
+    };
+
+    cancelBtn.addEventListener('click', () => finish(false));
+    backdrop.addEventListener('click', () => finish(false));
+    confirmBtn.addEventListener('click', () => finish(true));
+    document.addEventListener('keydown', onKeyDown, true);
+
+    document.body.appendChild(wrapper);
+    confirmBtn.focus();
+  });

@@ -1,3 +1,5 @@
+import { confirmAsyncAction } from '../asyncUi.js';
+
 const MAX_STAGES = 20;
 
 const CYCLE_PRESETS = Object.freeze({
@@ -322,13 +324,24 @@ const populateStageInputs = (stageElement, stage) => {
   bindAdvancedMetaWatcher(stageElement, stage);
 };
 
-const hasAnyTypedStageContent = (builder) => {
-  if (!builder) return false;
+const hasStageContent = (stageElement) => {
+  if (!stageElement) return false;
   return Array.from(
-    builder.querySelectorAll(
-      '[name="biological_cycle_title[]"], [name="biological_cycle_description[]"]',
+    stageElement.querySelectorAll(
+      '[name="biological_cycle_title[]"], [name="biological_cycle_duration[]"], [name="biological_cycle_description[]"], [name="biological_cycle_zone[]"], [name="biological_cycle_action[]"]',
     ),
   ).some((input) => input.value.trim().length > 0);
+};
+
+const hasAnyTypedStageContent = (builder) => {
+  if (!builder) return false;
+  return Array.from(builder.querySelectorAll('[data-biological-stage]')).some(
+    hasStageContent,
+  );
+};
+
+const notifyCycleMutated = (builder) => {
+  builder?.dispatchEvent(new Event('change', { bubbles: true }));
 };
 
 export const createPlagueCycleEditor = () => {
@@ -377,6 +390,7 @@ export const createPlagueCycleEditor = () => {
       if (prev) {
         builder.insertBefore(stageElement, prev);
         updateStageNumbers();
+        notifyCycleMutated(builder);
       }
     });
 
@@ -385,15 +399,27 @@ export const createPlagueCycleEditor = () => {
       if (next) {
         builder.insertBefore(next, stageElement);
         updateStageNumbers();
+        notifyCycleMutated(builder);
       }
     });
 
-    removeButton?.addEventListener('click', () => {
+    removeButton?.addEventListener('click', async () => {
+      if (hasStageContent(stageElement)) {
+        const confirmed = await confirmAsyncAction({
+          title: '¿Quitar esta etapa del ciclo?',
+          description:
+            'Se eliminará la información capturada en esta fase biológica dentro del formulario.',
+          confirmLabel: 'Quitar etapa',
+          variant: 'danger',
+        });
+        if (!confirmed) return;
+      }
       stageElement.remove();
       if (builder.querySelectorAll('[data-biological-stage]').length === 0) {
         addFallbackStage();
       }
       updateStageNumbers();
+      notifyCycleMutated(builder);
     });
   };
 
@@ -425,24 +451,30 @@ export const createPlagueCycleEditor = () => {
   };
 
   document.querySelectorAll('[data-cycle-preset]').forEach((presetBtn) => {
-    presetBtn.addEventListener('click', () => {
+    presetBtn.addEventListener('click', async () => {
       const key = presetBtn.getAttribute('data-cycle-preset');
       const preset = CYCLE_PRESETS[key];
       if (!preset) return;
 
-      if (
-        hasAnyTypedStageContent(builder) &&
-        !window.confirm(
-          '¿Reemplazar las etapas actuales con esta plantilla base?',
-        )
-      ) {
-        return;
+      if (hasAnyTypedStageContent(builder)) {
+        const confirmed = await confirmAsyncAction({
+          title: '¿Aplicar plantilla sobre las etapas actuales?',
+          description:
+            'Las etapas que ya escribiste en el ciclo biológico serán reemplazadas por esta plantilla base.',
+          confirmLabel: 'Aplicar plantilla',
+          variant: 'warning',
+        });
+        if (!confirmed) return;
       }
       reset(preset);
+      notifyCycleMutated(builder);
     });
   });
 
-  addButton?.addEventListener('click', () => addStage());
+  addButton?.addEventListener('click', () => {
+    addStage();
+    notifyCycleMutated(builder);
+  });
   reset();
 
   return { reset };

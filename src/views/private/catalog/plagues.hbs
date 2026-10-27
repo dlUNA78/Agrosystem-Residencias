@@ -36,12 +36,6 @@
 
             <!-- Botones de Acción (Protegidos por RBAC) -->
             <div class="flex items-center gap-2.5 shrink-0">
-                <button type="button" id="btn-export-plagues"
-                    class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-border/80 bg-card text-foreground text-xs font-bold hover:bg-muted transition-all shadow-2xs cursor-pointer">
-                    <i data-lucide="printer" class="w-4 h-4"></i>
-                    <span>Imprimir / Exportar</span>
-                </button>
-
                 {{#if permissions.canCreate}}
                 <button type="button" id="btn-add-plague"
                     class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#1b4332] text-white text-xs font-bold hover:bg-[#2d6a4f] transition-all shadow-md active:scale-95 cursor-pointer">
@@ -251,4 +245,4 @@
 {{> private/plagues/delete-modal}}
 {{> private/plagues/form-modal}}
 <!-- JS de la vista -->
-<script type="module" src="/js/private/plagues.js?v=2.6"></script>
+<script type="module" src="/js/private/plagues.js?v=2.7"></script>

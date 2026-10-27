@@ -1,15 +1,12 @@
 import {
   buildFormRequest,
+  confirmAsyncAction,
   fetchHtmlDocument,
   showAsyncToast,
   withButtonLoading,
 } from '../asyncUi.js';
 import { createPlagueCycleEditor } from './plagueCycleEditor.js';
 import { createPlagueImageEditor } from './plagueImageEditor.js';
-import {
-  applyCatalogDocument,
-  refreshPlagueCatalogView,
-} from './plagueList.js';
 
 const setInputValue = (form, name, value) => {
   const input = form.querySelector(`[name="${name}"]`);
@@ -77,13 +74,41 @@ const initModalSectionNav = (modal) => {
   };
 };
 
-const submitPlagueModalForm = ({ form, saveButton, hideModal }) => {
+const confirmPlagueSave = (isUpdate) => {
+  if (isUpdate) {
+    return confirmAsyncAction({
+      title: '¿Guardar cambios en el expediente?',
+      description:
+        'Se actualizarán los datos técnicos, etapas del ciclo biológico y galería fotográfica de esta plaga.',
+      confirmLabel: 'Guardar cambios',
+      variant: 'editorial',
+    });
+  }
+  return confirmAsyncAction({
+    title: '¿Registrar nuevo borrador de plaga?',
+    description:
+      'Se creará el expediente en estado borrador para vincular cultivos, productos y regiones antes de enviarlo a revisión.',
+    confirmLabel: 'Crear borrador',
+    variant: 'editorial',
+  });
+};
+
+const submitPlagueModalForm = async ({
+  form,
+  saveButton,
+  forceHideModal,
+  onAfterSave,
+}) => {
+  if (!form.reportValidity()) return;
   const isUpdate = form.action.includes('/private/plagues/update/');
+  const confirmed = await confirmPlagueSave(isUpdate);
+  if (!confirmed) return;
+
   const loadingLabel = isUpdate
     ? 'Guardando cambios...'
     : 'Creando borrador...';
 
-  withButtonLoading(saveButton, loadingLabel, async () => {
+  await withButtonLoading(saveButton, loadingLabel, async () => {
     setServerFormError('');
     const { url, init } = buildFormRequest(form);
     const result = await fetchHtmlDocument(url, init);
@@ -94,25 +119,20 @@ const submitPlagueModalForm = ({ form, saveButton, hideModal }) => {
       return;
     }
 
-    hideModal();
-    if (isUpdate) {
-      await refreshPlagueCatalogView(
-        window.location.pathname + window.location.search,
-        { pushHistory: false, syncInputs: false },
-      );
-      showAsyncToast('Expediente actualizado correctamente.', 'success');
-      return;
+    forceHideModal();
+    if (onAfterSave) {
+      await onAfterSave({ isUpdate, doc: result.doc });
     }
-
-    applyCatalogDocument(result.doc, '/private/plagues', {
-      pushHistory: true,
-      syncInputs: true,
-    });
-    showAsyncToast('Borrador registrado correctamente.', 'success');
+    showAsyncToast(
+      isUpdate
+        ? 'Expediente actualizado correctamente.'
+        : 'Borrador registrado correctamente.',
+      'success',
+    );
   });
 };
 
-export const initializePlagueForm = () => {
+export const initializePlagueForm = ({ onAfterSave } = {}) => {
   const modal = document.getElementById('modal-plague');
   const form = document.getElementById('plague-form');
   if (!modal || !form) return;
@@ -123,21 +143,49 @@ export const initializePlagueForm = () => {
   const imageEditor = createPlagueImageEditor();
   const cycleEditor = createPlagueCycleEditor();
   const resetModalScroll = initModalSectionNav(modal);
+  let isDirty = false;
+
+  const markClean = () => {
+    isDirty = false;
+  };
+  form.addEventListener('input', () => {
+    isDirty = true;
+  });
+  form.addEventListener('change', () => {
+    isDirty = true;
+  });
 
   const showModal = () => {
     setServerFormError('');
+    markClean();
     modal.classList.remove('hidden');
     modal.classList.add('flex');
     document.body.classList.add('overflow-hidden');
     resetModalScroll();
   };
 
-  const hideModal = () => {
+  const forceHideModal = () => {
     modal.classList.remove('flex');
     modal.classList.add('hidden');
+    markClean();
     setServerFormError('');
     imageEditor.releasePreviewUrls();
     document.body.classList.remove('overflow-hidden');
+  };
+
+  const requestCloseModal = async () => {
+    if (isDirty) {
+      const discard = await confirmAsyncAction({
+        title: '¿Descartar cambios sin guardar?',
+        description:
+          'Tienes modificaciones pendientes en el formulario que se perderán si cierras esta ventana.',
+        confirmLabel: 'Descartar cambios',
+        cancelLabel: 'Seguir editando',
+        variant: 'danger',
+      });
+      if (!discard) return;
+    }
+    forceHideModal();
   };
 
   const setSaveButtonLabel = (label) => {
@@ -187,21 +235,22 @@ export const initializePlagueForm = () => {
 
   form.addEventListener('submit', (event) => {
     event.preventDefault();
-    submitPlagueModalForm({ form, saveButton, hideModal });
+    submitPlagueModalForm({ form, saveButton, forceHideModal, onAfterSave });
   });
 
   document
     .getElementById('modal-plague-close')
-    ?.addEventListener('click', hideModal);
+    ?.addEventListener('click', requestCloseModal);
   document
     .getElementById('modal-plague-cancel')
-    ?.addEventListener('click', hideModal);
+    ?.addEventListener('click', requestCloseModal);
   document
     .getElementById('modal-plague-backdrop')
-    ?.addEventListener('click', hideModal);
+    ?.addEventListener('click', requestCloseModal);
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape' && !modal.classList.contains('hidden')) {
-      hideModal();
+      event.preventDefault();
+      requestCloseModal();
     }
   });
 };

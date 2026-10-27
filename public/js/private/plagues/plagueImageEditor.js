@@ -1,3 +1,5 @@
+import { confirmAsyncAction } from '../asyncUi.js';
+
 const MAX_IMAGES = 10;
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
@@ -159,10 +161,21 @@ export const createPlagueImageEditor = () => {
           onRemove:
             image.id === null
               ? null
-              : () => {
+              : async () => {
+                  const confirmed = await confirmAsyncAction({
+                    title: '¿Quitar fotografía guardada?',
+                    description:
+                      'Esta imagen actual quedará marcada para borrarse cuando guardes los cambios del expediente.',
+                    confirmLabel: 'Quitar imagen',
+                    variant: 'warning',
+                  });
+                  if (!confirmed) return;
                   removedIds.add(image.id);
                   if (removedIdsInput) {
                     removedIdsInput.value = [...removedIds].join(',');
+                    removedIdsInput.dispatchEvent(
+                      new Event('change', { bubbles: true }),
+                    );
                   }
                   setError();
                   render();
@@ -182,6 +195,7 @@ export const createPlagueImageEditor = () => {
           onRemove: () => {
             selectedFiles.splice(index, 1);
             syncInput();
+            input?.dispatchEvent(new Event('input', { bubbles: true }));
             setError();
             render();
           },
@@ -232,6 +246,7 @@ export const createPlagueImageEditor = () => {
     selectedFiles.push(...uniqueAdditions);
     setError();
     syncInput();
+    input?.dispatchEvent(new Event('input', { bubbles: true }));
     render();
   };
 

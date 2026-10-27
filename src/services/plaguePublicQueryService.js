@@ -54,23 +54,29 @@ const normalizePositiveInteger = (value, fallback, maximum = Infinity) => {
   return Number.isSafeInteger(number) ? Math.min(number, maximum) : fallback;
 };
 
-export const normalizePublicPlagueQuery = (query = {}) => ({
-  search: normalizeText(query.search),
-  category: categoryAliases.get(normalizeKey(query.category)) || '',
-  region: normalizeText(query.region, 150).replace(/^Región$/i, ''),
-  risk: riskAliases.get(normalizeKey(query.risk)) || '',
-  page: normalizePositiveInteger(query.page, 1),
-  limit: normalizePositiveInteger(
-    query.limit,
-    DEFAULT_PUBLIC_PLAGUE_PAGE_SIZE,
-    MAX_PUBLIC_PLAGUE_PAGE_SIZE,
-  ),
-});
+export const normalizePublicPlagueQuery = (query = {}) => {
+  const crop = normalizeText(query.crop, 150).replace(/^Cultivo$/i, '');
+
+  return {
+    search: normalizeText(query.search),
+    category: categoryAliases.get(normalizeKey(query.category)) || '',
+    region: normalizeText(query.region, 150).replace(/^Región$/i, ''),
+    ...(crop ? { crop } : {}),
+    risk: riskAliases.get(normalizeKey(query.risk)) || '',
+    page: normalizePositiveInteger(query.page, 1),
+    limit: normalizePositiveInteger(
+      query.limit,
+      DEFAULT_PUBLIC_PLAGUE_PAGE_SIZE,
+      MAX_PUBLIC_PLAGUE_PAGE_SIZE,
+    ),
+  };
+};
 
 export const buildPublishedPlagueQuery = ({
   Op,
   query,
   Region,
+  Crop,
   PlagueImage,
 }) => {
   const where = {
@@ -83,6 +89,7 @@ export const buildPublishedPlagueQuery = ({
       { name: { [Op.iLike]: `%${query.search}%` } },
       { scientific_name: { [Op.iLike]: `%${query.search}%` } },
       { description: { [Op.iLike]: `%${query.search}%` } },
+      { symptoms: { [Op.iLike]: `%${query.search}%` } },
     ];
   }
   if (query.category) {
@@ -102,7 +109,7 @@ export const buildPublishedPlagueQuery = ({
     },
   ];
 
-  if (query.region) {
+  if (query.region && Region) {
     include.push({
       model: Region,
       as: 'regions',
@@ -113,12 +120,23 @@ export const buildPublishedPlagueQuery = ({
     });
   }
 
+  if (query.crop && Crop) {
+    include.push({
+      model: Crop,
+      as: 'crops',
+      attributes: [],
+      through: { attributes: [] },
+      where: { name: query.crop },
+      required: true,
+    });
+  }
+
   return { where, include };
 };
 
 export const buildPublicPlaguePageUrl = (page, query = {}) => {
   const params = new URLSearchParams({ page: String(page) });
-  for (const key of ['search', 'category', 'region', 'risk']) {
+  for (const key of ['search', 'category', 'region', 'crop', 'risk']) {
     if (query[key]) params.set(key, query[key]);
   }
   return `/plagues?${params.toString()}`;

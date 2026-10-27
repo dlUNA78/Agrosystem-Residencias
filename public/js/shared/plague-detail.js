@@ -1,10 +1,12 @@
 import {
   buildFormRequest,
+  confirmAsyncAction,
   fetchHtmlDocument,
   showAsyncToast,
   swapFragments,
   withButtonLoading,
 } from '../private/asyncUi.js';
+import { initializePlagueForm } from '../private/plagues/plagueForm.js';
 
 let carouselTimer = null;
 let scrollSpyObserver = null;
@@ -196,43 +198,47 @@ const initCopyScientificName = () => {
   });
 };
 
-const initShareAndPrint = () => {
-  const shareBtn = document.getElementById('share-plague-btn');
-  const printBtn = document.getElementById('print-plague-btn');
+const shareCurrentPlagueSheet = async (shareBtn) => {
+  const pageTitle = document.title;
+  const pageUrl = window.location.href;
 
-  printBtn?.addEventListener('click', () => {
-    window.print();
-  });
-
-  shareBtn?.addEventListener('click', async () => {
-    const pageTitle = document.title;
-    const pageUrl = window.location.href;
-
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: pageTitle,
-          text: `Ficha técnica fitosanitaria de ${pageTitle} en INIFAP Agrosystem`,
-          url: pageUrl,
-        });
-        return;
-      } catch {
-        return;
-      }
-    }
-
+  if (navigator.share) {
     try {
-      await navigator.clipboard.writeText(pageUrl);
-      const shareLabel = shareBtn.querySelector('span:last-child');
-      if (shareLabel) {
-        const originalText = shareLabel.textContent;
-        shareLabel.textContent = '¡Enlace copiado!';
-        setTimeout(() => {
-          shareLabel.textContent = originalText;
-        }, 2000);
-      }
+      await navigator.share({
+        title: pageTitle,
+        text: `Ficha técnica fitosanitaria de ${pageTitle} en INIFAP Agrosystem`,
+        url: pageUrl,
+      });
+      return;
     } catch {
-      // Ignorar fallback silencioso
+      return;
+    }
+  }
+
+  try {
+    await navigator.clipboard.writeText(pageUrl);
+    const shareLabel = shareBtn.querySelector('span:last-child');
+    if (shareLabel) {
+      const originalText = shareLabel.textContent;
+      shareLabel.textContent = '¡Enlace copiado!';
+      setTimeout(() => {
+        shareLabel.textContent = originalText;
+      }, 2000);
+    }
+  } catch {
+    // Ignorar fallback silencioso
+  }
+};
+
+const initShareAndPrint = () => {
+  document.addEventListener('click', (event) => {
+    if (event.target.closest('#print-plague-btn')) {
+      window.print();
+      return;
+    }
+    const shareBtn = event.target.closest('#share-plague-btn');
+    if (shareBtn) {
+      shareCurrentPlagueSheet(shareBtn);
     }
   });
 };
@@ -309,19 +315,22 @@ const focusCycleStageCard = (stageIndex) => {
   }, 1800);
 };
 
-const initBiologicalCycleTimeline = () => {
+const syncBiologicalCycleShares = () => {
   document.querySelectorAll('[data-stage-share]').forEach((segment) => {
     const share = Number(segment.getAttribute('data-stage-share'));
     if (Number.isFinite(share) && share > 0) {
       segment.style.width = `${share}%`;
     }
   });
+};
 
-  document.querySelectorAll('[data-stage-focus-btn]').forEach((button) => {
-    button.addEventListener('click', () => {
-      const index = button.getAttribute('data-stage-focus-btn');
-      if (index !== null) focusCycleStageCard(index);
-    });
+const initBiologicalCycleTimeline = () => {
+  syncBiologicalCycleShares();
+  document.addEventListener('click', (event) => {
+    const button = event.target.closest('[data-stage-focus-btn]');
+    if (!button) return;
+    const index = button.getAttribute('data-stage-focus-btn');
+    if (index !== null) focusCycleStageCard(index);
   });
 };
 
@@ -415,21 +424,193 @@ const initPrivateRelationEditor = () => {
     .forEach(setupRelationGroup);
 };
 
+const DETAIL_SWAP_SELECTORS = [
+  '#sub-nav',
+  '#print-sheet-header',
+  '#plague-breadcrumb-name',
+  '#private-editorial-panel',
+  '#resumen',
+  '#plague-kpis-bar',
+  '#diagnostico',
+  '#ciclo-biologico',
+  '#manejo-integrado',
+  '#productos',
+  '#distribucion',
+];
+
+const DEFAULT_MAP_HINT =
+  'Pasa el cursor o selecciona una tarjeta regional para localizarla en el mapa nacional.';
+
+const applyMapHighlightState = (activeIndex, activeLabel) => {
+  const hasSelection = activeIndex !== null && activeIndex !== undefined;
+
+  document.querySelectorAll('[data-region-card]').forEach((card) => {
+    const match =
+      hasSelection && card.getAttribute('data-region-card') === activeIndex;
+    card.classList.toggle('ring-2', match);
+    card.classList.toggle('ring-[#1b4332]', match);
+    card.classList.toggle('border-[#1b4332]', match);
+  });
+
+  document.querySelectorAll('[data-map-region]').forEach((stateEl) => {
+    const match =
+      hasSelection && stateEl.getAttribute('data-map-region') === activeIndex;
+    stateEl.classList.toggle('opacity-35', hasSelection && !match);
+  });
+
+  document.querySelectorAll('[data-map-marker]').forEach((markerEl) => {
+    const match =
+      hasSelection && markerEl.getAttribute('data-map-marker') === activeIndex;
+    markerEl.classList.toggle('opacity-30', hasSelection && !match);
+  });
+
+  const labelEl = document.getElementById('plague-map-active-label');
+  if (labelEl) {
+    labelEl.textContent =
+      hasSelection && activeLabel ? activeLabel : DEFAULT_MAP_HINT;
+  }
+};
+
+const extractRegionTarget = (target) => {
+  const el = target.closest(
+    '[data-region-card], [data-map-region], [data-map-marker]',
+  );
+  if (!el) return null;
+  const index =
+    el.getAttribute('data-region-card') ??
+    el.getAttribute('data-map-region') ??
+    el.getAttribute('data-map-marker');
+  return {
+    index,
+    label: el.getAttribute('data-map-label') || '',
+    isMapTrigger: !el.hasAttribute('data-region-card'),
+  };
+};
+
+const initRegionalMapHighlight = () => {
+  document.addEventListener('pointerover', (event) => {
+    const info = extractRegionTarget(event.target);
+    if (info) applyMapHighlightState(info.index, info.label);
+  });
+
+  document.addEventListener('pointerout', (event) => {
+    const leaving = extractRegionTarget(event.target);
+    if (!leaving) return;
+    const entering = event.relatedTarget
+      ? extractRegionTarget(event.relatedTarget)
+      : null;
+    if (!entering) applyMapHighlightState(null, '');
+  });
+
+  document.addEventListener('click', (event) => {
+    const info = extractRegionTarget(event.target);
+    if (!info) return;
+    applyMapHighlightState(info.index, info.label);
+    if (info.isMapTrigger) {
+      const card = document.querySelector(`[data-region-card="${info.index}"]`);
+      card?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  });
+};
+
+const refreshLucideIcons = () => {
+  if (typeof window.lucide?.createIcons === 'function') {
+    window.lucide.createIcons();
+  }
+};
+
 const rehydrateDetailFragments = () => {
   initHeroCarousel();
   initScrollSpy();
   initImageFallbacks();
+  syncBiologicalCycleShares();
   initReadinessProgressBar();
   initPrivateRelationEditor();
+  refreshLucideIcons();
 };
 
-const submitEditorialFormAsync = (form, submitter) => {
+const WORKFLOW_CONFIRM_CONFIG = Object.freeze({
+  submit_review: {
+    title: '¿Enviar expediente a revisión técnica?',
+    description:
+      'El expediente quedará bloqueado para edición mientras el revisor par coteja la información fitosanitaria.',
+    confirmLabel: 'Enviar a revisión',
+    variant: 'editorial',
+  },
+  request_changes: {
+    title: '¿Devolver expediente con solicitud de correcciones?',
+    description:
+      'Se registrarán tus observaciones y la ficha regresará al autor para que subsane los ajustes señalados.',
+    confirmLabel: 'Solicitar correcciones',
+    variant: 'warning',
+  },
+  verify: {
+    title: '¿Otorgar aval técnico de especialista?',
+    description:
+      'Certificas que la taxonomía, diagnóstico, ciclo biológico e insumos cumplen los criterios científicos de INIFAP.',
+    confirmLabel: 'Verificar ficha',
+    variant: 'editorial',
+  },
+  publish: {
+    title: '¿Publicar ficha en el catálogo oficial?',
+    description:
+      'La plaga será visible de inmediato para consulta pública de productores, técnicos e investigadores.',
+    confirmLabel: 'Publicar en portal',
+    variant: 'editorial',
+  },
+  archive: {
+    title: '¿Archivar este expediente fitosanitario?',
+    description:
+      'La ficha dejará de mostrarse en el catálogo público, conservando íntegro su historial en el panel privado.',
+    confirmLabel: 'Archivar expediente',
+    variant: 'warning',
+  },
+  restore: {
+    title: '¿Restaurar expediente como borrador?',
+    description:
+      'El registro volverá a estado borrador para permitir nuevas ediciones técnicas antes de otra revisión.',
+    confirmLabel: 'Restaurar borrador',
+    variant: 'editorial',
+  },
+});
+
+const countCheckedByName = (form, name) =>
+  form.querySelectorAll(`input[name="${name}"]:checked`).length;
+
+const confirmEditorialFormSubmission = (form) => {
+  if (form.action.includes('/relations')) {
+    const products = countCheckedByName(form, 'product_ids');
+    const crops = countCheckedByName(form, 'crop_ids');
+    const regions = countCheckedByName(form, 'region_ids');
+    return confirmAsyncAction({
+      title: '¿Guardar relaciones técnicas del expediente?',
+      description: `Se actualizará la vinculación oficial con ${products} productos, ${crops} cultivos hospederos y ${regions} regiones fitosanitarias.`,
+      confirmLabel: 'Guardar relaciones',
+      variant: 'editorial',
+    });
+  }
+
+  const action = form.querySelector('input[name="action"]')?.value || '';
+  const config = WORKFLOW_CONFIRM_CONFIG[action] || {
+    title: '¿Confirmar cambio de estado editorial?',
+    description: 'Se actualizará la etapa editorial de este expediente.',
+    confirmLabel: 'Confirmar',
+    variant: 'editorial',
+  };
+  return confirmAsyncAction(config);
+};
+
+const submitEditorialFormAsync = async (form, submitter) => {
+  if (!form.reportValidity()) return;
+  const confirmed = await confirmEditorialFormSubmission(form);
+  if (!confirmed) return;
+
   const isRelations = form.action.includes('/relations');
   const loadingLabel = isRelations
     ? 'Guardando relaciones...'
     : 'Actualizando estado...';
 
-  withButtonLoading(submitter, loadingLabel, async () => {
+  await withButtonLoading(submitter, loadingLabel, async () => {
     const { url, init } = buildFormRequest(form, submitter);
     const result = await fetchHtmlDocument(url, init);
 
@@ -438,12 +619,7 @@ const submitEditorialFormAsync = (form, submitter) => {
       return;
     }
 
-    swapFragments(result.doc, [
-      '#private-editorial-panel',
-      '#resumen',
-      '#productos',
-      '#distribucion',
-    ]);
+    swapFragments(result.doc, DETAIL_SWAP_SELECTORS);
     rehydrateDetailFragments();
     showAsyncToast(
       isRelations
@@ -465,6 +641,59 @@ const initPrivateEditorialForms = () => {
   });
 };
 
+const refreshDetailAfterEdit = async () => {
+  const detailResult = await fetchHtmlDocument(window.location.pathname);
+  if (!detailResult.ok) return;
+  swapFragments(detailResult.doc, DETAIL_SWAP_SELECTORS);
+  if (detailResult.doc.title) {
+    document.title = detailResult.doc.title;
+  }
+  rehydrateDetailFragments();
+};
+
+const handleDetailDeleteClick = async (deleteBtn) => {
+  const id = deleteBtn.dataset.id;
+  const name = deleteBtn.dataset.name || 'este expediente';
+  if (!id) return;
+
+  const confirmed = await confirmAsyncAction({
+    title: `¿Eliminar "${name}" permanentemente?`,
+    description:
+      'Se eliminará el expediente fitosanitario junto con su galería fotográfica y relaciones asociadas. Esta acción no se puede deshacer.',
+    confirmLabel: 'Sí, eliminar expediente',
+    variant: 'danger',
+  });
+  if (!confirmed) return;
+
+  await withButtonLoading(deleteBtn, 'Eliminando...', async () => {
+    const result = await fetchHtmlDocument(
+      `/private/plagues/delete/${encodeURIComponent(id)}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+        },
+        body: '',
+      },
+    );
+    if (!result.ok) {
+      showAsyncToast(result.errorMessage, 'error');
+      return;
+    }
+    window.location.assign('/private/plagues');
+  });
+};
+
+const initPrivateDetailEditAndDelete = () => {
+  initializePlagueForm({ onAfterSave: refreshDetailAfterEdit });
+  document.addEventListener('click', (event) => {
+    const deleteBtn = event.target.closest('#btn-delete-plague-detail');
+    if (deleteBtn) {
+      handleDetailDeleteClick(deleteBtn);
+    }
+  });
+};
+
 document.addEventListener('DOMContentLoaded', () => {
   initHeroCarousel();
   initScrollSpy();
@@ -473,7 +702,9 @@ document.addEventListener('DOMContentLoaded', () => {
   initImageLightbox();
   initImageFallbacks();
   initBiologicalCycleTimeline();
+  initRegionalMapHighlight();
   initReadinessProgressBar();
   initPrivateRelationEditor();
   initPrivateEditorialForms();
+  initPrivateDetailEditAndDelete();
 });

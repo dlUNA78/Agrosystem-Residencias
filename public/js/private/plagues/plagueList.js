@@ -316,9 +316,6 @@ const initializeDetailLinks = () => {
 };
 
 export const initializePlagueList = () => {
-  document
-    .getElementById('btn-export-plagues')
-    ?.addEventListener('click', () => window.print());
   initializeImageFallbacks();
   initializeAsyncFiltersAndLinks();
   initializeSearchShortcut();

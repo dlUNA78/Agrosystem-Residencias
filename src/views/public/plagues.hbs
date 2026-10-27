@@ -59,9 +59,20 @@
               </button>
             </div>
 
+            <!-- Selector de Cultivo Hospedero -->
+            <div class="relative sm:w-52 shrink-0">
+              <select id="crop-filter" name="crop" aria-label="Filtrar por cultivo hospedero" class="h-10 w-full appearance-none border border-input bg-card px-3 pr-8 text-xs sm:text-sm rounded-md outline-none transition-colors focus-visible:border-[#1b4332] text-foreground font-medium cursor-pointer">
+                <option value="Cultivo">Cultivo · Todos</option>
+                {{#each crops}}
+                  <option value="{{this}}" {{#if (eq ../filters.crop this)}}selected{{/if}}>{{this}}</option>
+                {{/each}}
+              </select>
+              <span class="material-symbols-outlined pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">expand_more</span>
+            </div>
+
             <!-- Selector de Región -->
-            <div class="relative sm:w-56 shrink-0">
-              <select id="region-filter" name="region" class="h-10 w-full appearance-none border border-input bg-card px-3 pr-8 text-xs sm:text-sm rounded-md outline-none transition-colors focus-visible:border-[#1b4332] text-foreground font-medium cursor-pointer">
+            <div class="relative sm:w-52 shrink-0">
+              <select id="region-filter" name="region" aria-label="Filtrar por región" class="h-10 w-full appearance-none border border-input bg-card px-3 pr-8 text-xs sm:text-sm rounded-md outline-none transition-colors focus-visible:border-[#1b4332] text-foreground font-medium cursor-pointer">
                 <option value="Región">Región · Todas</option>
                 {{#each regions}}
                   <option value="{{this}}" {{#if (eq ../filters.region this)}}selected{{/if}}>{{this}}</option>
@@ -257,6 +268,21 @@
               <p class="line-clamp-3 text-xs sm:text-sm leading-relaxed text-muted-foreground">
                 {{this.description}}
               </p>
+
+              {{#if this.hostCrops.length}}
+                <div class="flex flex-wrap items-center gap-1 pt-0.5">
+                  {{#each this.hostCrops}}
+                    <span class="inline-flex items-center gap-1 rounded-md border border-emerald-200/80 bg-emerald-50/70 px-2 py-0.5 text-[10px] font-semibold text-[#1b4332]">
+                      {{this}}
+                    </span>
+                  {{/each}}
+                  {{#if this.extraHostCropsCount}}
+                    <span class="rounded-md bg-secondary px-1.5 py-0.5 text-[10px] font-mono font-semibold text-muted-foreground">
+                      +{{this.extraHostCropsCount}}
+                    </span>
+                  {{/if}}
+                </div>
+              {{/if}}
 
               <!-- Pie de Tarjeta: Estatus + Enlace a Ficha Técnica -->
               <div class="mt-auto flex items-center justify-between gap-4 border-t border-border pt-4">

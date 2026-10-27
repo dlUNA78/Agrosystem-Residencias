@@ -189,4 +189,13 @@ describe('listado privado paginado de plagas', () => {
     expect(clientScript).toContain('swapFragments');
     expect(clientScript).toContain('refreshPlagueCatalogView');
   });
+
+  it('reserva la impresión a fichas individuales e integra modales de confirmación en acciones mutadoras', () => {
+    const template = readPlagueViewSources();
+    const clientScript = readPlagueClientSources();
+
+    expect(template).not.toContain('id="btn-export-plagues"');
+    expect(clientScript).toContain('export const confirmAsyncAction');
+    expect(clientScript).toContain('confirmPlagueSave');
+  });
 });

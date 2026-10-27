@@ -50,6 +50,26 @@ const getRiskChipClass = (chipRisk, isSelected) => {
   return `${base} ${riskClassMap[chipRisk] || 'bg-[#1b4332] text-white shadow-2xs'}`;
 };
 
+const buildHostCropsBadgesHtml = (plague) => {
+  const hostCrops = Array.isArray(plague.hostCrops) ? plague.hostCrops : [];
+  if (hostCrops.length === 0) return '';
+
+  const chips = hostCrops
+    .map(
+      (cropName) =>
+        `<span class="inline-flex items-center gap-1 rounded-md border border-emerald-200/80 bg-emerald-50/70 px-2 py-0.5 text-[10px] font-semibold text-[#1b4332]">${escapeHTML(cropName)}</span>`,
+    )
+    .join('');
+
+  const extra = Number(plague.extraHostCropsCount) || 0;
+  const extraChip =
+    extra > 0
+      ? `<span class="rounded-md bg-secondary px-1.5 py-0.5 text-[10px] font-mono font-semibold text-muted-foreground">+${extra}</span>`
+      : '';
+
+  return `<div class="flex flex-wrap items-center gap-1 pt-0.5">${chips}${extraChip}</div>`;
+};
+
 const buildPlagueCardHtml = (plague) => {
   const safeImageUrl = encodeURI(
     plague.imageUrl || plague.image_url || '/images/test/default.png',
@@ -61,6 +81,7 @@ const buildPlagueCardHtml = (plague) => {
   const safeRiskLabel = escapeHTML(plague.riskLabel || 'Bajo');
   const safeId = escapeHTML(plague.id.toString());
   const credit = escapeHTML(plague.imageCredit || 'ACERVO FOTO · INIFAP');
+  const hostCropsHtml = buildHostCropsBadgesHtml(plague);
 
   const { bar, dot } = getRiskStyles(safeRiskLabel);
 
@@ -95,6 +116,8 @@ const buildPlagueCardHtml = (plague) => {
         <p class="line-clamp-3 text-xs sm:text-sm leading-relaxed text-muted-foreground">
           ${safeDescription}
         </p>
+
+        ${hostCropsHtml}
 
         <div class="mt-auto flex items-center justify-between gap-4 border-t border-border pt-4">
           <div class="flex flex-col gap-0.5">
@@ -168,6 +191,7 @@ const renderSkeletons = (container) => {
 const getFilterValues = (els) => ({
   search: els.searchInput ? els.searchInput.value.trim() : '',
   category: els.categoryFilter ? els.categoryFilter.value : '',
+  crop: els.cropFilter ? els.cropFilter.value : '',
   region: els.regionFilter ? els.regionFilter.value : '',
   risk: els.riskFilter ? els.riskFilter.value : '',
 });
@@ -177,6 +201,7 @@ const buildQueryParams = (page, filters) => {
   const map = {
     search: filters.search,
     category: filters.category !== 'Categoría' ? filters.category : '',
+    crop: filters.crop && filters.crop !== 'Cultivo' ? filters.crop : '',
     region: filters.region !== 'Región' ? filters.region : '',
     risk: filters.risk !== 'Riesgo' ? filters.risk : '',
   };
@@ -190,6 +215,7 @@ const getDOMElements = () => ({
   searchInput: document.getElementById('search-input'),
   searchClearBtn: document.getElementById('search-clear-btn'),
   categoryFilter: document.getElementById('category-filter'),
+  cropFilter: document.getElementById('crop-filter'),
   regionFilter: document.getElementById('region-filter'),
   riskFilter: document.getElementById('risk-filter'),
   filterBtn: document.getElementById('filter-btn'),
@@ -307,33 +333,45 @@ function initPlaguesCatalog() {
     if (els.searchInput) els.searchInput.value = '';
     if (els.searchClearBtn) els.searchClearBtn.classList.add('hidden');
     if (els.categoryFilter) els.categoryFilter.value = 'Categoría';
+    if (els.cropFilter) els.cropFilter.value = 'Cultivo';
     if (els.regionFilter) els.regionFilter.value = 'Región';
     if (els.riskFilter) els.riskFilter.value = 'Riesgo';
     handleFilterChange();
   };
 
-  const setupEvents = () => {
-    if (els.searchInput) {
-      els.searchInput.addEventListener('input', () => {
-        if (els.searchClearBtn) {
-          els.searchClearBtn.classList.toggle(
-            'hidden',
-            els.searchInput.value.trim().length === 0,
-          );
-        }
-        clearTimeout(debounceTimeout);
-        debounceTimeout = setTimeout(handleFilterChange, 250);
-      });
-    }
+  const bindSelectAndResetControls = () => {
+    [
+      els.categoryFilter,
+      els.cropFilter,
+      els.regionFilter,
+      els.riskFilter,
+    ].forEach((selectEl) => {
+      selectEl?.addEventListener('change', handleFilterChange);
+    });
+    els.resetFiltersLink?.addEventListener('click', resetAllFilters);
+    els.filterBtn?.addEventListener('click', handleFilterChange);
+    els.filterForm?.addEventListener('submit', (event) => {
+      event.preventDefault();
+      handleFilterChange();
+    });
+  };
 
-    if (els.searchClearBtn) {
-      els.searchClearBtn.addEventListener('click', () => {
-        els.searchInput.value = '';
-        els.searchClearBtn.classList.add('hidden');
-        els.searchInput.focus();
-        handleFilterChange();
-      });
-    }
+  const setupEvents = () => {
+    els.searchInput?.addEventListener('input', () => {
+      els.searchClearBtn?.classList.toggle(
+        'hidden',
+        els.searchInput.value.trim().length === 0,
+      );
+      clearTimeout(debounceTimeout);
+      debounceTimeout = setTimeout(handleFilterChange, 250);
+    });
+
+    els.searchClearBtn?.addEventListener('click', () => {
+      els.searchInput.value = '';
+      els.searchClearBtn.classList.add('hidden');
+      els.searchInput.focus();
+      handleFilterChange();
+    });
 
     els.categoryChips.forEach((chip) => {
       chip.addEventListener('click', () => {
@@ -353,39 +391,21 @@ function initPlaguesCatalog() {
       });
     });
 
-    if (els.categoryFilter)
-      els.categoryFilter.addEventListener('change', handleFilterChange);
-    if (els.regionFilter)
-      els.regionFilter.addEventListener('change', handleFilterChange);
-    if (els.riskFilter)
-      els.riskFilter.addEventListener('change', handleFilterChange);
-    if (els.resetFiltersLink)
-      els.resetFiltersLink.addEventListener('click', resetAllFilters);
-    if (els.filterBtn)
-      els.filterBtn.addEventListener('click', handleFilterChange);
+    bindSelectAndResetControls();
 
-    els.filterForm?.addEventListener('submit', (event) => {
-      event.preventDefault();
-      handleFilterChange();
-    });
-
-    if (els.prevPageBtn) {
-      els.prevPageBtn.addEventListener('click', () => {
-        if (currentPage > 1) {
-          currentPage--;
-          fetchPlagues();
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-      });
-    }
-
-    if (els.nextPageBtn) {
-      els.nextPageBtn.addEventListener('click', () => {
-        currentPage++;
+    els.prevPageBtn?.addEventListener('click', () => {
+      if (currentPage > 1) {
+        currentPage--;
         fetchPlagues();
         window.scrollTo({ top: 0, behavior: 'smooth' });
-      });
-    }
+      }
+    });
+
+    els.nextPageBtn?.addEventListener('click', () => {
+      currentPage++;
+      fetchPlagues();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
   };
 
   setupEvents();

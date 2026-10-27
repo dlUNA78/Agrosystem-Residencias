@@ -264,4 +264,64 @@ describe('detalle privado de plagas con datos verificables', () => {
       expect(positions[i]).toBeGreaterThan(positions[i - 1]);
     }
   });
+
+  it('proyecta localmente el mapa vectorial de México sin depender de servicios externos y lo omite si no hay regiones', () => {
+    const withRegions = buildPlagueDetailView({
+      id: 30,
+      name: 'Gusano cogollero',
+      risk_level: 'Alto',
+      regions: [
+        {
+          name: 'Sinaloa',
+          lat: 25.17,
+          lng: -107.48,
+          PlagueRegions: { risk_level: 'Alto' },
+        },
+      ],
+    });
+
+    expect(withRegions.mexicoMap).not.toBeNull();
+    expect(withRegions.mexicoMap.viewBox).toBe('0 0 900 520');
+    expect(withRegions.mexicoMap.states).toHaveLength(32);
+    expect(withRegions.mexicoMap.matchedStateCount).toBe(1);
+    expect(
+      withRegions.mexicoMap.states.find((state) => state.estado === 'Sinaloa'),
+    ).toEqual(
+      expect.objectContaining({
+        isAffected: true,
+        regionIndex: 0,
+        riskLabel: 'Crítico',
+      }),
+    );
+    expect(withRegions.mexicoMap.markers).toHaveLength(1);
+    expect(withRegions.mexicoMap.markers[0].x).toBeGreaterThan(0);
+    expect(withRegions.mexicoMap.markers[0].y).toBeGreaterThan(0);
+
+    const withoutRegions = buildPlagueDetailView({
+      id: 31,
+      name: 'Sin regiones',
+      regions: [],
+    });
+    expect(withoutRegions.mexicoMap).toBeNull();
+  });
+
+  it('habilita edición directa, confirmación asíncrona, impresión de expediente y diagnóstico diferencial sin estilos inline', () => {
+    const template = fs.readFileSync(
+      new URL('../../src/views/shared/plague-detail.hbs', import.meta.url),
+      'utf8',
+    );
+    const detailClient = fs.readFileSync(
+      new URL('../../public/js/shared/plague-detail.js', import.meta.url),
+      'utf8',
+    );
+
+    expect(template).toContain('id="print-sheet-header"');
+    expect(template).toContain('btn-edit-plague');
+    expect(template).toContain('id="btn-delete-plague-detail"');
+    expect(template).toContain('id="plague-mexico-map"');
+    expect(template).toContain('id="plagas-relacionadas"');
+    expect(template).not.toMatch(/\sstyle=/i);
+    expect(detailClient).toContain('confirmAsyncAction');
+    expect(detailClient).toContain('initializePlagueForm');
+  });
 });

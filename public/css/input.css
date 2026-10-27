@@ -354,3 +354,49 @@ input {
   stroke-width: 2.5px;
   animation: statePulseHalo 2.5s infinite ease-in-out;
 }
+
+/* ─── Hoja Técnica Imprimible para Expedientes Individuales (PDF / Campo) ─── */
+@media print {
+  @page {
+    margin: 1.2cm;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #111827 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  nav,
+  aside[id*='sidebar'],
+  header.sticky,
+  footer,
+  #scroll-to-top,
+  #sidebar-backdrop,
+  #private-editorial-panel,
+  #image-lightbox-modal,
+  #modal-plague,
+  #modal-delete-plague,
+  #async-toast-stack,
+  #async-top-progress,
+  #plagas-relacionadas,
+  .no-print {
+    display: none !important;
+  }
+
+  #main-content {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .print-sheet-header {
+    display: flex !important;
+  }
+
+  article,
+  section > .grid > div {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}
