@@ -7,57 +7,104 @@
         <p class="max-w-2xl text-sm leading-relaxed text-muted-foreground">Administra las fichas agronómicas, revisa su información técnica y prepara su publicación.</p>
       </div>
       {{#if permissions.canCreate}}
-        <button type="button" id="btn-add-crop" class="inline-flex shrink-0 items-center justify-center gap-2 self-start rounded-xl bg-primary px-5 py-3 text-xs font-bold text-primary-foreground shadow-2xs transition hover:bg-primary/90">
+        <button type="button" id="btn-add-crop" class="inline-flex shrink-0 items-center justify-center gap-2 self-start rounded-xl bg-primary px-5 py-3 text-xs font-bold text-primary-foreground shadow-2xs transition hover:bg-primary/90 cursor-pointer">
           <span class="inline-flex shrink-0 text-lg" aria-hidden="true">{{> private/crops/icon name="add"}}</span>Nuevo cultivo
         </button>
       {{/if}}
     </header>
-    <section aria-label="Resumen editorial de cultivos" class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-      <div class="flex items-center justify-between gap-3 rounded-2xl border border-border/80 bg-card p-5 shadow-2xs">
+
+    <!-- Resumen editorial de cultivos (KPIs interactivos) -->
+    <section id="crops-kpi-region" aria-label="Resumen editorial de cultivos" class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <a href="/private/crops" class="flex items-center justify-between gap-3 rounded-2xl border {{#unless filters.workflow}}border-primary/40 ring-1 ring-primary/20{{else}}border-border/80 hover:border-primary/40{{/unless}} bg-card p-5 shadow-2xs transition">
         <div><p class="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Resultados</p><p class="mt-1 text-3xl font-black tabular-nums text-primary">{{stats.total}}</p><p class="mt-1 text-[11px] text-muted-foreground">Según los filtros seleccionados</p></div>
         <span class="inline-flex shrink-0 rounded-xl bg-primary/5 p-3 text-primary" aria-hidden="true">{{> private/crops/icon name="grass"}}</span>
-      </div>
-      <a href="/private/crops?workflow=published" class="flex items-center justify-between gap-3 rounded-2xl border border-border/80 bg-card p-5 shadow-2xs transition hover:border-emerald-300">
+      </a>
+      <a href="/private/crops?workflow=published" class="flex items-center justify-between gap-3 rounded-2xl border {{#if (eq filters.workflow 'published')}}border-emerald-500 ring-1 ring-emerald-500/20{{else}}border-border/80 hover:border-emerald-300{{/if}} bg-card p-5 shadow-2xs transition">
         <div><p class="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Publicados</p><p class="mt-1 text-3xl font-black tabular-nums text-emerald-700">{{stats.published}}</p><p class="mt-1 text-[11px] text-muted-foreground">Visibles en el catálogo público</p></div>
         <span class="inline-flex shrink-0 rounded-xl bg-emerald-50 p-3 text-emerald-700" aria-hidden="true">{{> private/crops/icon name="public"}}</span>
       </a>
-      <a href="/private/crops?workflow=in_review" class="flex items-center justify-between gap-3 rounded-2xl border border-border/80 bg-card p-5 shadow-2xs transition hover:border-amber-300">
+      <a href="/private/crops?workflow=in_review" class="flex items-center justify-between gap-3 rounded-2xl border {{#if (eq filters.workflow 'in_review')}}border-amber-500 ring-1 ring-amber-500/20{{else}}border-border/80 hover:border-amber-300{{/if}} bg-card p-5 shadow-2xs transition">
         <div><p class="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">En revisión</p><p class="mt-1 text-3xl font-black tabular-nums text-amber-700">{{stats.inReview}}</p><p class="mt-1 text-[11px] text-muted-foreground">Pendientes de evaluación técnica</p></div>
         <span class="inline-flex shrink-0 rounded-xl bg-amber-50 p-3 text-amber-700" aria-hidden="true">{{> private/crops/icon name="fact_check"}}</span>
       </a>
-      <a href="/private/crops?workflow=changes_requested" class="flex items-center justify-between gap-3 rounded-2xl border border-border/80 bg-card p-5 shadow-2xs transition hover:border-orange-300">
+      <a href="/private/crops?workflow=changes_requested" class="flex items-center justify-between gap-3 rounded-2xl border {{#if (eq filters.workflow 'changes_requested')}}border-orange-500 ring-1 ring-orange-500/20{{else}}border-border/80 hover:border-orange-300{{/if}} bg-card p-5 shadow-2xs transition">
         <div><p class="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Con cambios</p><p class="mt-1 text-3xl font-black tabular-nums text-orange-700">{{stats.changesRequested}}</p><p class="mt-1 text-[11px] text-muted-foreground">Requieren ajustes del autor</p></div>
         <span class="inline-flex shrink-0 rounded-xl bg-orange-50 p-3 text-orange-700" aria-hidden="true">{{> private/crops/icon name="edit_note"}}</span>
       </a>
     </section>
-    <form method="GET" action="/private/crops" class="flex flex-wrap items-end gap-3 rounded-2xl border border-border/80 bg-card p-4 shadow-2xs" aria-label="Filtrar cultivos">
-      <div class="min-w-0 basis-full lg:flex-1">
-        <label for="crop-search" class="mb-2 block text-xs font-medium text-muted-foreground">Buscar cultivo</label>
-        <div class="relative">
-          <span class="inline-flex shrink-0 pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-lg text-muted-foreground" aria-hidden="true">{{> private/crops/icon name="search"}}</span>
-          <input id="crop-search" name="search" type="search" maxlength="120" value="{{filters.search}}" placeholder="Nombre, especie o categoría…" class="w-full rounded-xl border border-input bg-background py-2.5 pl-10 pr-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20">
+
+    <!-- Barra de Filtros y Búsqueda -->
+    <div class="space-y-3">
+      <form id="crop-filter-form" method="GET" action="/private/crops" class="flex flex-wrap items-end gap-3 rounded-2xl border border-border/80 bg-card p-4 shadow-2xs" aria-label="Filtrar cultivos">
+        <div class="min-w-0 basis-full lg:flex-1">
+          <label for="crop-search" class="mb-2 block text-xs font-medium text-muted-foreground">Buscar cultivo</label>
+          <div class="relative">
+            <span class="inline-flex shrink-0 pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-lg text-muted-foreground" aria-hidden="true">{{> private/crops/icon name="search"}}</span>
+            <input id="crop-search" name="search" type="search" maxlength="120" value="{{filters.search}}" placeholder="Nombre, especie o categoría…" class="w-full rounded-xl border border-input bg-background py-2.5 pl-10 pr-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20">
+          </div>
         </div>
-      </div>
-      {{#each searchFilters}}
-        <div class="min-w-0 flex-1 basis-40 lg:flex-none">
-          <label for="{{id}}" class="mb-2 block text-xs font-medium text-muted-foreground">{{label}}</label>
-          <select id="{{id}}" name="{{param}}" class="w-full rounded-xl border border-input bg-background px-3 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20">
-            <option value="">Todos</option>
-            {{#each options}}<option value="{{value}}" {{#if selected}}selected{{/if}}>{{text}}</option>{{/each}}
-          </select>
+        {{#each searchFilters}}
+          <div class="min-w-0 flex-1 basis-40 lg:flex-none">
+            <label for="{{id}}" class="mb-2 block text-xs font-medium text-muted-foreground">{{label}}</label>
+            <select id="{{id}}" name="{{param}}" class="filter-select w-full rounded-xl border border-input bg-background px-3 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer">
+              <option value="">Todos</option>
+              {{#each options}}<option value="{{value}}" {{#if selected}}selected{{/if}}>{{text}}</option>{{/each}}
+            </select>
+          </div>
+        {{/each}}
+        <button type="submit" class="rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground hover:bg-primary/90 cursor-pointer">Aplicar</button>
+        <span id="crop-clear-filters-slot">
+          {{#if hasActiveFilters}}
+            <a href="/private/crops" data-async-filter-link class="inline-flex items-center rounded-xl border border-border px-4 py-2.5 text-sm font-medium hover:bg-muted">Limpiar</a>
+          {{/if}}
+        </span>
+        <div class="flex items-center gap-1 rounded-xl border border-input p-1" role="group" aria-label="Presentación del catálogo">
+          <button type="button" id="view-grid" title="Vista en tarjetas" aria-label="Vista en tarjetas" aria-pressed="true" class="rounded-lg bg-primary p-2 text-white cursor-pointer"><span class="inline-flex shrink-0 block text-lg" aria-hidden="true">{{> private/crops/icon name="grid_view"}}</span></button>
+          <button type="button" id="view-table" title="Vista en tabla" aria-label="Vista en tabla" aria-pressed="false" class="rounded-lg p-2 text-muted-foreground cursor-pointer"><span class="inline-flex shrink-0 block text-lg" aria-hidden="true">{{> private/crops/icon name="table_rows"}}</span></button>
         </div>
-      {{/each}}
-      <button type="submit" class="rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground hover:bg-primary/90">Aplicar</button>
-      <a href="/private/crops" class="rounded-xl border border-border px-4 py-2.5 text-sm font-medium hover:bg-muted">Limpiar</a>
-      <div class="flex items-center gap-1 rounded-xl border border-input p-1" role="group" aria-label="Presentación del catálogo">
-        <button type="button" id="view-grid" title="Vista en tarjetas" aria-label="Vista en tarjetas" aria-pressed="true" class="rounded-lg bg-primary p-2 text-white"><span class="inline-flex shrink-0 block text-lg" aria-hidden="true">{{> private/crops/icon name="grid_view"}}</span></button>
-        <button type="button" id="view-table" title="Vista en tabla" aria-label="Vista en tabla" aria-pressed="false" class="rounded-lg p-2 text-muted-foreground"><span class="inline-flex shrink-0 block text-lg" aria-hidden="true">{{> private/crops/icon name="table_rows"}}</span></button>
+      </form>
+
+      <!-- Píldoras Rápidas de Bandeja Editorial -->
+      <div id="crops-toolbar-pills" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5 text-xs">
+        <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground mr-1 shrink-0">Bandeja:</span>
+        <button type="button" data-workflow-pill=""
+          class="px-2.5 py-1 rounded-lg border transition-colors shrink-0 cursor-pointer {{#unless filters.workflow}}bg-primary text-white border-primary font-bold shadow-2xs{{else}}bg-card text-muted-foreground border-border hover:text-foreground hover:bg-muted{{/unless}}">
+          Todos
+        </button>
+        <button type="button" data-workflow-pill="draft"
+          class="px-2.5 py-1 rounded-lg border transition-colors shrink-0 cursor-pointer {{#if (eq filters.workflow 'draft')}}bg-primary text-white border-primary font-bold shadow-2xs{{else}}bg-card text-muted-foreground border-border hover:text-foreground hover:bg-muted{{/if}}">
+          Borradores
+        </button>
+        <button type="button" data-workflow-pill="changes_requested"
+          class="px-2.5 py-1 rounded-lg border transition-colors shrink-0 cursor-pointer {{#if (eq filters.workflow 'changes_requested')}}bg-orange-600 text-white border-orange-600 font-bold shadow-2xs{{else}}bg-card text-muted-foreground border-border hover:text-foreground hover:bg-muted{{/if}}">
+          Con cambios
+        </button>
+        <button type="button" data-workflow-pill="in_review"
+          class="px-2.5 py-1 rounded-lg border transition-colors shrink-0 cursor-pointer {{#if (eq filters.workflow 'in_review')}}bg-amber-600 text-white border-amber-600 font-bold shadow-2xs{{else}}bg-card text-muted-foreground border-border hover:text-foreground hover:bg-muted{{/if}}">
+          En revisión
+        </button>
+        <button type="button" data-workflow-pill="verified"
+          class="px-2.5 py-1 rounded-lg border transition-colors shrink-0 cursor-pointer {{#if (eq filters.workflow 'verified')}}bg-blue-600 text-white border-blue-600 font-bold shadow-2xs{{else}}bg-card text-muted-foreground border-border hover:text-foreground hover:bg-muted{{/if}}">
+          Verificados
+        </button>
+        <button type="button" data-workflow-pill="published"
+          class="px-2.5 py-1 rounded-lg border transition-colors shrink-0 cursor-pointer {{#if (eq filters.workflow 'published')}}bg-emerald-700 text-white border-emerald-700 font-bold shadow-2xs{{else}}bg-card text-muted-foreground border-border hover:text-foreground hover:bg-muted{{/if}}">
+          Publicados
+        </button>
+        <button type="button" data-workflow-pill="archived"
+          class="px-2.5 py-1 rounded-lg border transition-colors shrink-0 cursor-pointer {{#if (eq filters.workflow 'archived')}}bg-zinc-700 text-white border-zinc-700 font-bold shadow-2xs{{else}}bg-card text-muted-foreground border-border hover:text-foreground hover:bg-muted{{/if}}">
+          Archivados
+        </button>
       </div>
-    </form>
-    <p class="text-xs text-muted-foreground" role="status">Mostrando <strong class="text-foreground">{{pagination.fromItem}}–{{pagination.toItem}}</strong> de <strong class="text-foreground">{{pagination.totalItems}}</strong> cultivos.</p>
-    {{> private/crops/grid}}
-    {{> private/crops/table}}
-    {{> private/crop-pagination}}
+    </div>
+
+    <!-- Región de Resultados Asíncrona -->
+    <div id="crops-results-region" class="space-y-4">
+      <p class="text-xs text-muted-foreground" role="status">Mostrando <strong class="text-foreground">{{pagination.fromItem}}–{{pagination.toItem}}</strong> de <strong class="text-foreground">{{pagination.totalItems}}</strong> cultivos.</p>
+      {{> private/crops/grid}}
+      {{> private/crops/table}}
+      {{> private/crop-pagination}}
+    </div>
   </div>
 </div>
 {{> private/crops/form-modal}}

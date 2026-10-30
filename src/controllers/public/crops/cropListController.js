@@ -5,9 +5,10 @@ import {
   buildPublishedCropWhere,
   normalizePublicCropQuery,
   PUBLIC_CROP_CATEGORIES,
+  PUBLIC_CROP_SEASONS,
 } from '../../../services/cropPublicQueryService.js';
 
-const { Crop, CropImage } = db;
+const { Crop, CropImage, Plague } = db;
 
 const findPublishedCrops = async (query) => {
   const normalizedQuery = normalizePublicCropQuery(query);
@@ -19,6 +20,13 @@ const findPublishedCrops = async (query) => {
         {
           model: CropImage,
           as: 'images',
+          required: false,
+        },
+        {
+          model: Plague,
+          as: 'plagues',
+          attributes: ['id'],
+          through: { attributes: [] },
           required: false,
         },
       ],
@@ -82,11 +90,18 @@ export const renderCropsPublic = async (req, res) => {
       nextUrl: buildPublicCropPageUrl(result.currentPage + 1, result.query),
       search: result.query.search,
       selectedCategory: result.query.category,
+      selectedSeason: result.query.season,
       categories: PUBLIC_CROP_CATEGORIES.map((category) => ({
         value: category,
         label: category,
         selected: category === result.query.category,
       })),
+      seasons: PUBLIC_CROP_SEASONS.map((season) => ({
+        value: season,
+        label: season,
+        selected: season === result.query.season,
+      })),
+      extraScripts: '<script src="/js/public/crops.js?v=2.0"></script>',
     });
   } catch (error) {
     console.error('Error en renderCropsPublic:', error);
@@ -98,6 +113,7 @@ export const renderCropsPublic = async (req, res) => {
       totalPages: 1,
       currentPage: 1,
       error: 'Error al cargar los cultivos',
+      extraScripts: '<script src="/js/public/crops.js?v=2.0"></script>',
     });
   }
 };

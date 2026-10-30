@@ -28,6 +28,7 @@ import {
   updateCrop,
   deleteCrop,
   updateCropWorkflow,
+  updateCropRelations,
 } from '../../controllers/private/cropsController.js';
 import {
   plaguesPrivate,
@@ -95,6 +96,11 @@ catalogRouter.post(
   '/private/crops/:id/workflow',
   requireCropWorkflowPermission,
   updateCropWorkflow,
+);
+catalogRouter.post(
+  '/private/crops/:id/relations',
+  requireCropPermission(CROP_PERMISSIONS.MANAGE_RELATIONS),
+  updateCropRelations,
 );
 
 // ══════════════════════════════════════════════════════════════════════════════

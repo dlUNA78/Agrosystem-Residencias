@@ -109,6 +109,9 @@ export const cropsPrivate = async (req, res) => {
       pagination,
       permissions,
       stats: { total: totalItems, published, inReview, changesRequested },
+      hasActiveFilters: Boolean(
+        query.search || query.category || query.workflow,
+      ),
       searchId: 'crop-search',
       searchValue: query.search,
       searchPlaceholder: 'Buscar por nombre, especie o categoría...',

@@ -6,4 +6,5 @@ export {
   updateCrop,
 } from './crops/cropMutationController.js';
 export { updateCropWorkflow } from './crops/cropWorkflowController.js';
+export { updateCropRelations } from './crops/cropRelationController.js';
 export { cropsPrivate as renderCropsPrivate } from './crops/cropListController.js';

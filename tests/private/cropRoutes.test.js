@@ -264,4 +264,45 @@ describe('rutas privadas del workflow de cultivos', () => {
     expect(allowedResponse.status).toBe(302);
     expect(await Crop.findByPk(disposableCrop.id)).toBeNull();
   });
+
+  it('permite quitar imágenes existentes y designar nueva imagen principal', async () => {
+    const initialImages = await CropImage.findAll({
+      where: { crop_id: crop.id },
+    });
+    const img1 = await CropImage.create({
+      crop_id: crop.id,
+      image_url: 'images/crops/test-rem-1.webp',
+      original_name: 'Foto 1.webp',
+      is_primary: false,
+      display_order: 1,
+    });
+    const img2 = await CropImage.create({
+      crop_id: crop.id,
+      image_url: 'images/crops/test-rem-2.webp',
+      original_name: 'Foto 2.webp',
+      is_primary: false,
+      display_order: 2,
+    });
+
+    const removedIds = [...initialImages.map((img) => img.id), img1.id];
+
+    const response = await authorAgent
+      .post(`/private/crops/update/${crop.id}`)
+      .set('Accept', 'application/json')
+      .send({
+        ...completeCropData,
+        removed_image_ids: removedIds.join(','),
+        primary_image_id: String(img2.id),
+      });
+
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBe(true);
+
+    const remainingImages = await CropImage.findAll({
+      where: { crop_id: crop.id },
+    });
+    expect(remainingImages).toHaveLength(1);
+    expect(remainingImages[0].id).toBe(img2.id);
+    expect(remainingImages[0].is_primary).toBe(true);
+  });
 });

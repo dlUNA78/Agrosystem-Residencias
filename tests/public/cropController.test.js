@@ -221,5 +221,25 @@ describe('🧪 Suite de Pruebas Públicas - Módulo de Cultivos', () => {
         await forgedApprovedCrop.destroy();
       }
     });
+
+    it('GET /crops/:id?format=pdf responde con el archivo PDF institucional', async () => {
+      const response = await request(app).get(
+        `/crops/${sampleCrop.id}?format=pdf`,
+      );
+      expect(response.status).toBe(200);
+      expect(response.headers['content-type']).toBe('application/pdf');
+      expect(response.headers['content-disposition']).toContain('inline;');
+      expect(response.body.subarray(0, 5).toString('utf8')).toBe('%PDF-');
+    });
+
+    it('GET /crops/:id?format=pdf&download=1 responde con header attachment', async () => {
+      const response = await request(app).get(
+        `/crops/${sampleCrop.id}?format=pdf&download=1`,
+      );
+      expect(response.status).toBe(200);
+      expect(response.headers['content-type']).toBe('application/pdf');
+      expect(response.headers['content-disposition']).toContain('attachment;');
+      expect(response.body.subarray(0, 5).toString('utf8')).toBe('%PDF-');
+    });
   });
 });
