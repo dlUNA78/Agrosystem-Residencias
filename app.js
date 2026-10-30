@@ -2,6 +2,7 @@ import 'dotenv/config';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import express from 'express';
+import compression from 'compression';
 import hbs from 'express-hbs';
 import session from 'express-session';
 import passport from 'passport';
@@ -49,6 +50,9 @@ if (missingEnvVars.length > 0) {
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// ─── RENDIMIENTO: COMPRESIÓN GZIP/BROTLI DE RESPUESTAS ─────────────────────
+app.use(compression());
 
 // ─── SEGURIDAD: ENCABEZADOS HTTP CON HELMET ──────────────────────────────
 app.use(
@@ -192,11 +196,20 @@ hbs.registerHelper('userInitial', function (user, options) {
   return name.trim().charAt(0).toUpperCase();
 });
 
-// Archivos estáticos y Middlewares base
-app.use(express.static(path.join(__dirname, 'public')));
+// Archivos estáticos y Middlewares base con política de caché
+app.use(
+  express.static(path.join(__dirname, 'public'), {
+    maxAge: process.env.NODE_ENV === 'production' ? '1y' : 0,
+    etag: true,
+  }),
+);
 app.use(
   '/vendor/leaflet',
   express.static(path.join(__dirname, 'node_modules/leaflet/dist')),
+);
+app.use(
+  '/vendor/lucide',
+  express.static(path.join(__dirname, 'node_modules/lucide/dist/umd')),
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

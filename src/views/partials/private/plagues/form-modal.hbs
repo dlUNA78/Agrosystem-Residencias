@@ -1,169 +1,343 @@
 <!-- ========================================================= -->
-<!-- MODAL AÑADIR / EDITAR PLAGA -->
+<!-- MODAL ÁGIL AÑADIR / EDITAR PLAGA (PARA TÉCNICOS INIFAP)   -->
 <!-- ========================================================= -->
 {{#if permissions.canCreate}}
-<div id="modal-plague" class="fixed inset-0 z-50 hidden items-center justify-center p-4 font-['Geist']">
-    <div id="modal-plague-backdrop" class="absolute inset-0 bg-black/40 backdrop-blur-xs"></div>
-    <div class="relative z-10 bg-card border border-border/80 rounded-2xl shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto flex flex-col">
-        
-        <form id="plague-form" action="/private/plagues/create" method="POST" enctype="multipart/form-data" class="flex flex-col flex-1">
-            
-            <!-- Header Modal -->
-            <div class="sticky top-0 z-20 bg-card/95 backdrop-blur-md border-b border-border/80 px-6 py-4 flex items-center justify-between">
-                <div>
-                    <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-[#2d6a4f]">Catálogo Fitosanitario</span>
-                    <h3 id="modal-plague-title" class="text-base font-headline font-black text-foreground">Nueva Plaga</h3>
+<div id="modal-plague" class="fixed inset-0 z-50 hidden items-center justify-center p-3 sm:p-4 font-['Geist']">
+    <div id="modal-plague-backdrop" class="absolute inset-0 bg-black/50 backdrop-blur-xs"></div>
+    <div class="relative z-10 bg-card border border-border/80 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden">
+
+        <form id="plague-form" action="/private/plagues/create" method="POST" enctype="multipart/form-data" class="flex flex-col flex-1 min-h-0">
+
+            <!-- Header Fijo con Navegación Rápida por Bloques -->
+            <div class="shrink-0 bg-card border-b border-border/80 px-5 sm:px-6 pt-4 pb-3 space-y-3">
+                <div class="flex items-start justify-between gap-4">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-[#2d6a4f]">Expediente Fitosanitario INIFAP</span>
+                            <span class="px-2 py-0.5 rounded-full bg-muted text-[10px] font-mono text-muted-foreground">Captura técnica ágil</span>
+                        </div>
+                        <h3 id="modal-plague-title" class="text-lg font-headline font-black text-foreground mt-0.5">Nueva Plaga</h3>
+                    </div>
+                    <button type="button" id="modal-plague-close" class="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer" aria-label="Cerrar modal">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
                 </div>
-                <button type="button" id="modal-plague-close" class="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
+
+                <!-- Saltos rápidos entre secciones del formulario -->
+                <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar text-[11px] font-bold">
+                    <button type="button" data-modal-section-target="form-sec-identidad"
+                        class="px-2.5 py-1 rounded-lg bg-[#e6f0e6] text-[#1b4332] hover:bg-[#d8ead8] transition-colors shrink-0 cursor-pointer">
+                        01 · Identidad y Riesgo
+                    </button>
+                    <button type="button" data-modal-section-target="form-sec-mip"
+                        class="px-2.5 py-1 rounded-lg bg-muted/60 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors shrink-0 cursor-pointer">
+                        02 · Diagnóstico y MIP
+                    </button>
+                    <button type="button" data-modal-section-target="form-sec-ciclo"
+                        class="px-2.5 py-1 rounded-lg bg-muted/60 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors shrink-0 cursor-pointer">
+                        03 · Ciclo Biológico
+                    </button>
+                    <button type="button" data-modal-section-target="form-sec-galeria"
+                        class="px-2.5 py-1 rounded-lg bg-muted/60 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors shrink-0 cursor-pointer">
+                        04 · Evidencia Fotográfica
+                    </button>
+                </div>
             </div>
 
-            <!-- Campos Formulario -->
-            <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                
-                <div>
-                    <label class="block font-bold text-foreground mb-1.5">Nombre Común *</label>
-                    <input type="text" name="name" required placeholder="Ej. Mosca blanca"
-                        class="w-full bg-muted/40 border border-input rounded-xl px-3.5 py-2.5 text-xs text-foreground focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all">
-                </div>
+            <!-- Cuerpo Desplazable Organizado en 4 Secciones Claras -->
+            <div id="plague-form-scroll" class="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6 text-xs">
 
-                <div>
-                    <label class="block font-bold text-foreground mb-1.5">Nombre Científico *</label>
-                    <input type="text" name="scientific_name" required placeholder="Ej. Bemisia tabaci"
-                        class="w-full bg-muted/40 border border-input rounded-xl px-3.5 py-2.5 text-xs italic font-serif text-foreground focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all">
-                </div>
+                <div id="plague-form-server-error" role="alert" class="hidden rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-xs font-bold text-rose-800"></div>
 
-                <div>
-                    <label class="block font-bold text-foreground mb-1.5">Categoría</label>
-                    <select name="category"
-                        class="w-full bg-muted/40 border border-input rounded-xl px-3.5 py-2.5 text-xs text-foreground focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all">
-                        <option value="">Seleccione categoría...</option>
-                        <option value="Insecto">Insecto</option>
-                        <option value="Hongo">Hongo</option>
-                        <option value="Bacteria">Bacteria</option>
-                        <option value="Virus">Virus</option>
-                        <option value="Ácaro">Ácaro</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block font-bold text-foreground mb-1.5">Región Afectada</label>
-                    <input type="text" name="region" placeholder="Ej. Centro de México, El Bajío..."
-                        class="w-full bg-muted/40 border border-input rounded-xl px-3.5 py-2.5 text-xs text-foreground focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all">
-                </div>
-
-                <div>
-                    <label class="block font-bold text-foreground mb-1.5">Nivel de Riesgo</label>
-                    <select name="risk_level"
-                        class="w-full bg-muted/40 border border-input rounded-xl px-3.5 py-2.5 text-xs text-foreground focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all">
-                        <option value="Bajo">Bajo</option>
-                        <option value="Medio">Medio</option>
-                        <option value="Alto">Alto</option>
-                        <option value="Crítico">Crítico</option>
-                    </select>
-                </div>
-
-                <div class="md:col-span-2">
-                    <label class="block font-bold text-foreground mb-1.5">Descripción de la Plaga</label>
-                    <textarea name="description" rows="3" placeholder="Describe las características morfológicas y biológicas..."
-                        class="w-full bg-muted/40 border border-input rounded-xl px-3.5 py-2.5 text-xs text-foreground resize-none focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all"></textarea>
-                </div>
-
-                <div class="md:col-span-2">
-                    <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
-                        <div>
-                            <label class="block font-bold text-foreground">Ciclo Biológico</label>
-                            <p class="mt-0.5 text-[11px] text-muted-foreground">Organiza el ciclo en hasta 20 etapas.</p>
+                <!-- SECCIÓN 01: IDENTIDAD Y CLASIFICACIÓN -->
+                <section id="form-sec-identidad" class="rounded-2xl border border-border/80 bg-muted/15 p-4 sm:p-5 space-y-4">
+                    <div class="flex items-center justify-between gap-2 border-b border-border/60 pb-2.5">
+                        <div class="flex items-center gap-2">
+                            <span class="flex h-6 w-6 items-center justify-center rounded-lg bg-[#1b4332] font-mono text-[11px] font-bold text-white">01</span>
+                            <div>
+                                <h4 class="text-xs font-headline font-bold text-foreground">Identificación Taxonómica y Clasificación</h4>
+                                <p class="text-[11px] text-muted-foreground">Sólo el nombre común y científico son obligatorios para guardar un borrador inicial.</p>
+                            </div>
                         </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block font-bold text-foreground mb-1.5">Nombre Común <span class="text-rose-600">*</span></label>
+                            <input type="text" name="name" required maxlength="150" placeholder="Ej. Gusano cogollero"
+                                class="w-full bg-card border border-input rounded-xl px-3.5 py-2.5 text-xs text-foreground focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all">
+                        </div>
+
+                        <div>
+                            <label class="block font-bold text-foreground mb-1.5">Nombre Científico <span class="text-rose-600">*</span></label>
+                            <input type="text" name="scientific_name" required maxlength="200" placeholder="Ej. Spodoptera frugiperda"
+                                class="w-full bg-card border border-input rounded-xl px-3.5 py-2.5 text-xs italic font-serif text-foreground focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all">
+                        </div>
+
+                        <div>
+                            <label class="block font-bold text-foreground mb-1.5">Categoría Taxonómica</label>
+                            <select name="category"
+                                class="w-full bg-card border border-input rounded-xl px-3.5 py-2.5 text-xs text-foreground focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all">
+                                <option value="">Seleccione categoría...</option>
+                                <option value="Insecto">Insecto</option>
+                                <option value="Hongo">Hongo / Oomiceto</option>
+                                <option value="Bacteria">Bacteria</option>
+                                <option value="Virus">Virus</option>
+                                <option value="Ácaro">Ácaro</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block font-bold text-foreground mb-1.5">Nivel de Riesgo General</label>
+                            <select name="risk_level"
+                                class="w-full bg-card border border-input rounded-xl px-3.5 py-2.5 text-xs text-foreground focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all">
+                                <option value="Bajo">Bajo</option>
+                                <option value="Medio">Medio / Moderado</option>
+                                <option value="Alto">Alto</option>
+                                <option value="Crítico">Crítico (Cuarentenario / Prioritario)</option>
+                            </select>
+                        </div>
+
+                        <div class="md:col-span-2">
+                            <label class="block font-bold text-foreground mb-1.5">Región Geográfica Referencial</label>
+                            <input type="text" name="region" maxlength="250" placeholder="Ej. Valles Altos, Sinaloa, Michoacán (las regiones oficiales se vinculan en el expediente)"
+                                class="w-full bg-card border border-input rounded-xl px-3.5 py-2.5 text-xs text-foreground focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all">
+                        </div>
+
+                        <div class="md:col-span-2">
+                            <label class="block font-bold text-foreground mb-1.5">Descripción Técnica General</label>
+                            <textarea name="description" rows="2" maxlength="5000" placeholder="Resumen morfológico, hábito de ataque e importancia económica..."
+                                class="w-full bg-card border border-input rounded-xl px-3.5 py-2.5 text-xs text-foreground resize-y focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all"></textarea>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SECCIÓN 02: DIAGNÓSTICO CLÍNICO Y MANEJO INTEGRADO -->
+                <section id="form-sec-mip" class="rounded-2xl border border-border/80 bg-muted/15 p-4 sm:p-5 space-y-4">
+                    <div class="flex items-center justify-between gap-2 border-b border-border/60 pb-2.5">
+                        <div class="flex items-center gap-2">
+                            <span class="flex h-6 w-6 items-center justify-center rounded-lg bg-[#1b4332] font-mono text-[11px] font-bold text-white">02</span>
+                            <div>
+                                <h4 class="text-xs font-headline font-bold text-foreground">Diagnóstico en Campo y Estrategia MIP</h4>
+                                <p class="text-[11px] text-muted-foreground">El sistema estructura automáticamente tus textos en listas de verificación y etiquetas científicas.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="md:col-span-2">
+                            <div class="flex flex-wrap items-center justify-between gap-1 mb-1.5">
+                                <label class="font-bold text-foreground">Síntomas Observables en el Cultivo</label>
+                                <span class="text-[10px] font-mono text-[#2d6a4f]">Separa con «;» para crear checklist numerado</span>
+                            </div>
+                            <textarea name="symptoms" rows="2" maxlength="5000" placeholder="Ej. Perforaciones irregulares en hojas jóvenes; Excremento húmedo en el cogollo; Raspado foliar tipo ventanilla"
+                                class="w-full bg-card border border-input rounded-xl px-3.5 py-2.5 text-xs text-foreground resize-y focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all"></textarea>
+                        </div>
+
+                        <div>
+                            <div class="flex flex-wrap items-center justify-between gap-1 mb-1.5">
+                                <label class="font-bold text-foreground">Control Biológico (1ª Línea)</label>
+                                <span class="text-[10px] font-mono text-[#2d6a4f]">Separa especies con «,»</span>
+                            </div>
+                            <textarea name="biological_control" rows="3" maxlength="5000" placeholder="Ej. Trichogramma spp., Bacillus thuringiensis, Doru taeniatum"
+                                class="w-full bg-card border border-input rounded-xl px-3.5 py-2.5 text-xs text-foreground resize-y focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all"></textarea>
+                        </div>
+
+                        <div>
+                            <div class="flex flex-wrap items-center justify-between gap-1 mb-1.5">
+                                <label class="font-bold text-foreground">Manejo Cultural y Químico (2ª Línea)</label>
+                                <span class="text-[10px] font-mono text-muted-foreground">Separa acciones con «;»</span>
+                            </div>
+                            <textarea name="control_methods" rows="3" maxlength="5000" placeholder="Ej. Monitoreo semanal con feromonas; Destrucción de socas; Aspersión dirigida al verticilo"
+                                class="w-full bg-card border border-input rounded-xl px-3.5 py-2.5 text-xs text-foreground resize-y focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all"></textarea>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SECCIÓN 03: CONSTRUCTOR ÁGIL DEL CICLO BIOLÓGICO -->
+                <section id="form-sec-ciclo" class="rounded-2xl border border-border/80 bg-muted/15 p-4 sm:p-5 space-y-4">
+                    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 pb-3">
+                        <div class="flex items-center gap-2">
+                            <span class="flex h-6 w-6 items-center justify-center rounded-lg bg-[#1b4332] font-mono text-[11px] font-bold text-white">03</span>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h4 class="text-xs font-headline font-bold text-foreground">Ciclo Biológico y Ventanas de Control</h4>
+                                    <span id="cycle-stage-counter" class="px-2 py-0.5 rounded-full bg-card border border-border font-mono text-[10px] font-bold text-[#1b4332]">1 / 20 etapas</span>
+                                </div>
+                                <p class="text-[11px] text-muted-foreground">Usa una plantilla rápida de 1 clic o añade etapas manualmente.</p>
+                            </div>
+                        </div>
+
                         <button type="button" id="btn-add-biological-stage"
-                            class="inline-flex items-center gap-1.5 rounded-xl border border-[#1b4332]/20 bg-[#e6f0e6] px-3 py-2 text-xs font-bold text-[#1b4332] transition-colors hover:bg-[#d8ead8] cursor-pointer">
+                            class="inline-flex items-center gap-1.5 rounded-xl bg-[#1b4332] px-3.5 py-2 text-xs font-bold text-white transition-colors hover:bg-[#2d6a4f] cursor-pointer shadow-2xs">
                             <i data-lucide="plus" class="h-3.5 w-3.5"></i>
                             Añadir etapa
+                        </button>
+                    </div>
+
+                    <!-- Barra de Plantillas Rápidas para Técnicos -->
+                    <div class="rounded-xl border border-emerald-200/80 bg-emerald-50/50 p-3 flex flex-wrap items-center gap-2">
+                        <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-[#1b4332] flex items-center gap-1 mr-1">
+                            <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+                            Autocompletar base:
+                        </span>
+                        <button type="button" data-cycle-preset="holometabolo"
+                            class="px-2.5 py-1 rounded-lg bg-card hover:bg-emerald-100/80 border border-emerald-200 text-[11px] font-bold text-[#1b4332] transition-colors cursor-pointer shadow-2xs">
+                            Insecto completo (4 fases)
+                        </button>
+                        <button type="button" data-cycle-preset="hemimetabolo"
+                            class="px-2.5 py-1 rounded-lg bg-card hover:bg-emerald-100/80 border border-emerald-200 text-[11px] font-bold text-[#1b4332] transition-colors cursor-pointer shadow-2xs">
+                            Huevo → Ninfa → Adulto (3 fases)
+                        </button>
+                        <button type="button" data-cycle-preset="hongo"
+                            class="px-2.5 py-1 rounded-lg bg-card hover:bg-emerald-100/80 border border-emerald-200 text-[11px] font-bold text-[#1b4332] transition-colors cursor-pointer shadow-2xs">
+                            Hongo / Patógeno (3 fases)
+                        </button>
+                        <button type="button" data-cycle-preset="acaro"
+                            class="px-2.5 py-1 rounded-lg bg-card hover:bg-emerald-100/80 border border-emerald-200 text-[11px] font-bold text-[#1b4332] transition-colors cursor-pointer shadow-2xs">
+                            Ácaro (4 fases)
                         </button>
                     </div>
 
                     <div id="biological-cycle-builder" class="space-y-3" aria-live="polite"></div>
 
                     <template id="biological-cycle-stage-template">
-                        <article data-biological-stage class="rounded-2xl border border-border/80 bg-muted/20 p-4">
-                            <div class="mb-3 flex items-center justify-between gap-3">
+                        <article data-biological-stage class="rounded-xl border border-border bg-card p-3.5 sm:p-4 shadow-2xs transition-all">
+                            <!-- Barra superior compacta de la etapa -->
+                            <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
                                 <div class="flex items-center gap-2">
-                                    <span class="flex h-7 w-7 items-center justify-center rounded-full bg-[#1b4332] text-[11px] font-bold text-white" data-stage-number></span>
-                                    <span class="text-xs font-bold text-foreground">Etapa del ciclo</span>
+                                    <span class="flex h-6 w-6 items-center justify-center rounded-full bg-[#1b4332] font-mono text-[11px] font-bold text-white" data-stage-number>1</span>
+                                    <span class="text-xs font-bold text-foreground" data-stage-header-label>Etapa del ciclo</span>
                                 </div>
-                                <button type="button" class="remove-biological-stage inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-[11px] font-bold text-rose-600 transition-colors hover:bg-rose-50 cursor-pointer" aria-label="Eliminar etapa">
-                                    <i data-lucide="trash-2" class="h-3.5 w-3.5"></i>
-                                    Eliminar
-                                </button>
-                            </div>
-                            <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
-                                <div>
-                                    <label class="mb-1 block text-[11px] font-bold text-foreground">Nombre de la etapa</label>
-                                    <input type="text" name="biological_cycle_title[]" maxlength="150" placeholder="Ej. Huevo, larva o adulto"
-                                        class="w-full rounded-xl border border-input bg-card px-3.5 py-2.5 text-xs text-foreground transition-all focus:border-[#1b4332] focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20">
-                                </div>
-                                <div>
-                                    <label class="mb-1 block text-[11px] font-bold text-foreground">Duración estimada</label>
-                                    <input type="text" name="biological_cycle_duration[]" maxlength="100" placeholder="Ej. 3 a 5 días"
-                                        class="w-full rounded-xl border border-input bg-card px-3.5 py-2.5 text-xs text-foreground transition-all focus:border-[#1b4332] focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20">
-                                </div>
-                                <div class="md:col-span-2">
-                                    <label class="mb-1 block text-[11px] font-bold text-foreground">Descripción</label>
-                                    <textarea name="biological_cycle_description[]" maxlength="500" rows="2" placeholder="Describe qué ocurre durante esta etapa..."
-                                        class="w-full resize-none rounded-xl border border-input bg-card px-3.5 py-2.5 text-xs text-foreground transition-all focus:border-[#1b4332] focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20"></textarea>
+                                <div class="flex flex-wrap items-center gap-1.5">
+                                    <label class="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-rose-200 bg-rose-50/70 px-2.5 py-1 text-[11px] font-bold text-rose-800 hover:bg-rose-100/70 transition-colors">
+                                        <input type="hidden" name="biological_cycle_control_window[]" value="false">
+                                        <input type="checkbox" data-control-window-toggle class="h-3.5 w-3.5 rounded border-rose-300 text-rose-600">
+                                        Ventana crítica
+                                    </label>
+                                    <button type="button" class="move-stage-up p-1.5 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer" title="Subir etapa" aria-label="Subir etapa">
+                                        <i data-lucide="arrow-up" class="h-3.5 w-3.5"></i>
+                                    </button>
+                                    <button type="button" class="move-stage-down p-1.5 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer" title="Bajar etapa" aria-label="Bajar etapa">
+                                        <i data-lucide="arrow-down" class="h-3.5 w-3.5"></i>
+                                    </button>
+                                    <button type="button" class="remove-biological-stage inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-[11px] font-bold text-rose-600 transition-colors hover:bg-rose-50 cursor-pointer" aria-label="Eliminar etapa">
+                                        <i data-lucide="trash-2" class="h-3.5 w-3.5"></i>
+                                        <span class="hidden sm:inline">Quitar</span>
+                                    </button>
                                 </div>
                             </div>
+
+                            <!-- Campos esenciales (siempre visibles y rápidos) -->
+                            <div class="grid grid-cols-1 gap-3 sm:grid-cols-12">
+                                <div class="sm:col-span-7">
+                                    <label class="mb-1 block text-[11px] font-bold text-foreground">Nombre de la etapa <span class="text-rose-600">*</span></label>
+                                    <input type="text" name="biological_cycle_title[]" maxlength="150" placeholder="Ej. Huevo, Larva L1-L3 o Adulto"
+                                        class="w-full rounded-xl border border-input bg-muted/20 px-3 py-2 text-xs text-foreground transition-all focus:bg-card focus:border-[#1b4332] focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20">
+                                </div>
+                                <div class="sm:col-span-5">
+                                    <label class="mb-1 block text-[11px] font-bold text-foreground">Duración (usa días para barra proporcional)</label>
+                                    <input type="text" name="biological_cycle_duration[]" maxlength="100" placeholder="Ej. 4-6 días"
+                                        class="w-full rounded-xl border border-input bg-muted/20 px-3 py-2 text-xs font-mono text-foreground transition-all focus:bg-card focus:border-[#1b4332] focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20">
+                                </div>
+                                <div class="sm:col-span-12">
+                                    <label class="mb-1 block text-[11px] font-bold text-foreground">Hábito biológico y signos observables</label>
+                                    <textarea name="biological_cycle_description[]" maxlength="500" rows="2" placeholder="Qué ocurre en esta fase y cómo reconocerla en campo..."
+                                        class="w-full resize-y rounded-xl border border-input bg-muted/20 px-3 py-2 text-xs text-foreground transition-all focus:bg-card focus:border-[#1b4332] focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20"></textarea>
+                                </div>
+                            </div>
+
+                            <!-- Acordeón colapsable para detalles agronómicos opcionales -->
+                            <details data-stage-advanced class="mt-3 rounded-xl border border-dashed border-border bg-muted/20 px-3.5 py-2.5 group">
+                                <summary class="flex cursor-pointer list-none items-center justify-between gap-2 text-[11px] font-bold text-[#1b4332] select-none">
+                                    <span class="inline-flex items-center gap-1.5">
+                                        <i data-lucide="sliders-horizontal" class="h-3.5 w-3.5"></i>
+                                        <span>Detalles agronómicos de la fase (ubicación, severidad y acción)</span>
+                                    </span>
+                                    <span data-stage-meta-badge class="rounded-full bg-card px-2 py-0.5 font-mono text-[10px] font-normal text-muted-foreground border border-border">
+                                        Opcional
+                                    </span>
+                                </summary>
+
+                                <div class="mt-3 pt-3 border-t border-border/60 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                    <div>
+                                        <label class="mb-1 block text-[11px] font-bold text-foreground">Ubicación en planta / suelo</label>
+                                        <input type="text" name="biological_cycle_zone[]" maxlength="150" placeholder="Ej. Envés foliar, cogollo, suelo (2-5 cm)"
+                                            class="w-full rounded-xl border border-input bg-card px-3 py-2 text-xs text-foreground transition-all focus:border-[#1b4332] focus:outline-hidden">
+                                    </div>
+                                    <div>
+                                        <label class="mb-1 block text-[11px] font-bold text-foreground">Severidad de daño en esta fase</label>
+                                        <select name="biological_cycle_damage[]"
+                                            class="w-full rounded-xl border border-input bg-card px-3 py-2 text-xs text-foreground transition-all focus:border-[#1b4332] focus:outline-hidden">
+                                            <option value="">No especificada</option>
+                                            <option value="Sin daño directo">Sin daño directo</option>
+                                            <option value="Bajo">Bajo</option>
+                                            <option value="Moderado">Moderado</option>
+                                            <option value="Severo">Severo</option>
+                                        </select>
+                                    </div>
+                                    <div class="sm:col-span-2">
+                                        <label class="mb-1 block text-[11px] font-bold text-foreground">Acción técnica sugerida en esta fase</label>
+                                        <input type="text" name="biological_cycle_action[]" maxlength="300" placeholder="Ej. Liberación de parasitoides o aspersión dirigida antes de penetrar el fruto/cogollo"
+                                            class="w-full rounded-xl border border-input bg-card px-3 py-2 text-xs text-foreground transition-all focus:border-[#1b4332] focus:outline-hidden">
+                                    </div>
+                                </div>
+                            </details>
                         </article>
                     </template>
-                </div>
+                </section>
 
-                <div class="md:col-span-2">
-                    <label class="block font-bold text-foreground mb-1.5">Síntomas en el Cultivo</label>
-                    <textarea name="symptoms" rows="2" placeholder="Describe las lesiones o síntomas observables..."
-                        class="w-full bg-muted/40 border border-input rounded-xl px-3.5 py-2.5 text-xs text-foreground resize-none focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all"></textarea>
-                </div>
-
-                <div>
-                    <label class="block font-bold text-foreground mb-1.5">Métodos de Control Químico/Físico</label>
-                    <textarea name="control_methods" rows="3" placeholder="Recomendaciones de manejo..."
-                        class="w-full bg-muted/40 border border-input rounded-xl px-3.5 py-2.5 text-xs text-foreground resize-none focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all"></textarea>
-                </div>
-
-                <div>
-                    <label class="block font-bold text-foreground mb-1.5">Control Biológico</label>
-                    <textarea name="biological_control" rows="3" placeholder="Organismos o parasitoides recomendados..."
-                        class="w-full bg-muted/40 border border-input rounded-xl px-3.5 py-2.5 text-xs text-foreground resize-none focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all"></textarea>
-                </div>
-
-                <div class="md:col-span-2">
-                    <label class="block font-bold text-foreground mb-1.5">Galería de imágenes</label>
-                    <div class="bg-muted/40 border border-input rounded-xl p-4 space-y-4">
-                        <div id="plague-image-previews" class="hidden grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5" aria-live="polite"></div>
-                        <div class="w-full">
-                            <input id="plague-removed-image-ids" type="hidden" name="removed_image_ids" value="">
-                            <input id="plague-images" type="file" name="images" multiple accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
-                                class="block w-full text-xs text-muted-foreground file:mr-4 file:py-2 file:px-3 file:rounded-xl file:border-0 file:bg-[#e6f0e6] file:text-[#1b4332] file:font-bold file:text-xs">
-                            <p class="text-[11px] text-muted-foreground mt-1.5">La galería admite hasta 10 imágenes en total · JPG, PNG o WEBP · máximo 5 MB cada una.</p>
-                            <p id="plague-image-error" class="hidden mt-1.5 text-[11px] font-bold text-red-700" role="alert"></p>
-                            <p id="plague-existing-images-note" class="hidden text-[11px] text-[#2d6a4f] mt-1">Las imágenes actuales se conservarán; la nueva selección se añadirá al final de la galería.</p>
+                <!-- SECCIÓN 04: GALERÍA FOTOGRÁFICA DRAG & DROP -->
+                <section id="form-sec-galeria" class="rounded-2xl border border-border/80 bg-muted/15 p-4 sm:p-5 space-y-4">
+                    <div class="flex items-center justify-between gap-2 border-b border-border/60 pb-2.5">
+                        <div class="flex items-center gap-2">
+                            <span class="flex h-6 w-6 items-center justify-center rounded-lg bg-[#1b4332] font-mono text-[11px] font-bold text-white">04</span>
+                            <div>
+                                <h4 class="text-xs font-headline font-bold text-foreground">Galería de Evidencia en Campo</h4>
+                                <p class="text-[11px] text-muted-foreground">Arrastra tus fotografías aquí o selecciónalas desde tu equipo.</p>
+                            </div>
                         </div>
+                        <span id="plague-image-counter" class="px-2.5 py-0.5 rounded-full bg-card border border-border font-mono text-[10px] font-bold text-foreground">0 / 10 fotos</span>
                     </div>
-                </div>
+
+                    <div id="plague-image-dropzone" class="rounded-xl border-2 border-dashed border-border hover:border-[#1b4332]/60 bg-card p-5 transition-colors text-center space-y-3">
+                        <div class="mx-auto w-10 h-10 rounded-xl bg-[#e6f0e6] text-[#1b4332] flex items-center justify-center">
+                            <i data-lucide="upload-cloud" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <label for="plague-images" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#e6f0e6] hover:bg-[#d8ead8] text-[#1b4332] font-bold text-xs cursor-pointer transition-colors">
+                                <i data-lucide="image-plus" class="w-3.5 h-3.5"></i>
+                                <span>Seleccionar imágenes</span>
+                            </label>
+                            <p class="text-[11px] text-muted-foreground mt-2">o suelta archivos JPG, PNG o WEBP aquí · máximo 5 MB por foto (hasta 10 en total).</p>
+                        </div>
+                        <input id="plague-removed-image-ids" type="hidden" name="removed_image_ids" value="">
+                        <input id="plague-images" type="file" name="images" multiple accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" class="sr-only">
+                        <p id="plague-image-error" class="hidden text-[11px] font-bold text-rose-700" role="alert"></p>
+                        <p id="plague-existing-images-note" class="hidden text-[11px] text-[#2d6a4f] font-medium">Las fotos marcadas como «Actual» se conservarán; puedes quitar cualquiera antes de guardar.</p>
+                    </div>
+
+                    <div id="plague-image-previews" class="hidden grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5" aria-live="polite"></div>
+                </section>
 
             </div>
 
-            <!-- Footer Botones Modal -->
-            <div class="sticky bottom-0 bg-card/95 backdrop-blur-md border-t border-border/80 px-6 py-4 flex justify-end gap-2">
-                <button type="button" id="modal-plague-cancel"
-                    class="px-4 py-2 rounded-xl border border-border/80 text-xs font-bold text-muted-foreground hover:bg-muted transition-colors cursor-pointer">
-                    Cancelar
-                </button>
-                <button type="submit" id="btn-save-plague"
-                    class="px-5 py-2 rounded-xl bg-[#1b4332] text-white text-xs font-bold hover:bg-[#2d6a4f] transition-all shadow-2xs cursor-pointer inline-flex items-center gap-1.5">
-                    <i data-lucide="save" class="w-4 h-4"></i>
-                    <span id="btn-save-plague-text">Guardar Plaga</span>
-                </button>
+            <!-- Footer Fijo de Guardado -->
+            <div class="shrink-0 bg-card border-t border-border/80 px-5 sm:px-6 py-3.5 flex flex-wrap items-center justify-between gap-3">
+                <p class="text-[11px] text-muted-foreground hidden sm:block">
+                    <strong class="text-foreground">Nota:</strong> Cultivos hospederos, productos y regiones se asocian dentro del expediente de la plaga.
+                </p>
+                <div class="flex items-center gap-2 ml-auto">
+                    <button type="button" id="modal-plague-cancel"
+                        class="px-4 py-2.5 rounded-xl border border-border/80 text-xs font-bold text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer">
+                        Cancelar
+                    </button>
+                    <button type="submit" id="btn-save-plague"
+                        class="px-5 py-2.5 rounded-xl bg-[#1b4332] text-white text-xs font-bold hover:bg-[#2d6a4f] transition-all shadow-2xs cursor-pointer inline-flex items-center gap-1.5">
+                        <i data-lucide="save" class="w-4 h-4"></i>
+                        <span id="btn-save-plague-text">Guardar Plaga</span>
+                    </button>
+                </div>
             </div>
 
         </form>

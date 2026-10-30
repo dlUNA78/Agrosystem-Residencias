@@ -1,53 +1,166 @@
-<div class="space-y-16 pb-20">
+<div class="space-y-16 pb-20 font-sans">
 
   <!-- ── SECCIÓN 1: HERO & BUSCADOR ────────────────────────────────────────── -->
-  <section class="pt-10 pb-12 px-6 md:px-12 max-w-7xl mx-auto border-b border-border/60">
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+  <section class="relative pt-10 pb-12 px-4 sm:px-6 md:px-12 max-w-7xl mx-auto border-b border-border/60 overflow-hidden">
+    <!-- Orbes sutiles de ambiente institucional -->
+    <div class="pointer-events-none absolute -top-20 -left-20 w-80 h-80 bg-emerald-500/5 rounded-full blur-3xl" aria-hidden="true"></div>
+    <div class="pointer-events-none absolute top-1/2 -right-20 w-80 h-80 bg-[#1b4332]/5 rounded-full blur-3xl" aria-hidden="true"></div>
+
+    <div class="relative grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
       
       <!-- Lado Izquierdo: Títulos, Buscador y Tendencias -->
       <div class="lg:col-span-8 space-y-6">
-        <div class="text-mono-label text-emerald-800 font-semibold tracking-wider">
+        <div class="text-mono-label text-emerald-800 font-semibold tracking-wider flex items-center gap-2 animate-hero-badge">
+          <span class="inline-block w-2 h-2 rounded-full bg-emerald-600 animate-pulse"></span>
           SISTEMA NACIONAL DE VIGILANCIA FITOSANITARIA · CONSULTA PÚBLICA
         </div>
         
-        <h1 class="text-4xl md:text-5xl lg:text-6xl font-headline font-extrabold text-foreground tracking-tight leading-[1.1]">
+        <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-headline font-extrabold text-foreground tracking-tight leading-[1.1] animate-hero-title">
           Consulta la sanidad vegetal de México, <span class="text-[#1b4332]">cultivo por cultivo.</span>
         </h1>
 
-        <p class="text-base md:text-lg text-muted-foreground max-w-2xl leading-relaxed">
+        <p class="text-base md:text-lg text-muted-foreground max-w-2xl leading-relaxed animate-hero-desc">
           Base de datos técnica de plagas, paquetes tecnológicos e insumos autorizados. Cada ficha se valida contra la investigación de los campos experimentales del INIFAP.
         </p>
 
-        <!-- Formulario de Búsqueda Integrado -->
-        <form action="/plagues" method="GET" id="hero-search-form" class="pt-2">
-          <div class="flex flex-col sm:flex-row gap-2 max-w-2xl bg-card border border-border p-1.5 rounded-lg shadow-xs focus-within:ring-2 focus-within:ring-primary/40 transition-all">
+        <!-- Selector de Alcance de Búsqueda (Tabs con Touch-Scroll Móvil) -->
+        <div class="pt-2 animate-hero-tabs">
+          <div class="flex overflow-x-auto no-scrollbar gap-1.5 p-1 bg-secondary/80 border border-border rounded-lg w-full sm:w-fit text-xs font-medium scroll-smooth" role="tablist" aria-label="Ámbito de búsqueda">
+            <button
+              type="button"
+              class="search-scope-btn px-3.5 py-1.5 rounded-md transition-all font-semibold bg-card text-[#1b4332] shadow-2xs flex items-center gap-1.5 cursor-pointer shrink-0 whitespace-nowrap active:scale-95"
+              data-scope="plagues"
+              data-action="/plagues"
+              data-icon="pest_control"
+              data-placeholder="Nombre científico, plaga, cultivo o síntoma..."
+              aria-selected="true"
+            >
+              <span class="material-symbols-outlined text-sm">pest_control</span>
+              <span>Plagas</span>
+            </button>
+            <button
+              type="button"
+              class="search-scope-btn px-3.5 py-1.5 rounded-md transition-all font-medium text-muted-foreground hover:text-foreground flex items-center gap-1.5 cursor-pointer shrink-0 whitespace-nowrap active:scale-95"
+              data-scope="crops"
+              data-action="/crops"
+              data-icon="psychiatry"
+              data-placeholder="Nombre común, científico, variedad o familia botánica..."
+              aria-selected="false"
+            >
+              <span class="material-symbols-outlined text-sm">psychiatry</span>
+              <span>Cultivos</span>
+            </button>
+            <button
+              type="button"
+              class="search-scope-btn px-3.5 py-1.5 rounded-md transition-all font-medium text-muted-foreground hover:text-foreground flex items-center gap-1.5 cursor-pointer shrink-0 whitespace-nowrap active:scale-95"
+              data-scope="products"
+              data-action="/products"
+              data-icon="science"
+              data-placeholder="Nombre comercial, ingrediente activo o formulación..."
+              aria-selected="false"
+            >
+              <span class="material-symbols-outlined text-sm">science</span>
+              <span>Insumos</span>
+            </button>
+            <button
+              type="button"
+              class="search-scope-btn px-3.5 py-1.5 rounded-md transition-all font-medium text-muted-foreground hover:text-foreground flex items-center gap-1.5 cursor-pointer shrink-0 whitespace-nowrap active:scale-95"
+              data-scope="lands"
+              data-action="/lands"
+              data-icon="travel_explore"
+              data-placeholder="Estado, región agrícola o zona de cobertura..."
+              aria-selected="false"
+            >
+              <span class="material-symbols-outlined text-sm">travel_explore</span>
+              <span>Regiones</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Formulario de Búsqueda Dinámico con Autocompletado Predictivo -->
+        <form action="/plagues" method="GET" id="hero-search-form" class="pt-1 animate-hero-search relative max-w-2xl">
+          <div class="flex flex-col sm:flex-row gap-2 w-full bg-card border border-border p-1.5 rounded-lg shadow-xs focus-within:ring-2 focus-within:ring-[#1b4332]/30 focus-within:border-[#1b4332] transition-all">
             <div class="relative flex-1 flex items-center">
-              <span class="material-symbols-outlined text-muted-foreground pl-3 pr-2">search</span>
+              <span class="material-symbols-outlined text-muted-foreground pl-3 pr-2 text-xl select-none transition-transform duration-200" id="hero-search-icon">pest_control</span>
               <input
                 id="hero-search-input"
                 name="search"
                 type="text"
-                placeholder="Nombre científico, plaga, cultivo o número de registro..."
-                class="w-full bg-transparent py-2 text-sm md:text-base text-foreground placeholder:text-muted-foreground outline-none"
+                inputmode="search"
+                enterkeyhint="search"
+                placeholder="Nombre científico, plaga, cultivo o síntoma..."
+                class="w-full bg-transparent py-2.5 text-sm md:text-base text-foreground placeholder:text-muted-foreground outline-none pr-10"
                 required
+                autocomplete="off"
+                aria-autocomplete="list"
+                aria-controls="hero-autocomplete-dropdown"
+                aria-expanded="false"
               />
+              <!-- Indicador de carga de autocompletado -->
+              <span id="hero-search-loading" class="hidden absolute right-10 text-muted-foreground animate-spin pointer-events-none">
+                <span class="material-symbols-outlined text-base text-[#1b4332]">progress_activity</span>
+              </span>
+              <!-- Botón Limpiar Texto (Área táctil de 40px) -->
+              <button
+                type="button"
+                id="hero-search-clear"
+                class="hidden absolute right-1.5 text-muted-foreground hover:text-foreground w-8 h-8 flex items-center justify-center rounded-full hover:bg-secondary transition-all cursor-pointer active:scale-90"
+                title="Limpiar búsqueda"
+                aria-label="Limpiar campo de búsqueda"
+              >
+                <span class="material-symbols-outlined text-base">close</span>
+              </button>
             </div>
             <button
               type="submit"
-              class="px-5 py-2.5 bg-[#1b4332] hover:bg-[#133426] text-white font-headline font-semibold text-sm rounded-md transition-all flex items-center justify-center gap-2 shadow-2xs shrink-0 cursor-pointer"
+              class="px-6 py-2.5 bg-[#1b4332] hover:bg-[#133426] text-white font-headline font-semibold text-sm rounded-md transition-all flex items-center justify-center gap-2 shadow-2xs shrink-0 cursor-pointer active:scale-95"
             >
-              <span>Buscar</span>
+              <span class="material-symbols-outlined text-base">search</span>
+              <span id="hero-search-btn-label">Buscar</span>
             </button>
+          </div>
+
+          <!-- Dropdown Flotante de Autocompletado Predictivo -->
+          <div
+            id="hero-autocomplete-dropdown"
+            class="hidden absolute left-0 right-0 top-full mt-2 bg-card border border-border rounded-xl shadow-xl z-50 overflow-hidden divide-y divide-border/60 transition-all text-xs font-sans"
+            role="listbox"
+            aria-label="Sugerencias de búsqueda"
+          >
+            <!-- Cabecera de Sugerencias -->
+            <div class="px-3.5 py-2 bg-secondary/50 flex items-center justify-between text-muted-foreground">
+              <span id="hero-autocomplete-scope-label" class="text-mono-label font-bold tracking-wider text-emerald-800">
+                SUGERENCIAS DISPONIBLES
+              </span>
+              <span class="text-[10px] font-mono text-muted-foreground">↑↓ navegar · ESC cerrar</span>
+            </div>
+
+            <!-- Lista Dinámica de Coincidencias -->
+            <div id="hero-autocomplete-list" class="max-h-72 overflow-y-auto divide-y divide-border/40">
+              <!-- Renderizado dinámico desde public/js/public/home-map.js -->
+            </div>
+
+            <!-- Footer con acceso a todos los resultados -->
+            <div id="hero-autocomplete-footer" class="p-2 bg-secondary/30">
+              <button
+                type="submit"
+                id="hero-autocomplete-all-btn"
+                class="w-full py-2 px-3 rounded-lg text-left font-semibold text-[#1b4332] hover:bg-secondary flex items-center justify-between transition-colors cursor-pointer"
+              >
+                <span id="hero-autocomplete-see-all">Ver todas las coincidencias...</span>
+                <span class="material-symbols-outlined text-sm">arrow_forward</span>
+              </button>
+            </div>
           </div>
         </form>
 
-        <!-- Consultas Frecuentes -->
-        <div class="flex flex-wrap items-center gap-2 pt-1">
-          <span class="text-mono-label text-muted-foreground font-semibold">CONSULTAS FRECUENTES:</span>
+        <!-- Consultas Frecuentes (Touch Carousel en Móvil) -->
+        <div class="flex items-center gap-2 pt-1 overflow-x-auto no-scrollbar pb-1 animate-hero-tags">
+          <span class="text-mono-label text-muted-foreground font-semibold shrink-0">CONSULTAS FRECUENTES:</span>
           {{#each frequentSearches}}
             <button
               type="button"
-              class="frequent-tag-btn px-3 py-1 bg-secondary text-secondary-foreground text-xs font-medium rounded-md hover:bg-emerald-100 hover:text-emerald-900 border border-border transition-colors cursor-pointer"
+              class="frequent-tag-btn px-3 py-1 bg-secondary text-secondary-foreground text-xs font-medium rounded-md hover:bg-emerald-100 hover:text-emerald-900 border border-border transition-all cursor-pointer hover:-translate-y-0.5 active:scale-95 shadow-2xs shrink-0 whitespace-nowrap"
               data-query="{{this}}"
             >
               {{this}}
@@ -57,14 +170,16 @@
       </div>
 
       <!-- Lado Derecho: Imagen Referencial y Tarjeta de Métricas Institucionales -->
-      <div class="lg:col-span-4 space-y-4">
+      <div class="lg:col-span-4 space-y-4 animate-hero-card">
         
-        <!-- Imagen Referencial Chica con Badge Institucional -->
+        <!-- Imagen Referencial con Badge Institucional -->
         <div class="relative w-full h-36 md:h-40 rounded-lg overflow-hidden border border-border shadow-2xs group">
           <img
             src="/images/hero-reference.webp"
             alt="Investigación y Monitoreo Agrícola INIFAP"
             class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+            loading="lazy"
+            decoding="async"
           />
           <div class="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-black/10"></div>
           <div class="absolute bottom-3 left-3 right-3 flex justify-between items-center text-white">
@@ -80,17 +195,17 @@
         <div class="bg-card border border-border rounded-lg p-5 shadow-xs space-y-4">
           <div class="flex justify-between items-center pb-3 border-b border-border">
             <span class="text-xs md:text-sm font-medium text-muted-foreground">Registros verificados</span>
-            <span class="font-mono text-2xl md:text-3xl font-medium tabular-nums text-[#1b4332]">{{heroStats.verifiedRecords}}</span>
+            <span class="font-mono text-2xl md:text-3xl font-medium tabular-nums text-[#1b4332] counter-stat" data-target="{{heroStats.verifiedRecords}}">{{heroStats.verifiedRecords}}</span>
           </div>
           
           <div class="flex justify-between items-center pb-3 border-b border-border">
             <span class="text-xs md:text-sm font-medium text-muted-foreground">Entidades con cobertura</span>
-            <span class="font-mono text-2xl md:text-3xl font-medium tabular-nums text-[#1b4332]">{{heroStats.coverageEntities}}</span>
+            <span class="font-mono text-2xl md:text-3xl font-medium tabular-nums text-[#1b4332] counter-stat" data-target="{{heroStats.coverageEntities}}">{{heroStats.coverageEntities}}</span>
           </div>
 
           <div class="flex justify-between items-center">
             <span class="text-xs md:text-sm font-medium text-muted-foreground">Campos experimentales</span>
-            <span class="font-mono text-2xl md:text-3xl font-medium tabular-nums text-[#1b4332]">{{heroStats.experimentalFields}}</span>
+            <span class="font-mono text-2xl md:text-3xl font-medium tabular-nums text-[#1b4332] counter-stat" data-target="{{heroStats.experimentalFields}}">{{heroStats.experimentalFields}}</span>
           </div>
         </div>
 
@@ -100,12 +215,13 @@
   </section>
 
   <!-- ── SECCIÓN 2: PANORAMA NACIONAL (MAPA VECTORIAL DE MÉXICO Y RANKING) ──── -->
-  <section id="panorama-nacional" class="scroll-mt-24 pt-4 px-6 md:px-12 max-w-7xl mx-auto border-b border-border/60 pb-16">
+  <section id="panorama-nacional" class="scroll-mt-24 pt-4 px-4 sm:px-6 md:px-12 max-w-7xl mx-auto border-b border-border/60 pb-16 overflow-hidden">
     
-    <!-- Encabezado del Panorama Nacional idéntico a la Imagen 1 -->
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-6">
+    <!-- Encabezado del Panorama Nacional -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-6 reveal-on-scroll">
       <div>
-        <div class="text-mono-label text-muted-foreground font-semibold tracking-wider mb-1">
+        <div class="text-mono-label text-muted-foreground font-semibold tracking-wider mb-1 flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-emerald-700"></span>
           PANORAMA NACIONAL
         </div>
         <h2 class="text-3xl md:text-4xl font-headline font-bold text-foreground tracking-tight">
@@ -124,10 +240,59 @@
 
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
       
-      <!-- Mapa Vectorial SVG de México Flotante (Sin tarjeta contenedor, como en Imagen 1) -->
-      <div class="lg:col-span-7 flex flex-col justify-between">
-        <div class="w-full relative">
-          <svg viewBox="0 0 {{mapWidth}} {{mapHeight}}" class="w-full h-auto select-none overflow-visible" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Mapa de México">
+      <!-- Mapa Vectorial SVG de México Flotante -->
+      <div class="lg:col-span-7 flex flex-col justify-between reveal-scale stagger-1">
+        
+        <!-- Selector Rápido de Entidad (Accesibilidad y Móviles) -->
+        <div class="block lg:hidden mb-4 bg-card border border-border rounded-lg p-3.5 shadow-2xs space-y-3">
+          <!-- Chips Rápidos de Entidades con Mayor Incidencia -->
+          <div>
+            <div class="text-[10px] font-mono text-muted-foreground uppercase font-bold mb-1.5 flex items-center justify-between">
+              <span>FOCO RÁPIDO</span>
+              <span class="text-emerald-700">Mayor riesgo nacional</span>
+            </div>
+            <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5" id="mobile-state-chips">
+              {{#each ranking}}
+                <button
+                  type="button"
+                  class="mobile-state-chip px-2.5 py-1 text-xs rounded-md border shrink-0 transition-all font-semibold cursor-pointer active:scale-95 {{#if (eq this.estado ../estadoInicial.estado)}}bg-[#1b4332] text-white border-[#1b4332] shadow-2xs{{else}}bg-secondary text-foreground border-border hover:bg-emerald-50{{/if}}"
+                  data-estado="{{this.estado}}"
+                >
+                  {{this.estado}} <span class="font-mono text-[10px] opacity-75">({{this.alertas}})</span>
+                </button>
+              {{/each}}
+            </div>
+          </div>
+
+          <div>
+            <label for="state-select-control" class="block text-mono-label font-bold text-muted-foreground mb-1.5">
+              TODAS LAS ENTIDADES (A-Z)
+            </label>
+            <div class="relative">
+              <select
+                id="state-select-control"
+                class="w-full h-11 appearance-none border border-border bg-background px-3.5 pr-10 text-sm font-semibold rounded-md outline-none transition-all focus:border-[#1b4332] focus:ring-2 focus:ring-[#1b4332]/20 text-foreground cursor-pointer"
+              >
+                {{#each estadosList}}
+                  <option value="{{this}}" {{#if (eq this ../estadoInicial.estado)}}selected{{/if}}>{{this}}</option>
+                {{/each}}
+              </select>
+              <span class="material-symbols-outlined pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-lg">expand_more</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="w-full relative overflow-hidden">
+          <!-- Tooltip flotante interactivo para desktop -->
+          <div
+            id="map-tooltip"
+            class="pointer-events-none fixed z-50 hidden rounded-md bg-[#0b281d] px-3 py-1.5 text-xs text-white shadow-xl transition-opacity font-mono border border-emerald-500/40"
+          >
+            <span id="tooltip-state" class="font-bold"></span>
+            <span id="tooltip-alerts" class="text-emerald-300 ml-1.5"></span>
+          </div>
+
+          <svg viewBox="0 0 {{mapWidth}} {{mapHeight}}" class="w-full h-auto select-none overflow-hidden max-w-full" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Mapa de México">
             <g id="mexico-map-states">
               {{#each mapPaths}}
                 <path
@@ -149,7 +314,7 @@
           </svg>
         </div>
 
-        <!-- Leyenda de Avisos Vigentes en la parte inferior izquierda -->
+        <!-- Leyenda de Avisos Vigentes -->
         <div class="pt-8 border-t border-border/60 flex flex-wrap items-center gap-6 text-xs mt-4">
           <span class="text-mono-label text-muted-foreground font-semibold">AVISOS VIGENTES</span>
           <div class="flex items-center gap-4 font-mono text-xs">
@@ -174,12 +339,13 @@
       </div>
 
       <!-- Columna Derecha: Tarjeta del Estado Seleccionado y Mayor Incidencia Nacional -->
-      <div class="lg:col-span-5 space-y-6">
+      <div class="lg:col-span-5 space-y-6 reveal-on-scroll stagger-2">
         
-        <!-- Tarjeta de Detalle del Estado (Diseño idéntico a Imagen 1) -->
-        <article class="bg-card border border-border/80 rounded-xl p-6 shadow-2xs space-y-4">
-          <div class="text-mono-label text-muted-foreground font-semibold">
-            ENTIDAD SELECCIONADA
+        <!-- Tarjeta de Detalle del Estado -->
+        <article class="bg-card border border-border/80 rounded-xl p-6 shadow-2xs space-y-4 transition-all">
+          <div class="flex items-center justify-between text-mono-label text-muted-foreground font-semibold">
+            <span>ENTIDAD SELECCIONADA</span>
+            <span class="text-[10px] text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">MONITOREO DEMOSTRATIVO</span>
           </div>
           
           <h3 id="card-estado" class="text-2xl md:text-3xl font-headline font-bold text-foreground">
@@ -196,8 +362,9 @@
 
             <div class="flex justify-between items-center">
               <span class="text-muted-foreground">Nivel de riesgo</span>
-              <span id="card-nivel" class="font-bold text-foreground capitalize">
-                {{estadoInicial.nivel}}
+              <span id="card-nivel" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-xs font-mono font-bold rounded-md border uppercase bg-emerald-50 text-emerald-800 border-emerald-200">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500" id="card-nivel-dot"></span>
+                <span id="card-nivel-text">{{estadoInicial.nivel}}</span>
               </span>
             </div>
 
@@ -216,22 +383,31 @@
             </div>
           </div>
 
-          <div class="pt-3 border-t border-border/60">
+          <div class="pt-3 border-t border-border/60 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
             <a
               id="card-link"
               href="/plagues?search={{urlEncode estadoInicial.principal}}"
-              class="text-xs font-bold text-[#1b4332] hover:underline flex items-center gap-1"
+              class="text-xs font-bold text-[#1b4332] hover:underline flex items-center gap-1 transition-colors"
             >
-              <span>Ver expediente completo</span>
+              <span>Ver ficha de la plaga</span>
               <span class="material-symbols-outlined text-sm">arrow_forward</span>
+            </a>
+            <a
+              id="card-state-search-btn"
+              href="/plagues?search={{urlEncode estadoInicial.estado}}"
+              class="px-3.5 py-1.5 bg-[#1b4332] hover:bg-[#133426] text-white text-xs font-semibold rounded-md flex items-center justify-center gap-1.5 shadow-2xs transition-all active:scale-95"
+            >
+              <span class="material-symbols-outlined text-sm">filter_alt</span>
+              <span id="card-state-search-label">Plagas en {{estadoInicial.estado}}</span>
             </a>
           </div>
         </article>
 
         <!-- Ranking Mayor Incidencia Nacional -->
         <div class="space-y-3 pt-2">
-          <div class="text-mono-label text-muted-foreground font-semibold">
-            MAYOR INCIDENCIA NACIONAL
+          <div class="text-mono-label text-muted-foreground font-semibold flex items-center justify-between">
+            <span>MAYOR INCIDENCIA NACIONAL</span>
+            <span class="text-[10px] text-muted-foreground font-normal">Clic para enfocar</span>
           </div>
 
           <ul class="divide-y divide-border/40 text-sm">
@@ -239,15 +415,15 @@
               <li>
                 <button
                   type="button"
-                  class="btn-ranking flex w-full items-center justify-between gap-3 py-2 px-1 hover:bg-secondary/60 rounded transition-colors text-left cursor-pointer"
+                  class="btn-ranking flex w-full items-center justify-between gap-3 py-2 px-2 hover:bg-secondary/70 rounded-md transition-all text-left cursor-pointer group active:scale-[0.99]"
                   data-estado="{{this.estado}}"
                 >
-                  <span class="font-mono text-xs font-bold text-muted-foreground w-6">{{this.num}}</span>
+                  <span class="font-mono text-xs font-bold text-muted-foreground w-6 group-hover:text-[#1b4332]">{{this.num}}</span>
                   <span class="flex-1 text-sm font-semibold text-foreground truncate">{{this.estado}}</span>
                   
                   <!-- Barra indicadora verde a la derecha antes del número -->
                   <div class="w-20 h-2 bg-secondary rounded-full overflow-hidden flex justify-end">
-                    <div class="h-full rounded-full" style="width: {{this.barWidth}}px; background-color: {{this.fillColor}};"></div>
+                    <div class="h-full rounded-full transition-all duration-300" style="width: {{this.barWidth}}px; background-color: {{this.fillColor}};"></div>
                   </div>
                   
                   <span class="font-mono text-xs font-bold text-foreground w-6 text-right">{{this.alertas}}</span>
@@ -256,6 +432,8 @@
             {{/each}}
           </ul>
         </div>
+
+      </div>
 
       <!-- Nota Técnica Institucional de Transparencia -->
       <div class="lg:col-span-12 mt-4 p-3.5 rounded-xl bg-muted/40 border border-border/80 flex items-start gap-2.5 text-xs text-muted-foreground">
@@ -267,8 +445,8 @@
   </section>
 
   <!-- ── SECCIÓN 3: BOLETÍN DE AVISOS PUBLICADOS ESTA SEMANA ────────────────── -->
-  <section class="px-6 md:px-12 max-w-7xl mx-auto border-b border-border/60 pb-16">
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-6">
+  <section class="px-4 sm:px-6 md:px-12 max-w-7xl mx-auto border-b border-border/60 pb-16 overflow-hidden">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-6 reveal-on-scroll">
       <div>
         <div class="text-mono-label text-emerald-800 font-semibold tracking-wider">
           BOLETÍN OFICIAL
@@ -284,7 +462,25 @@
       </a>
     </div>
 
-    <div class="bg-card border border-border rounded-xl overflow-x-auto shadow-xs">
+    <!-- Filtros de Severidad (Desktop y Móvil) -->
+    <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar mb-4 py-1" id="boletin-severity-filters">
+      <span class="text-mono-label text-muted-foreground font-semibold shrink-0 mr-1 hidden sm:inline">SEVERIDAD:</span>
+      <button type="button" class="boletin-filter-btn px-3 py-1 rounded-md text-xs font-semibold bg-[#1b4332] text-white shadow-2xs transition-all cursor-pointer shrink-0 active:scale-95" data-severity="all">
+        Todos
+      </button>
+      <button type="button" class="boletin-filter-btn px-3 py-1 rounded-md text-xs font-medium text-muted-foreground hover:text-foreground bg-secondary hover:bg-border transition-all cursor-pointer shrink-0 active:scale-95" data-severity="crítico">
+        Crítico
+      </button>
+      <button type="button" class="boletin-filter-btn px-3 py-1 rounded-md text-xs font-medium text-muted-foreground hover:text-foreground bg-secondary hover:bg-border transition-all cursor-pointer shrink-0 active:scale-95" data-severity="alto">
+        Alto
+      </button>
+      <button type="button" class="boletin-filter-btn px-3 py-1 rounded-md text-xs font-medium text-muted-foreground hover:text-foreground bg-secondary hover:bg-border transition-all cursor-pointer shrink-0 active:scale-95" data-severity="moderado">
+        Moderado
+      </button>
+    </div>
+
+    <!-- Vista Desktop: Tabla Institucional -->
+    <div class="hidden md:block bg-card border border-border rounded-xl overflow-x-auto shadow-xs reveal-on-scroll stagger-1">
       <table class="w-full text-left border-collapse min-w-175">
         <thead>
           <tr class="border-b border-border bg-secondary/50 text-mono-label text-muted-foreground">
@@ -298,13 +494,15 @@
         </thead>
         <tbody class="divide-y divide-border text-xs md:text-sm">
           {{#each boletin}}
-            <tr class="hover:bg-secondary/30 transition-colors">
+            <tr class="boletin-table-row hover:bg-secondary/40 transition-colors group" data-level="{{this.level}}">
               <td class="py-3.5 px-4 font-mono font-medium text-muted-foreground">{{this.folio}}</td>
               <td class="py-3.5 px-4 font-mono text-muted-foreground">{{this.date}}</td>
               <td class="py-3.5 px-4 font-bold text-foreground">{{this.state}}</td>
               <td class="py-3.5 px-4">
-                <div class="italic font-medium text-foreground">{{this.pestScientific}}</div>
-                <div class="text-xs text-muted-foreground font-normal">{{this.pestCommon}}</div>
+                <a href="/plagues?search={{urlEncode this.pestScientific}}" class="group-hover:text-[#1b4332] transition-colors block">
+                  <div class="italic font-medium text-foreground group-hover:text-[#1b4332]">{{this.pestScientific}}</div>
+                  <div class="text-xs text-muted-foreground font-normal">{{this.pestCommon}}</div>
+                </a>
               </td>
               <td class="py-3.5 px-4 text-foreground">{{this.crop}}</td>
               <td class="py-3.5 px-4 text-right">
@@ -317,11 +515,40 @@
         </tbody>
       </table>
     </div>
+
+    <!-- Vista Móvil: Tarjetas Fluidas (Sin scroll horizontal) -->
+    <div class="md:hidden space-y-3 reveal-on-scroll stagger-1">
+      {{#each boletin}}
+        <article class="boletin-card-item bg-card border border-border rounded-xl p-4 shadow-2xs space-y-2.5 hover:border-[#1b4332]/40 transition-all" data-level="{{this.level}}">
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-mono font-semibold text-muted-foreground">{{this.folio}}</span>
+            <span class="font-mono text-muted-foreground">{{this.date}}</span>
+          </div>
+          <div class="flex items-baseline justify-between gap-2">
+            <h4 class="font-bold text-foreground text-sm">{{this.state}}</h4>
+            <span class="inline-block px-2 py-0.5 text-[10px] font-mono font-extrabold tracking-wider rounded border uppercase {{this.levelClass}}">
+              {{this.level}}
+            </span>
+          </div>
+          <div class="text-xs">
+            <p class="italic font-medium text-foreground">{{this.pestScientific}}</p>
+            <p class="text-muted-foreground">{{this.pestCommon}}</p>
+          </div>
+          <div class="flex items-center justify-between pt-2 border-t border-border/60 text-xs">
+            <span class="text-muted-foreground">Cultivo: <strong class="text-foreground font-semibold">{{this.crop}}</strong></span>
+            <a href="/plagues?search={{urlEncode this.pestScientific}}" class="font-bold text-[#1b4332] hover:underline flex items-center gap-0.5">
+              <span>Ver ficha</span>
+              <span class="material-symbols-outlined text-xs">arrow_forward</span>
+            </a>
+          </div>
+        </article>
+      {{/each}}
+    </div>
   </section>
 
   <!-- ── SECCIÓN 4: CICLO AGRÍCOLA 2026 ────────────────────────────────────── -->
-  <section class="px-6 md:px-12 max-w-7xl mx-auto border-b border-border/60 pb-16">
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-6">
+  <section class="px-4 sm:px-6 md:px-12 max-w-7xl mx-auto border-b border-border/60 pb-16 overflow-hidden">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-6 reveal-on-scroll">
       <div>
         <div class="text-mono-label text-emerald-800 font-semibold tracking-wider">
           CICLO AGRÍCOLA 2026
@@ -331,63 +558,130 @@
         </h2>
       </div>
 
-      <!-- Leyenda de Siembra y Cosecha -->
-      <div class="flex items-center gap-6 text-xs text-mono-label font-semibold">
-        <div class="flex items-center gap-2">
-          <span class="w-3.5 h-3.5 rounded bg-[#73b398]"></span>
-          <span>Siembra</span>
+      <!-- Controles de Filtro y Leyenda de Siembra / Cosecha -->
+      <div class="flex flex-wrap items-center gap-4 text-xs font-medium">
+        <!-- Filtros Rápidos -->
+        <div class="flex items-center p-0.5 bg-secondary rounded-lg border border-border text-xs">
+          <button type="button" class="season-filter-btn px-3 py-1 rounded-md font-semibold bg-card text-[#1b4332] shadow-2xs transition-all cursor-pointer" data-filter="all">Todos</button>
+          <button type="button" class="season-filter-btn px-3 py-1 rounded-md text-muted-foreground hover:text-foreground transition-all cursor-pointer" data-filter="siembra">En Siembra</button>
+          <button type="button" class="season-filter-btn px-3 py-1 rounded-md text-muted-foreground hover:text-foreground transition-all cursor-pointer" data-filter="cosecha">En Cosecha</button>
         </div>
-        <div class="flex items-center gap-2">
-          <span class="w-3.5 h-3.5 rounded bg-[#1b4332]"></span>
-          <span>Cosecha</span>
+
+        <!-- Leyenda -->
+        <div class="flex items-center gap-4 text-mono-label text-xs">
+          <div class="flex items-center gap-1.5">
+            <span class="w-3 h-3 rounded bg-[#73b398]"></span>
+            <span>Siembra</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="w-3 h-3 rounded bg-[#1b4332]"></span>
+            <span>Cosecha</span>
+          </div>
         </div>
       </div>
     </div>
 
+    <!-- Selector de Modo Móvil (Fichas del Mes vs Matriz Completa) -->
+    <div class="flex md:hidden items-center p-1 bg-secondary rounded-lg border border-border w-fit mb-4 text-xs font-semibold" role="tablist">
+      <button type="button" id="calendar-view-cards-btn" class="px-3.5 py-1.5 rounded-md bg-card text-[#1b4332] shadow-2xs transition-all cursor-pointer" aria-selected="true">
+        Fichas del Mes
+      </button>
+      <button type="button" id="calendar-view-matrix-btn" class="px-3.5 py-1.5 rounded-md text-muted-foreground hover:text-foreground transition-all cursor-pointer" aria-selected="false">
+        Matriz Anual (12M)
+      </button>
+    </div>
+
+    <!-- Vista Móvil: Fichas Rápidas de Temporada -->
+    <div id="calendar-mobile-cards" class="md:hidden space-y-3 mb-6">
+      {{#each cultivosTemporada}}
+        <div class="crop-mobile-card bg-card border border-border rounded-xl p-4 shadow-2xs space-y-3 transition-all hover:border-[#1b4332]/40" data-season="{{this.estadoTemporada}}">
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <a href="/crops?search={{urlEncode this.nombre}}" class="font-bold text-sm text-foreground hover:text-[#1b4332] hover:underline">{{this.nombre}}</a>
+              <p class="font-mono text-xs italic text-muted-foreground">{{this.cientifico}}</p>
+            </div>
+            {{#if this.enCosecha}}
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-mono font-bold rounded-md bg-[#1b4332] text-white shadow-2xs uppercase">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                En Cosecha
+              </span>
+            {{else}}{{#if this.enSiembra}}
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-mono font-bold rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 uppercase">
+                <span class="w-1.5 h-1.5 rounded-full bg-[#73b398]"></span>
+                En Siembra
+              </span>
+            {{else}}
+              <span class="inline-flex items-center px-2 py-0.5 text-[10px] font-mono text-muted-foreground bg-secondary rounded uppercase">
+                Fuera de ciclo
+              </span>
+            {{/if}}{{/if}}
+          </div>
+
+          <div class="flex items-center justify-between text-xs pt-2.5 border-t border-border/60">
+            <span class="text-muted-foreground font-mono">Fichas técnicas: <strong class="text-foreground">{{this.fichas}}</strong></span>
+            <a href="/crops?search={{urlEncode this.nombre}}" class="font-bold text-[#1b4332] hover:underline flex items-center gap-1">
+              <span>Ver ficha</span>
+              <span class="material-symbols-outlined text-xs">arrow_forward</span>
+            </a>
+          </div>
+        </div>
+      {{/each}}
+    </div>
+
     <!-- Matriz del Calendario Agrícola -->
-    <div class="bg-card border border-border rounded-xl p-4 md:p-6 overflow-x-auto shadow-xs">
-      <ul class="flex flex-col divide-y divide-border min-w-187.5">
-        <!-- Encabezado de Meses -->
-        <li class="flex items-center gap-4 pb-3 font-mono text-xs font-bold text-muted-foreground text-center">
+    <div id="calendar-matrix-wrapper" class="hidden md:block bg-card border border-border rounded-xl p-4 md:p-6 overflow-x-auto shadow-xs reveal-on-scroll stagger-1">
+      <ul class="flex flex-col divide-y divide-border min-w-187.5" id="cultivos-calendar-list">
+        <!-- Encabezado de Meses Clarificado -->
+        <li class="flex items-center gap-4 pb-3 font-mono text-xs font-bold text-muted-foreground text-center select-none">
           <div class="w-56 text-left">CULTIVO</div>
           <div class="flex flex-1 gap-1">
-            <div class="flex-1">E</div>
-            <div class="flex-1">F</div>
-            <div class="flex-1">M</div>
-            <div class="flex-1">A</div>
-            <div class="flex-1">M</div>
-            <div class="flex-1">J</div>
-            <div class="flex-1">J</div>
-            <div class="flex-1 text-[#1b4332] bg-emerald-100/60 rounded">A</div>
-            <div class="flex-1">S</div>
-            <div class="flex-1">O</div>
-            <div class="flex-1">N</div>
-            <div class="flex-1">D</div>
+            <div class="flex-1 py-0.5 {{#if (eq mesActual 1)}}text-[#1b4332] bg-emerald-100 font-bold rounded ring-1 ring-emerald-600/30{{/if}}">ENE</div>
+            <div class="flex-1 py-0.5 {{#if (eq mesActual 2)}}text-[#1b4332] bg-emerald-100 font-bold rounded ring-1 ring-emerald-600/30{{/if}}">FEB</div>
+            <div class="flex-1 py-0.5 {{#if (eq mesActual 3)}}text-[#1b4332] bg-emerald-100 font-bold rounded ring-1 ring-emerald-600/30{{/if}}">MAR</div>
+            <div class="flex-1 py-0.5 {{#if (eq mesActual 4)}}text-[#1b4332] bg-emerald-100 font-bold rounded ring-1 ring-emerald-600/30{{/if}}">ABR</div>
+            <div class="flex-1 py-0.5 {{#if (eq mesActual 5)}}text-[#1b4332] bg-emerald-100 font-bold rounded ring-1 ring-emerald-600/30{{/if}}">MAY</div>
+            <div class="flex-1 py-0.5 {{#if (eq mesActual 6)}}text-[#1b4332] bg-emerald-100 font-bold rounded ring-1 ring-emerald-600/30{{/if}}">JUN</div>
+            <div class="flex-1 py-0.5 {{#if (eq mesActual 7)}}text-[#1b4332] bg-emerald-100 font-bold rounded ring-1 ring-emerald-600/30{{/if}}">JUL</div>
+            <div class="flex-1 py-0.5 {{#if (eq mesActual 8)}}text-[#1b4332] bg-emerald-100 font-bold rounded ring-1 ring-emerald-600/30{{/if}}">AGO</div>
+            <div class="flex-1 py-0.5 {{#if (eq mesActual 9)}}text-[#1b4332] bg-emerald-100 font-bold rounded ring-1 ring-emerald-600/30{{/if}}">SEP</div>
+            <div class="flex-1 py-0.5 {{#if (eq mesActual 10)}}text-[#1b4332] bg-emerald-100 font-bold rounded ring-1 ring-emerald-600/30{{/if}}">OCT</div>
+            <div class="flex-1 py-0.5 {{#if (eq mesActual 11)}}text-[#1b4332] bg-emerald-100 font-bold rounded ring-1 ring-emerald-600/30{{/if}}">NOV</div>
+            <div class="flex-1 py-0.5 {{#if (eq mesActual 12)}}text-[#1b4332] bg-emerald-100 font-bold rounded ring-1 ring-emerald-600/30{{/if}}">DIC</div>
           </div>
           <div class="w-16 text-right">FICHAS</div>
         </li>
 
         <!-- Filas de Cultivos -->
         {{#each cultivosTemporada}}
-          <li class="flex items-center gap-4 py-3 hover:bg-secondary/20 transition-colors">
+          <li
+            class="crop-calendar-row flex items-center gap-4 py-3 hover:bg-secondary/30 transition-all reveal-on-scroll {{#if (eq @index 0)}}stagger-1{{else}}{{#if (eq @index 1)}}stagger-2{{else}}{{#if (eq @index 2)}}stagger-3{{else}}{{#if (eq @index 3)}}stagger-4{{else}}stagger-5{{/if}}{{/if}}{{/if}}{{/if}}"
+            data-season="{{this.estadoTemporada}}"
+          >
             <div class="flex w-56 shrink-0 flex-col gap-0.5">
-              <a href="/crops" class="text-sm font-bold text-foreground hover:text-[#1b4332] hover:underline">{{this.nombre}}</a>
+              <div class="flex items-center gap-1.5">
+                <a href="/crops?search={{urlEncode this.nombre}}" class="text-sm font-bold text-foreground hover:text-[#1b4332] hover:underline">{{this.nombre}}</a>
+                {{#if this.enCosecha}}
+                  <span class="inline-block w-1.5 h-1.5 rounded-full bg-[#1b4332]" title="En cosecha este mes"></span>
+                {{else}}{{#if this.enSiembra}}
+                  <span class="inline-block w-1.5 h-1.5 rounded-full bg-[#73b398]" title="En siembra este mes"></span>
+                {{/if}}{{/if}}
+              </div>
               <span class="font-mono text-xs italic text-muted-foreground">{{this.cientifico}}</span>
             </div>
 
             <div class="flex flex-1 gap-1">
-              <div class="h-6 flex-1 rounded {{getMesBg 1 this.siembra this.cosecha 8}}"></div>
-              <div class="h-6 flex-1 rounded {{getMesBg 2 this.siembra this.cosecha 8}}"></div>
-              <div class="h-6 flex-1 rounded {{getMesBg 3 this.siembra this.cosecha 8}}"></div>
-              <div class="h-6 flex-1 rounded {{getMesBg 4 this.siembra this.cosecha 8}}"></div>
-              <div class="h-6 flex-1 rounded {{getMesBg 5 this.siembra this.cosecha 8}}"></div>
-              <div class="h-6 flex-1 rounded {{getMesBg 6 this.siembra this.cosecha 8}}"></div>
-              <div class="h-6 flex-1 rounded {{getMesBg 7 this.siembra this.cosecha 8}}"></div>
-              <div class="h-6 flex-1 rounded {{getMesBg 8 this.siembra this.cosecha 8}}"></div>
-              <div class="h-6 flex-1 rounded {{getMesBg 9 this.siembra this.cosecha 8}}"></div>
-              <div class="h-6 flex-1 rounded {{getMesBg 10 this.siembra this.cosecha 8}}"></div>
-              <div class="h-6 flex-1 rounded {{getMesBg 11 this.siembra this.cosecha 8}}"></div>
-              <div class="h-6 flex-1 rounded {{getMesBg 12 this.siembra this.cosecha 8}}"></div>
+              <div class="h-6 flex-1 rounded {{getMesBg 1 this.siembra this.cosecha ../mesActual}} transition-colors"></div>
+              <div class="h-6 flex-1 rounded {{getMesBg 2 this.siembra this.cosecha ../mesActual}} transition-colors"></div>
+              <div class="h-6 flex-1 rounded {{getMesBg 3 this.siembra this.cosecha ../mesActual}} transition-colors"></div>
+              <div class="h-6 flex-1 rounded {{getMesBg 4 this.siembra this.cosecha ../mesActual}} transition-colors"></div>
+              <div class="h-6 flex-1 rounded {{getMesBg 5 this.siembra this.cosecha ../mesActual}} transition-colors"></div>
+              <div class="h-6 flex-1 rounded {{getMesBg 6 this.siembra this.cosecha ../mesActual}} transition-colors"></div>
+              <div class="h-6 flex-1 rounded {{getMesBg 7 this.siembra this.cosecha ../mesActual}} transition-colors"></div>
+              <div class="h-6 flex-1 rounded {{getMesBg 8 this.siembra this.cosecha ../mesActual}} transition-colors"></div>
+              <div class="h-6 flex-1 rounded {{getMesBg 9 this.siembra this.cosecha ../mesActual}} transition-colors"></div>
+              <div class="h-6 flex-1 rounded {{getMesBg 10 this.siembra this.cosecha ../mesActual}} transition-colors"></div>
+              <div class="h-6 flex-1 rounded {{getMesBg 11 this.siembra this.cosecha ../mesActual}} transition-colors"></div>
+              <div class="h-6 flex-1 rounded {{getMesBg 12 this.siembra this.cosecha ../mesActual}} transition-colors"></div>
             </div>
 
             <div class="w-16 shrink-0 text-right font-mono text-sm font-medium text-muted-foreground">
@@ -400,24 +694,39 @@
   </section>
 
   <!-- ── SECCIÓN 5: ACERVO (ÍNDICE DE LA BASE DE DATOS) ────────────────────── -->
-  <section class="px-6 md:px-12 max-w-7xl mx-auto">
-    <div class="space-y-2 mb-8">
-      <div class="text-mono-label text-emerald-800 font-semibold tracking-wider">
+  <section class="px-4 sm:px-6 md:px-12 max-w-7xl mx-auto overflow-hidden">
+    <div class="space-y-2 mb-8 reveal-on-scroll">
+      <div class="text-mono-label text-emerald-800 font-semibold tracking-wider flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-emerald-700"></span>
         ACERVO
       </div>
       <h2 class="text-2xl md:text-3xl font-headline font-bold text-foreground tracking-tight">
         Índice de la base de datos
       </h2>
+      <p class="text-xs md:text-sm text-muted-foreground">Acceso directo a los catálogos y registros técnicos publicados por el INIFAP.</p>
     </div>
 
-    <!-- Rejilla de 4 Tarjetas -->
+    <!-- Rejilla de 4 Tarjetas con Iconografía y Elevación Suave en Cascada -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       {{#each acervoStats}}
-        <div class="bg-card border border-border rounded-xl p-6 shadow-xs hover:shadow-md hover:border-emerald-700/40 transition-all flex flex-col justify-between group">
+        <div class="bg-card border border-border rounded-xl p-6 shadow-xs hover:shadow-md hover:border-emerald-700/40 hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between group reveal-on-scroll {{#if (eq @index 0)}}stagger-1{{else}}{{#if (eq @index 1)}}stagger-2{{else}}{{#if (eq @index 2)}}stagger-3{{else}}stagger-4{{/if}}{{/if}}{{/if}}">
           <div class="space-y-4">
-            <div class="flex items-baseline gap-2">
-              <span class="font-mono text-3xl lg:text-4xl font-medium tabular-nums text-[#1b4332]">{{this.count}}</span>
-              <span class="text-mono-label text-muted-foreground font-semibold">{{this.subtitle}}</span>
+            <div class="flex items-center justify-between">
+              <div class="flex items-baseline gap-2">
+                <span class="font-mono text-3xl lg:text-4xl font-medium tabular-nums text-[#1b4332]">{{this.count}}</span>
+                <span class="text-mono-label text-muted-foreground font-semibold">{{this.subtitle}}</span>
+              </div>
+              <div class="w-10 h-10 rounded-lg bg-emerald-50 text-[#1b4332] flex items-center justify-center border border-emerald-100 group-hover:bg-[#1b4332] group-hover:text-white transition-all">
+                {{#if (eq @index 0)}}
+                  <span class="material-symbols-outlined text-xl">pest_control</span>
+                {{else}}{{#if (eq @index 1)}}
+                  <span class="material-symbols-outlined text-xl">psychiatry</span>
+                {{else}}{{#if (eq @index 2)}}
+                  <span class="material-symbols-outlined text-xl">science</span>
+                {{else}}
+                  <span class="material-symbols-outlined text-xl">travel_explore</span>
+                {{/if}}{{/if}}{{/if}}
+              </div>
             </div>
 
             <h3 class="text-lg font-headline font-bold text-foreground group-hover:text-[#1b4332] transition-colors">

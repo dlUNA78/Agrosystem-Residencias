@@ -1,0 +1,318 @@
+{{! Modal Institucional de Vista Previa y Descarga de Ficha Técnica PDF (100% Local) }}
+<div
+  id="plague-pdf-preview-modal"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="pdf-preview-modal-title"
+  class="no-print fixed inset-0 z-[75] hidden items-center justify-center bg-black/70 p-2 sm:p-5 backdrop-blur-xs"
+>
+  <div class="flex h-[92vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-border bg-slate-100 shadow-2xl">
+    {{! Barra Superior de Acciones (Guardar PDF / Imprimir / Cambiar Vista) }}
+    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-card px-4 py-3.5 sm:px-6 shrink-0">
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 text-[#1b4332]">
+          <span class="material-symbols-outlined text-lg">picture_as_pdf</span>
+        </div>
+        <div class="min-w-0">
+          <h2 id="pdf-preview-modal-title" class="truncate text-sm font-headline font-bold text-foreground">
+            Vista previa de Ficha Técnica PDF
+          </h2>
+          <p class="truncate text-[11px] text-muted-foreground">
+            Expediente #{{plague.id}} · {{plague.name}} — Verifica los datos y elige guardar localmente o imprimir
+          </p>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2">
+        <div class="hidden sm:inline-flex items-center rounded-xl border border-border bg-muted/60 p-0.5 text-xs">
+          <button
+            type="button"
+            data-pdf-tab="sheet"
+            class="rounded-lg bg-card px-2.5 py-1 font-bold text-[#1b4332] shadow-2xs transition-colors cursor-pointer"
+          >
+            Hoja de datos
+          </button>
+          <button
+            type="button"
+            data-pdf-tab="native"
+            class="rounded-lg px-2.5 py-1 font-semibold text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+          >
+            Visor PDF
+          </button>
+        </div>
+
+        <a
+          id="pdf-download-btn"
+          href="{{#if isPrivate}}/private/plagues/{{plague.id}}?format=pdf&download=1{{else}}/plagues/{{plague.id}}?format=pdf&download=1{{/if}}"
+          class="inline-flex items-center gap-1.5 rounded-xl bg-[#1b4332] px-4 py-2 text-xs font-bold text-white shadow-2xs transition-colors hover:bg-[#2d6a4f] cursor-pointer"
+        >
+          <span class="material-symbols-outlined text-base">download</span>
+          <span>Guardar PDF</span>
+        </a>
+
+        <button
+          id="pdf-print-action-btn"
+          type="button"
+          data-pdf-print-url="{{#if isPrivate}}/private/plagues/{{plague.id}}?format=pdf{{else}}/plagues/{{plague.id}}?format=pdf{{/if}}"
+          class="inline-flex items-center gap-1.5 rounded-xl border border-border bg-card px-3.5 py-2 text-xs font-bold text-foreground shadow-2xs transition-colors hover:bg-muted cursor-pointer"
+        >
+          <span class="material-symbols-outlined text-base">print</span>
+          <span>Imprimir</span>
+        </button>
+
+        <button
+          id="pdf-preview-close-btn"
+          type="button"
+          class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground transition-colors hover:bg-muted hover:text-foreground cursor-pointer"
+          aria-label="Cerrar vista previa PDF"
+          title="Cerrar vista previa"
+        >
+          <span class="material-symbols-outlined text-lg">close</span>
+        </button>
+      </div>
+    </div>
+
+    {{! Área de Previsualización del Documento }}
+    <div class="flex-1 overflow-y-auto p-3 sm:p-6 md:p-8">
+      {{! Vista 1: Hoja Estructurada de Datos (Instantánea en cualquier navegador) }}
+      <div id="pdf-sheet-preview-pane" class="mx-auto max-w-3xl rounded-lg border border-slate-300 bg-white p-6 text-slate-900 shadow-xl sm:p-10 space-y-6">
+        {{! Encabezado Oficial INIFAP }}
+        <div class="flex flex-wrap items-start justify-between gap-4 rounded-lg bg-[#1b4332] p-4 text-white sm:p-5">
+          <div>
+            <p class="font-mono text-[10px] font-bold uppercase tracking-widest text-emerald-200">
+              INIFAP · SISTEMA NACIONAL DE VIGILANCIA FITOSANITARIA
+            </p>
+            <h3 class="mt-1 text-lg sm:text-xl font-headline font-black leading-tight">
+              {{plague.name}}
+            </h3>
+            <p class="mt-0.5 font-mono text-xs italic text-emerald-100/90">
+              {{#if plague.scientificName}}{{plague.scientificName}}{{else}}Nombre científico pendiente{{/if}}
+            </p>
+          </div>
+          <div class="text-right font-mono text-[11px]">
+            <p class="font-bold">EXPEDIENTE #{{plague.id}}</p>
+            <p class="mt-0.5 text-emerald-200">
+              {{#if plague.isVerified}}AVAL TÉCNICO INIFAP{{else}}FICHA TÉCNICA{{/if}}
+            </p>
+          </div>
+        </div>
+
+        {{! Metadatos Clave y Descripción }}
+        <div class="space-y-3 border-b border-slate-200 pb-5">
+          <div class="grid grid-cols-2 gap-2.5 rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs sm:grid-cols-4">
+            <div>
+              <span class="block font-mono text-[10px] uppercase text-slate-500">Categoría</span>
+              <strong class="text-slate-900">{{#if plague.category}}{{plague.category}}{{else}}Sin categoría{{/if}}</strong>
+            </div>
+            <div>
+              <span class="block font-mono text-[10px] uppercase text-slate-500">Nivel de riesgo</span>
+              <strong class="text-slate-900">{{plague.riskLabel}}</strong>
+            </div>
+            <div>
+              <span class="block font-mono text-[10px] uppercase text-slate-500">Ciclo estimado</span>
+              <strong class="text-slate-900">{{#if cycleSummary.totalDurationLabel}}{{cycleSummary.totalDurationLabel}}{{else}}No especificado{{/if}}</strong>
+            </div>
+            <div>
+              <span class="block font-mono text-[10px] uppercase text-slate-500">Actualización</span>
+              <strong class="text-slate-900">{{#if plague.updatedAt}}{{plague.updatedAt}}{{else}}Sin fecha{{/if}}</strong>
+            </div>
+          </div>
+
+          <p class="text-xs leading-relaxed text-slate-700">
+            {{#if plague.description}}{{plague.description}}{{else}}Sin descripción general registrada en el expediente.{{/if}}
+          </p>
+        </div>
+
+        {{! 01. Cultivos Hospederos }}
+        <section class="space-y-2">
+          <h4 class="rounded bg-emerald-50 px-3 py-1.5 font-mono text-[11px] font-bold uppercase tracking-wider text-[#1b4332]">
+            01. Cultivos hospederos susceptibles
+          </h4>
+          {{#if relatedCrops.length}}
+            <div class="flex flex-wrap gap-1.5 pt-1">
+              {{#each relatedCrops}}
+                <span class="rounded border border-slate-300 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-800">
+                  {{this.name}}{{#if this.scientificName}} <em class="font-normal text-slate-500">({{this.scientificName}})</em>{{/if}}
+                </span>
+              {{/each}}
+            </div>
+          {{else}}
+            <p class="text-xs italic text-slate-500">Sin cultivos hospederos vinculados en este expediente.</p>
+          {{/if}}
+        </section>
+
+        {{! 02. Síntomas Clínicos }}
+        <section class="space-y-2">
+          <h4 class="rounded bg-emerald-50 px-3 py-1.5 font-mono text-[11px] font-bold uppercase tracking-wider text-[#1b4332]">
+            02. Diagnóstico clínico y síntomas observables
+          </h4>
+          {{#if symptomItems.length}}
+            <ul class="list-disc space-y-1 pl-5 text-xs text-slate-700">
+              {{#each symptomItems}}
+                <li>{{this}}</li>
+              {{/each}}
+            </ul>
+          {{else if plague.symptoms}}
+            <p class="text-xs text-slate-700">{{plague.symptoms}}</p>
+          {{else}}
+            <p class="text-xs italic text-slate-500">Sin sintomatología clínica registrada.</p>
+          {{/if}}
+        </section>
+
+        {{! 03. Ciclo Biológico }}
+        <section class="space-y-2">
+          <h4 class="rounded bg-emerald-50 px-3 py-1.5 font-mono text-[11px] font-bold uppercase tracking-wider text-[#1b4332]">
+            03. Ciclo biológico y ventanas críticas de intervención
+          </h4>
+          {{#if plague.biologicalCycle.length}}
+            <div class="overflow-x-auto rounded-lg border border-slate-200">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 font-mono text-[10px] uppercase text-slate-600 border-b border-slate-200">
+                  <tr>
+                    <th class="px-3 py-2">Etapa</th>
+                    <th class="px-3 py-2">Duración / Zona</th>
+                    <th class="px-3 py-2">Daño</th>
+                    <th class="px-3 py-2">Descripción e intervención</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200">
+                  {{#each plague.biologicalCycle}}
+                    <tr>
+                      <td class="px-3 py-2 font-bold text-slate-900 whitespace-nowrap">
+                        {{this.step}} · {{this.title}}
+                        {{#if this.isControlWindow}}
+                          <span class="mt-0.5 block font-mono text-[9px] font-bold uppercase text-rose-700">Ventana crítica</span>
+                        {{/if}}
+                      </td>
+                      <td class="px-3 py-2 text-slate-600">
+                        {{#if this.duration}}<div>{{this.duration}}</div>{{/if}}
+                        {{#if this.plantZone}}<div class="text-[11px] text-slate-500">{{this.plantZone}}</div>{{/if}}
+                      </td>
+                      <td class="px-3 py-2 text-slate-700">{{#if this.damageLevel}}{{this.damageLevel}}{{else}}—{{/if}}</td>
+                      <td class="px-3 py-2 text-slate-700">
+                        {{#if this.description}}<p>{{this.description}}</p>{{/if}}
+                        {{#if this.recommendedAction}}<p class="mt-0.5 font-semibold text-[#1b4332]">Acción: {{this.recommendedAction}}</p>{{/if}}
+                      </td>
+                    </tr>
+                  {{/each}}
+                </tbody>
+              </table>
+            </div>
+          {{else}}
+            <p class="text-xs italic text-slate-500">Sin etapas biológicas registradas.</p>
+          {{/if}}
+        </section>
+
+        {{! 04. Manejo Integrado y Control Biológico }}
+        <section class="space-y-2">
+          <h4 class="rounded bg-emerald-50 px-3 py-1.5 font-mono text-[11px] font-bold uppercase tracking-wider text-[#1b4332]">
+            04. Manejo Integrado de Plagas (MIP) y control biológico
+          </h4>
+          <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 text-xs">
+            <div class="rounded-lg border border-slate-200 p-3">
+              <p class="mb-1.5 font-bold text-slate-900">Prácticas culturales y manejo</p>
+              {{#if controlMethodItems.length}}
+                <ul class="list-disc space-y-1 pl-4 text-slate-700">
+                  {{#each controlMethodItems}}
+                    <li>{{this}}</li>
+                  {{/each}}
+                </ul>
+              {{else if plague.controlMethods}}
+                <p class="text-slate-700">{{plague.controlMethods}}</p>
+              {{else}}
+                <p class="italic text-slate-500">Sin métodos registrados.</p>
+              {{/if}}
+            </div>
+            <div class="rounded-lg border border-slate-200 p-3">
+              <p class="mb-1.5 font-bold text-slate-900">Agentes de control biológico</p>
+              {{#if biologicalAgents.length}}
+                <ul class="list-disc space-y-1 pl-4 text-slate-700">
+                  {{#each biologicalAgents}}
+                    <li>{{this}}</li>
+                  {{/each}}
+                </ul>
+              {{else if plague.biologicalControl}}
+                <p class="text-slate-700">{{plague.biologicalControl}}</p>
+              {{else}}
+                <p class="italic text-slate-500">Sin agentes biológicos registrados.</p>
+              {{/if}}
+            </div>
+          </div>
+        </section>
+
+        {{! 05. Insumos Relacionados }}
+        <section class="space-y-2">
+          <h4 class="rounded bg-emerald-50 px-3 py-1.5 font-mono text-[11px] font-bold uppercase tracking-wider text-[#1b4332]">
+            05. Insumos fitosanitarios relacionados
+          </h4>
+          {{#if relatedProducts.length}}
+            <div class="overflow-x-auto rounded-lg border border-slate-200">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 font-mono text-[10px] uppercase text-slate-600 border-b border-slate-200">
+                  <tr>
+                    <th class="px-3 py-2">Insumo</th>
+                    <th class="px-3 py-2">Ingrediente activo</th>
+                    <th class="px-3 py-2">Categoría</th>
+                    <th class="px-3 py-2">Estatus</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200">
+                  {{#each relatedProducts}}
+                    <tr>
+                      <td class="px-3 py-2 font-bold text-slate-900">{{this.name}}</td>
+                      <td class="px-3 py-2 text-slate-700">{{#if this.activeIngredient}}{{this.activeIngredient}}{{else}}No registrado{{/if}}</td>
+                      <td class="px-3 py-2 text-slate-600">{{#if this.category}}{{this.category}}{{else}}Insumo{{/if}}</td>
+                      <td class="px-3 py-2 font-semibold text-emerald-800">{{#if this.isValidated}}Validado INIFAP{{else}}Relacionado{{/if}}</td>
+                    </tr>
+                  {{/each}}
+                </tbody>
+              </table>
+            </div>
+          {{else}}
+            <p class="text-xs italic text-slate-500">Sin productos fitosanitarios vinculados.</p>
+          {{/if}}
+        </section>
+
+        {{! 06. Distribución y Aval Institucional }}
+        <section class="space-y-3">
+          <h4 class="rounded bg-emerald-50 px-3 py-1.5 font-mono text-[11px] font-bold uppercase tracking-wider text-[#1b4332]">
+            06. Distribución territorial y aval técnico institucional
+          </h4>
+          {{#if incidenceRegions.length}}
+            <div class="grid grid-cols-1 gap-2 sm:grid-cols-2 text-xs">
+              {{#each incidenceRegions}}
+                <div class="flex items-center justify-between rounded border border-slate-200 px-3 py-2">
+                  <div>
+                    <strong class="text-slate-900">{{this.name}}</strong>
+                    {{#if this.hasCoords}}<span class="ml-1 font-mono text-[10px] text-slate-500">({{this.lat}}, {{this.lng}})</span>{{/if}}
+                  </div>
+                  <span class="font-mono text-[10px] font-bold uppercase text-slate-700">{{this.riskLabel}}</span>
+                </div>
+              {{/each}}
+            </div>
+          {{else}}
+            <p class="text-xs italic text-slate-500">Sin regiones fitosanitarias vinculadas.</p>
+          {{/if}}
+
+          <div class="rounded-lg border border-slate-200 bg-slate-50 p-3.5 text-[11px] text-slate-600 flex flex-wrap items-center justify-between gap-2">
+            <span><strong>Especialista validador:</strong> {{#if plague.isVerified}}{{plague.verifiedBy}}{{else}}Pendiente de asignación{{/if}}</span>
+            <span><strong>Fecha validación:</strong> {{#if plague.verifiedAt}}{{plague.verifiedAt}}{{else}}Sin fecha{{/if}}</span>
+            <span class="font-semibold text-[#1b4332]">INIFAP · Campo Experimental</span>
+          </div>
+        </section>
+      </div>
+
+      {{! Vista 2: Visor PDF Nativo Embebido }}
+      <div id="pdf-native-preview-pane" class="hidden h-full min-h-[70vh]">
+        <iframe
+          id="pdf-native-iframe"
+          title="Documento PDF de ficha técnica"
+          data-pdf-url="{{#if isPrivate}}/private/plagues/{{plague.id}}?format=pdf{{else}}/plagues/{{plague.id}}?format=pdf{{/if}}"
+          class="h-full min-h-[72vh] w-full rounded-lg border border-slate-300 bg-white shadow-lg"
+        ></iframe>
+      </div>
+    </div>
+
+    <iframe id="pdf-hidden-print-frame" title="Marco auxiliar de impresión PDF" class="hidden"></iframe>
+  </div>
+</div>

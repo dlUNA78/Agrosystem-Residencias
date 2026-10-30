@@ -1,3 +1,5 @@
+import { confirmAsyncAction } from '../asyncUi.js';
+
 const MAX_IMAGES = 10;
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
@@ -27,7 +29,7 @@ const normalizeExistingImages = (rawImages, fallbackUrl = '') => {
 const buildImagePreview = ({ url, label, isNew, onRemove }) => {
   const figure = document.createElement('figure');
   figure.className =
-    'overflow-hidden rounded-xl border border-border/80 bg-card';
+    'overflow-hidden rounded-xl border border-border/80 bg-card shadow-2xs';
 
   const image = document.createElement('img');
   image.src = url;
@@ -51,7 +53,7 @@ const buildImagePreview = ({ url, label, isNew, onRemove }) => {
     const removeButton = document.createElement('button');
     removeButton.type = 'button';
     removeButton.className =
-      'shrink-0 rounded px-1.5 py-0.5 font-bold text-red-700 hover:bg-red-50';
+      'shrink-0 rounded px-1.5 py-0.5 font-bold text-rose-700 hover:bg-rose-50 cursor-pointer';
     removeButton.textContent = 'Quitar';
     removeButton.setAttribute('aria-label', `Quitar ${label}`);
     removeButton.addEventListener('click', onRemove);
@@ -62,8 +64,57 @@ const buildImagePreview = ({ url, label, isNew, onRemove }) => {
   return figure;
 };
 
+const validateIncomingFiles = (additions) => {
+  if (additions.some((file) => !ALLOWED_IMAGE_TYPES.has(file.type))) {
+    return 'Todas las imágenes deben ser JPG, PNG o WEBP.';
+  }
+  if (additions.some((file) => file.size > MAX_IMAGE_SIZE)) {
+    return 'Cada imagen puede pesar como máximo 5 MB.';
+  }
+  return '';
+};
+
+const filterUniqueFiles = (selectedFiles, additions) => {
+  const knownFiles = new Set(
+    selectedFiles.map(
+      (file) => `${file.name}:${file.size}:${file.lastModified}`,
+    ),
+  );
+  return additions.filter((file) => {
+    const key = `${file.name}:${file.size}:${file.lastModified}`;
+    if (knownFiles.has(key)) return false;
+    knownFiles.add(key);
+    return true;
+  });
+};
+
+const wireDropzoneEvents = (dropzone, onFilesDropped) => {
+  if (!dropzone) return;
+
+  ['dragenter', 'dragover'].forEach((eventName) => {
+    dropzone.addEventListener(eventName, (event) => {
+      event.preventDefault();
+      dropzone.classList.add('border-[#1b4332]', 'bg-emerald-50/40');
+    });
+  });
+
+  ['dragleave', 'drop'].forEach((eventName) => {
+    dropzone.addEventListener(eventName, (event) => {
+      event.preventDefault();
+      dropzone.classList.remove('border-[#1b4332]', 'bg-emerald-50/40');
+    });
+  });
+
+  dropzone.addEventListener('drop', (event) => {
+    const dropped = Array.from(event.dataTransfer?.files || []);
+    if (dropped.length > 0) onFilesDropped(dropped);
+  });
+};
+
 export const createPlagueImageEditor = () => {
   const input = document.getElementById('plague-images');
+  const dropzone = document.getElementById('plague-image-dropzone');
+  const counterEl = document.getElementById('plague-image-counter');
   const previews = document.getElementById('plague-image-previews');
   const existingImagesNote = document.getElementById(
     'plague-existing-images-note',
@@ -110,10 +161,21 @@ export const createPlagueImageEditor = () => {
           onRemove:
             image.id === null
               ? null
-              : () => {
+              : async () => {
+                  const confirmed = await confirmAsyncAction({
+                    title: '¿Quitar fotografía guardada?',
+                    description:
+                      'Esta imagen actual quedará marcada para borrarse cuando guardes los cambios del expediente.',
+                    confirmLabel: 'Quitar imagen',
+                    variant: 'warning',
+                  });
+                  if (!confirmed) return;
                   removedIds.add(image.id);
                   if (removedIdsInput) {
                     removedIdsInput.value = [...removedIds].join(',');
+                    removedIdsInput.dispatchEvent(
+                      new Event('change', { bubbles: true }),
+                    );
                   }
                   setError();
                   render();
@@ -133,6 +195,7 @@ export const createPlagueImageEditor = () => {
           onRemove: () => {
             selectedFiles.splice(index, 1);
             syncInput();
+            input?.dispatchEvent(new Event('input', { bubbles: true }));
             setError();
             render();
           },
@@ -140,10 +203,51 @@ export const createPlagueImageEditor = () => {
       );
     });
 
-    const hasImages = activeImages.length > 0 || selectedFiles.length > 0;
+    const totalCount = activeImages.length + selectedFiles.length;
+    if (counterEl)
+      counterEl.textContent = `${totalCount} / ${MAX_IMAGES} fotos`;
+
+    const hasImages = totalCount > 0;
     previews.classList.toggle('hidden', !hasImages);
     previews.classList.toggle('grid', hasImages);
     existingImagesNote?.classList.toggle('hidden', activeImages.length === 0);
+  };
+
+  const addFiles = (additions) => {
+    if (additions.length === 0) {
+      syncInput();
+      render();
+      return;
+    }
+
+    const validationMessage = validateIncomingFiles(additions);
+    if (validationMessage) {
+      setError(validationMessage);
+      syncInput();
+      render();
+      return;
+    }
+
+    const activeExistingCount = existingImages.filter(
+      (image) => !removedIds.has(image.id),
+    ).length;
+    const uniqueAdditions = filterUniqueFiles(selectedFiles, additions);
+    const available = MAX_IMAGES - activeExistingCount - selectedFiles.length;
+
+    if (uniqueAdditions.length > available) {
+      setError(
+        `La galería admite 10 imágenes en total. Puedes agregar ${Math.max(0, available)} más.`,
+      );
+      syncInput();
+      render();
+      return;
+    }
+
+    selectedFiles.push(...uniqueAdditions);
+    setError();
+    syncInput();
+    input?.dispatchEvent(new Event('input', { bubbles: true }));
+    render();
   };
 
   const reset = () => {
@@ -168,55 +272,9 @@ export const createPlagueImageEditor = () => {
   };
 
   input?.addEventListener('change', () => {
-    const additions = Array.from(input.files || []);
-    if (additions.length === 0) {
-      syncInput();
-      render();
-      return;
-    }
-    if (additions.some((file) => !ALLOWED_IMAGE_TYPES.has(file.type))) {
-      setError('Todas las imágenes deben ser JPG, PNG o WEBP.');
-      syncInput();
-      render();
-      return;
-    }
-    if (additions.some((file) => file.size > MAX_IMAGE_SIZE)) {
-      setError('Cada imagen puede pesar como máximo 5 MB.');
-      syncInput();
-      render();
-      return;
-    }
-
-    const activeExistingCount = existingImages.filter(
-      (image) => !removedIds.has(image.id),
-    ).length;
-    const knownFiles = new Set(
-      selectedFiles.map(
-        (file) => `${file.name}:${file.size}:${file.lastModified}`,
-      ),
-    );
-    const uniqueAdditions = additions.filter((file) => {
-      const key = `${file.name}:${file.size}:${file.lastModified}`;
-      if (knownFiles.has(key)) return false;
-      knownFiles.add(key);
-      return true;
-    });
-    const available = MAX_IMAGES - activeExistingCount - selectedFiles.length;
-
-    if (uniqueAdditions.length > available) {
-      setError(
-        `La galería admite 10 imágenes en total. Puedes agregar ${Math.max(0, available)} más.`,
-      );
-      syncInput();
-      render();
-      return;
-    }
-
-    selectedFiles.push(...uniqueAdditions);
-    setError();
-    syncInput();
-    render();
+    addFiles(Array.from(input.files || []));
   });
+  wireDropzoneEvents(dropzone, addFiles);
 
   return { load, releasePreviewUrls, reset };
 };

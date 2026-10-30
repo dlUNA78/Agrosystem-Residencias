@@ -2,6 +2,10 @@ import { describe, expect, it } from '@jest/globals';
 import fs from 'node:fs';
 
 import { buildPlagueDetailView } from '../../src/services/plagueDetailService.js';
+import {
+  buildPlaguePdfFilename,
+  generatePlaguePdfBuffer,
+} from '../../src/services/plaguePdfService.js';
 
 describe('detalle privado de plagas con datos verificables', () => {
   it('presenta el ciclo biológico y las relaciones cargadas desde Sequelize', () => {
@@ -156,10 +160,13 @@ describe('detalle privado de plagas con datos verificables', () => {
       'utf8',
     );
 
+    expect(template).toContain('id="private-editorial-panel"');
     expect(template).toContain('id="publication-checklist"');
     expect(template).toContain('readiness.items');
     expect(template).toContain('readiness.isReady');
     expect(template).toContain('Requisitos para revisión y publicación');
+    expect(template).toContain('data-relation-search');
+    expect(template).toContain('data-relation-counter');
   });
 
   it('no inyecta fallbacks científicos ni dependencias CDN desde el controlador público', () => {
@@ -181,5 +188,213 @@ describe('detalle privado de plagas con datos verificables', () => {
     expect(controller).not.toMatch(/Confidor|defaultCycle|unpkg\.com/);
     expect(controller).toContain('/js/shared/plague-detail.js');
     expect(privateController).toContain('/js/shared/plague-detail.js');
+  });
+
+  it('calcula métricas proporcionales del ciclo biológico, checklist de síntomas y agentes benéficos', () => {
+    const detail = buildPlagueDetailView({
+      id: 21,
+      name: 'Gusano cogollero',
+      symptoms: 'Raspado foliar; Perforaciones en cogollo; Excremento húmedo.',
+      biological_control: 'Trichogramma spp., Bacillus thuringiensis.',
+      control_methods:
+        'Monitoreo con feromonas; Aplicación dirigida al verticilo.',
+      biological_cycle: [
+        {
+          title: 'Huevo',
+          duration: '2-4 días',
+          plantZone: 'Envés foliar',
+          damageLevel: 'Sin daño directo',
+          isControlWindow: true,
+          recommendedAction: 'Liberar Trichogramma spp.',
+        },
+        {
+          title: 'Larva L1-L3',
+          duration: '6-8 días',
+          plantZone: 'Cogollo',
+          damageLevel: 'Severo',
+          isControlWindow: true,
+          recommendedAction: 'Aplicar Bt al verticilo.',
+        },
+      ],
+    });
+
+    expect(detail.cycleSummary).toEqual(
+      expect.objectContaining({
+        hasCycle: true,
+        stageCount: 2,
+        totalDurationLabel: '8–12 días',
+        controlWindowCount: 2,
+        hasNumericShares: true,
+      }),
+    );
+    expect(detail.plague.biologicalCycle[0]).toEqual(
+      expect.objectContaining({
+        title: 'Huevo',
+        icon: 'egg',
+        plantZone: 'Envés foliar',
+        damageLevel: 'Sin daño directo',
+        isControlWindow: true,
+        recommendedAction: 'Liberar Trichogramma spp.',
+        sharePercent: 30,
+      }),
+    );
+    expect(detail.plague.biologicalCycle[1].sharePercent).toBe(70);
+    expect(detail.symptomItems).toHaveLength(3);
+    expect(detail.biologicalAgents).toEqual([
+      'Trichogramma spp.',
+      'Bacillus thuringiensis',
+    ]);
+    expect(detail.controlMethodItems).toHaveLength(2);
+  });
+
+  it('estructura la ficha técnica en orden de decisión agronómica (resumen, diagnóstico, ciclo, manejo, productos y distribución)', () => {
+    const template = fs.readFileSync(
+      new URL('../../src/views/shared/plague-detail.hbs', import.meta.url),
+      'utf8',
+    );
+
+    const orderedAnchors = [
+      'id="resumen"',
+      'id="diagnostico"',
+      'id="ciclo-biologico"',
+      'id="manejo-integrado"',
+      'id="productos"',
+      'id="distribucion"',
+    ];
+    const positions = orderedAnchors.map((anchor) => template.indexOf(anchor));
+
+    positions.forEach((pos) => expect(pos).toBeGreaterThan(-1));
+    for (let i = 1; i < positions.length; i += 1) {
+      expect(positions[i]).toBeGreaterThan(positions[i - 1]);
+    }
+  });
+
+  it('proyecta localmente el mapa vectorial de México sin depender de servicios externos y lo omite si no hay regiones', () => {
+    const withRegions = buildPlagueDetailView({
+      id: 30,
+      name: 'Gusano cogollero',
+      risk_level: 'Alto',
+      regions: [
+        {
+          name: 'Sinaloa',
+          lat: 25.17,
+          lng: -107.48,
+          PlagueRegions: { risk_level: 'Alto' },
+        },
+      ],
+    });
+
+    expect(withRegions.mexicoMap).not.toBeNull();
+    expect(withRegions.mexicoMap.viewBox).toBe('0 0 900 520');
+    expect(withRegions.mexicoMap.states).toHaveLength(32);
+    expect(withRegions.mexicoMap.matchedStateCount).toBe(1);
+    expect(
+      withRegions.mexicoMap.states.find((state) => state.estado === 'Sinaloa'),
+    ).toEqual(
+      expect.objectContaining({
+        isAffected: true,
+        regionIndex: 0,
+        riskLabel: 'Crítico',
+      }),
+    );
+    expect(withRegions.mexicoMap.markers).toHaveLength(1);
+    expect(withRegions.mexicoMap.markers[0].x).toBeGreaterThan(0);
+    expect(withRegions.mexicoMap.markers[0].y).toBeGreaterThan(0);
+
+    const withoutRegions = buildPlagueDetailView({
+      id: 31,
+      name: 'Sin regiones',
+      regions: [],
+    });
+    expect(withoutRegions.mexicoMap).toBeNull();
+  });
+
+  it('habilita edición directa, confirmación asíncrona, impresión de expediente y diagnóstico diferencial sin estilos inline', () => {
+    const template = fs.readFileSync(
+      new URL('../../src/views/shared/plague-detail.hbs', import.meta.url),
+      'utf8',
+    );
+    const detailClient = fs.readFileSync(
+      new URL('../../public/js/shared/plague-detail.js', import.meta.url),
+      'utf8',
+    );
+
+    expect(template).toContain('id="print-sheet-header"');
+    expect(template).toContain('btn-edit-plague');
+    expect(template).toContain('id="btn-delete-plague-detail"');
+    expect(template).toContain('id="plague-mexico-map"');
+    expect(template).toContain('id="plagas-relacionadas"');
+    expect(template).not.toMatch(/\sstyle=/i);
+    expect(detailClient).toContain('confirmAsyncAction');
+    expect(detailClient).toContain('initializePlagueForm');
+  });
+
+  it('genera localmente un PDF institucional válido con los datos del expediente y ofrece modal de vista previa sin código inline', async () => {
+    const detail = buildPlagueDetailView({
+      id: 12,
+      name: 'Gusano cogollero',
+      scientific_name: 'Spodoptera frugiperda',
+      category: 'Insectos',
+      risk_level: 'Alto',
+      description: 'Lepidóptero polífago de importancia económica.',
+      symptoms: 'Ventanas translúcidas en hojas; Daño en cogollo.',
+      control_methods: 'Monitoreo con trampas de feromonas.',
+      biological_control: 'Trichogramma spp.',
+      biological_cycle: [
+        {
+          title: 'Larva',
+          duration: '14 días',
+          plantZone: 'Cogollo',
+          damageLevel: 'Severo',
+          isControlWindow: true,
+          recommendedAction: 'Aplicación dirigida al verticilo.',
+        },
+      ],
+      crops: [{ id: 1, name: 'Maíz', scientific_name: 'Zea mays' }],
+      products: [
+        {
+          id: 2,
+          name: 'Insumo biológico',
+          active_ingredient: 'Bacillus thuringiensis',
+          validation_status: 'Validado',
+        },
+      ],
+      regions: [
+        {
+          name: 'Sinaloa',
+          lat: 25.17,
+          lng: -107.48,
+          PlagueRegions: { risk_level: 'Alto' },
+        },
+      ],
+      verified_by: 'Dra. Elena Pérez',
+      verified_at: '2026-08-20T12:00:00.000Z',
+    });
+
+    expect(buildPlaguePdfFilename(detail.plague)).toBe(
+      'INIFAP-Expediente-Plaga-12-gusano-cogollero.pdf',
+    );
+
+    const pdfBuffer = await generatePlaguePdfBuffer(detail, {
+      isPrivate: true,
+    });
+    expect(Buffer.isBuffer(pdfBuffer)).toBe(true);
+    expect(pdfBuffer.length).toBeGreaterThan(800);
+    expect(pdfBuffer.subarray(0, 6).toString('ascii')).toBe('%PDF-1');
+
+    const pdfModalPartial = fs.readFileSync(
+      new URL(
+        '../../src/views/partials/shared/plague-pdf-modal.hbs',
+        import.meta.url,
+      ),
+      'utf8',
+    );
+    expect(pdfModalPartial).toContain('id="plague-pdf-preview-modal"');
+    expect(pdfModalPartial).toContain('id="pdf-download-btn"');
+    expect(pdfModalPartial).toContain('format=pdf&download=1');
+    expect(pdfModalPartial).toContain('id="pdf-print-action-btn"');
+    expect(pdfModalPartial).not.toMatch(
+      /<script\b|<style\b|\sstyle=|\sonclick=|\sonerror=/i,
+    );
   });
 });

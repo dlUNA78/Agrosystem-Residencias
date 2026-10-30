@@ -516,6 +516,32 @@ export const renderHomeIndex = async (req, res) => {
   const acervoStats = buildAcervoStats(counts);
   const { mapPaths, ranking, estadoInicial } = buildMapData();
 
+  const mesActual = new Date().getMonth() + 1;
+  const estadosList = Object.keys(estadosData).sort((a, b) =>
+    a.localeCompare(b, 'es'),
+  );
+
+  const cultivosConEstado = cultivosTemporada.map((c) => {
+    const enSiembra =
+      Array.isArray(c.siembra) &&
+      mesActual >= c.siembra[0] &&
+      mesActual <= c.siembra[1];
+    const enCosecha =
+      Array.isArray(c.cosecha) &&
+      mesActual >= c.cosecha[0] &&
+      mesActual <= c.cosecha[1];
+    return {
+      ...c,
+      enSiembra,
+      enCosecha,
+      estadoTemporada: enCosecha
+        ? 'cosecha'
+        : enSiembra
+          ? 'siembra'
+          : 'inactivo',
+    };
+  });
+
   return res.render('public/home', {
     pageTitle: 'Inicio',
     activePage: 'home',
@@ -527,8 +553,10 @@ export const renderHomeIndex = async (req, res) => {
     mapPaths,
     ranking,
     estadoInicial,
+    estadosList,
+    mesActual,
     boletin,
-    cultivosTemporada,
+    cultivosTemporada: cultivosConEstado,
     acervoStats,
   });
 };

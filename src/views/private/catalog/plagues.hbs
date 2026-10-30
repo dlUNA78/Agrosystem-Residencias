@@ -1,13 +1,13 @@
 <!-- Catálogo Privado y Panel de Control Fitosanitario INIFAP (RBAC + KPIs + Geist Design System) -->
 <main class="min-h-screen font-['Geist'] antialiased bg-background text-foreground pb-20">
 
-    <div class="max-w-7xl mx-auto px-4 md:px-10 pt-6 space-y-8">
+    <div class="max-w-7xl mx-auto px-4 md:px-10 pt-6 space-y-6">
 
         <!-- ===================================================== -->
         <!-- ENCABEZADO ADMINISTRATIVO + ACCIONES SEGÚN ROL (RBAC) -->
         <!-- ===================================================== -->
-        <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-6 border-b border-border/80 pb-8">
-            <div class="space-y-2.5">
+        <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-6 border-b border-border/80 pb-6">
+            <div class="space-y-2">
                 <div class="flex flex-wrap items-center gap-2">
                     <span class="px-3 py-1 rounded-full bg-[#e6f0e6] text-[#1b4332] text-[11px] font-mono font-bold tracking-wider uppercase">
                         SISTEMA NACIONAL DE VIGILANCIA FITOSANITARIA · INIFAP
@@ -18,7 +18,7 @@
                     </span>
                     {{else}}{{#if isInifap}}
                     <span class="px-2.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-mono font-bold uppercase">
-                        INVESTIGADOR INIFAP
+                        ESPECIALISTA INIFAP
                     </span>
                     {{else}}
                     <span class="px-2.5 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[10px] font-mono font-bold uppercase">
@@ -26,22 +26,16 @@
                     </span>
                     {{/if}}{{/if}}
                 </div>
-                <h1 class="text-3xl md:text-5xl font-headline font-black tracking-tight text-[#1b4332] leading-none">
-                    Gestión de Plagas y Amenazas
+                <h1 class="text-2xl sm:text-4xl font-headline font-black tracking-tight text-[#1b4332] leading-tight">
+                    Gestión Técnica de Plagas y Enfermedades
                 </h1>
                 <p class="max-w-2xl text-xs md:text-sm leading-relaxed text-muted-foreground">
-                    Módulo de administración fitosanitaria, validación técnica de patógenos y control biológico.
+                    Captura ágil de expedientes fitosanitarios, constructor de ciclos biológicos, vinculación con cultivos/insumos y dictamen editorial.
                 </p>
             </div>
 
             <!-- Botones de Acción (Protegidos por RBAC) -->
-            <div class="flex items-center gap-3 shrink-0">
-                <button type="button" id="btn-export-plagues"
-                    class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-border/80 bg-card text-foreground text-xs font-bold hover:bg-muted transition-all shadow-2xs cursor-pointer">
-                    <i data-lucide="download" class="w-4 h-4"></i>
-                    <span>Exportar Informe</span>
-                </button>
-
+            <div class="flex items-center gap-2.5 shrink-0">
                 {{#if permissions.canCreate}}
                 <button type="button" id="btn-add-plague"
                     class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#1b4332] text-white text-xs font-bold hover:bg-[#2d6a4f] transition-all shadow-md active:scale-95 cursor-pointer">
@@ -53,96 +47,102 @@
         </div>
 
         <!-- ===================================================== -->
-        <!-- TARJETAS KPIS ADMINISTRATIVOS Y MÉTRICAS FITOSANITARIAS -->
+        <!-- TARJETAS KPIS INTERACTIVAS DE FLUJO EDITORIAL         -->
         <!-- ===================================================== -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            
-            <!-- KPI 1: Total Plagas -->
-            <div class="bg-card border border-border/80 rounded-2xl p-5 shadow-2xs flex items-center justify-between">
+        <div id="plagues-kpi-region" class="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
+
+            <!-- KPI 1: Total Plagas (Acceso rápido a Todos) -->
+            <a href="/private/plagues"
+                class="group bg-card border {{#unless filters.workflow}}border-[#1b4332]/40 ring-1 ring-[#1b4332]/15{{else}}border-border/80 hover:border-[#1b4332]/40{{/unless}} rounded-2xl p-4 sm:p-5 shadow-2xs flex items-center justify-between transition-all">
                 <div>
-                    <p class="text-[11px] font-mono font-bold uppercase tracking-wider text-muted-foreground">Total Catalogadas</p>
-                    <h3 class="text-3xl font-headline font-black text-[#1b4332] mt-1 tabular-nums">{{stats.totalPlagues}}</h3>
+                    <p class="text-[10px] sm:text-[11px] font-mono font-bold uppercase tracking-wider text-muted-foreground">Total Catalogadas</p>
+                    <h3 class="text-2xl sm:text-3xl font-headline font-black text-[#1b4332] mt-1 tabular-nums">{{stats.totalPlagues}}</h3>
                     <p class="text-[11px] text-muted-foreground mt-1 flex items-center gap-1">
                         <i data-lucide="database" class="w-3.5 h-3.5 text-[#2d6a4f]"></i>
-                        <span>En base de datos</span>
+                        <span>Ver todo el padrón</span>
                     </p>
                 </div>
-                <div class="w-12 h-12 rounded-2xl bg-[#e6f0e6] text-[#1b4332] flex items-center justify-center">
-                    <i data-lucide="bug" class="w-6 h-6"></i>
+                <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-[#e6f0e6] text-[#1b4332] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                    <i data-lucide="bug" class="w-5 h-5 sm:w-6 sm:h-6"></i>
                 </div>
-            </div>
+            </a>
 
             <!-- KPI 2: Plagas publicadas -->
-            <div class="bg-card border border-border/80 rounded-2xl p-5 shadow-2xs flex items-center justify-between">
+            <a href="/private/plagues?workflow=published"
+                class="group bg-card border {{#if (eq filters.workflow 'published')}}border-emerald-500 ring-1 ring-emerald-500/20{{else}}border-border/80 hover:border-emerald-400{{/if}} rounded-2xl p-4 sm:p-5 shadow-2xs flex items-center justify-between transition-all">
                 <div>
-                    <p class="text-[11px] font-mono font-bold uppercase tracking-wider text-muted-foreground">Publicadas</p>
-                    <h3 class="text-3xl font-headline font-black text-emerald-700 mt-1 tabular-nums">{{stats.activePlagues}}</h3>
+                    <p class="text-[10px] sm:text-[11px] font-mono font-bold uppercase tracking-wider text-muted-foreground">Publicadas</p>
+                    <h3 class="text-2xl sm:text-3xl font-headline font-black text-emerald-700 mt-1 tabular-nums">{{stats.activePlagues}}</h3>
                     <p class="text-[11px] text-emerald-700 mt-1 flex items-center gap-1 font-medium">
                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                         <span>Visibles al público</span>
                     </p>
                 </div>
-                <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center">
-                    <i data-lucide="activity" class="w-6 h-6"></i>
+                <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                    <i data-lucide="globe" class="w-5 h-5 sm:w-6 sm:h-6"></i>
                 </div>
-            </div>
+            </a>
 
-            <!-- KPI 3: Amenazas Críticas / Alto Riesgo -->
-            <div class="bg-card border border-border/80 rounded-2xl p-5 shadow-2xs flex items-center justify-between">
+            <!-- KPI 3: Pendientes de Verificación INIFAP -->
+            <a href="/private/plagues?workflow=in_review"
+                class="group bg-card border {{#if (eq filters.workflow 'in_review')}}border-amber-500 ring-1 ring-amber-500/20{{else}}border-border/80 hover:border-amber-400{{/if}} rounded-2xl p-4 sm:p-5 shadow-2xs flex items-center justify-between transition-all">
                 <div>
-                    <p class="text-[11px] font-mono font-bold uppercase tracking-wider text-muted-foreground">Riesgo Alto / Crítico</p>
-                    <h3 class="text-3xl font-headline font-black text-rose-600 mt-1 tabular-nums">{{stats.criticalPlagues}}</h3>
+                    <p class="text-[10px] sm:text-[11px] font-mono font-bold uppercase tracking-wider text-muted-foreground">En Revisión</p>
+                    <h3 class="text-2xl sm:text-3xl font-headline font-black text-amber-600 mt-1 tabular-nums">{{stats.pendingVerification}}</h3>
+                    <p class="text-[11px] text-amber-700 mt-1 flex items-center gap-1 font-medium">
+                        <i data-lucide="clock" class="w-3.5 h-3.5"></i>
+                        <span>Cola de dictamen</span>
+                    </p>
+                </div>
+                <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                    <i data-lucide="file-check" class="w-5 h-5 sm:w-6 sm:h-6"></i>
+                </div>
+            </a>
+
+            <!-- KPI 4: Amenazas Críticas / Alto Riesgo -->
+            <div class="bg-card border border-border/80 rounded-2xl p-4 sm:p-5 shadow-2xs flex items-center justify-between">
+                <div>
+                    <p class="text-[10px] sm:text-[11px] font-mono font-bold uppercase tracking-wider text-muted-foreground">Riesgo Alto / Crítico</p>
+                    <h3 class="text-2xl sm:text-3xl font-headline font-black text-rose-600 mt-1 tabular-nums">{{stats.criticalPlagues}}</h3>
                     <p class="text-[11px] text-rose-600 mt-1 flex items-center gap-1 font-medium">
                         <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i>
-                        <span>Atención prioritaria</span>
+                        <span>Vigilancia prioritaria</span>
                     </p>
                 </div>
-                <div class="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center">
-                    <i data-lucide="shield-alert" class="w-6 h-6"></i>
-                </div>
-            </div>
-
-            <!-- KPI 4: Pendientes de Verificación INIFAP -->
-            <div class="bg-card border border-border/80 rounded-2xl p-5 shadow-2xs flex items-center justify-between">
-                <div>
-                    <p class="text-[11px] font-mono font-bold uppercase tracking-wider text-muted-foreground">Pendientes de Validación</p>
-                    <h3 class="text-3xl font-headline font-black text-amber-600 mt-1 tabular-nums">{{stats.pendingVerification}}</h3>
-                    <p class="text-[11px] text-amber-600 mt-1 flex items-center gap-1 font-medium">
-                        <i data-lucide="clock" class="w-3.5 h-3.5"></i>
-                        <span>Requieren dictamen</span>
-                    </p>
-                </div>
-                <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center">
-                    <i data-lucide="file-check" class="w-6 h-6"></i>
+                <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
+                    <i data-lucide="shield-alert" class="w-5 h-5 sm:w-6 sm:h-6"></i>
                 </div>
             </div>
 
         </div>
 
         <!-- ===================================================== -->
-        <!-- BARRA PEGAJOSA DE FILTROS ADMINISTRATIVOS (STICKY GLASS) -->
+        <!-- BARRA PEGAJOSA DE FILTROS + TABS RÁPIDOS DE WORKFLOW   -->
         <!-- ===================================================== -->
-        <div class="sticky top-16 z-30 -mx-4 md:-mx-10 px-4 md:px-10 py-4 bg-background/90 backdrop-blur-md border-b border-border/80 shadow-2xs">
+        <div class="sticky top-16 z-30 -mx-4 md:-mx-10 px-4 md:px-10 py-3.5 bg-background/95 backdrop-blur-md border-b border-border/80 shadow-2xs space-y-3">
             <form id="plague-filter-form" action="/private/plagues" method="GET" class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
-                
-                <!-- Buscador de Administración -->
+
+                <!-- Buscador de Administración con Atajo "/" -->
                 <div class="relative flex-1 min-w-65">
                     <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground"></i>
                     <input id="plague-search" name="search" type="search" value="{{filters.search}}" maxlength="120"
-                        class="w-full pl-10 pr-4 py-2.5 bg-card border border-input rounded-xl text-xs text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all"
-                        placeholder="Buscar por ID, nombre común, científico, región o síntomas..." />
+                        class="w-full pl-10 pr-12 py-2.5 bg-card border border-input rounded-xl text-xs text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all"
+                        placeholder="Buscar por ID, nombre común, especie científica, región o síntomas..." />
+                    <kbd class="hidden sm:inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground bg-muted border border-border rounded-md absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" title="Presiona / para buscar">/</kbd>
                 </div>
 
                 <!-- Dropdowns y Selectores -->
-                <div class="flex flex-wrap items-center gap-3">
-                    
+                <div class="flex flex-wrap items-center gap-2.5">
+
                     <!-- Filtro Categoría -->
-                    <div class="relative min-w-37.5">
+                    <div class="relative min-w-36">
                         <select id="filter-category" name="category"
                             class="filter-select appearance-none w-full bg-card border border-input rounded-xl px-3.5 py-2.5 pr-8 text-xs font-medium text-foreground focus:outline-hidden focus:border-[#1b4332] transition-all cursor-pointer">
                             <option value="">Categoría · Todas</option>
                             <option value="Insecto" {{#if (eq filters.category 'Insecto')}}selected{{/if}}>Insecto</option>
+                            <option value="Insectos" {{#if (eq filters.category 'Insectos')}}selected{{/if}}>Insectos (Histórico)</option>
                             <option value="Hongo" {{#if (eq filters.category 'Hongo')}}selected{{/if}}>Hongo</option>
+                            <option value="Hongos" {{#if (eq filters.category 'Hongos')}}selected{{/if}}>Hongos (Histórico)</option>
                             <option value="Bacteria" {{#if (eq filters.category 'Bacteria')}}selected{{/if}}>Bacteria</option>
                             <option value="Virus" {{#if (eq filters.category 'Virus')}}selected{{/if}}>Virus</option>
                             <option value="Ácaro" {{#if (eq filters.category 'Ácaro')}}selected{{/if}}>Ácaro</option>
@@ -151,7 +151,7 @@
                     </div>
 
                     <!-- Filtro Estatus -->
-                    <div class="relative min-w-35">
+                    <div class="relative min-w-36">
                         <select id="filter-workflow" name="workflow"
                             class="filter-select appearance-none w-full bg-card border border-input rounded-xl px-3.5 py-2.5 pr-8 text-xs font-medium text-foreground focus:outline-hidden focus:border-[#1b4332] transition-all cursor-pointer">
                             <option value="">Estatus · Todos</option>
@@ -177,35 +177,72 @@
                         </button>
                     </div>
 
-                    <button type="submit" class="inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#1b4332] px-4 py-2.5 text-xs font-bold text-white shadow-2xs transition-colors hover:bg-[#2d6a4f]">
+                    <button type="submit" class="inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#1b4332] px-4 py-2.5 text-xs font-bold text-white shadow-2xs transition-colors hover:bg-[#2d6a4f] cursor-pointer">
                         <i data-lucide="search" class="h-3.5 w-3.5"></i>
-                        Aplicar
+                        Filtrar
                     </button>
 
-                    {{#if hasActiveFilters}}
-                    <a href="/private/plagues" class="inline-flex items-center justify-center gap-1.5 rounded-xl border border-border bg-card px-4 py-2.5 text-xs font-bold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
-                        <i data-lucide="x" class="h-3.5 w-3.5"></i>
-                        Limpiar
-                    </a>
-                    {{/if}}
+                    <span id="plague-clear-filters-slot">
+                        {{#if hasActiveFilters}}
+                        <a href="/private/plagues" data-async-filter-link class="inline-flex items-center justify-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-2.5 text-xs font-bold text-rose-700 transition-colors hover:bg-rose-100">
+                            <i data-lucide="rotate-ccw" class="h-3.5 w-3.5"></i>
+                            Limpiar
+                        </a>
+                        {{/if}}
+                    </span>
                 </div>
             </form>
+
+            <!-- Píldoras Rápidas de Bandeja Editorial -->
+            <div id="plagues-toolbar-pills" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5 text-xs">
+                <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground mr-1 shrink-0">Bandeja:</span>
+                <button type="button" data-workflow-pill=""
+                    class="px-2.5 py-1 rounded-lg border transition-colors shrink-0 cursor-pointer {{#unless filters.workflow}}bg-[#1b4332] text-white border-[#1b4332] font-bold{{else}}bg-card text-muted-foreground border-border hover:text-foreground hover:bg-muted{{/unless}}">
+                    Todos
+                </button>
+                <button type="button" data-workflow-pill="draft"
+                    class="px-2.5 py-1 rounded-lg border transition-colors shrink-0 cursor-pointer {{#if (eq filters.workflow 'draft')}}bg-[#1b4332] text-white border-[#1b4332] font-bold{{else}}bg-card text-muted-foreground border-border hover:text-foreground hover:bg-muted{{/if}}">
+                    Borradores
+                </button>
+                <button type="button" data-workflow-pill="changes_requested"
+                    class="px-2.5 py-1 rounded-lg border transition-colors shrink-0 cursor-pointer {{#if (eq filters.workflow 'changes_requested')}}bg-orange-600 text-white border-orange-600 font-bold{{else}}bg-card text-muted-foreground border-border hover:text-foreground hover:bg-muted{{/if}}">
+                    Con correcciones
+                </button>
+                <button type="button" data-workflow-pill="in_review"
+                    class="px-2.5 py-1 rounded-lg border transition-colors shrink-0 cursor-pointer {{#if (eq filters.workflow 'in_review')}}bg-amber-600 text-white border-amber-600 font-bold{{else}}bg-card text-muted-foreground border-border hover:text-foreground hover:bg-muted{{/if}}">
+                    En revisión
+                </button>
+                <button type="button" data-workflow-pill="verified"
+                    class="px-2.5 py-1 rounded-lg border transition-colors shrink-0 cursor-pointer {{#if (eq filters.workflow 'verified')}}bg-blue-600 text-white border-blue-600 font-bold{{else}}bg-card text-muted-foreground border-border hover:text-foreground hover:bg-muted{{/if}}">
+                    Verificadas
+                </button>
+                <button type="button" data-workflow-pill="published"
+                    class="px-2.5 py-1 rounded-lg border transition-colors shrink-0 cursor-pointer {{#if (eq filters.workflow 'published')}}bg-emerald-700 text-white border-emerald-700 font-bold{{else}}bg-card text-muted-foreground border-border hover:text-foreground hover:bg-muted{{/if}}">
+                    Publicadas
+                </button>
+                <button type="button" data-workflow-pill="archived"
+                    class="px-2.5 py-1 rounded-lg border transition-colors shrink-0 cursor-pointer {{#if (eq filters.workflow 'archived')}}bg-slate-700 text-white border-slate-700 font-bold{{else}}bg-card text-muted-foreground border-border hover:text-foreground hover:bg-muted{{/if}}">
+                    Archivadas
+                </button>
+            </div>
         </div>
 
-        <div class="flex flex-col gap-1 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-            <p>
-                Mostrando <strong class="text-foreground">{{pagination.fromItem}}–{{pagination.toItem}}</strong>
-                de <strong class="text-foreground">{{pagination.totalItems}}</strong> resultados.
-            </p>
-            {{#if hasActiveFilters}}
-            <p class="font-mono text-[10px] uppercase tracking-wider">Filtros activos</p>
-            {{/if}}
+        <div id="plagues-results-region" class="space-y-6">
+            <div class="flex flex-col gap-1 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+                <p>
+                    Mostrando <strong class="text-foreground">{{pagination.fromItem}}–{{pagination.toItem}}</strong>
+                    de <strong class="text-foreground">{{pagination.totalItems}}</strong> expedientes fitosanitarios.
+                </p>
+                {{#if hasActiveFilters}}
+                <p class="font-mono text-[10px] uppercase tracking-wider text-[#2d6a4f] font-bold">Vista filtrada activa</p>
+                {{/if}}
+            </div>
+            {{> private/plagues/grid}}
+            {{> private/plagues/table}}
         </div>
-        {{> private/plagues/grid}}
-        {{> private/plagues/table}}
     </div>
 </main>
 {{> private/plagues/delete-modal}}
 {{> private/plagues/form-modal}}
 <!-- JS de la vista -->
-<script type="module" src="/js/private/plagues.js"></script>
+<script type="module" src="/js/private/plagues.js?v=2.7"></script>

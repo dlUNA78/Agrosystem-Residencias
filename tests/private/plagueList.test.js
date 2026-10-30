@@ -25,6 +25,7 @@ const readPlagueViewSources = () =>
 
 const readPlagueClientSources = () =>
   readSources([
+    '../../public/js/private/asyncUi.js',
     '../../public/js/private/plagues.js',
     '../../public/js/private/plagues/plagueForm.js',
     '../../public/js/private/plagues/plagueImageEditor.js',
@@ -160,6 +161,41 @@ describe('listado privado paginado de plagas', () => {
       /<input[^>]+id="plague-images"[^>]+name="images"[^>]+multiple/,
     );
     expect(template).toContain('id="plague-image-previews"');
+    expect(template).toContain('id="plague-image-dropzone"');
     expect(clientScript).toContain('buildImagePreview');
+    expect(clientScript).toContain('wireDropzoneEvents');
+  });
+
+  it('incluye plantillas rápidas de ciclo biológico, metadatos colapsables y bandejas de estatus', () => {
+    const template = readPlagueViewSources();
+    const clientScript = readPlagueClientSources();
+
+    expect(template).toContain('data-cycle-preset="holometabolo"');
+    expect(template).toContain('data-cycle-preset="hongo"');
+    expect(template).toContain('data-stage-advanced');
+    expect(template).toContain('data-workflow-pill=');
+    expect(clientScript).toContain('CYCLE_PRESETS');
+  });
+
+  it('integra estados de carga asíncronos y actualización parcial sin recargar toda la página', () => {
+    const template = readPlagueViewSources();
+    const clientScript = readPlagueClientSources();
+
+    expect(template).toContain('id="plagues-kpi-region"');
+    expect(template).toContain('id="plagues-results-region"');
+    expect(template).toContain('id="plague-form-server-error"');
+    expect(clientScript).toContain('withButtonLoading');
+    expect(clientScript).toContain('setRegionLoading');
+    expect(clientScript).toContain('swapFragments');
+    expect(clientScript).toContain('refreshPlagueCatalogView');
+  });
+
+  it('reserva la impresión a fichas individuales e integra modales de confirmación en acciones mutadoras', () => {
+    const template = readPlagueViewSources();
+    const clientScript = readPlagueClientSources();
+
+    expect(template).not.toContain('id="btn-export-plagues"');
+    expect(clientScript).toContain('export const confirmAsyncAction');
+    expect(clientScript).toContain('confirmPlagueSave');
   });
 });

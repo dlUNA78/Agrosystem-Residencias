@@ -4,6 +4,7 @@ import {
   getPlaguePermissions,
 } from '../../../services/plagueAuthorizationService.js';
 import { buildPlagueDetailView } from '../../../services/plagueDetailService.js';
+import { sendPlaguePdfResponse } from '../../../services/plaguePdfService.js';
 import { buildPlagueRelationEditor } from '../../../services/plagueRelationService.js';
 import { buildPlaguePublicationReadiness } from '../../../services/plagueReadinessService.js';
 import { isPlagueEditable } from '../../../services/plagueWorkflowService.js';
@@ -65,15 +66,76 @@ const loadRelationEditor = async (plagueData) => {
   });
 };
 
+const normalizeEditableImage = (img) => ({
+  id: img.id,
+  url: `/${String(img.url).replace(/^\/+/, '')}`,
+  ...(img.caption ? { caption: img.caption } : {}),
+  ...(img.source ? { source: img.source } : {}),
+  sort_order: img.sort_order ?? 0,
+});
+
+const normalizeEditableImages = (images) => {
+  if (!Array.isArray(images)) return [];
+  return images.filter((img) => img?.url).map(normalizeEditableImage);
+};
+
+const TEXT_FIELDS = [
+  'name',
+  'scientific_name',
+  'category',
+  'region',
+  'description',
+  'symptoms',
+  'control_methods',
+  'biological_control',
+];
+
+const buildEditablePlaguePayload = (plagueData) => {
+  const normalizedImages = normalizeEditableImages(plagueData.images);
+  const textPayload = Object.fromEntries(
+    TEXT_FIELDS.map((field) => [field, plagueData[field] ?? '']),
+  );
+
+  return {
+    id: plagueData.id,
+    ...textPayload,
+    risk_level: plagueData.risk_level ?? 'Bajo',
+    image_url: normalizedImages[0]?.url ?? '',
+    images_json: JSON.stringify(normalizedImages),
+    biological_cycle_json: JSON.stringify(plagueData.biological_cycle ?? []),
+  };
+};
+
+const parseValidPlagueId = (rawId) => {
+  if (!/^\d+$/.test(rawId)) return null;
+  const numericId = Number(rawId);
+  return Number.isSafeInteger(numericId) && numericId > 0 ? numericId : null;
+};
+
+const resolveDetailEditState = (user, plagueData) => {
+  const permissions = getContextualPlaguePermissions({
+    role: user.role,
+    userId: user.id,
+    createdByUserId: plagueData.created_by_user_id,
+  });
+  const rolePermissions = getPlaguePermissions(user.role);
+  const editableStatus = isPlagueEditable(plagueData.workflow_status);
+  return {
+    permissions,
+    canEditRecord: permissions.canEdit && editableStatus,
+    canEditRelations: permissions.canManageRelations && editableStatus,
+    relationsLocked: rolePermissions.canManageRelations && !editableStatus,
+    relationsOwnershipRestricted:
+      rolePermissions.canManageRelations &&
+      editableStatus &&
+      !permissions.canManageRelations,
+  };
+};
+
 export const getPlagueDetail = async (req, res) => {
   try {
-    const { id } = req.params;
-    if (!/^\d+$/.test(id)) {
-      return res.status(400).send('ID de plaga no válido');
-    }
-
-    const plagueId = Number(id);
-    if (!Number.isSafeInteger(plagueId) || plagueId <= 0) {
+    const plagueId = parseValidPlagueId(req.params.id);
+    if (!plagueId) {
       return res.status(400).send('ID de plaga no válido');
     }
 
@@ -86,16 +148,15 @@ export const getPlagueDetail = async (req, res) => {
 
     const plagueData = plague.toJSON();
     const detail = buildPlagueDetailView(plagueData);
+    if (req.query?.format === 'pdf') {
+      return sendPlaguePdfResponse(res, detail, {
+        download: req.query.download === '1',
+        isPrivate: true,
+      });
+    }
     const readiness = buildPlaguePublicationReadiness(plagueData);
-    const permissions = getContextualPlaguePermissions({
-      role: req.user.role,
-      userId: req.user.id,
-      createdByUserId: plagueData.created_by_user_id,
-    });
-    const rolePermissions = getPlaguePermissions(req.user.role);
-    const editableStatus = isPlagueEditable(plagueData.workflow_status);
-    const canEditRelations = permissions.canManageRelations && editableStatus;
-    const relationEditor = canEditRelations
+    const editState = resolveDetailEditState(req.user, plagueData);
+    const relationEditor = editState.canEditRelations
       ? await loadRelationEditor(plagueData)
       : null;
 
@@ -104,17 +165,13 @@ export const getPlagueDetail = async (req, res) => {
       pageTitle: `${detail.plague.name} - Plagas`,
       activePage: 'plagues',
       isPrivate: true,
-      permissions,
       readiness,
-      canEditRelations,
-      relationsLocked: rolePermissions.canManageRelations && !editableStatus,
-      relationsOwnershipRestricted:
-        rolePermissions.canManageRelations &&
-        editableStatus &&
-        !permissions.canManageRelations,
+      ...editState,
+      editablePlague: buildEditablePlaguePayload(plagueData),
       relationEditor,
       ...detail,
-      extraScripts: '<script src="/js/shared/plague-detail.js"></script>',
+      extraScripts:
+        '<script type="module" src="/js/shared/plague-detail.js?v=2.8"></script>',
     });
   } catch (error) {
     console.error('Error al cargar el detalle de la plaga:', error);

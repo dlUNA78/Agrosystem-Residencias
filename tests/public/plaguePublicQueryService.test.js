@@ -87,4 +87,50 @@ describe('consulta pública de plagas', () => {
     expect(critical.where.risk_level[Op.in]).toEqual(['Alto', 'Crítico']);
     expect(low.where.risk_level[Op.in]).toEqual(['Bajo']);
   });
+
+  it('filtra por cultivo hospedero, busca en síntomas y conserva crop en paginación', () => {
+    const query = normalizePublicPlagueQuery({
+      search: 'clorosis foliar',
+      crop: 'Maíz',
+    });
+
+    expect(query).toEqual({
+      search: 'clorosis foliar',
+      category: '',
+      crop: 'Maíz',
+      region: '',
+      risk: '',
+      page: 1,
+      limit: 8,
+    });
+
+    const built = buildPublishedPlagueQuery({
+      Op,
+      query,
+      Region: function Region() {},
+      Crop: function Crop() {},
+      PlagueImage: function PlagueImage() {},
+    });
+
+    expect(built.where[Op.or]).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          symptoms: { [Op.iLike]: '%clorosis foliar%' },
+        }),
+      ]),
+    );
+    expect(built.include).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          as: 'crops',
+          required: true,
+          where: { name: 'Maíz' },
+        }),
+      ]),
+    );
+
+    const nextUrl = buildPublicPlaguePageUrl(3, query);
+    expect(nextUrl).toContain('page=3');
+    expect(nextUrl).toContain('crop=Ma%C3%ADz');
+  });
 });
