@@ -1,28 +1,171 @@
 <div data-land-modal="cycle" class="hidden fixed inset-0 z-[210] items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="cycle-modal-title">
     <button type="button" data-land-modal-close class="absolute inset-0 bg-black/40 backdrop-blur-sm" aria-label="Cerrar"></button>
-    <div class="relative z-10 w-full max-w-lg overflow-hidden rounded-2xl border border-border bg-card shadow-2xl">
+    <div class="relative z-10 w-full max-w-2xl max-h-[90vh] overflow-hidden rounded-2xl border border-border bg-card shadow-2xl flex flex-col">
         <header class="flex items-center justify-between border-b border-border px-6 py-4">
-            <h2 id="cycle-modal-title" class="text-lg font-extrabold text-foreground">Registrar ciclo de cultivo</h2>
+            <div>
+                <h2 id="cycle-modal-title" class="text-lg font-extrabold text-foreground">Registrar ciclo de cultivo</h2>
+                <p class="text-xs text-muted-foreground">Catálogo agronómico, cálculo automático de cosecha y cultivos personalizados.</p>
+            </div>
             <button type="button" data-land-modal-close class="rounded-lg px-3 py-2 text-sm font-bold text-muted-foreground hover:bg-muted">Cerrar</button>
         </header>
-        <form action="/private/lands/{{land.id}}/cycles" method="POST">
+        <form id="form-create-cycle" action="/private/lands/{{land.id}}/cycles" method="POST" class="flex flex-col overflow-y-auto">
             <div class="space-y-5 p-6">
-                <div>
-                    <label for="cycle-crop" class="mb-1.5 block text-xs font-bold text-muted-foreground">Cultivo publicado</label>
-                    <select id="cycle-crop" name="crop_id" required class="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                <!-- SECCIÓN: SELECCIÓN DE CULTIVO -->
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <label for="cycle-crop-search" class="block text-xs font-bold uppercase tracking-wider text-muted-foreground">Cultivo</label>
+                        <button type="button" data-crop-catalog-toggle class="text-xs font-bold text-primary hover:underline flex items-center gap-1">
+                            <span data-catalog-toggle-text>📂 Explorar por categorías</span>
+                        </button>
+                    </div>
+
+                    <!-- Tarjeta de cultivo seleccionado (activa cuando hay selección) -->
+                    <div data-crop-selected-card class="hidden rounded-xl border border-emerald-500/40 bg-emerald-500/10 p-3.5 flex items-center justify-between gap-3">
+                        <div class="flex items-center gap-3">
+                            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-600 text-white font-black text-sm">
+                                🌾
+                            </div>
+                            <div>
+                                <p data-crop-selected-name class="text-sm font-extrabold text-foreground"></p>
+                                <p data-crop-selected-meta class="text-xs text-muted-foreground"></p>
+                            </div>
+                        </div>
+                        <button type="button" data-crop-clear-btn class="rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-bold text-muted-foreground hover:bg-muted">
+                            Cambiar
+                        </button>
+                    </div>
+
+                    <!-- Buscador interactivo de cultivos -->
+                    <div data-crop-search-wrapper class="relative">
+                        <input
+                            type="text"
+                            id="cycle-crop-search"
+                            data-crop-search-input
+                            data-combobox-filter="cycle-crop"
+                            placeholder="🔍 Escribe para buscar cultivo (ej. Maíz, Limón, Jitomate)..."
+                            autocomplete="off"
+                            class="w-full rounded-xl border border-input bg-muted/30 px-3.5 py-2.5 text-sm outline-none focus:border-primary focus:bg-background focus:ring-2 focus:ring-primary/20 transition-all"
+                        />
+
+                        <!-- Dropdown de recomendaciones y sugerencias dinámicas -->
+                        <div data-crop-suggestions-panel class="hidden absolute left-0 right-0 top-full z-20 mt-1 max-h-60 overflow-y-auto rounded-xl border border-border bg-card shadow-xl p-1.5 space-y-1">
+                            <div data-crop-suggestions-list class="space-y-1"></div>
+                            
+                            <!-- Opción cuando no hay coincidencia exacta o para cultivo libre -->
+                            <div data-crop-custom-prompt class="hidden border-t border-border pt-2 mt-2 px-2 pb-1">
+                                <p class="text-xs text-muted-foreground mb-1.5">¿No encuentras lo que buscas en el catálogo?</p>
+                                <button type="button" data-crop-custom-btn class="w-full rounded-lg border border-dashed border-primary/40 bg-primary/5 px-3 py-2 text-left text-xs font-bold text-primary hover:bg-primary/10 transition-colors flex items-center justify-between">
+                                    <span>🌱 Usar "<span data-crop-custom-name-preview></span>" como cultivo personalizado</span>
+                                    <span class="text-[10px] bg-primary/10 px-2 py-0.5 rounded">No catalogado</span>
+                                </button>
+                                <button type="button" data-crop-show-all-btn class="mt-1 text-[11px] font-semibold text-muted-foreground hover:text-foreground">
+                                    Ver todos los {{crops.length}} cultivos disponibles
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Explorador de catálogo por categorías (panel ampliado) -->
+                    <div data-crop-catalog-panel class="hidden rounded-xl border border-border bg-muted/20 p-4 space-y-3">
+                        <div class="flex flex-wrap items-center gap-1.5">
+                            <span class="text-xs font-bold text-muted-foreground mr-1">Categoría:</span>
+                            <button type="button" data-category-filter="all" class="rounded-lg bg-primary px-2.5 py-1 text-xs font-bold text-white transition-colors">Todas</button>
+                            {{#each cropCategories}}
+                            <button type="button" data-category-filter="{{this}}" class="rounded-lg bg-muted px-2.5 py-1 text-xs font-semibold text-muted-foreground hover:bg-muted/80 transition-colors">{{this}}</button>
+                            {{/each}}
+                        </div>
+                        <div data-crop-grid class="max-h-48 overflow-y-auto grid gap-2 sm:grid-cols-2 pr-1">
+                            {{#each crops}}
+                            <button
+                                type="button"
+                                data-crop-card-item
+                                data-id="{{this.id}}"
+                                data-name="{{this.name}}"
+                                data-scientific="{{this.scientific_name}}"
+                                data-category="{{this.category}}"
+                                data-harvest-days="{{this.harvest_days}}"
+                                class="rounded-xl border border-border bg-card p-2.5 text-left hover:border-primary/50 hover:bg-muted/50 transition-all flex flex-col justify-between"
+                            >
+                                <div class="flex items-start justify-between gap-1">
+                                    <span class="text-xs font-bold text-foreground">{{this.name}}</span>
+                                    <span class="rounded bg-muted px-1.5 py-0.5 text-[9px] font-semibold text-muted-foreground">{{this.category}}</span>
+                                </div>
+                                <div class="mt-1 flex items-center justify-between text-[11px] text-muted-foreground">
+                                    <span class="italic truncate max-w-[140px]">{{this.scientific_name}}</span>
+                                    <span class="font-bold text-primary">{{#if this.harvest_days}}~{{this.harvest_days}}d{{else}}Ciclo libre{{/if}}</span>
+                                </div>
+                            </button>
+                            {{/each}}
+                        </div>
+                    </div>
+
+                    <!-- Select original para accesibilidad y compatibilidad -->
+                    <select id="cycle-crop" name="crop_id" class="hidden">
                         <option value="">Seleccionar cultivo</option>
-                        {{#each crops}}<option value="{{this.id}}">{{this.name}} · {{this.scientific_name}}</option>{{/each}}
+                        {{#each crops}}
+                        <option value="{{this.id}}" data-name="{{this.name}}" data-scientific="{{this.scientific_name}}" data-category="{{this.category}}" data-harvest-days="{{this.harvest_days}}">
+                            {{this.name}} · {{this.scientific_name}}
+                        </option>
+                        {{/each}}
+                        <option value="custom">Cultivo personalizado / no catalogado</option>
                     </select>
+
+                    <p data-combobox-empty="cycle-crop" class="hidden text-xs text-amber-600 font-medium">No se encontraron cultivos que coincidan con la búsqueda.</p>
+
+                    <!-- Inputs ocultos para cultivar personalizado -->
+                    <input type="hidden" id="cycle-custom-crop-name" name="custom_crop_name" value="" />
+                    <input type="hidden" id="cycle-custom-harvest-days" name="custom_harvest_days" value="120" />
                 </div>
-                <div class="grid gap-4 sm:grid-cols-2">
-                    <div>
-                        <label for="cycle-date" class="mb-1.5 block text-xs font-bold text-muted-foreground">Fecha de siembra</label>
-                        <input id="cycle-date" name="planting_date" type="date" required class="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" />
+
+                <!-- SECCIÓN: PLANIFICACIÓN DE FECHAS (CÁLCULO AUTOMÁTICO) -->
+                <div class="rounded-xl border border-border bg-muted/20 p-4 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold uppercase tracking-wider text-muted-foreground">Planificación del ciclo</span>
+                        <span class="rounded-full bg-primary/10 px-2.5 py-0.5 text-[11px] font-bold text-primary">
+                            Ciclo: <span data-crop-cycle-days>120</span> días
+                        </span>
                     </div>
-                    <div>
-                        <label for="cycle-area" class="mb-1.5 block text-xs font-bold text-muted-foreground">Lote o sección</label>
-                        <input id="cycle-area" name="area_section" maxlength="100" placeholder="Ej. Lote norte" class="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" />
+
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <div>
+                            <label for="cycle-date" class="mb-1.5 block text-xs font-bold text-muted-foreground">Fecha de siembra</label>
+                            <input id="cycle-date" name="planting_date" type="date" required value="{{today}}" class="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" />
+                            <p class="mt-1 text-[11px] text-muted-foreground">Inicio del ciclo de cultivo.</p>
+                        </div>
+                        <div>
+                            <label for="cycle-harvest-date" class="mb-1.5 block text-xs font-bold text-muted-foreground">Fecha estimada de cosecha</label>
+                            <input id="cycle-harvest-date" name="estimated_harvest_date" type="date" class="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" />
+                            <p class="mt-1 text-[11px] text-muted-foreground">Calculada automáticamente según días de maduración.</p>
+                        </div>
                     </div>
+
+                    <!-- Resumen del cálculo agronómico -->
+                    <div class="flex items-center gap-2 rounded-lg bg-card border border-border px-3 py-2 text-xs text-muted-foreground">
+                        <span class="text-base">📅</span>
+                        <span>Cosecha proyectada alrededor del <strong data-harvest-date-display class="text-foreground">--</strong> (<span data-crop-cycle-name>Cultivo seleccionado</span>).</span>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN: LOTE O SECCIÓN -->
+                <div>
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label for="cycle-area" class="block text-xs font-bold text-muted-foreground">Lote o sección del terreno (opcional)</label>
+                        {{#if lots.length}}
+                        <button type="button" data-land-modal-open="lot" class="text-[11px] font-bold text-primary hover:underline">
+                            + Administrar lotes
+                        </button>
+                        {{/if}}
+                    </div>
+                    {{#if lots.length}}
+                    <select id="cycle-lot-select" class="w-full mb-2 rounded-xl border border-input bg-background px-4 py-2 text-sm outline-none focus:border-primary">
+                        <option value="">-- Seleccionar lote existente --</option>
+                        {{#each lots}}
+                        <option value="{{this.name}}">{{this.name}}{{#if this.size_hectares}} ({{this.size_hectares}} ha){{/if}}</option>
+                        {{/each}}
+                        <option value="__custom__">+ Escribir otro lote o sección...</option>
+                    </select>
+                    {{/if}}
+                    <input id="cycle-area" name="area_section" maxlength="100" placeholder="Ej. Lote norte, Sector A-2" class="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" />
                 </div>
             </div>
             <footer class="flex justify-end gap-3 border-t border-border bg-muted/50 px-6 py-4">
@@ -35,20 +178,119 @@
 
 <div data-land-modal="health" class="hidden fixed inset-0 z-[210] items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="health-modal-title">
     <button type="button" data-land-modal-close class="absolute inset-0 bg-black/40 backdrop-blur-sm" aria-label="Cerrar"></button>
-    <div class="relative z-10 w-full max-w-lg overflow-hidden rounded-2xl border border-border bg-card shadow-2xl">
+    <div class="relative z-10 w-full max-w-2xl max-h-[90vh] overflow-hidden rounded-2xl border border-border bg-card shadow-2xl flex flex-col">
         <header class="flex items-center justify-between border-b border-border px-6 py-4">
-            <h2 id="health-modal-title" class="text-lg font-extrabold text-foreground">Registrar hallazgo fitosanitario</h2>
+            <div>
+                <h2 id="health-modal-title" class="text-lg font-extrabold text-foreground">Registrar hallazgo fitosanitario</h2>
+                <p class="text-xs text-muted-foreground">Catálogo de plagas, severidad y registro de alertas no catalogadas.</p>
+            </div>
             <button type="button" data-land-modal-close class="rounded-lg px-3 py-2 text-sm font-bold text-muted-foreground hover:bg-muted">Cerrar</button>
         </header>
-        <form action="/private/lands/{{land.id}}/health-reports" method="POST">
-            <div class="max-h-[70vh] space-y-5 overflow-y-auto p-6">
-                <div>
-                    <label for="health-plague" class="mb-1.5 block text-xs font-bold text-muted-foreground">Plaga publicada</label>
-                    <select id="health-plague" name="plague_id" required class="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+        <form action="/private/lands/{{land.id}}/health-reports" method="POST" class="flex flex-col overflow-y-auto">
+            <div class="space-y-5 p-6">
+                <!-- SECCIÓN: SELECCIÓN DE PLAGA -->
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <label for="health-plague-search" class="block text-xs font-bold uppercase tracking-wider text-muted-foreground">Plaga u organismo detectado</label>
+                        <button type="button" data-plague-catalog-toggle class="text-xs font-bold text-primary hover:underline flex items-center gap-1">
+                            <span>📂 Explorar plagas del catálogo</span>
+                        </button>
+                    </div>
+
+                    <!-- Tarjeta de plaga seleccionada -->
+                    <div data-plague-selected-card class="hidden rounded-xl border border-red-500/40 bg-red-500/10 p-3.5 flex items-center justify-between gap-3">
+                        <div class="flex items-center gap-3">
+                            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-red-600 text-white font-black text-sm">
+                                🐛
+                            </div>
+                            <div>
+                                <p data-plague-selected-name class="text-sm font-extrabold text-foreground"></p>
+                                <p data-plague-selected-meta class="text-xs text-muted-foreground"></p>
+                            </div>
+                        </div>
+                        <button type="button" data-plague-clear-btn class="rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-bold text-muted-foreground hover:bg-muted">
+                            Cambiar
+                        </button>
+                    </div>
+
+                    <!-- Buscador interactivo de plagas -->
+                    <div data-plague-search-wrapper class="relative">
+                        <input
+                            type="text"
+                            id="health-plague-search"
+                            data-plague-search-input
+                            data-combobox-filter="health-plague"
+                            placeholder="🔍 Escribe para buscar plaga (ej. Gusano cogollero, Mosca blanca)..."
+                            autocomplete="off"
+                            class="w-full rounded-xl border border-input bg-muted/30 px-3.5 py-2.5 text-sm outline-none focus:border-primary focus:bg-background focus:ring-2 focus:ring-primary/20 transition-all"
+                        />
+
+                        <!-- Dropdown de recomendaciones predictivas -->
+                        <div data-plague-suggestions-panel class="hidden absolute left-0 right-0 top-full z-20 mt-1 max-h-60 overflow-y-auto rounded-xl border border-border bg-card shadow-xl p-1.5 space-y-1">
+                            <div data-plague-suggestions-list class="space-y-1"></div>
+
+                            <!-- Opción para plaga no catalogada / personalizada -->
+                            <div data-plague-custom-prompt class="hidden border-t border-border pt-2 mt-2 px-2 pb-1">
+                                <p class="text-xs text-muted-foreground mb-1.5">¿No encuentras la plaga en el catálogo oficial?</p>
+                                <button type="button" data-plague-custom-btn class="w-full rounded-lg border border-dashed border-red-500/40 bg-red-500/5 px-3 py-2 text-left text-xs font-bold text-red-600 hover:bg-red-500/10 transition-colors flex items-center justify-between">
+                                    <span>🐛 Registrar "<span data-plague-custom-name-preview></span>" como plaga no catalogada</span>
+                                    <span class="text-[10px] bg-red-500/10 px-2 py-0.5 rounded">Personalizada</span>
+                                </button>
+                                <button type="button" data-plague-show-all-btn class="mt-1 text-[11px] font-semibold text-muted-foreground hover:text-foreground">
+                                    Ver todas las {{plagues.length}} plagas disponibles
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Explorador de catálogo de plagas -->
+                    <div data-plague-catalog-panel class="hidden rounded-xl border border-border bg-muted/20 p-4 space-y-3">
+                        <div class="flex flex-wrap items-center gap-1.5">
+                            <span class="text-xs font-bold text-muted-foreground mr-1">Categoría:</span>
+                            <button type="button" data-plague-category-filter="all" class="rounded-lg bg-primary px-2.5 py-1 text-xs font-bold text-white transition-colors">Todas</button>
+                            {{#each plagueCategories}}
+                            <button type="button" data-plague-category-filter="{{this}}" class="rounded-lg bg-muted px-2.5 py-1 text-xs font-semibold text-muted-foreground hover:bg-muted/80 transition-colors">{{this}}</button>
+                            {{/each}}
+                        </div>
+                        <div data-plague-grid class="max-h-48 overflow-y-auto grid gap-2 sm:grid-cols-2 pr-1">
+                            {{#each plagues}}
+                            <button
+                                type="button"
+                                data-plague-card-item
+                                data-id="{{this.id}}"
+                                data-name="{{this.name}}"
+                                data-scientific="{{this.scientific_name}}"
+                                data-category="{{this.category}}"
+                                class="rounded-xl border border-border bg-card p-2.5 text-left hover:border-red-500/50 hover:bg-muted/50 transition-all flex flex-col justify-between"
+                            >
+                                <div class="flex items-start justify-between gap-1">
+                                    <span class="text-xs font-bold text-foreground">{{this.name}}</span>
+                                    {{#if this.category}}<span class="rounded bg-muted px-1.5 py-0.5 text-[9px] font-semibold text-muted-foreground">{{this.category}}</span>{{/if}}
+                                </div>
+                                <span class="mt-1 text-[11px] italic text-muted-foreground truncate">{{this.scientific_name}}</span>
+                            </button>
+                            {{/each}}
+                        </div>
+                    </div>
+
+                    <!-- Select original para accesibilidad y sincronización -->
+                    <select id="health-plague" name="plague_id" class="hidden">
                         <option value="">Seleccionar plaga</option>
-                        {{#each plagues}}<option value="{{this.id}}">{{this.name}} · {{this.scientific_name}}</option>{{/each}}
+                        {{#each plagues}}
+                        <option value="{{this.id}}" data-name="{{this.name}}" data-scientific="{{this.scientific_name}}" data-category="{{this.category}}">
+                            {{this.name}} · {{this.scientific_name}}
+                        </option>
+                        {{/each}}
+                        <option value="custom">Plaga personalizada / no catalogada</option>
                     </select>
+
+                    <p data-combobox-empty="health-plague" class="hidden text-xs text-amber-600 font-medium">No se encontraron plagas que coincidan con la búsqueda.</p>
+
+                    <!-- Input oculto para plaga personalizada -->
+                    <input type="hidden" id="health-custom-plague-name" name="custom_plague_name" value="" />
                 </div>
+
+                <!-- SECCIÓN: CONTEXTO Y SEVERIDAD -->
                 <div class="grid gap-4 sm:grid-cols-2">
                     <div>
                         <label for="health-cycle" class="mb-1.5 block text-xs font-bold text-muted-foreground">Ciclo relacionado</label>
@@ -58,19 +300,23 @@
                         </select>
                     </div>
                     <div>
-                        <label for="health-severity" class="mb-1.5 block text-xs font-bold text-muted-foreground">Severidad</label>
+                        <label for="health-severity" class="mb-1.5 block text-xs font-bold text-muted-foreground">Severidad observada</label>
                         <select id="health-severity" name="severity" required class="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
-                            <option value="low">Baja</option><option value="medium">Media</option><option value="high">Alta</option>
+                            <option value="low">Baja (Monitoreo preventivo)</option>
+                            <option value="medium">Media (Umbral de daño económico)</option>
+                            <option value="high">Alta (Intervención urgente requerida)</option>
                         </select>
                     </div>
                 </div>
+
                 <div>
                     <label for="health-date" class="mb-1.5 block text-xs font-bold text-muted-foreground">Fecha de observación</label>
                     <input id="health-date" name="observed_at" type="date" required max="{{today}}" value="{{today}}" class="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" />
                 </div>
+
                 <div>
-                    <label for="health-description" class="mb-1.5 block text-xs font-bold text-muted-foreground">Descripción</label>
-                    <textarea id="health-description" name="description" maxlength="2000" rows="3" class="w-full resize-y rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"></textarea>
+                    <label for="health-description" class="mb-1.5 block text-xs font-bold text-muted-foreground">Descripción o síntomas detectados</label>
+                    <textarea id="health-description" name="description" maxlength="2000" rows="3" placeholder="Describe los síntomas observados en hojas, tallos o frutos..." class="w-full resize-y rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"></textarea>
                 </div>
             </div>
             <footer class="flex justify-end gap-3 border-t border-border bg-muted/50 px-6 py-4">
@@ -83,31 +329,155 @@
 
 <div data-land-modal="application" class="hidden fixed inset-0 z-[210] items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="application-modal-title">
     <button type="button" data-land-modal-close class="absolute inset-0 bg-black/40 backdrop-blur-sm" aria-label="Cerrar"></button>
-    <div class="relative z-10 w-full max-w-lg overflow-hidden rounded-2xl border border-border bg-card shadow-2xl">
+    <div class="relative z-10 w-full max-w-2xl max-h-[90vh] overflow-hidden rounded-2xl border border-border bg-card shadow-2xl flex flex-col">
         <header class="flex items-center justify-between border-b border-border px-6 py-4">
-            <h2 id="application-modal-title" class="text-lg font-extrabold text-foreground">Registrar aplicación</h2>
+            <div>
+                <h2 id="application-modal-title" class="text-lg font-extrabold text-foreground">Registrar aplicación de agroquímico</h2>
+                <p class="text-xs text-muted-foreground">Recomendaciones inteligentes según plagas activas en este terreno.</p>
+            </div>
             <button type="button" data-land-modal-close class="rounded-lg px-3 py-2 text-sm font-bold text-muted-foreground hover:bg-muted">Cerrar</button>
         </header>
-        <form action="/private/lands/{{land.id}}/applications" method="POST">
-            <div class="max-h-[70vh] space-y-5 overflow-y-auto p-6">
-                <div>
-                    <label for="application-product" class="mb-1.5 block text-xs font-bold text-muted-foreground">Producto activo</label>
-                    <select id="application-product" name="product_id" required class="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+        <form action="/private/lands/{{land.id}}/applications" method="POST" class="flex flex-col overflow-y-auto">
+            <div class="space-y-5 p-6">
+                <!-- PASO 1: SELECCIÓN DEL LOTE / CULTIVO A TRATAR -->
+                <div class="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-2.5">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[11px] font-black text-white">1</span>
+                            <label for="application-cycle" class="text-xs font-extrabold uppercase tracking-wider text-primary">Lote o cultivo a tratar</label>
+                        </div>
+                        <span class="text-[10px] font-semibold text-muted-foreground">Calibra las plagas y productos autorizados</span>
+                    </div>
+                    <select id="application-cycle" name="farm_crop_id" class="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm font-semibold outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                        <option value="" data-lot-name="General">Todo el terreno en general</option>
+                        {{#each activeFarmCrops}}
+                        <option value="{{this.id}}" data-crop-name="{{this.crop.name}}" data-lot-name="{{#if this.area_section}}{{this.area_section}}{{else}}General{{/if}}">
+                            {{this.crop.name}}{{#if this.area_section}} · Lote: {{this.area_section}}{{/if}} (En curso)
+                        </option>
+                        {{/each}}
+                    </select>
+                </div>
+
+                <!-- RECOMENDACIÓN INTELIGENTE DE PRODUCTOS PARA PLAGAS DETECTADAS EN EL LOTE -->
+                <div data-detected-plagues-recommendations class="hidden rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 space-y-2.5" data-plagues-json="{{detectedPlaguesJson}}">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="text-lg">🛡️</span>
+                            <span class="text-xs font-bold uppercase tracking-wider text-amber-800">Plagas detectadas en este lote/área:</span>
+                        </div>
+                        <span class="text-[11px] font-semibold text-amber-700">Recomendaciones INIFAP activas</span>
+                    </div>
+                    <div data-lot-plagues-badges class="flex flex-wrap gap-1.5"></div>
+                    <p class="text-[11px] text-amber-800/80">Agroquímicos con registro oficial para el control de estas plagas:</p>
+                    <div data-smart-recommended-products-list class="flex flex-wrap gap-2 pt-1"></div>
+                </div>
+
+                <!-- SECCIÓN: SELECCIÓN DE PRODUCTO -->
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <label for="application-product-search" class="block text-xs font-bold uppercase tracking-wider text-muted-foreground">Producto / Agroquímico</label>
+                        <button type="button" data-product-catalog-toggle class="text-xs font-bold text-primary hover:underline flex items-center gap-1">
+                            <span>📂 Explorar catálogo de productos</span>
+                        </button>
+                    </div>
+
+                    <!-- Tarjeta de producto seleccionado -->
+                    <div data-product-selected-card class="hidden rounded-xl border border-blue-500/40 bg-blue-500/10 p-3.5 flex items-center justify-between gap-3">
+                        <div class="flex items-center gap-3">
+                            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white font-black text-sm">
+                                🧪
+                            </div>
+                            <div>
+                                <p data-product-selected-name class="text-sm font-extrabold text-foreground"></p>
+                                <p data-product-selected-meta class="text-xs text-muted-foreground"></p>
+                            </div>
+                        </div>
+                        <button type="button" data-product-clear-btn class="rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-bold text-muted-foreground hover:bg-muted">
+                            Cambiar
+                        </button>
+                    </div>
+
+                    <!-- Buscador interactivo de productos -->
+                    <div data-product-search-wrapper class="relative">
+                        <input
+                            type="text"
+                            id="application-product-search"
+                            data-product-search-input
+                            data-combobox-filter="application-product"
+                            placeholder="🔍 Buscar producto, ingrediente activo o plaga a controlar..."
+                            autocomplete="off"
+                            class="w-full rounded-xl border border-input bg-muted/30 px-3.5 py-2.5 text-sm outline-none focus:border-primary focus:bg-background focus:ring-2 focus:ring-primary/20 transition-all"
+                        />
+
+                        <!-- Dropdown de recomendaciones predictivas -->
+                        <div data-product-suggestions-panel class="hidden absolute left-0 right-0 top-full z-20 mt-1 max-h-60 overflow-y-auto rounded-xl border border-border bg-card shadow-xl p-1.5 space-y-1">
+                            <div data-product-suggestions-list class="space-y-1"></div>
+
+                            <!-- Opción para producto no catalogado / personalizado -->
+                            <div data-product-custom-prompt class="hidden border-t border-border pt-2 mt-2 px-2 pb-1">
+                                <p class="text-xs text-muted-foreground mb-1.5">¿No encuentras el producto en el catálogo oficial?</p>
+                                <button type="button" data-product-custom-btn class="w-full rounded-lg border border-dashed border-blue-500/40 bg-blue-500/5 px-3 py-2 text-left text-xs font-bold text-blue-600 hover:bg-blue-500/10 transition-colors flex items-center justify-between">
+                                    <span>🧪 Registrar "<span data-product-custom-name-preview></span>" como producto no catalogado</span>
+                                    <span class="text-[10px] bg-blue-500/10 px-2 py-0.5 rounded">Personalizado</span>
+                                </button>
+                                <button type="button" data-product-show-all-btn class="mt-1 text-[11px] font-semibold text-muted-foreground hover:text-foreground">
+                                    Ver todos los {{products.length}} productos disponibles
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Explorador de catálogo de productos -->
+                    <div data-product-catalog-panel class="hidden rounded-xl border border-border bg-muted/20 p-4 space-y-3">
+                        <div data-product-grid class="max-h-48 overflow-y-auto grid gap-2 sm:grid-cols-2 pr-1">
+                            {{#each products}}
+                            <button
+                                type="button"
+                                data-product-card-item
+                                data-id="{{this.id}}"
+                                data-name="{{this.name}}"
+                                data-active-ingredient="{{this.active_ingredient}}"
+                                data-presentation="{{this.presentation}}"
+                                data-target-plague-ids="{{this.targetPlagueIds}}"
+                                data-target-plague-names="{{this.targetPlagueNames}}"
+                                class="rounded-xl border border-border bg-card p-2.5 text-left hover:border-primary/50 hover:bg-muted/50 transition-all flex flex-col justify-between"
+                            >
+                                <div class="flex items-start justify-between gap-1">
+                                    <span class="text-xs font-bold text-foreground">{{this.name}}</span>
+                                    {{#if this.presentation}}<span class="rounded bg-muted px-1.5 py-0.5 text-[9px] font-semibold text-muted-foreground">{{this.presentation}}</span>{{/if}}
+                                </div>
+                                <span class="mt-1 text-[11px] text-muted-foreground truncate">{{#if this.active_ingredient}}Ingrediente: {{this.active_ingredient}}{{else}}General{{/if}}</span>
+                                {{#if this.targetPlagueNames}}
+                                <span class="mt-1 text-[10px] text-emerald-600 font-semibold truncate">Combate: {{this.targetPlagueNames}}</span>
+                                {{/if}}
+                            </button>
+                            {{/each}}
+                        </div>
+                    </div>
+
+                    <!-- Select original para accesibilidad y sincronización -->
+                    <select id="application-product" name="product_id" class="hidden">
                         <option value="">Seleccionar producto</option>
-                        {{#each products}}<option value="{{this.id}}">{{this.name}}{{#if this.active_ingredient}} · {{this.active_ingredient}}{{/if}}</option>{{/each}}
+                        {{#each products}}
+                        <option value="{{this.id}}" data-name="{{this.name}}" data-active-ingredient="{{this.active_ingredient}}" data-presentation="{{this.presentation}}" data-target-plague-ids="{{this.targetPlagueIds}}" data-target-plague-names="{{this.targetPlagueNames}}">
+                            {{this.name}}{{#if this.active_ingredient}} · {{this.active_ingredient}}{{/if}}
+                        </option>
+                        {{/each}}
+                        <option value="custom">Producto personalizado / no catalogado</option>
                     </select>
+
+                    <p data-combobox-empty="application-product" class="hidden text-xs text-amber-600 font-medium">No se encontraron productos que coincidan con la búsqueda.</p>
+
+                    <!-- Inputs ocultos para producto personalizado -->
+                    <input type="hidden" id="application-custom-product-name" name="custom_product_name" value="" />
+                    <input type="hidden" id="application-custom-active-ingredient" name="custom_active_ingredient" value="" />
                 </div>
-                <div>
-                    <label for="application-cycle" class="mb-1.5 block text-xs font-bold text-muted-foreground">Ciclo relacionado</label>
-                    <select id="application-cycle" name="farm_crop_id" class="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
-                        <option value="">Terreno en general</option>
-                        {{#each activeFarmCrops}}<option value="{{this.id}}">{{this.crop.name}}{{#if this.area_section}} · {{this.area_section}}{{/if}}</option>{{/each}}
-                    </select>
-                </div>
+
+                <!-- SECCIÓN: DOSIFICACIÓN Y CALIBRACIÓN -->
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label for="application-dose" class="mb-1.5 block text-xs font-bold text-muted-foreground">Dosis</label>
-                        <input id="application-dose" name="dose_value" type="number" required min="0.001" max="1000000" step="0.001" class="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" />
+                        <input id="application-dose" name="dose_value" type="number" required min="0.001" max="1000000" step="0.001" placeholder="Ej. 1.5" class="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" />
                     </div>
                     <div>
                         <label for="application-unit" class="mb-1.5 block text-xs font-bold text-muted-foreground">Unidad</label>
@@ -116,13 +486,15 @@
                         </select>
                     </div>
                 </div>
+
                 <div>
                     <label for="application-date" class="mb-1.5 block text-xs font-bold text-muted-foreground">Fecha de aplicación</label>
                     <input id="application-date" name="applied_at" type="date" required max="{{today}}" value="{{today}}" class="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" />
                 </div>
+
                 <div>
-                    <label for="application-notes" class="mb-1.5 block text-xs font-bold text-muted-foreground">Notas</label>
-                    <textarea id="application-notes" name="notes" maxlength="2000" rows="3" class="w-full resize-y rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"></textarea>
+                    <label for="application-notes" class="mb-1.5 block text-xs font-bold text-muted-foreground">Notas de aplicación y recomendaciones técnicas</label>
+                    <textarea id="application-notes" name="notes" maxlength="2000" rows="3" placeholder="Detalles climáticos al momento de aplicar, equipo utilizado o calibración..." class="w-full resize-y rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"></textarea>
                 </div>
             </div>
             <footer class="flex justify-end gap-3 border-t border-border bg-muted/50 px-6 py-4">
@@ -132,3 +504,71 @@
         </form>
     </div>
 </div>
+
+<div data-land-modal="lot" class="hidden fixed inset-0 z-[210] items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="lot-modal-title">
+    <button type="button" data-land-modal-close class="absolute inset-0 bg-black/40 backdrop-blur-sm" aria-label="Cerrar"></button>
+    <div class="relative z-10 w-full max-w-lg overflow-hidden rounded-2xl border border-border bg-card shadow-2xl flex flex-col">
+        <header class="flex items-center justify-between border-b border-border px-6 py-4">
+            <div>
+                <h2 id="lot-modal-title" class="text-lg font-extrabold text-foreground">Dividir terreno en lotes / bloques</h2>
+                <p class="text-xs text-muted-foreground">Organiza áreas, sectores y tablones para trazabilidad agronómica.</p>
+            </div>
+            <button type="button" data-land-modal-close class="rounded-lg px-3 py-2 text-sm font-bold text-muted-foreground hover:bg-muted">Cerrar</button>
+        </header>
+        <form action="/private/lands/{{land.id}}/lots" method="POST" class="flex flex-col">
+            <div class="space-y-4 p-6">
+                <div>
+                    <label for="lot-name" class="mb-1.5 block text-xs font-bold text-muted-foreground">Nombre del lote o bloque *</label>
+                    <input id="lot-name" name="name" required maxlength="100" placeholder="Ej. Lote Norte, Bloque A-1, Tablón 3" class="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" />
+                </div>
+                <div>
+                    <label for="lot-size" class="mb-1.5 block text-xs font-bold text-muted-foreground">Superficie estimada (ha)</label>
+                    <input id="lot-size" name="size_hectares" type="number" min="0.01" max="100000" step="0.01" placeholder="Ej. 2.5" class="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" />
+                </div>
+                <div>
+                    <label for="lot-desc" class="mb-1.5 block text-xs font-bold text-muted-foreground">Descripción o características del área (opcional)</label>
+                    <textarea id="lot-desc" name="description" maxlength="2000" rows="3" placeholder="Tipo de suelo, sistema de riego, orientación o notas del bloque..." class="w-full resize-y rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"></textarea>
+                </div>
+            </div>
+            <footer class="flex justify-end gap-3 border-t border-border bg-muted/50 px-6 py-4">
+                <button type="button" data-land-modal-close class="rounded-xl border border-border bg-card px-5 py-2.5 text-sm font-bold text-muted-foreground hover:bg-muted">Cancelar</button>
+                <button type="submit" class="rounded-xl bg-primary px-6 py-2.5 text-sm font-bold text-white hover:bg-primary/90">Guardar lote</button>
+            </footer>
+        </form>
+    </div>
+</div>
+
+<div data-land-modal="edit-lot" class="hidden fixed inset-0 z-[210] items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="edit-lot-modal-title">
+    <button type="button" data-land-modal-close class="absolute inset-0 bg-black/40 backdrop-blur-sm" aria-label="Cerrar"></button>
+    <div class="relative z-10 w-full max-w-lg overflow-hidden rounded-2xl border border-border bg-card shadow-2xl flex flex-col">
+        <header class="flex items-center justify-between border-b border-border px-6 py-4">
+            <div>
+                <h2 id="edit-lot-modal-title" class="text-lg font-extrabold text-foreground">Editar lote / bloque</h2>
+                <p class="text-xs text-muted-foreground">Modifica los datos del lote. Los ciclos asociados actualizarán su nombre automáticamente.</p>
+            </div>
+            <button type="button" data-land-modal-close class="rounded-lg px-3 py-2 text-sm font-bold text-muted-foreground hover:bg-muted">Cerrar</button>
+        </header>
+        <form id="form-edit-lot" action="/private/lands/{{land.id}}/lots/0/update" method="POST" class="flex flex-col">
+            <div class="space-y-4 p-6">
+                <div>
+                    <label for="edit-lot-name" class="mb-1.5 block text-xs font-bold text-muted-foreground">Nombre del lote o bloque *</label>
+                    <input id="edit-lot-name" name="name" required maxlength="100" class="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" />
+                </div>
+                <div>
+                    <label for="edit-lot-size" class="mb-1.5 block text-xs font-bold text-muted-foreground">Superficie estimada (ha)</label>
+                    <input id="edit-lot-size" name="size_hectares" type="number" min="0.01" max="100000" step="0.01" class="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" />
+                </div>
+                <div>
+                    <label for="edit-lot-desc" class="mb-1.5 block text-xs font-bold text-muted-foreground">Descripción o características del área (opcional)</label>
+                    <textarea id="edit-lot-desc" name="description" maxlength="2000" rows="3" class="w-full resize-y rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"></textarea>
+                </div>
+            </div>
+            <footer class="flex justify-end gap-3 border-t border-border bg-muted/50 px-6 py-4">
+                <button type="button" data-land-modal-close class="rounded-xl border border-border bg-card px-5 py-2.5 text-sm font-bold text-muted-foreground hover:bg-muted">Cancelar</button>
+                <button type="submit" class="rounded-xl bg-primary px-6 py-2.5 text-sm font-bold text-white hover:bg-primary/90">Guardar cambios</button>
+            </footer>
+        </form>
+    </div>
+</div>
+
+

@@ -302,7 +302,7 @@ const getUserInitials = (fullName) => {
 export const getRecentAuditActivity = async (limit = 5) => {
   const logs = await AuditLog.findAll({
     limit,
-    order: [['created_at', 'DESC']],
+    order: [['createdAt', 'DESC']],
     include: [
       {
         model: User,
@@ -327,7 +327,7 @@ export const getRecentAuditActivity = async (limit = 5) => {
       action: raw.action,
       tableName: raw.table_name,
       entityName,
-      relativeTime: getRelativeTime(raw.created_at || raw.createdAt),
+      relativeTime: getRelativeTime(raw.createdAt || raw.created_at),
     };
   });
 };

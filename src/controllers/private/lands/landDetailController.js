@@ -22,6 +22,7 @@ const {
   FarmCrop,
   FarmCropStage,
   FarmHealthReport,
+  FarmLot,
   Plague,
   Product,
   Region,
@@ -42,20 +43,66 @@ const operationalIncludes = [
       { model: FarmCropStage, as: 'stages', required: false },
     ],
   },
-  { model: FarmHealthReport, as: 'healthReports', required: false },
-  { model: FarmApplication, as: 'applications', required: false },
+  {
+    model: FarmHealthReport,
+    as: 'healthReports',
+    required: false,
+    include: [
+      {
+        model: FarmCrop,
+        as: 'farmCrop',
+        attributes: ['id', 'area_section'],
+        include: [{ model: Crop, as: 'crop', attributes: ['id', 'name'] }],
+      },
+    ],
+  },
+  {
+    model: FarmApplication,
+    as: 'applications',
+    required: false,
+    include: [
+      {
+        model: FarmCrop,
+        as: 'farmCrop',
+        attributes: ['id', 'area_section'],
+        include: [{ model: Crop, as: 'crop', attributes: ['id', 'name'] }],
+      },
+    ],
+  },
+  {
+    model: FarmLot,
+    as: 'lots',
+    required: false,
+    where: { status: true },
+  },
 ];
 
 const toDateOnly = (value) =>
   value ? new Date(value).toISOString().slice(0, 10) : null;
 
 const prepareCropCycles = (cycles = []) =>
-  cycles.map((cycle) => ({
-    ...cycle,
-    plantingDate: toDateOnly(cycle.planting_date),
-    statusLabel: cycle.is_active ? 'En curso' : 'Finalizado',
-    ...summarizeLandCropStages(cycle.stages || []),
-  }));
+  cycles.map((cycle) => {
+    const isArchived = cycle.status === 'archived';
+    const isCompleted =
+      cycle.status === 'completed' || (!cycle.is_active && !isArchived);
+    const statusLabel = isArchived
+      ? 'Archivado'
+      : cycle.is_active
+        ? 'En curso'
+        : 'Cosechado / Finalizado';
+
+    return {
+      ...cycle,
+      plantingDate: toDateOnly(cycle.planting_date),
+      isArchived,
+      isCompleted,
+      statusLabel,
+      ...summarizeLandCropStages(cycle.stages || [], {
+        isCycleActive: cycle.is_active,
+        cycleStatus: cycle.status,
+      }),
+    };
+  });
 
 const prepareHealthReports = (reports = []) => {
   const severityLabels = { low: 'Baja', medium: 'Media', high: 'Alta' };
@@ -63,6 +110,8 @@ const prepareHealthReports = (reports = []) => {
     ...report,
     observedDate: toDateOnly(report.observed_at),
     severityLabel: severityLabels[report.severity] || report.severity,
+    lotName: report.farmCrop?.area_section || 'General',
+    cropName: report.farmCrop?.crop?.name || null,
   }));
 };
 
@@ -70,7 +119,60 @@ const prepareApplications = (applications = []) =>
   applications.map((application) => ({
     ...application,
     appliedDate: toDateOnly(application.applied_at),
+    lotName: application.farmCrop?.area_section || 'General',
+    cropName: application.farmCrop?.crop?.name || null,
   }));
+
+const prepareLandLots = async (farmId, rawLots = [], farmCrops = []) => {
+  const lotMap = new Map();
+
+  rawLots.forEach((lot) => {
+    lotMap.set(lot.name, {
+      id: lot.id,
+      name: lot.name,
+      size_hectares: lot.size_hectares ? String(lot.size_hectares) : null,
+      description: lot.description || null,
+      isPersisted: true,
+      activeCropsCount: 0,
+    });
+  });
+
+  for (const c of farmCrops) {
+    if (c.area_section && !lotMap.has(c.area_section)) {
+      try {
+        const created = await FarmLot.create({
+          farm_id: farmId,
+          name: c.area_section,
+          status: true,
+        });
+        lotMap.set(c.area_section, {
+          id: created.id,
+          name: created.name,
+          size_hectares: null,
+          description: null,
+          isPersisted: true,
+          activeCropsCount: 0,
+        });
+      } catch {
+        lotMap.set(c.area_section, {
+          id: null,
+          name: c.area_section,
+          size_hectares: null,
+          description: null,
+          isPersisted: false,
+          activeCropsCount: 0,
+        });
+      }
+    }
+    if (c.area_section && c.is_active && lotMap.has(c.area_section)) {
+      lotMap.get(c.area_section).activeCropsCount += 1;
+    }
+  }
+
+  return Array.from(lotMap.values()).sort((a, b) =>
+    a.name.localeCompare(b.name, 'es', { numeric: true }),
+  );
+};
 
 const buildPermissions = (land, user) =>
   getContextualLandPermissions({
@@ -89,7 +191,7 @@ const getCatalogs = () =>
     }),
     Crop.findAll({
       where: { workflow_status: CROP_WORKFLOW_STATUSES.PUBLISHED },
-      attributes: ['id', 'name', 'scientific_name'],
+      attributes: ['id', 'name', 'scientific_name', 'category', 'harvest_days'],
       order: [['name', 'ASC']],
       raw: true,
     }),
@@ -98,15 +200,29 @@ const getCatalogs = () =>
         workflow_status: PLAGUE_WORKFLOW_STATUSES.PUBLISHED,
         status: true,
       },
-      attributes: ['id', 'name', 'scientific_name'],
+      attributes: ['id', 'name', 'scientific_name', 'category'],
       order: [['name', 'ASC']],
       raw: true,
     }),
     Product.findAll({
       where: { status: true },
-      attributes: ['id', 'name', 'active_ingredient'],
+      attributes: [
+        'id',
+        'name',
+        'active_ingredient',
+        'formulation_type',
+        'category',
+      ],
+      include: [
+        {
+          model: Plague,
+          as: 'plagues',
+          attributes: ['id', 'name'],
+          through: { attributes: [] },
+          required: false,
+        },
+      ],
       order: [['name', 'ASC']],
-      raw: true,
     }),
   ]);
 
@@ -136,11 +252,69 @@ export const landDetail = async (req, res) => {
     if (!farm) return res.status(404).send('Predio no encontrado');
 
     const land = farm.toJSON();
-    const [regions, crops, plagues, products] = await getCatalogs();
+    const [regions, crops, plagues, rawProducts] = await getCatalogs();
+    const cropCategories = [
+      ...new Set(crops.map((cropItem) => cropItem.category).filter(Boolean)),
+    ].sort();
+    const plagueCategories = [
+      ...new Set(
+        plagues.map((plagueItem) => plagueItem.category).filter(Boolean),
+      ),
+    ].sort();
+
+    const products = rawProducts.map((prod) => {
+      const p = prod.toJSON ? prod.toJSON() : prod;
+      const targetPlagues = Array.isArray(p.plagues) ? p.plagues : [];
+      const presentation = p.formulation_type || p.category || '';
+      return {
+        ...p,
+        presentation,
+        targetPlagueIds: targetPlagues.map((pl) => pl.id).join(','),
+        targetPlagueNames: targetPlagues.map((pl) => pl.name).join(', '),
+      };
+    });
+
     const farmCrops = prepareCropCycles(land.farmCrops);
+    const activeFarmCrops = farmCrops.filter((farmCrop) => farmCrop.is_active);
+    const nonArchivedFarmCrops = farmCrops.filter(
+      (farmCrop) => !farmCrop.isArchived,
+    );
+    const archivedFarmCrops = farmCrops.filter(
+      (farmCrop) => farmCrop.isArchived,
+    );
     const healthReports = prepareHealthReports(land.healthReports);
     const applications = prepareApplications(land.applications);
+    const lots = await prepareLandLots(
+      farm.id,
+      land.lots || [],
+      land.farmCrops || [],
+    );
     const permissions = buildPermissions(land, req.user);
+
+    const detectedPlagues = [
+      ...new Map(
+        healthReports
+          .filter((report) => report.plague_name)
+          .map((report) => [
+            report.plague_id || report.plague_name,
+            {
+              id: report.plague_id,
+              name: report.plague_name,
+              severity: report.severityLabel,
+            },
+          ]),
+      ).values(),
+    ];
+
+    const detectedPlaguesByCrop = healthReports
+      .filter((report) => report.plague_name)
+      .map((report) => ({
+        farmCropId: report.farm_crop_id ? String(report.farm_crop_id) : '',
+        lotName: report.lotName || 'General',
+        id: report.plague_id ? String(report.plague_id) : '',
+        name: report.plague_name,
+        severity: report.severityLabel,
+      }));
 
     return res.render('private/lands/detail', {
       layout: privateLayout,
@@ -150,13 +324,24 @@ export const landDetail = async (req, res) => {
       land,
       regions,
       crops,
+      cropCategories,
       plagues,
+      plagueCategories,
       products,
+      detectedPlagues,
+      detectedPlaguesJson: JSON.stringify(detectedPlaguesByCrop),
+      lots,
+      lotsCount: lots.length,
       farmCrops,
-      activeFarmCrops: farmCrops.filter((farmCrop) => farmCrop.is_active),
+      activeFarmCrops,
+      nonArchivedFarmCrops,
+      archivedFarmCrops,
       healthReports,
       applications,
       farmCropsCount: farmCrops.length,
+      activeFarmCropsCount: activeFarmCrops.length,
+      nonArchivedFarmCropsCount: nonArchivedFarmCrops.length,
+      archivedFarmCropsCount: archivedFarmCrops.length,
       healthReportsCount: healthReports.length,
       applicationsCount: applications.length,
       today: new Date().toISOString().slice(0, 10),

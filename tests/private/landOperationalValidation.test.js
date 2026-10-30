@@ -4,7 +4,9 @@ import {
   validateFarmApplicationInput,
   validateFarmCropInput,
   validateFarmHealthReportInput,
+  validateFarmLotInput,
   validateStageAdvanceInput,
+  validateStageRevertInput,
 } from '../../src/services/landOperationalValidationService.js';
 
 describe('validación del expediente operativo de terrenos', () => {
@@ -44,6 +46,68 @@ describe('validación del expediente operativo de terrenos', () => {
     );
   });
 
+  it('normaliza un ciclo con fecha estimada de cosecha válida', () => {
+    const result = validateFarmCropInput({
+      crop_id: '8',
+      planting_date: '2026-03-15',
+      estimated_harvest_date: '2026-07-15',
+    });
+
+    expect(result.isValid).toBe(true);
+    expect(result.value.estimated_harvest_date).toBe('2026-07-15');
+  });
+
+  it('rechaza fecha estimada de cosecha si es anterior o igual a la siembra', () => {
+    const result = validateFarmCropInput({
+      crop_id: '8',
+      planting_date: '2026-03-15',
+      estimated_harvest_date: '2026-03-10',
+    });
+
+    expect(result.isValid).toBe(false);
+    expect(result.fieldErrors.estimated_harvest_date).toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/posterior a la fecha de siembra/i),
+      ]),
+    );
+  });
+
+  it('normaliza un ciclo con cultivo personalizado y días de cosecha', () => {
+    const result = validateFarmCropInput({
+      crop_id: 'custom',
+      custom_crop_name: '  Pitahaya Roja  ',
+      custom_harvest_days: '180',
+      planting_date: '2026-04-10',
+      area_section: 'Sección Experimental',
+    });
+
+    expect(result.isValid).toBe(true);
+    expect(result.value).toEqual({
+      custom_crop_name: 'Pitahaya Roja',
+      custom_harvest_days: 180,
+      planting_date: '2026-04-10',
+      area_section: 'Sección Experimental',
+    });
+  });
+
+  it('rechaza cultivo personalizado con nombre vacío o que exceda el límite', () => {
+    const resultEmpty = validateFarmCropInput({
+      crop_id: 'custom',
+      custom_crop_name: '   ',
+      planting_date: '2026-04-10',
+    });
+    expect(resultEmpty.isValid).toBe(false);
+    expect(resultEmpty.fieldErrors.crop_id).toBeDefined();
+
+    const resultLong = validateFarmCropInput({
+      crop_id: 'custom',
+      custom_crop_name: 'a'.repeat(151),
+      planting_date: '2026-04-10',
+    });
+    expect(resultLong.isValid).toBe(false);
+    expect(resultLong.fieldErrors.custom_crop_name).toBeDefined();
+  });
+
   it('valida el avance de una etapa concreta', () => {
     expect(
       validateStageAdvanceInput({
@@ -74,6 +138,23 @@ describe('validación del expediente operativo de terrenos', () => {
     expect(result.isValid).toBe(true);
     expect(result.value).toEqual(
       expect.objectContaining({ plague_id: 4, severity: 'high' }),
+    );
+  });
+
+  it('normaliza un hallazgo fitosanitario con plaga personalizada', () => {
+    const result = validateFarmHealthReportInput({
+      plague_id: 'custom',
+      custom_plague_name: '  Pulgón Amarillo  ',
+      severity: 'medium',
+      observed_at: '2026-09-06',
+    });
+
+    expect(result.isValid).toBe(true);
+    expect(result.value).toEqual(
+      expect.objectContaining({
+        custom_plague_name: 'Pulgón Amarillo',
+        severity: 'medium',
+      }),
     );
   });
 
@@ -115,6 +196,27 @@ describe('validación del expediente operativo de terrenos', () => {
     );
   });
 
+  it('normaliza una aplicación con producto personalizado y principio activo opcional', () => {
+    const result = validateFarmApplicationInput({
+      product_id: 'custom',
+      custom_product_name: ' BioExtracto de Ajo ',
+      custom_active_ingredient: ' Alicina 10% ',
+      dose_value: '2.0',
+      dose_unit: 'L/ha',
+      applied_at: '2026-09-06',
+    });
+
+    expect(result.isValid).toBe(true);
+    expect(result.value).toEqual(
+      expect.objectContaining({
+        custom_product_name: 'BioExtracto de Ajo',
+        custom_active_ingredient: 'Alicina 10%',
+        dose_value: 2,
+        dose_unit: 'L/ha',
+      }),
+    );
+  });
+
   it('rechaza unidades y dosis inventadas', () => {
     const result = validateFarmApplicationInput({
       product_id: '15',
@@ -130,5 +232,51 @@ describe('validación del expediente operativo de terrenos', () => {
         dose_unit: expect.any(Array),
       }),
     );
+  });
+
+  it('valida el retroceso de una etapa fenológica a una etapa previa válida', () => {
+    const valid = validateStageRevertInput({
+      farm_crop_id: '22',
+      target_stage_order: '1',
+      notes: 'Error de captura en campo, regresando a germinación',
+    });
+
+    expect(valid.isValid).toBe(true);
+    expect(valid.value).toEqual({
+      farm_crop_id: 22,
+      target_stage_order: 1,
+      notes: 'Error de captura en campo, regresando a germinación',
+    });
+
+    const invalid = validateStageRevertInput({
+      farm_crop_id: 'abc',
+      target_stage_order: '6',
+    });
+    expect(invalid.isValid).toBe(false);
+    expect(invalid.fieldErrors.farm_crop_id).toBeDefined();
+    expect(invalid.fieldErrors.target_stage_order).toBeDefined();
+  });
+
+  it('normaliza y valida la división de un lote de terreno', () => {
+    const valid = validateFarmLotInput({
+      name: '  Lote Norte B  ',
+      size_hectares: '2.75',
+      description: '  Área de riego por goteo  ',
+    });
+
+    expect(valid.isValid).toBe(true);
+    expect(valid.value).toEqual({
+      name: 'Lote Norte B',
+      size_hectares: 2.75,
+      description: 'Área de riego por goteo',
+    });
+
+    const invalid = validateFarmLotInput({
+      name: '   ',
+      size_hectares: '-5',
+    });
+    expect(invalid.isValid).toBe(false);
+    expect(invalid.fieldErrors.name).toBeDefined();
+    expect(invalid.fieldErrors.size_hectares).toBeDefined();
   });
 });

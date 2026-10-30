@@ -156,10 +156,18 @@ export {
 } from './lands/landMutationController.js';
 export {
   advanceLandCropStage,
+  archiveLandCropCycle,
   createLandCropCycle,
   finishLandCropCycle,
+  restoreLandCropCycle,
+  revertLandCropStage,
 } from './lands/landCycleController.js';
 export {
   createFarmApplication,
   createFarmHealthReport,
 } from './lands/landRecordController.js';
+export {
+  createLandLot,
+  deleteLandLot,
+  updateLandLot,
+} from './lands/landLotController.js';
