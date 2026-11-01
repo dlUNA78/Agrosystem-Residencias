@@ -39,7 +39,8 @@ public/images/uploads/*
 public/images/products/[0-9]*
 
 # Carpetas de pruebas locales
-public/images/test/
+public/images/test/*
+!public/images/test/default.png
 
 # Documentos pesados de ofimática (mantener sólo Markdown .md en docs/)
 docs/**/*.docx

@@ -241,5 +241,23 @@ describe('🧪 Suite de Pruebas Públicas - Módulo de Cultivos', () => {
       expect(response.headers['content-disposition']).toContain('attachment;');
       expect(response.body.subarray(0, 5).toString('utf8')).toBe('%PDF-');
     });
+
+    it('sirve imágenes de cultivos en webp y resuelve peticiones con extensión jpg transparentemente', async () => {
+      const directWebp = await request(app).get('/images/cultivos/maiz.webp');
+      expect(directWebp.status).toBe(200);
+      expect(directWebp.headers['content-type']).toContain('image/webp');
+
+      const resilientJpg = await request(app).get('/images/cultivos/maiz.jpg');
+      expect(resilientJpg.status).toBe(200);
+      expect(resilientJpg.headers['content-type']).toContain('image/webp');
+    });
+
+    it('sirve la imagen por defecto cuando se solicita un archivo inexistente en cultivos', async () => {
+      const fallbackResponse = await request(app).get(
+        '/images/cultivos/cultivo-inexistente-xyz.png',
+      );
+      expect(fallbackResponse.status).toBe(200);
+      expect(fallbackResponse.headers['content-type']).toContain('image/png');
+    });
   });
 });
