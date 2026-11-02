@@ -1,337 +1,174 @@
-        <!-- TABLE VIEW -->
-        <div id="suppliers-table-view"
-            class="hidden bg-surface-container-lowest rounded-2xl shadow-sm overflow-hidden border border-outline-variant/10">
-            <div class="overflow-x-auto">
-
-                <table class="w-full min-w-[1500px] text-left border-collapse">
-
-                    <thead>
-
-                        <tr class="bg-surface-container-low/50">
-
-                            <th
-                                class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
-                                Empresa
-                            </th>
-
-                            <th
-                                class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
-                                RFC
-                            </th>
-
-                            <th
-                                class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
-                                Contacto
-                            </th>
-
-                            <th
-                                class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
-                                Ubicación
-                            </th>
-
-                            <th
-                                class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
-                                Suministro
-                            </th>
-
-                            <th
-                                class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
-                                Información comercial
-                            </th>
-
-                            <th
-                                class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant text-center">
-                                Estatus
-                            </th>
-
-                            <th
-                                class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant text-right">
-                                Acciones
-                            </th>
-
-                        </tr>
-
-                    </thead>
-
-
-                    <tbody class="divide-y divide-outline-variant/10">
-
-                        {{#each suppliers}}
-
-                        <tr class="hover:bg-surface-container-low/50 transition-colors">
-                            <!-- EMPRESA -->
-
-                            <td class="px-8 py-5">
-                                <div class="flex items-center gap-3">
-                                    <div
-                                        class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                                        <span class="material-symbols-outlined text-primary">
-                                            business
-                                        </span>
-                                    </div>
-
-                                    <div>
-                                        <p class="text-sm font-bold text-on-surface"> {{name}} </p>
-                                        {{#if commercial_name}}
-                                        <p class="text-xs text-on-surface-variant"> {{commercial_name}} </p>
-                                        {{/if}}
-                                    </div>
-
-                                </div>
-
-                            </td>
-                            <!-- RFC -->
-
-                            <td class="px-8 py-5">
-                                <p class="text-sm font-medium text-on-surface"> {{rfc}} </p>
-                            </td>
-
-
-                            <!-- CONTACTO -->
-
-                            <td class="px-8 py-5">
-
-                                <p class="text-sm font-bold text-on-surface">
-                                    {{contact_name}}
-                                </p>
-
-                                {{#if contact_position}}
-
-                                <p class="text-xs text-on-surface-variant">
-                                    {{contact_position}}
-                                </p>
-
-                                {{/if}}
-
-                                <p class="text-xs text-on-surface-variant mt-1">
-                                    {{email}}
-                                </p>
-
-                                <p class="text-xs text-on-surface-variant">
-                                    {{phone}}
-                                </p>
-
-                            </td>
-
-
-                            <!-- UBICACIÓN -->
-
-                            <td class="px-8 py-5">
-
-                                <p class="text-sm text-on-surface">
-                                    {{address}}
-                                </p>
-
-                                <p class="text-xs text-on-surface-variant">
-                                    {{city}}, {{state}}
-                                </p>
-
-                                <p class="text-xs text-on-surface-variant">
-                                    C.P. {{postal_code}}, {{country}}
-                                </p>
-
-                            </td>
-
-
-                            <!-- SUMINISTRO -->
-
-                            <td class="px-8 py-5">
-
-                                <span
-                                    class="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase">
-
-                                    {{supply_type}}
-
-                                </span>
-
-                                <p class="text-xs text-on-surface-variant mt-2 max-w-[220px]">
-                                    {{supplied_products}}
-                                </p>
-
-                                {{#if brands}}
-
-                                <p class="text-xs text-on-surface-variant mt-1">
-
-                                    <strong>Marcas:</strong> {{brands}}
-
-                                </p>
-
-                                {{/if}}
-
-                            </td>
-
-
-                            <!-- INFORMACIÓN COMERCIAL -->
-
-                            <td class="px-8 py-5">
-
-                                {{#if delivery_time}}
-
-                                <p class="text-xs text-on-surface-variant">
-                                    <strong>Entrega:</strong> {{delivery_time}}
-                                </p>
-
-                                {{/if}}
-
-
-                                {{#if minimum_order}}
-
-                                <p class="text-xs text-on-surface-variant mt-1">
-                                    <strong>Compra mínima:</strong> ${{minimum_order}}
-                                </p>
-
-                                {{/if}}
-
-
-                                {{#if payment_method}}
-
-                                <p class="text-xs text-on-surface-variant mt-1">
-                                    <strong>Pago:</strong> {{payment_method}}
-                                </p>
-
-                                {{/if}}
-
-                            </td>
-
-
-                            <!-- ESTATUS -->
-
-                            <td class="px-8 py-5 text-center">
-
-                                {{#if (eq status "activo")}}
-
-                                <span
-                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-600 text-[10px] font-black uppercase">
-
-                                    <span class="material-symbols-outlined text-sm">
-                                        check_circle
-                                    </span>
-
-                                    Activo
-
-                                </span>
-
-                                {{else if (eq status "pendiente")}}
-
-                                <span
-                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-50 text-amber-600 text-[10px] font-black uppercase">
-
-                                    <span class="material-symbols-outlined text-sm">
-                                        schedule
-                                    </span>
-
-                                    Pendiente
-
-                                </span>
-
-                                {{else}}
-
-                                <span
-                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-red-50 text-red-600 text-[10px] font-black uppercase">
-
-                                    <span class="material-symbols-outlined text-sm">
-                                        block
-                                    </span>
-
-                                    Inactivo
-
-                                </span>
-
-                                {{/if}}
-
-                            </td>
-
-
-                            <!-- ACCIONES -->
-
-                            <td class="px-8 py-5">
-
-                                <div class="flex items-center justify-end gap-2">
-                                    <button type="button" class="btn-edit-supplier" data-id="{{id}}"
-                                        data-name="{{name}}" data-commercial-name="{{commercial_name}}"
-                                        data-rfc="{{rfc}}" data-supply-type="{{supply_type}}"
-                                        data-contact-name="{{contact_name}}"
-                                        data-contact-position="{{contact_position}}" data-email="{{email}}"
-                                        data-alternative-email="{{alternative_email}}" data-phone="{{phone}}"
-                                        data-alternative-phone="{{alternative_phone}}" data-address="{{address}}"
-                                        data-city="{{city}}" data-state="{{state}}" data-postal-code="{{postal_code}}"
-                                        data-country="{{country}}" data-supplied-products="{{supplied_products}}"
-                                        data-brands="{{brands}}" data-delivery-time="{{delivery_time}}"
-                                        data-minimum-order="{{minimum_order}}" data-payment-method="{{payment_method}}"
-                                        data-status="{{status}}">
-                                        <span class="material-symbols-outlined">
-                                            edit
-                                        </span>
-
-                                    </button>
-                                    <button type="button"
-                                        class="btn-delete-supplier p-2 rounded-lg hover:bg-red-50 hover:text-red-600 transition-colors"
-                                        title="Eliminar proveedor" data-id="{{id}}" data-name="{{name}}">
-
-                                        <span class="material-symbols-outlined text-lg">
-                                            delete
-                                        </span>
-
-                                    </button>
-
-                                </div>
-
-                            </td>
-
-                        </tr>
-
-
-                        {{else}}
-
-                        <tr>
-
-                            <td colspan="8" class="px-8 py-16 text-center">
-
-                                <span class="material-symbols-outlined text-5xl text-on-surface-variant/30">
-                                    business
-                                </span>
-
-                                <p class="mt-3 text-sm font-bold text-on-surface-variant">
-                                    No hay proveedores registrados
-                                </p>
-
-                            </td>
-
-                        </tr>
-
-                        {{/each}}
-
-                    </tbody>
-
-                </table>
-
+<div
+  id="suppliers-table-view"
+  class="hidden overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-2xs"
+>
+  <div class="overflow-x-auto">
+    <table class="w-full min-w-[1100px] border-collapse text-left">
+      <thead>
+        <tr class="border-b border-slate-200 bg-slate-50/80 font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+          <th class="px-5 py-3.5">Empresa</th>
+          <th class="px-4 py-3.5">RFC</th>
+          <th class="px-4 py-3.5">Contacto</th>
+          <th class="px-4 py-3.5">Ubicación</th>
+          <th class="px-4 py-3.5">Suministro</th>
+          <th class="px-4 py-3.5">Condiciones</th>
+          <th class="px-4 py-3.5 text-center">Estatus</th>
+          <th class="px-5 py-3.5 text-right">Acciones</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100 text-xs">
+        {{#each suppliers}}
+        <tr class="transition-colors hover:bg-slate-50/70">
+          <td class="px-5 py-4">
+            <div class="flex items-center gap-3">
+              <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-[#1b4332]">
+                <i data-lucide="building-2" class="h-4 w-4"></i>
+              </div>
+              <div class="min-w-0">
+                <p class="truncate text-sm font-semibold text-slate-900">{{name}}</p>
+                {{#if commercial_name}}
+                <p class="truncate text-[11px] text-slate-500">{{commercial_name}}</p>
+                {{/if}}
+              </div>
             </div>
+          </td>
 
-            <!-- Pagination -->
-            <div
-                class="px-8 py-6 bg-surface-container-low/30 border-t border-outline-variant/10 flex items-center justify-between">
-                <p class="text-xs font-medium text-on-surface-variant">
-                    Mostrando
-                    <span class="font-bold text-on-surface">
-                        1 a {{suppliers.length}}
-                    </span>
-                    de
-                    <span class="font-bold text-on-surface">
-                        {{suppliers.length}}
-                    </span>
-                    registros
-                </p>
-                <div class="flex gap-2">
-                    <button
-                        class="px-5 py-2 rounded-lg bg-surface-container-highest/50 text-on-surface text-xs font-bold hover:bg-surface-container-highest transition-colors flex items-center gap-2">
-                        <span class="material-symbols-outlined text-sm" data-icon="chevron_left">chevron_left</span>
-                        Anterior
-                    </button>
-                    <button
-                        class="px-5 py-2 rounded-lg bg-[#43655c] text-white text-xs font-bold hover:bg-[#354f47] transition-colors flex items-center gap-2 shadow-sm">
-                        Siguiente
-                        <span class="material-symbols-outlined text-sm" data-icon="chevron_right">chevron_right</span>
-                    </button>
-                </div>
+          <td class="px-4 py-4">
+            <span class="rounded-md bg-slate-100 px-2 py-0.5 font-['Geist_Mono'] text-[11px] font-semibold text-slate-700">
+              {{rfc}}
+            </span>
+          </td>
+
+          <td class="px-4 py-4">
+            <p class="font-semibold text-slate-800">{{contact_name}}</p>
+            {{#if contact_position}}
+            <p class="text-[11px] text-slate-500">{{contact_position}}</p>
+            {{/if}}
+            <p class="mt-0.5 text-[11px] text-slate-600">{{email}}</p>
+            <p class="font-['Geist_Mono'] text-[11px] text-slate-500">{{phone}}</p>
+          </td>
+
+          <td class="px-4 py-4 text-slate-600">
+            <p class="max-w-[190px] truncate font-medium text-slate-800">{{address}}</p>
+            <p class="text-[11px]">{{city}}, {{state}}</p>
+            <p class="font-['Geist_Mono'] text-[11px] text-slate-500">C.P. {{postal_code}} · {{country}}</p>
+          </td>
+
+          <td class="px-4 py-4">
+            <span class="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wide text-[#1b4332]">
+              {{supply_type}}
+            </span>
+            <p class="mt-1.5 max-w-[210px] line-clamp-2 text-[11px] text-slate-600">
+              {{supplied_products}}
+            </p>
+            {{#if brands}}
+            <p class="mt-0.5 max-w-[210px] truncate text-[11px] text-slate-500">
+              <strong class="font-semibold text-slate-700">Marcas:</strong> {{brands}}
+            </p>
+            {{/if}}
+          </td>
+
+          <td class="px-4 py-4 text-[11px] text-slate-600">
+            {{#if delivery_time}}
+            <p><strong class="font-semibold text-slate-700">Entrega:</strong> {{delivery_time}}</p>
+            {{/if}}
+            {{#if minimum_order}}
+            <p class="mt-0.5 font-['Geist_Mono']"><strong class="font-['Geist'] font-semibold text-slate-700">Mínimo:</strong> ${{minimum_order}}</p>
+            {{/if}}
+            {{#if payment_method}}
+            <p class="mt-0.5 capitalize"><strong class="font-semibold text-slate-700">Pago:</strong> {{payment_method}}</p>
+            {{/if}}
+          </td>
+
+          <td class="px-4 py-4 text-center">
+            {{#if (eq status "activo")}}
+            <span class="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[10px] font-semibold uppercase text-emerald-700">
+              <span class="h-1.5 w-1.5 rounded-full bg-emerald-600"></span>
+              Activo
+            </span>
+            {{else if (eq status "pendiente")}}
+            <span class="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[10px] font-semibold uppercase text-amber-700">
+              <span class="h-1.5 w-1.5 rounded-full bg-amber-500"></span>
+              Pendiente
+            </span>
+            {{else}}
+            <span class="inline-flex items-center gap-1 rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-[10px] font-semibold uppercase text-rose-700">
+              <span class="h-1.5 w-1.5 rounded-full bg-rose-600"></span>
+              Inactivo
+            </span>
+            {{/if}}
+          </td>
+
+          <td class="px-5 py-4 text-right">
+            <div class="inline-flex items-center justify-end gap-1">
+              <button
+                type="button"
+                class="btn-edit-supplier rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-[#1b4332] cursor-pointer"
+                title="Editar proveedor"
+                aria-label="Editar proveedor {{name}}"
+                data-id="{{id}}"
+                data-name="{{name}}"
+                data-commercial-name="{{commercial_name}}"
+                data-rfc="{{rfc}}"
+                data-supply-type="{{supply_type}}"
+                data-contact-name="{{contact_name}}"
+                data-contact-position="{{contact_position}}"
+                data-email="{{email}}"
+                data-alternative-email="{{alternative_email}}"
+                data-phone="{{phone}}"
+                data-alternative-phone="{{alternative_phone}}"
+                data-address="{{address}}"
+                data-city="{{city}}"
+                data-state="{{state}}"
+                data-postal-code="{{postal_code}}"
+                data-country="{{country}}"
+                data-supplied-products="{{supplied_products}}"
+                data-brands="{{brands}}"
+                data-delivery-time="{{delivery_time}}"
+                data-minimum-order="{{minimum_order}}"
+                data-payment-method="{{payment_method}}"
+                data-status="{{status}}"
+              >
+                <i data-lucide="pencil" class="h-4 w-4"></i>
+              </button>
+              <button
+                type="button"
+                class="btn-delete-supplier rounded-lg p-2 text-slate-500 transition-colors hover:bg-rose-50 hover:text-rose-600 cursor-pointer"
+                title="Eliminar proveedor"
+                aria-label="Eliminar proveedor {{name}}"
+                data-id="{{id}}"
+                data-name="{{name}}"
+              >
+                <i data-lucide="trash-2" class="h-4 w-4"></i>
+              </button>
             </div>
-        </div>
+          </td>
+        </tr>
+        {{else}}
+        <tr>
+          <td colspan="8" class="px-6 py-14 text-center">
+            <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
+              <i data-lucide="building-2" class="h-6 w-6"></i>
+            </div>
+            <p class="mt-3 text-sm font-semibold text-slate-700">
+              No hay proveedores registrados con estos criterios
+            </p>
+            <p class="mt-1 text-xs text-slate-500">
+              Ajusta los filtros o registra una nueva empresa proveedora.
+            </p>
+          </td>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="flex items-center justify-between border-t border-slate-100 bg-slate-50/50 px-5 py-3 text-xs text-slate-500">
+    <p>
+      Total listado:
+      <span class="font-['Geist_Mono'] font-semibold text-slate-900">{{suppliers.length}}</span>
+      proveedor(es)
+    </p>
+    <span class="font-['Geist_Mono'] text-[11px] text-slate-400">Padrón verificado · INIFAP</span>
+  </div>
+</div>

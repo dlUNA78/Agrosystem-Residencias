@@ -64,7 +64,7 @@ export const SUPPLIER_SEARCH_FILTERS = Object.freeze([
   {
     id: 'filter-type',
     param: 'supply_type',
-    label: 'Tipo:',
+    label: 'Tipo: Todos',
     options: [
       { value: '', text: 'Todos' },
       { value: 'agroquimicos', text: 'Agroquímicos' },
@@ -79,7 +79,7 @@ export const SUPPLIER_SEARCH_FILTERS = Object.freeze([
   {
     id: 'filter-status',
     param: 'status',
-    label: 'Estatus:',
+    label: 'Estatus: Todos',
     options: [
       { value: '', text: 'Todos' },
       { value: 'activo', text: 'Activo' },
@@ -88,6 +88,18 @@ export const SUPPLIER_SEARCH_FILTERS = Object.freeze([
     ],
   },
 ]);
+
+export const buildSupplierSearchFilters = (values = {}) =>
+  SUPPLIER_SEARCH_FILTERS.map((group) => {
+    const selectedValue = values[group.param] || '';
+    return {
+      ...group,
+      options: group.options.map((opt) => ({
+        ...opt,
+        selected: Boolean(selectedValue) && opt.value === selectedValue,
+      })),
+    };
+  });
 
 const cleanString = (value) => {
   if (typeof value !== 'string') {

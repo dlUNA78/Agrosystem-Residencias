@@ -1,108 +1,91 @@
-<main class="min-h-screen flex flex-col">
-    <!-- Content Area -->
-    <div class="mt-20 p-12 space-y-10">
-
-        {{!-- Control Bar & Search --}}
-        {{> private/search-bar}}
-
-        {{!-- Stats Bar --}}
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <!-- TOTAL PROVEEDORES -->
-            <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm p-5 flex items-center gap-4">
-                <div class="w-11 h-11 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                    <span class="material-symbols-outlined text-primary" data-icon="local_shipping"> local_shipping </span>
-                </div>
-
-                <div>
-                    <p class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant"> Total Proveedores  </p>
-                    <p class="text-2xl font-extrabold text-on-surface">  {{stats.total}} </p>
-                </div>
-
-            </div>
-            <!-- ACTIVOS -->
-            <div
-                class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm p-5 flex items-center gap-4">
-
-                <div class="w-11 h-11 rounded-full bg-emerald-500/10 flex items-center justify-center shrink-0">
-
-                    <span class="material-symbols-outlined text-emerald-600" data-icon="verified">
-                        verified
-                    </span>
-
-                </div>
-
-                <div>
-
-                    <p class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant">
-                        Activos
-                    </p>
-
-                    <p class="text-2xl font-extrabold text-on-surface">
-                        {{stats.activos}}
-                    </p>
-
-                </div>
-
-            </div>
-
-
-            <!-- PENDIENTES -->
-            <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm p-5 flex items-center gap-4">
-                <div class="w-11 h-11 rounded-full bg-amber-500/10 flex items-center justify-center shrink-0">
-                    <span class="material-symbols-outlined text-amber-600" data-icon="schedule">
-                        schedule
-                    </span>
-                </div>
-
-                <div>
-
-                    <p class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant">
-                        Pendientes
-                    </p>
-
-                    <p class="text-2xl font-extrabold text-on-surface">
-                        {{stats.pendientes}}
-                    </p>
-
-                </div>
-
-            </div>
-
-
-            <!-- INACTIVOS -->
-            <div
-                class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm p-5 flex items-center gap-4">
-
-                <div class="w-11 h-11 rounded-full bg-error/10 flex items-center justify-center shrink-0">
-
-                    <span class="material-symbols-outlined text-error" data-icon="block">
-                        block
-                    </span>
-
-                </div>
-
-                <div>
-
-                    <p class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant">
-                        Inactivos
-                    </p>
-
-                    <p class="text-2xl font-extrabold text-on-surface">
-                        {{stats.inactivos}}
-                    </p>
-
-                </div>
-
-            </div>
-
-        </div>
-
-        {{> private/suppliers/table}}
-
-        {{> private/suppliers/grid}}
-
+<div id="suppliers-page-root" class="mx-auto max-w-7xl space-y-5 font-['Geist'] text-slate-900">
+  <header class="flex flex-col gap-3 rounded-2xl border border-slate-200/90 bg-white p-5 shadow-2xs sm:flex-row sm:items-center sm:justify-between">
+    <div>
+      <nav aria-label="Ruta de navegación" class="mb-1.5 flex items-center gap-1.5 text-[11px] font-medium text-slate-500">
+        <a href="/dashboard" class="transition-colors hover:text-[#1b4332]">Panel</a>
+        <span aria-hidden="true">/</span>
+        <span class="font-semibold text-slate-800">Proveedores</span>
+      </nav>
+      <div class="flex flex-wrap items-center gap-2.5">
+        <h1 class="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
+          Directorio Institucional de Proveedores
+        </h1>
+        <span class="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider text-[#1b4332]">
+          Padrón Agrícola
+        </span>
+      </div>
+      <p class="mt-1 text-xs text-slate-500">
+        Control administrativo de empresas autorizadas de agroquímicos, semillas, fertilizantes y servicios técnicos.
+      </p>
     </div>
-</main>
+  </header>
+
+  <section id="suppliers-stats-grid" aria-label="Indicadores de proveedores" class="grid grid-cols-2 gap-3 lg:grid-cols-4">
+    <article class="flex items-center justify-between rounded-2xl border border-slate-200/90 bg-white p-4 shadow-2xs">
+      <div>
+        <p class="font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+          Total Padrón
+        </p>
+        <p class="mt-1 font-['Geist_Mono'] text-2xl font-bold text-slate-900">
+          {{stats.total}}
+        </p>
+      </div>
+      <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-[#1b4332]">
+        <i data-lucide="truck" class="h-5 w-5"></i>
+      </span>
+    </article>
+
+    <article class="flex items-center justify-between rounded-2xl border border-slate-200/90 bg-white p-4 shadow-2xs">
+      <div>
+        <p class="font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+          Activos
+        </p>
+        <p class="mt-1 font-['Geist_Mono'] text-2xl font-bold text-emerald-700">
+          {{stats.activos}}
+        </p>
+      </div>
+      <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
+        <i data-lucide="badge-check" class="h-5 w-5"></i>
+      </span>
+    </article>
+
+    <article class="flex items-center justify-between rounded-2xl border border-slate-200/90 bg-white p-4 shadow-2xs">
+      <div>
+        <p class="font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+          Pendientes
+        </p>
+        <p class="mt-1 font-['Geist_Mono'] text-2xl font-bold text-amber-700">
+          {{stats.pendientes}}
+        </p>
+      </div>
+      <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 text-amber-700">
+        <i data-lucide="clock" class="h-5 w-5"></i>
+      </span>
+    </article>
+
+    <article class="flex items-center justify-between rounded-2xl border border-slate-200/90 bg-white p-4 shadow-2xs">
+      <div>
+        <p class="font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+          Inactivos
+        </p>
+        <p class="mt-1 font-['Geist_Mono'] text-2xl font-bold text-rose-700">
+          {{stats.inactivos}}
+        </p>
+      </div>
+      <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-50 text-rose-700">
+        <i data-lucide="ban" class="h-5 w-5"></i>
+      </span>
+    </article>
+  </section>
+
+  {{> private/search-bar}}
+
+  <div id="suppliers-results-region" class="space-y-4">
+    {{> private/suppliers/table}}
+
+    {{> private/suppliers/grid}}
+  </div>
+</div>
 
 {{> private/suppliers/form-modal}}
 

@@ -138,9 +138,29 @@ describe('módulo privado de auditoría', () => {
       expect(serialized.user.initials).toBe('MR');
       expect(serialized.user.role).toBe('ADMIN');
       expect(serialized.detailsText).toContain('Parcela San Pedro');
+      expect(serialized.hasJsonPayload).toBe(true);
+      expect(serialized.newValuesJson).toContain('"Parcela San Pedro"');
     });
 
-    it('genera archivo CSV con encabezados y caracteres UTF-8 escapados', () => {
+    it('filtra por rango de fechas ISO y descarta fechas inválidas', () => {
+      const normalized = normalizeAuditQuery({
+        dateFrom: '2026-01-10',
+        dateTo: 'fecha-invalida',
+      });
+      expect(normalized.dateFrom).toBe('2026-01-10');
+      expect(normalized.dateTo).toBe('');
+
+      const opGte = Symbol('gte');
+      const opLte = Symbol('lte');
+      const where = buildAuditWhere(
+        { Op: { gte: opGte, lte: opLte } },
+        { dateFrom: '2026-01-10', dateTo: '2026-01-31' },
+      );
+      expect(where.createdAt[opGte]).toBeInstanceOf(Date);
+      expect(where.createdAt[opLte]).toBeInstanceOf(Date);
+    });
+
+    it('genera archivo CSV con encabezados, UTF-8 BOM y mitigación de inyección de fórmulas', () => {
       const logs = [
         {
           id: 1,
@@ -149,7 +169,7 @@ describe('módulo privado de auditoría', () => {
           moduleLabel: 'Cultivos',
           actionText: 'Creó un nuevo registro',
           recordId: 100,
-          detailsText: 'Maíz Blanco',
+          detailsText: '=CMD|calc',
         },
       ];
 
@@ -158,6 +178,7 @@ describe('módulo privado de auditoría', () => {
       expect(csv).toContain('"ID Auditoría","Fecha","Hora"');
       expect(csv).toContain('"Juan Pérez"');
       expect(csv).toContain('"Cultivos"');
+      expect(csv).toContain('"\'=CMD|calc"');
     });
   });
 

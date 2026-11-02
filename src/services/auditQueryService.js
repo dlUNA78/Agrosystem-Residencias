@@ -9,6 +9,7 @@ const MODULE_TABLES = {
     'FarmCropStages',
     'FarmHealthReports',
     'FarmApplications',
+    'FarmBlocks',
   ],
   usuarios: ['Users', 'User', 'InifapCodes'],
   proveedores: ['Suppliers', 'Supplier'],
@@ -21,25 +22,34 @@ const ACTION_GROUPS = {
     'create_crop_cycle',
     'create_health_report',
     'create_application',
+    'create_block',
   ],
   editar: [
     'update',
     'advance_crop_stage',
+    'revert_crop_stage',
     'finish_crop_cycle',
     'update_workflow',
     'manage_relations',
   ],
-  eliminar: ['delete', 'destroy'],
+  eliminar: ['delete', 'destroy', 'deactivate_block'],
   archivar: ['archive'],
   restaurar: ['restore'],
   aprobar: ['verify', 'publish', 'request_changes', 'submit_review'],
 };
+
+const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
 const normalizeText = (value, maxLength = 120) =>
   String(value ?? '')
     .replaceAll('\0', '')
     .trim()
     .slice(0, maxLength);
+
+const normalizeIsoDate = (value) => {
+  const cleaned = normalizeText(value, 10);
+  return ISO_DATE_PATTERN.test(cleaned) ? cleaned : '';
+};
 
 export const normalizeAuditQuery = (query = {}) => {
   const page = Math.max(1, parseInt(query.page, 10) || 1);
@@ -58,8 +68,49 @@ export const normalizeAuditQuery = (query = {}) => {
       ? actionParam
       : '',
     search,
+    dateFrom: normalizeIsoDate(query.dateFrom),
+    dateTo: normalizeIsoDate(query.dateTo),
     format: query.format === 'csv' ? 'csv' : '',
   };
+};
+
+const buildCreatedAtRange = (Op, dateFrom, dateTo) => {
+  if (!dateFrom && !dateTo) return null;
+  const range = {};
+  if (dateFrom && Op.gte) {
+    range[Op.gte] = new Date(`${dateFrom}T00:00:00.000Z`);
+  }
+  if (dateTo && Op.lte) {
+    range[Op.lte] = new Date(`${dateTo}T23:59:59.999Z`);
+  }
+  return Object.getOwnPropertySymbols(range).length > 0 ? range : null;
+};
+
+const buildSearchOrConditions = (Sequelize, search) => {
+  const { Op } = Sequelize;
+  const term = `%${search.toLowerCase()}%`;
+  return [
+    Sequelize.where(Sequelize.fn('lower', Sequelize.col('table_name')), {
+      [Op.like]: term,
+    }),
+    Sequelize.where(Sequelize.fn('lower', Sequelize.col('action')), {
+      [Op.like]: term,
+    }),
+    Sequelize.where(
+      Sequelize.fn(
+        'lower',
+        Sequelize.fn('coalesce', Sequelize.col('user.full_name'), ''),
+      ),
+      { [Op.like]: term },
+    ),
+    Sequelize.where(
+      Sequelize.fn(
+        'lower',
+        Sequelize.fn('coalesce', Sequelize.col('user.email'), ''),
+      ),
+      { [Op.like]: term },
+    ),
+  ];
 };
 
 export const buildAuditWhere = (Sequelize, query) => {
@@ -67,98 +118,93 @@ export const buildAuditWhere = (Sequelize, query) => {
   const where = {};
 
   if (query.module && MODULE_TABLES[query.module]) {
-    where.table_name = {
-      [Op.in]: MODULE_TABLES[query.module],
-    };
+    where.table_name = { [Op.in]: MODULE_TABLES[query.module] };
   }
 
   if (query.action && ACTION_GROUPS[query.action]) {
-    where.action = {
-      [Op.in]: ACTION_GROUPS[query.action],
-    };
+    where.action = { [Op.in]: ACTION_GROUPS[query.action] };
+  }
+
+  const dateRange = buildCreatedAtRange(Op, query.dateFrom, query.dateTo);
+  if (dateRange) {
+    where.createdAt = dateRange;
   }
 
   if (query.search) {
-    const term = `%${query.search.toLowerCase()}%`;
-    where[Op.or] = [
-      Sequelize.where(Sequelize.fn('lower', Sequelize.col('table_name')), {
-        [Op.like]: term,
-      }),
-      Sequelize.where(Sequelize.fn('lower', Sequelize.col('action')), {
-        [Op.like]: term,
-      }),
-      Sequelize.where(
-        Sequelize.fn(
-          'lower',
-          Sequelize.fn('coalesce', Sequelize.col('user.full_name'), ''),
-        ),
-        { [Op.like]: term },
-      ),
-      Sequelize.where(
-        Sequelize.fn(
-          'lower',
-          Sequelize.fn('coalesce', Sequelize.col('user.email'), ''),
-        ),
-        { [Op.like]: term },
-      ),
-    ];
+    where[Op.or] = buildSearchOrConditions(Sequelize, query.search);
   }
 
   return where;
 };
 
+const MODULE_LABEL_MATCHERS = [
+  [/Farm/i, 'Terrenos'],
+  [/Plague/i, 'Plagas'],
+  [/Crop/i, 'Cultivos'],
+  [/Product/i, 'Productos'],
+  [/User|InifapCode/i, 'Usuarios'],
+  [/Supplier/i, 'Proveedores'],
+  [/ActiveIngredient/i, 'Ingredientes'],
+];
+
 const getModuleLabel = (tableName) => {
-  if (/Farm/i.test(tableName)) return 'Terrenos';
-  if (/Plague/i.test(tableName)) return 'Plagas';
-  if (/Crop/i.test(tableName)) return 'Cultivos';
-  if (/Product/i.test(tableName)) return 'Productos';
-  if (/User|InifapCode/i.test(tableName)) return 'Usuarios';
-  if (/Supplier/i.test(tableName)) return 'Proveedores';
-  if (/ActiveIngredient/i.test(tableName)) return 'Ingredientes';
-  return tableName || 'Sistema';
+  const match = MODULE_LABEL_MATCHERS.find(([regex]) => regex.test(tableName));
+  return match ? match[1] : tableName || 'Sistema';
 };
 
 const ACTION_DETAILS_MAP = {
   create: {
     label: 'Creación',
     actionText: 'Creó un nuevo registro',
-    icon: 'add_circle',
-    badgeClass: 'text-emerald-700 bg-emerald-50 border border-emerald-100',
+    icon: 'plus-circle',
+    badgeClass: 'text-emerald-700 bg-emerald-50 border border-emerald-200',
   },
   create_crop_cycle: {
     label: 'Ciclo Agrícola',
     actionText: 'Abrió ciclo de cultivo',
-    icon: 'add_circle',
-    badgeClass: 'text-emerald-700 bg-emerald-50 border border-emerald-100',
+    icon: 'sprout',
+    badgeClass: 'text-emerald-700 bg-emerald-50 border border-emerald-200',
   },
   create_health_report: {
     label: 'Sanidad',
     actionText: 'Reportó incidencia fitosanitaria',
-    icon: 'bug_report',
-    badgeClass: 'text-rose-700 bg-rose-50 border border-rose-100',
+    icon: 'bug',
+    badgeClass: 'text-rose-700 bg-rose-50 border border-rose-200',
   },
   create_application: {
     label: 'Aplicación',
     actionText: 'Registró aplicación química',
-    icon: 'science',
-    badgeClass: 'text-blue-700 bg-blue-50 border border-blue-100',
+    icon: 'flask-conical',
+    badgeClass: 'text-sky-700 bg-sky-50 border border-sky-200',
+  },
+  create_block: {
+    label: 'Lote',
+    actionText: 'Registró lote operativo',
+    icon: 'map-pin',
+    badgeClass: 'text-emerald-700 bg-emerald-50 border border-emerald-200',
   },
   update: {
     label: 'Edición',
     actionText: 'Actualizó registro',
-    icon: 'edit',
-    badgeClass: 'text-amber-700 bg-amber-50 border border-amber-100',
+    icon: 'pencil',
+    badgeClass: 'text-amber-700 bg-amber-50 border border-amber-200',
   },
   advance_crop_stage: {
     label: 'Fenología',
     actionText: 'Avanzó etapa fenológica',
-    icon: 'trending_up',
-    badgeClass: 'text-emerald-700 bg-emerald-50 border border-emerald-100',
+    icon: 'trending-up',
+    badgeClass: 'text-emerald-700 bg-emerald-50 border border-emerald-200',
+  },
+  revert_crop_stage: {
+    label: 'Fenología',
+    actionText: 'Retrocedió etapa fenológica',
+    icon: 'rotate-ccw',
+    badgeClass: 'text-amber-700 bg-amber-50 border border-amber-200',
   },
   finish_crop_cycle: {
     label: 'Cierre',
     actionText: 'Finalizó ciclo de cultivo',
-    icon: 'task_alt',
+    icon: 'check-circle-2',
     badgeClass: 'text-slate-700 bg-slate-100 border border-slate-200',
   },
   archive: {
@@ -170,57 +216,60 @@ const ACTION_DETAILS_MAP = {
   restore: {
     label: 'Restauración',
     actionText: 'Restauró registro a operación',
-    icon: 'unarchive',
-    badgeClass: 'text-emerald-700 bg-emerald-50 border border-emerald-100',
+    icon: 'archive-restore',
+    badgeClass: 'text-emerald-700 bg-emerald-50 border border-emerald-200',
   },
   delete: {
     label: 'Eliminación',
     actionText: 'Eliminó registro',
-    icon: 'delete',
-    badgeClass: 'text-rose-700 bg-rose-50 border border-rose-100',
+    icon: 'trash-2',
+    badgeClass: 'text-rose-700 bg-rose-50 border border-rose-200',
   },
   destroy: {
     label: 'Eliminación',
     actionText: 'Eliminó registro',
-    icon: 'delete',
-    badgeClass: 'text-rose-700 bg-rose-50 border border-rose-100',
+    icon: 'trash-2',
+    badgeClass: 'text-rose-700 bg-rose-50 border border-rose-200',
+  },
+  deactivate_block: {
+    label: 'Baja Lote',
+    actionText: 'Desactivó lote operativo',
+    icon: 'trash-2',
+    badgeClass: 'text-rose-700 bg-rose-50 border border-rose-200',
   },
   publish: {
     label: 'Publicación',
     actionText: 'Publicó ficha técnica',
-    icon: 'check_circle',
-    badgeClass: 'text-blue-700 bg-blue-50 border border-blue-100',
+    icon: 'badge-check',
+    badgeClass: 'text-sky-700 bg-sky-50 border border-sky-200',
   },
   verify: {
     label: 'Verificación',
     actionText: 'Aprobó técnicamente ficha',
-    icon: 'verified',
-    badgeClass: 'text-blue-700 bg-blue-50 border border-blue-100',
+    icon: 'shield-check',
+    badgeClass: 'text-sky-700 bg-sky-50 border border-sky-200',
   },
   request_changes: {
     label: 'Observación',
     actionText: 'Solicitó cambios técnicos',
-    icon: 'rate_review',
-    badgeClass: 'text-amber-700 bg-amber-50 border border-amber-100',
+    icon: 'message-square-warning',
+    badgeClass: 'text-amber-700 bg-amber-50 border border-amber-200',
   },
   submit_review: {
     label: 'Revisión',
     actionText: 'Envió ficha a revisión técnica',
     icon: 'send',
-    badgeClass: 'text-blue-700 bg-blue-50 border border-blue-100',
+    badgeClass: 'text-sky-700 bg-sky-50 border border-sky-200',
   },
 };
 
-const getActionDetails = (action) => {
-  return (
-    ACTION_DETAILS_MAP[action] || {
-      label: action || 'Acción',
-      actionText: `Acción ejecutada: ${action}`,
-      icon: 'info',
-      badgeClass: 'text-slate-700 bg-slate-100 border border-slate-200',
-    }
-  );
-};
+const getActionDetails = (action) =>
+  ACTION_DETAILS_MAP[action] || {
+    label: action || 'Acción',
+    actionText: `Acción ejecutada: ${action}`,
+    icon: 'info',
+    badgeClass: 'text-slate-700 bg-slate-100 border border-slate-200',
+  };
 
 const extractEntityName = (values) => {
   const candidateKeys = ['name', 'full_name', 'plague_name', 'product_name'];
@@ -236,19 +285,19 @@ const extractDetails = (log) => {
     values.status !== undefined ? `Estatus: ${values.status}` : '';
 
   const parts = [idText, nameText, statusText].filter(Boolean);
-  if (parts.length > 0) {
-    return parts.join(' · ');
-  }
-  return `Registro #${log.record_id ?? 'N/A'}`;
+  return parts.length > 0
+    ? parts.join(' · ')
+    : `Registro #${log.record_id ?? 'N/A'}`;
 };
 
 const formatLogDate = (date) => {
-  if (!date)
+  if (!date) {
     return {
       fullDate: 'Fecha no disponible',
       timeText: '--:--',
       dateText: '--',
     };
+  }
   const d = new Date(date);
   const now = new Date();
 
@@ -278,16 +327,28 @@ const getInitials = (fullName) => {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 };
 
-export const serializeAuditLog = (logInstance) => {
-  const plain =
-    typeof logInstance.toJSON === 'function'
-      ? logInstance.toJSON()
-      : logInstance;
-  const actionInfo = getActionDetails(plain.action);
-  const moduleLabel = getModuleLabel(plain.table_name);
-  const dates = formatLogDate(plain.createdAt);
-  const user = plain.user || {};
+const toPlainLog = (logInstance) =>
+  typeof logInstance.toJSON === 'function' ? logInstance.toJSON() : logInstance;
+
+const buildSerializedUser = (user = {}) => {
   const userName = user.full_name || 'Sistema';
+  return {
+    id: user.id || null,
+    name: userName,
+    initials: getInitials(userName),
+    email: user.email || 'N/A',
+    role: (user.role || 'Sistema').toUpperCase(),
+  };
+};
+
+const stringifyPayload = (payload) =>
+  payload ? JSON.stringify(payload, null, 2) : null;
+
+export const serializeAuditLog = (logInstance) => {
+  const plain = toPlainLog(logInstance);
+  const actionInfo = getActionDetails(plain.action);
+  const newValuesJson = stringifyPayload(plain.new_values);
+  const oldValuesJson = stringifyPayload(plain.old_values);
 
   return {
     id: plain.id,
@@ -298,23 +359,22 @@ export const serializeAuditLog = (logInstance) => {
     actionIcon: actionInfo.icon,
     actionBadgeClass: actionInfo.badgeClass,
     tableName: plain.table_name,
-    moduleLabel,
-    user: {
-      id: user.id || null,
-      name: userName,
-      initials: getInitials(userName),
-      email: user.email || 'N/A',
-      role: (user.role || 'Sistema').toUpperCase(),
-    },
-    dates,
+    moduleLabel: getModuleLabel(plain.table_name),
+    user: buildSerializedUser(plain.user),
+    dates: formatLogDate(plain.createdAt),
     detailsText: extractDetails(plain),
-    newValuesJson: plain.new_values
-      ? JSON.stringify(plain.new_values, null, 2)
-      : null,
-    oldValuesJson: plain.old_values
-      ? JSON.stringify(plain.old_values, null, 2)
-      : null,
+    hasJsonPayload: Boolean(newValuesJson || oldValuesJson),
+    newValuesJson,
+    oldValuesJson,
   };
+};
+
+const sanitizeCsvValue = (raw) => {
+  const str = String(raw ?? '').replaceAll('"', '""');
+  if (/^[=+\-@]/.test(str)) {
+    return `"'${str}"`;
+  }
+  return `"${str}"`;
 };
 
 export const generateAuditCsv = (logs = []) => {
@@ -331,29 +391,25 @@ export const generateAuditCsv = (logs = []) => {
     'Detalles',
   ];
 
-  const escapeCsv = (str) => {
-    const val = String(str ?? '').replaceAll('"', '""');
-    return `"${val}"`;
-  };
-
   const rows = logs.map((log) => [
-    escapeCsv(log.id),
-    escapeCsv(log.dates.dateText),
-    escapeCsv(log.dates.timeText),
-    escapeCsv(log.user.name),
-    escapeCsv(log.user.email),
-    escapeCsv(log.user.role),
-    escapeCsv(log.moduleLabel),
-    escapeCsv(log.actionText),
-    escapeCsv(log.recordId),
-    escapeCsv(log.detailsText),
+    sanitizeCsvValue(log.id),
+    sanitizeCsvValue(log.dates.dateText),
+    sanitizeCsvValue(log.dates.timeText),
+    sanitizeCsvValue(log.user.name),
+    sanitizeCsvValue(log.user.email),
+    sanitizeCsvValue(log.user.role),
+    sanitizeCsvValue(log.moduleLabel),
+    sanitizeCsvValue(log.actionText),
+    sanitizeCsvValue(log.recordId),
+    sanitizeCsvValue(log.detailsText),
   ]);
 
   const bom = '\uFEFF';
   return (
     bom +
-    [headers.map(escapeCsv).join(','), ...rows.map((r) => r.join(','))].join(
-      '\r\n',
-    )
+    [
+      headers.map(sanitizeCsvValue).join(','),
+      ...rows.map((r) => r.join(',')),
+    ].join('\r\n')
   );
 };

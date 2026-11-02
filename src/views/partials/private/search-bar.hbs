@@ -1,71 +1,127 @@
 {{!-- ══════════════════════════════════════════════════════════════
-PARTIAL: private/search-bar
-Variables requeridas desde el controlador:
-searchId {String} ID del <input> (ej. 'product-search')
-searchPlaceholder {String} Placeholder del input
-searchFilters {Array} [{ id, label, options: [{value,text}] }]
-ctaLabel {String} Texto del botón de acción
-ctaIcon {String} Ícono Material Symbols del botón
-ctaBtnId {String} ID del botón CTA (opcional)
-showViewToggle {Boolean} Mostrar toggle tabla/grid (solo Productos)
+PARTIAL: private/search-bar (Geist Sticky Compact Filter Bar)
+Variables desde el controlador:
+  searchId          {String}  ID del <input>
+  searchValue       {String}  Valor actual de búsqueda
+  searchPlaceholder {String}  Placeholder del buscador
+  searchFilters     {Array}   [{ id, param, label, options: [{ value, text, selected }] }]
+  hasActiveFilters  {Boolean} Indica si hay filtros activos
+  clearUrl          {String}  URL para limpiar filtros (opcional)
+  ctaLabel          {String}  Texto del botón CTA (opcional)
+  ctaLucideIcon     {String}  Ícono Lucide del botón CTA (opcional)
+  ctaBtnId          {String}  ID del botón CTA (opcional)
+  showViewToggle    {Boolean} Mostrar toggle tabla/grid
 ══════════════════════════════════════════════════════════════ --}}
-<section data-private-search-bar
-    class="bg-surface-container-lowest p-4 rounded-xl shadow-sm border border-outline-variant/10 flex flex-wrap items-center gap-3">
-
-    {{!-- BUSCADOR --}}
-    <div class="flex-1 relative min-w-[240px]">
-        <span
-            class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/50 text-lg">
-            search
-        </span>
-
-        <input id="{{searchId}}" value="{{searchValue}}"
-            class="w-full pl-11 pr-4 py-3 bg-surface-container-low border-none rounded-lg focus:ring-2 focus:ring-primary/20 text-sm placeholder:text-on-surface-variant/40"
-            placeholder="{{searchPlaceholder}}" type="text" />
+<section
+  data-private-search-bar
+  aria-label="Búsqueda y filtrado operativo"
+  class="sticky top-16 z-30 rounded-2xl border border-slate-200/90 bg-white/95 p-2.5 shadow-xs backdrop-blur-md font-['Geist']"
+>
+  <div class="flex flex-wrap items-center gap-2">
+    <div class="relative min-w-[190px] flex-1">
+      <i
+        data-lucide="search"
+        class="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400"
+      ></i>
+      <input
+        id="{{searchId}}"
+        name="search"
+        type="text"
+        value="{{searchValue}}"
+        placeholder="{{searchPlaceholder}}"
+        aria-label="{{searchPlaceholder}}"
+        class="w-full rounded-xl border border-slate-200 bg-slate-50/70 py-2 pl-9 pr-3 text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:border-[#1b4332] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1b4332]/15"
+      />
     </div>
 
-    {{!-- FILTROS + BOTONES --}}
-    <div class="flex flex-wrap gap-2 items-center">
+    {{#if searchFilters.length}}
+    <button
+      type="button"
+      data-search-filter-toggle
+      aria-expanded="{{#if hasActiveFilters}}true{{else}}false{{/if}}"
+      class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100 md:hidden cursor-pointer"
+    >
+      <i data-lucide="sliders-horizontal" class="h-3.5 w-3.5 text-[#1b4332]"></i>
+      <span>Filtros</span>
+      {{#if hasActiveFilters}}
+      <span class="h-1.5 w-1.5 rounded-full bg-emerald-600" aria-hidden="true"></span>
+      {{/if}}
+    </button>
+    {{/if}}
 
-        {{!-- FILTROS --}}
-        {{#each searchFilters}}
-        <select id="{{this.id}}" data-param="{{this.param}}"
-            class="filter-select bg-surface-container-low border-none rounded-lg py-3 px-4 text-sm text-on-surface-variant font-medium focus:ring-primary/20 min-w-[140px]">
-            <option value="">{{this.label}}</option>
-
-            {{#each this.options}}
-            <option value="{{this.value}}" {{#if this.selected}}selected{{/if}}>{{this.text}}</option>
-            {{/each}}
-
-        </select>
-        {{/each}}
-
-        {{!-- CTA --}}
-        {{#if ctaLabel}}
-        <button id="{{#if ctaBtnId}}{{ctaBtnId}}{{else}}btn-cta-action{{/if}}"
-            class="bg-[#43655c] text-white px-5 py-3 rounded-lg font-bold text-sm flex items-center gap-2 hover:bg-[#354f47] transition-colors shadow-lg shadow-primary/10">
-
-            <span class="material-symbols-outlined text-base">{{ctaIcon}}</span>
-            {{ctaLabel}}
-        </button>
-        {{/if}}
-
-        {{!-- TOGGLE VISTA --}}
-        {{#if showViewToggle}}
-        <div class="flex bg-surface-container-low rounded-lg p-1 gap-1">
-
-            <button id="view-table" class="view-btn p-2 rounded-md bg-[#43655c] text-white transition-colors">
-                <span class="material-symbols-outlined text-sm">table_rows</span>
-            </button>
-
-            <button id="view-grid"
-                class="view-btn p-2 rounded-md text-on-surface-variant hover:bg-surface-container transition-colors">
-                <span class="material-symbols-outlined text-sm">grid_view</span>
-            </button>
-
-        </div>
-        {{/if}}
-
+    {{#if showViewToggle}}
+    <div
+      class="inline-flex items-center rounded-xl border border-slate-200 bg-slate-100/80 p-0.5"
+      role="group"
+      aria-label="Cambiar modo de vista"
+    >
+      <button
+        id="view-grid"
+        type="button"
+        title="Vista de tarjetas"
+        aria-label="Vista de tarjetas"
+        class="view-btn inline-flex items-center gap-1 rounded-lg bg-[#1b4332] px-2.5 py-1.5 text-[11px] font-semibold text-white shadow-2xs transition-colors cursor-pointer"
+      >
+        <i data-lucide="layout-grid" class="h-3.5 w-3.5"></i>
+        <span class="hidden sm:inline">Tarjetas</span>
+      </button>
+      <button
+        id="view-table"
+        type="button"
+        title="Vista de tabla"
+        aria-label="Vista de tabla"
+        class="view-btn inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-[11px] font-semibold text-slate-600 transition-colors hover:text-slate-900 cursor-pointer"
+      >
+        <i data-lucide="table-2" class="h-3.5 w-3.5"></i>
+        <span class="hidden sm:inline">Tabla</span>
+      </button>
     </div>
+    {{/if}}
+
+    {{#if ctaLabel}}
+    <button
+      id="{{#if ctaBtnId}}{{ctaBtnId}}{{else}}btn-cta-action{{/if}}"
+      type="button"
+      class="inline-flex items-center gap-1.5 rounded-xl bg-[#1b4332] px-3.5 py-2 text-xs font-semibold text-white shadow-xs transition-all hover:bg-[#143326] active:scale-[0.99] cursor-pointer"
+    >
+      <i data-lucide="{{#if ctaLucideIcon}}{{ctaLucideIcon}}{{else}}plus{{/if}}" class="h-3.5 w-3.5"></i>
+      <span>{{ctaLabel}}</span>
+    </button>
+    {{/if}}
+  </div>
+
+  {{#if searchFilters.length}}
+  <div
+    data-search-filter-panel
+    class="{{#if hasActiveFilters}}mt-2 flex{{else}}mt-2 hidden{{/if}} flex-wrap items-center gap-2 border-t border-slate-100 pt-2 md:mt-2 md:flex"
+  >
+    {{#each searchFilters}}
+    <select
+      id="{{this.id}}"
+      data-param="{{this.param}}"
+      aria-label="{{this.label}}"
+      class="filter-select min-w-[140px] rounded-xl border border-slate-200 bg-slate-50/80 px-3 py-1.5 text-xs font-medium text-slate-700 transition-colors focus:border-[#1b4332] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1b4332]/15"
+    >
+      <option value="">{{this.label}}</option>
+      {{#each this.options}}
+      {{#unless (eq this.value "")}}
+      <option value="{{this.value}}" {{#if this.selected}}selected{{/if}}>{{this.text}}</option>
+      {{/unless}}
+      {{/each}}
+    </select>
+    {{/each}}
+
+    {{#if hasActiveFilters}}
+    {{#if clearUrl}}
+    <a
+      href="{{clearUrl}}"
+      class="ml-auto inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-[11px] font-semibold text-rose-700 transition-colors hover:bg-rose-50"
+    >
+      <i data-lucide="x" class="h-3 w-3"></i>
+      <span>Limpiar filtros</span>
+    </a>
+    {{/if}}
+    {{/if}}
+  </div>
+  {{/if}}
 </section>
-<script src="/js/private/search-bar.js"></script>

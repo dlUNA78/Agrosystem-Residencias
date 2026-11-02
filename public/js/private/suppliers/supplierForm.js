@@ -1,3 +1,12 @@
+import {
+  buildFormRequest,
+  fetchHtmlDocument,
+  showAsyncToast,
+  swapFragments,
+  withButtonLoading,
+} from '../asyncUi.js';
+import { applySupplierSavedView } from './supplierViewToggle.js';
+
 const FORM_FIELD_IDS = [
   ['supplier-name', 'name'],
   ['supplier-commercial-name', 'commercialName'],
@@ -22,12 +31,52 @@ const FORM_FIELD_IDS = [
   ['supplier-status', 'status', 'pendiente'],
 ];
 
+const setFieldValue = (elementId, value) => {
+  const field = document.getElementById(elementId);
+  if (field) {
+    field.value = value;
+  }
+};
+
+const populateSupplierFields = (data) => {
+  FORM_FIELD_IDS.forEach(([elementId, dataKey, defaultValue = '']) => {
+    setFieldValue(elementId, data[dataKey] ?? defaultValue);
+  });
+};
+
+const submitSupplierFormAsync = async (formSupplier, closeModal) => {
+  const submitBtn = document.getElementById('btn-submit-supplier');
+  const isEdit = formSupplier.action.includes('/update/');
+
+  await withButtonLoading(submitBtn, 'Guardando...', async () => {
+    const { url, init } = buildFormRequest(formSupplier);
+    const result = await fetchHtmlDocument(url, init);
+    if (!result.ok) {
+      if (!result.aborted) {
+        showAsyncToast(result.errorMessage, 'error');
+      }
+      return;
+    }
+
+    swapFragments(result.doc, [
+      '#suppliers-stats-grid',
+      '#suppliers-results-region',
+    ]);
+    applySupplierSavedView();
+    closeModal();
+    showAsyncToast(
+      isEdit
+        ? 'Proveedor actualizado correctamente.'
+        : 'Proveedor registrado en el padrón.',
+      'success',
+    );
+  });
+};
+
 export const initializeSupplierForm = () => {
   const modalSupplier = document.getElementById('modal-supplier');
   const formSupplier = document.getElementById('form-supplier');
   const modalTitle = document.getElementById('supplier-modal-title');
-  const btnAddSupplier = document.getElementById('btn-add-supplier');
-  const btnAddSupplierCard = document.getElementById('btn-add-supplier-card');
   const btnCloseSupplier = document.getElementById('btn-close-modal-supplier');
   const btnCancelSupplier = document.getElementById(
     'btn-cancel-modal-supplier',
@@ -44,44 +93,25 @@ export const initializeSupplierForm = () => {
 
   const openNewSupplierModal = () => {
     formSupplier.reset();
-
-    const countryInput = document.getElementById('supplier-country');
-    if (countryInput) {
-      countryInput.value = 'México';
-    }
-
+    setFieldValue('supplier-country', 'México');
     if (modalTitle) {
       modalTitle.textContent = 'Nuevo Proveedor';
     }
-
     formSupplier.action = '/private/suppliers/create';
-
     modalSupplier.classList.remove('hidden');
     modalSupplier.classList.add('flex');
   };
 
   const openEditSupplierModal = (button) => {
-    const data = button.dataset;
-
-    FORM_FIELD_IDS.forEach(([elementId, dataKey, defaultValue = '']) => {
-      const field = document.getElementById(elementId);
-      if (field) {
-        field.value = data[dataKey] ?? defaultValue;
-      }
-    });
-
+    populateSupplierFields(button.dataset);
     if (modalTitle) {
       modalTitle.textContent = 'Editar Proveedor';
     }
-
-    formSupplier.action = `/private/suppliers/update/${data.id}`;
-
+    formSupplier.action = `/private/suppliers/update/${button.dataset.id}`;
     modalSupplier.classList.remove('hidden');
     modalSupplier.classList.add('flex');
   };
 
-  btnAddSupplier?.addEventListener('click', openNewSupplierModal);
-  btnAddSupplierCard?.addEventListener('click', openNewSupplierModal);
   btnCloseSupplier?.addEventListener('click', closeSupplierModal);
   btnCancelSupplier?.addEventListener('click', closeSupplierModal);
 
@@ -91,10 +121,28 @@ export const initializeSupplierForm = () => {
     }
   });
 
-  const editButtons = document.querySelectorAll('.btn-edit-supplier');
-  editButtons.forEach((button) => {
-    button.addEventListener('click', () => {
-      openEditSupplierModal(button);
-    });
+  document.addEventListener('click', (event) => {
+    const addTrigger = event.target.closest(
+      '#btn-add-supplier, #btn-add-supplier-card',
+    );
+    if (addTrigger) {
+      openNewSupplierModal();
+      return;
+    }
+    const editBtn = event.target.closest('.btn-edit-supplier');
+    if (editBtn) {
+      openEditSupplierModal(editBtn);
+    }
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && !modalSupplier.classList.contains('hidden')) {
+      closeSupplierModal();
+    }
+  });
+
+  formSupplier.addEventListener('submit', (event) => {
+    event.preventDefault();
+    submitSupplierFormAsync(formSupplier, closeSupplierModal);
   });
 };
