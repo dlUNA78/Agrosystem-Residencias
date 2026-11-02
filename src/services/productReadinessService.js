@@ -7,6 +7,14 @@ const readinessActions = new Set([
 ]);
 const hasText = (value) => String(value || '').trim().length > 0;
 
+const hasValidSafetyInterval = (value) => {
+  if (value === null || value === undefined || String(value).trim() === '') {
+    return false;
+  }
+  const num = Number(value);
+  return Number.isInteger(num) && num >= 0 && num <= 3650;
+};
+
 export const buildProductPublicationReadiness = (
   product = {},
   { imageCount } = {},
@@ -28,9 +36,7 @@ export const buildProductPublicationReadiness = (
     [
       'safety',
       'Intervalo de seguridad',
-      Number.isInteger(Number(product.safety_interval_days)) &&
-        Number(product.safety_interval_days) >= 0 &&
-        Number(product.safety_interval_days) <= 3650,
+      hasValidSafetyInterval(product.safety_interval_days),
     ],
     ['images', 'Evidencia fotográfica', count > 0],
   ].map(([key, label, complete]) => ({ key, label, complete }));

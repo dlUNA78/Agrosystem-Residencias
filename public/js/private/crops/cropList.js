@@ -59,6 +59,27 @@ const syncFilterInputsFromUrl = (urlString) => {
   if (searchInput) searchInput.value = params.get('search') || '';
   if (categorySelect) categorySelect.value = params.get('category') || '';
   if (workflowSelect) workflowSelect.value = params.get('workflow') || '';
+  updatePrivateCropActiveCount();
+};
+
+const updatePrivateCropActiveCount = () => {
+  const badge = document.getElementById('private-crops-active-filters-count');
+  const toggleBtn = document.getElementById('toggle-private-crops-filters-btn');
+  if (!badge && !toggleBtn) return;
+
+  const count = Array.from(
+    document.querySelectorAll('#crop-filter-form .filter-select'),
+  ).filter((select) => Boolean(select.value)).length;
+
+  if (badge) {
+    badge.textContent = String(count);
+    badge.classList.toggle('hidden', count === 0);
+  }
+  if (toggleBtn) {
+    toggleBtn.classList.toggle('bg-emerald-50', count > 0);
+    toggleBtn.classList.toggle('border-emerald-300', count > 0);
+    toggleBtn.classList.toggle('text-[#1b4332]', count > 0);
+  }
 };
 
 export const applyCropCatalogDocument = (
@@ -167,6 +188,17 @@ const handleCatalogLinkClick = (event) => {
 const initializeAsyncFilters = () => {
   const form = document.getElementById('crop-filter-form');
   const searchInput = document.getElementById('crop-search');
+  const toggleBtn = document.getElementById('toggle-private-crops-filters-btn');
+  const collapsibleFilters = document.getElementById(
+    'private-crops-collapsible-filters',
+  );
+
+  toggleBtn?.addEventListener('click', () => {
+    if (!collapsibleFilters) return;
+    const isHidden = collapsibleFilters.classList.contains('hidden');
+    collapsibleFilters.classList.toggle('hidden', !isHidden);
+    toggleBtn.setAttribute('aria-expanded', String(isHidden));
+  });
 
   form?.addEventListener('submit', (event) => {
     event.preventDefault();
@@ -174,13 +206,18 @@ const initializeAsyncFilters = () => {
   });
 
   document.querySelectorAll('.filter-select').forEach((select) => {
-    select.addEventListener('change', submitFilterFormAsync);
+    select.addEventListener('change', () => {
+      updatePrivateCropActiveCount();
+      submitFilterFormAsync();
+    });
   });
 
   searchInput?.addEventListener('input', () => {
     clearTimeout(searchDebounceTimer);
     searchDebounceTimer = window.setTimeout(submitFilterFormAsync, 320);
   });
+
+  updatePrivateCropActiveCount();
 
   document.addEventListener('click', handleCatalogLinkClick);
 

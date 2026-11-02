@@ -1,70 +1,268 @@
-<div id="modal-product" class="fixed inset-0 z-50 hidden items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-  <button type="button" id="modal-product-backdrop" class="absolute inset-0 bg-slate-950/55 backdrop-blur-xs" aria-label="Cerrar formulario"></button>
-  <div class="relative flex max-h-[92vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-2xl">
-    <header class="flex items-start justify-between gap-4 border-b border-border px-6 py-5">
-      <div><span class="font-mono text-[10px] font-bold uppercase tracking-wider text-primary">Ficha fitosanitaria</span><h2 id="modal-title" class="mt-1 text-xl font-black text-foreground">Nuevo Producto Agroquímico</h2><p class="mt-1 text-xs text-muted-foreground">Los datos técnicos serán revisados antes de publicarse.</p></div>
-      <button type="button" id="modal-product-close" class="rounded-lg p-2 text-muted-foreground hover:bg-muted hover:text-foreground" aria-label="Cerrar"><span class="material-symbols-outlined">close</span></button>
-    </header>
-    <form id="product-form" action="/private/products/create" method="POST" enctype="multipart/form-data" class="overflow-y-auto">
-      <div class="space-y-6 p-6">
-        <div id="product-form-validation-summary" tabindex="-1" class="hidden rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-900"><p class="font-bold">Corrige los siguientes campos:</p><ul class="mt-2 list-disc space-y-1 pl-5"></ul></div>
+<div id="modal-product" class="no-print fixed inset-0 z-50 hidden items-center justify-center p-4 font-['Geist']" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <button type="button" id="modal-product-backdrop" class="absolute inset-0 bg-black/50 backdrop-blur-xs" aria-label="Cerrar formulario"></button>
 
-        <fieldset class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <legend class="col-span-full mb-1 flex items-center gap-2 text-sm font-black text-foreground"><span class="material-symbols-outlined text-primary">badge</span>Identificación y registro</legend>
-          <div class="sm:col-span-2"><label for="name" class="mb-2 block text-xs font-bold text-muted-foreground">Nombre comercial *</label><input id="name" name="name" type="text" required maxlength="150" placeholder="Ej. Glyphomax Pro 480" class="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"></div>
-          <div><label for="category" class="mb-2 block text-xs font-bold text-muted-foreground">Categoría *</label><select id="category" name="category" required class="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"><option value="">Seleccionar…</option><option>Herbicida</option><option>Insecticida</option><option>Fungicida</option><option>Fertilizante</option><option>Acaricida</option><option>Bactericida</option><option>Coadyuvante</option></select></div>
-          <div><label for="manufacturer" class="mb-2 block text-xs font-bold text-muted-foreground">Fabricante *</label><input id="manufacturer" name="manufacturer" type="text" required maxlength="150" placeholder="Ej. Bayer" class="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"></div>
-          <div><label for="active_ingredient" class="mb-2 block text-xs font-bold text-muted-foreground">Ingrediente activo *</label><input id="active_ingredient" name="active_ingredient" type="text" required maxlength="200" placeholder="Ej. Glifosato 48%" class="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"></div>
-          <div><label for="registration_code" class="mb-2 block text-xs font-bold text-muted-foreground">Registro COFEPRIS *</label><input id="registration_code" name="registration_code" type="text" required maxlength="100" placeholder="Ej. RSCO-1234" class="w-full rounded-xl border border-input bg-background px-4 py-3 font-mono text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"></div>
-          <div><label for="expiration_date" class="mb-2 block text-xs font-bold text-muted-foreground">Fecha de vencimiento</label><input id="expiration_date" name="expiration_date" type="date" class="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"></div>
-          <div><label for="formulation_type" class="mb-2 block text-xs font-bold text-muted-foreground">Tipo de formulación</label><input id="formulation_type" name="formulation_type" type="text" maxlength="100" placeholder="Ej. Suspensión concentrada (SC)" class="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"></div>
-        </fieldset>
-
-        <fieldset class="grid grid-cols-1 gap-4 border-t border-border pt-6 sm:grid-cols-2">
-          <legend class="col-span-full mb-1 flex items-center gap-2 text-sm font-black text-foreground"><span class="material-symbols-outlined text-primary">health_and_safety</span>Uso y seguridad</legend>
-          <div class="sm:col-span-2"><label for="target_crops" class="mb-2 block text-xs font-bold text-muted-foreground">Cultivos objetivo</label><input id="target_crops" name="target_crops" type="text" maxlength="1000" placeholder="Ej. Maíz, trigo y sorgo" class="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"></div>
-          <div><label for="mode_of_action" class="mb-2 block text-xs font-bold text-muted-foreground">Modo de acción</label><input id="mode_of_action" name="mode_of_action" type="text" maxlength="200" placeholder="Ej. Sistémico y por ingestión" class="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"></div>
-          <div><label for="hazard_category" class="mb-2 block text-xs font-bold text-muted-foreground">Categoría toxicológica</label><select id="hazard_category" name="hazard_category" class="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"><option value="">Seleccionar…</option><option value="Categoría IV — Precaución (Banda Verde)">Categoría IV · Banda verde</option><option value="Categoría III — Ligeramente Peligroso (Banda Azul)">Categoría III · Banda azul</option><option value="Categoría II — Moderadamente Peligroso (Banda Amarilla)">Categoría II · Banda amarilla</option><option value="Categoría I — Altamente Peligroso (Banda Roja)">Categoría I · Banda roja</option></select></div>
-          <div><label for="suggested_dosage" class="mb-2 block text-xs font-bold text-muted-foreground">Dosis sugerida</label><input id="suggested_dosage" name="suggested_dosage" type="text" maxlength="100" placeholder="Ej. 350–500 ml/ha" class="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"></div>
-          <div><label for="safety_interval_days" class="mb-2 block text-xs font-bold text-muted-foreground">Intervalo de seguridad (días)</label><input id="safety_interval_days" name="safety_interval_days" type="number" min="0" max="3650" step="1" placeholder="Ej. 14" class="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"></div>
-          <div class="sm:col-span-2"><label for="safety_sheet_url" class="mb-2 block text-xs font-bold text-muted-foreground">Ficha técnica o de seguridad</label><input id="safety_sheet_url" name="safety_sheet_url" type="url" maxlength="2048" placeholder="https://…" class="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"></div>
-          <div class="sm:col-span-2"><label for="description" class="mb-2 block text-xs font-bold text-muted-foreground">Descripción técnica</label><textarea id="description" name="description" rows="4" maxlength="5000" placeholder="Describe el producto, sus usos y consideraciones técnicas…" class="w-full resize-y rounded-xl border border-input bg-background px-4 py-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"></textarea></div>
-        </fieldset>
-
-        <fieldset class="grid grid-cols-1 gap-4 border-t border-border pt-6 lg:grid-cols-2">
-          <legend class="col-span-full mb-1 flex items-center gap-2 text-sm font-black text-foreground"><span class="material-symbols-outlined text-primary">link</span>Vinculaciones autorizadas</legend>
-          <div class="rounded-2xl border border-border bg-muted/20 p-4">
-            <label for="crop-relation-search" class="text-xs font-bold text-foreground">Cultivos autorizados</label>
-            <div class="relative mt-2"><span class="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-base text-muted-foreground">search</span><input id="crop-relation-search" type="search" data-relation-search="crop-options" placeholder="Escribe para buscar cultivos…" class="w-full rounded-xl border border-input bg-background py-2.5 pl-9 pr-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"></div>
-            <div id="crop-options" class="mt-3 max-h-48 space-y-1 overflow-y-auto pr-1">
-              {{#each relationOptions.crops}}
-                <label class="relation-option flex cursor-pointer items-start gap-3 rounded-lg px-3 py-2 hover:bg-background" data-search-text="{{name}} {{scientific_name}}"><input type="checkbox" name="crop_ids" value="{{id}}" class="mt-0.5 rounded border-input text-primary focus:ring-primary"><span><span class="block text-xs font-bold">{{name}}</span>{{#if scientific_name}}<span class="block text-[10px] italic text-muted-foreground">{{scientific_name}}</span>{{/if}}</span></label>
-              {{else}}<p class="px-3 py-4 text-center text-xs text-muted-foreground">No hay cultivos publicados disponibles.</p>{{/each}}
-            </div>
-          </div>
-          <div class="rounded-2xl border border-border bg-muted/20 p-4">
-            <label for="plague-relation-search" class="text-xs font-bold text-foreground">Plagas objetivo</label>
-            <div class="relative mt-2"><span class="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-base text-muted-foreground">search</span><input id="plague-relation-search" type="search" data-relation-search="plague-options" placeholder="Escribe para buscar plagas…" class="w-full rounded-xl border border-input bg-background py-2.5 pl-9 pr-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"></div>
-            <div id="plague-options" class="mt-3 max-h-48 space-y-1 overflow-y-auto pr-1">
-              {{#each relationOptions.plagues}}
-                <label class="relation-option flex cursor-pointer items-start gap-3 rounded-lg px-3 py-2 hover:bg-background" data-search-text="{{name}} {{scientific_name}}"><input type="checkbox" name="plague_ids" value="{{id}}" class="mt-0.5 rounded border-input text-primary focus:ring-primary"><span><span class="block text-xs font-bold">{{name}}</span>{{#if scientific_name}}<span class="block text-[10px] italic text-muted-foreground">{{scientific_name}}</span>{{/if}}</span></label>
-              {{else}}<p class="px-3 py-4 text-center text-xs text-muted-foreground">No hay plagas publicadas disponibles.</p>{{/each}}
-            </div>
-          </div>
-          <p class="col-span-full text-[11px] text-muted-foreground">Sólo se muestran fichas publicadas. Puedes buscar y seleccionar varias opciones.</p>
-        </fieldset>
-
-        <fieldset class="border-t border-border pt-6">
-          <legend class="mb-3 flex items-center gap-2 text-sm font-black text-foreground"><span class="material-symbols-outlined text-primary">photo_library</span>Evidencia fotográfica</legend>
-          <button type="button" id="product-image-picker" class="flex w-full cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-primary/20 bg-primary/3 px-6 py-8 text-center transition hover:border-primary/40 hover:bg-primary/5"><span class="material-symbols-outlined text-4xl text-primary/50">add_photo_alternate</span><span class="mt-2 text-sm font-bold text-primary">Seleccionar imágenes</span><span class="mt-1 text-xs text-muted-foreground">Hasta 10 archivos JPG, PNG o WEBP · 5 MB por imagen</span></button>
-          <input id="image" name="images" type="file" multiple accept="image/jpeg,image/png,image/webp" class="hidden" tabindex="-1">
-          <div class="mt-3 flex items-center justify-between"><p id="selected-image-count" class="text-xs text-muted-foreground">Ninguna imagen seleccionada.</p><button type="button" id="clear-selected-images" class="hidden text-xs font-bold text-red-700 hover:underline">Quitar nuevas imágenes</button></div>
-          <div id="selected-image-preview" class="product-image-gallery mt-3 hidden grid-cols-2 gap-3 sm:grid-cols-4 md:grid-cols-5"></div>
-        </fieldset>
-
-        <aside class="flex gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-950"><span class="material-symbols-outlined text-amber-700">info</span><div><p class="text-xs font-bold">El estado no se captura manualmente</p><p class="mt-1 text-xs leading-relaxed text-amber-800">El producto iniciará como borrador y avanzará mediante revisión técnica y publicación administrativa.</p></div></aside>
+  <div class="relative z-10 flex max-h-[92vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-2xl">
+    <header class="flex items-start justify-between gap-4 border-b border-border bg-muted/25 px-6 py-4">
+      <div>
+        <span class="inline-flex items-center gap-1.5 rounded-full bg-[#e6f0e6] px-2.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-[#1b4332]">
+          <i data-lucide="flask-conical" class="w-3 h-3"></i>
+          Ficha Fitosanitaria · COFEPRIS / NOM-232
+        </span>
+        <h2 id="modal-title" class="mt-1.5 text-lg sm:text-xl font-headline font-black text-foreground">Nuevo Producto Agroquímico</h2>
+        <p class="mt-0.5 text-xs text-muted-foreground">Los registros capturados permanecen en borrador hasta su dictamen técnico y publicación.</p>
       </div>
-      <footer class="flex flex-col-reverse gap-3 border-t border-border bg-muted/30 px-6 py-4 sm:flex-row sm:justify-end"><button type="button" id="modal-product-cancel" class="rounded-xl border border-border bg-card px-5 py-2.5 text-sm font-bold hover:bg-muted">Cancelar</button><button id="btn-save-product" type="submit" class="rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground hover:bg-primary/90">Guardar producto</button></footer>
+      <button type="button" id="modal-product-close" class="inline-flex h-8 w-8 items-center justify-center rounded-xl text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer" aria-label="Cerrar">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+    </header>
+
+    <form id="product-form" action="/private/products/create" method="POST" enctype="multipart/form-data" class="flex-1 overflow-y-auto" novalidate>
+      <div class="space-y-6 p-6">
+        <div id="product-form-validation-summary" tabindex="-1" class="hidden rounded-xl border border-rose-200 bg-rose-50 p-4 text-xs text-rose-900">
+          <div class="flex items-center gap-2 font-bold">
+            <i data-lucide="alert-triangle" class="w-4 h-4 text-rose-700 shrink-0"></i>
+            <span>Corrige los siguientes campos antes de guardar:</span>
+          </div>
+          <ul class="mt-2 list-disc space-y-1 pl-5"></ul>
+        </div>
+
+        <!-- SECCIÓN 1: IDENTIFICACIÓN Y REGISTRO SANITARIO -->
+        <fieldset class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <legend class="col-span-full mb-1 flex items-center gap-2 text-sm font-headline font-bold text-[#1b4332]">
+            <i data-lucide="shield-check" class="w-4 h-4"></i>
+            1. Identificación Comercial y Registro Sanitario
+          </legend>
+
+          <div class="sm:col-span-2">
+            <label for="name" class="mb-1.5 block text-xs font-bold text-foreground">Nombre comercial *</label>
+            <input id="name" name="name" type="text" required maxlength="150" placeholder="Ej. Amistar Top, Coragen 20 SC" class="w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-xs focus:border-[#1b4332] focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20" />
+          </div>
+
+          <div>
+            <label for="category" class="mb-1.5 block text-xs font-bold text-foreground">Categoría fitosanitaria *</label>
+            <select id="category" name="category" required class="w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-xs focus:border-[#1b4332] focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20">
+              <option value="">Seleccionar categoría…</option>
+              {{#if productCategories}}
+                {{#each productCategories}}
+                  <option value="{{this}}">{{this}}</option>
+                {{/each}}
+              {{else}}
+                <option value="Herbicida">Herbicida</option>
+                <option value="Insecticida">Insecticida</option>
+                <option value="Fungicida">Fungicida</option>
+                <option value="Fertilizante">Fertilizante</option>
+                <option value="Acaricida">Acaricida</option>
+                <option value="Bactericida">Bactericida</option>
+                <option value="Nematicida">Nematicida</option>
+                <option value="Bioinsumo">Bioinsumo</option>
+                <option value="Coadyuvante">Coadyuvante</option>
+              {{/if}}
+            </select>
+          </div>
+
+          <div>
+            <label for="manufacturer" class="mb-1.5 block text-xs font-bold text-foreground">Titular / Fabricante *</label>
+            <input id="manufacturer" name="manufacturer" type="text" required maxlength="150" placeholder="Ej. Syngenta Agro, Bayer CropScience" class="w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-xs focus:border-[#1b4332] focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20" />
+          </div>
+
+          <div>
+            <label for="active_ingredient" class="mb-1.5 block text-xs font-bold text-foreground">Ingrediente activo y concentración *</label>
+            <input id="active_ingredient" name="active_ingredient" type="text" required maxlength="200" list="active-ingredients-datalist" placeholder="Ej. Azoxistrobina 20% + Difenoconazol 12.5%" class="w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-xs focus:border-[#1b4332] focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20" />
+            <datalist id="active-ingredients-datalist">
+              {{#each activeIngredients}}
+                <option value="{{name}}">{{#if chemical_group}}Grupo químico: {{chemical_group}}{{/if}}</option>
+              {{/each}}
+            </datalist>
+            {{#if activeIngredients.length}}
+              <p class="mt-1 text-[10px] text-muted-foreground">Sugerencias disponibles del catálogo oficial de ingredientes activos.</p>
+            {{/if}}
+          </div>
+
+          <div>
+            <label for="registration_code" class="mb-1.5 block text-xs font-bold text-foreground">Registro COFEPRIS (RSCO) *</label>
+            <input id="registration_code" name="registration_code" type="text" required maxlength="100" placeholder="Ej. RSCO-MEZC-1101E-301-064-033" class="w-full rounded-xl border border-input bg-background px-3.5 py-2.5 font-mono text-xs focus:border-[#1b4332] focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20" />
+          </div>
+
+          <div>
+            <label for="expiration_date" class="mb-1.5 block text-xs font-bold text-foreground">Vigencia del registro</label>
+            <input id="expiration_date" name="expiration_date" type="date" class="w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-xs focus:border-[#1b4332] focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20" />
+          </div>
+
+          <div>
+            <label for="formulation_type" class="mb-1.5 block text-xs font-bold text-foreground">Tipo de formulación</label>
+            <input id="formulation_type" name="formulation_type" type="text" maxlength="100" placeholder="Ej. Suspensión concentrada (SC)" class="w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-xs focus:border-[#1b4332] focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20" />
+          </div>
+        </fieldset>
+
+        <!-- SECCIÓN 2: PARÁMETROS AGRONÓMICOS Y SEGURIDAD NOM-232 -->
+        <fieldset class="grid grid-cols-1 gap-4 border-t border-border pt-6 sm:grid-cols-2">
+          <legend class="col-span-full mb-1 flex items-center gap-2 text-sm font-headline font-bold text-[#1b4332]">
+            <i data-lucide="activity" class="w-4 h-4"></i>
+            2. Parámetros de Aplicación y Banda Toxicológica (NOM-232-SSA1-2009)
+          </legend>
+
+          <div>
+            <label for="hazard_category" class="mb-1.5 block text-xs font-bold text-foreground">Categoría toxicológica NOM-232</label>
+            <select id="hazard_category" name="hazard_category" class="w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-xs focus:border-[#1b4332] focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20">
+              <option value="">Sin clasificar / No aplica</option>
+              {{#if hazardCategories}}
+                {{#each hazardCategories}}
+                  <option value="{{value}}">{{value}}</option>
+                {{/each}}
+              {{else}}
+                <option value="Categoría IV — Precaución (Banda Verde)">Categoría IV · Precaución (Banda Verde)</option>
+                <option value="Categoría III — Ligeramente Peligroso (Banda Azul)">Categoría III · Ligeramente Peligroso (Banda Azul)</option>
+                <option value="Categoría II — Moderadamente Peligroso (Banda Amarilla)">Categoría II · Moderadamente Peligroso (Banda Amarilla)</option>
+                <option value="Categoría I — Altamente Peligroso (Banda Roja)">Categoría I · Altamente Peligroso (Banda Roja)</option>
+              {{/if}}
+            </select>
+          </div>
+
+          <div>
+            <label for="mode_of_action" class="mb-1.5 block text-xs font-bold text-foreground">Modo y mecanismo de acción</label>
+            <input id="mode_of_action" name="mode_of_action" type="text" maxlength="200" placeholder="Ej. Sistémico y translaminar (IRAC / FRAC)" class="w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-xs focus:border-[#1b4332] focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20" />
+          </div>
+
+          <div>
+            <label for="suggested_dosage" class="mb-1.5 block text-xs font-bold text-foreground">Dosis agronómica sugerida</label>
+            <input id="suggested_dosage" name="suggested_dosage" type="text" maxlength="100" placeholder="Ej. 0.5 – 0.75 L/ha" class="w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-xs focus:border-[#1b4332] focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20" />
+          </div>
+
+          <div>
+            <label for="safety_interval_days" class="mb-1.5 block text-xs font-bold text-foreground">Intervalo de seguridad a cosecha (días)</label>
+            <input id="safety_interval_days" name="safety_interval_days" type="number" min="0" max="3650" step="1" placeholder="Ej. 14 (usa 0 si es exento / sin límite)" class="w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-xs focus:border-[#1b4332] focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20" />
+          </div>
+
+          <div class="sm:col-span-2">
+            <label for="target_crops" class="mb-1.5 block text-xs font-bold text-foreground">Resumen de cultivos objetivo en etiqueta</label>
+            <input id="target_crops" name="target_crops" type="text" maxlength="1000" placeholder="Ej. Maíz, jitomate, chile, aguacate y cucurbitáceas" class="w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-xs focus:border-[#1b4332] focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20" />
+          </div>
+
+          <div class="sm:col-span-2">
+            <label for="safety_sheet_url" class="mb-1.5 block text-xs font-bold text-foreground">Enlace externo a Hoja de Seguridad (HDS / MSDS opcional)</label>
+            <input id="safety_sheet_url" name="safety_sheet_url" type="url" maxlength="2048" placeholder="https://…" class="w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-xs focus:border-[#1b4332] focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20" />
+          </div>
+
+          <div class="sm:col-span-2">
+            <label for="description" class="mb-1.5 block text-xs font-bold text-foreground">Descripción técnica y recomendaciones de manejo</label>
+            <textarea id="description" name="description" rows="4" maxlength="5000" placeholder="Describe el espectro de control, época de aplicación, compatibilidad y precauciones…" class="w-full resize-y rounded-xl border border-input bg-background px-3.5 py-2.5 text-xs leading-relaxed focus:border-[#1b4332] focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20"></textarea>
+          </div>
+        </fieldset>
+
+        <!-- SECCIÓN 3: VINCULACIONES FITOSANITARIAS -->
+        <fieldset class="grid grid-cols-1 gap-4 border-t border-border pt-6 lg:grid-cols-2">
+          <legend class="col-span-full mb-1 flex items-center gap-2 text-sm font-headline font-bold text-[#1b4332]">
+            <i data-lucide="link-2" class="w-4 h-4"></i>
+            3. Vinculación con Catálogos Publicados
+          </legend>
+
+          <div class="rounded-2xl border border-border bg-muted/20 p-4">
+            <div class="flex items-center justify-between gap-2">
+              <label for="crop-relation-search" class="text-xs font-bold text-foreground">Cultivos autorizados</label>
+              <span id="crop-selected-count" class="rounded-full bg-[#e6f0e6] px-2 py-0.5 font-mono text-[10px] font-bold text-[#1b4332]">0 seleccionados</span>
+            </div>
+            <div class="relative mt-2">
+              <i data-lucide="search" class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground"></i>
+              <input id="crop-relation-search" type="search" data-relation-search="crop-options" placeholder="Filtrar cultivos…" class="w-full rounded-xl border border-input bg-background py-2 pl-9 pr-3 text-xs focus:border-[#1b4332] focus:outline-hidden" />
+            </div>
+            <div id="crop-options" data-counter-target="crop-selected-count" class="mt-2.5 max-h-44 space-y-1 overflow-y-auto pr-1">
+              {{#each relationOptions.crops}}
+                <label class="relation-option flex cursor-pointer items-start gap-2.5 rounded-lg px-2.5 py-1.5 hover:bg-background transition-colors" data-search-text="{{name}} {{scientific_name}}">
+                  <input type="checkbox" name="crop_ids" value="{{id}}" class="mt-0.5 rounded border-input accent-[#1b4332]" />
+                  <span class="min-w-0">
+                    <span class="block text-xs font-semibold text-foreground">{{name}}</span>
+                    {{#if scientific_name}}<span class="block text-[10px] italic text-muted-foreground">{{scientific_name}}</span>{{/if}}
+                  </span>
+                </label>
+              {{else}}
+                <p class="px-3 py-4 text-center text-xs text-muted-foreground">No hay cultivos publicados disponibles.</p>
+              {{/each}}
+            </div>
+          </div>
+
+          <div class="rounded-2xl border border-border bg-muted/20 p-4">
+            <div class="flex items-center justify-between gap-2">
+              <label for="plague-relation-search" class="text-xs font-bold text-foreground">Plagas y patógenos objetivo</label>
+              <span id="plague-selected-count" class="rounded-full bg-[#e6f0e6] px-2 py-0.5 font-mono text-[10px] font-bold text-[#1b4332]">0 seleccionados</span>
+            </div>
+            <div class="relative mt-2">
+              <i data-lucide="search" class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground"></i>
+              <input id="plague-relation-search" type="search" data-relation-search="plague-options" placeholder="Filtrar plagas…" class="w-full rounded-xl border border-input bg-background py-2 pl-9 pr-3 text-xs focus:border-[#1b4332] focus:outline-hidden" />
+            </div>
+            <div id="plague-options" data-counter-target="plague-selected-count" class="mt-2.5 max-h-44 space-y-1 overflow-y-auto pr-1">
+              {{#each relationOptions.plagues}}
+                <label class="relation-option flex cursor-pointer items-start gap-2.5 rounded-lg px-2.5 py-1.5 hover:bg-background transition-colors" data-search-text="{{name}} {{scientific_name}}">
+                  <input type="checkbox" name="plague_ids" value="{{id}}" class="mt-0.5 rounded border-input accent-[#1b4332]" />
+                  <span class="min-w-0">
+                    <span class="block text-xs font-semibold text-foreground">{{name}}</span>
+                    {{#if scientific_name}}<span class="block text-[10px] italic text-muted-foreground">{{scientific_name}}</span>{{/if}}
+                  </span>
+                </label>
+              {{else}}
+                <p class="px-3 py-4 text-center text-xs text-muted-foreground">No hay plagas publicadas disponibles.</p>
+              {{/each}}
+            </div>
+          </div>
+          <p class="col-span-full text-[11px] text-muted-foreground">Sólo se listan cultivos y plagas con estado editorial publicado.</p>
+        </fieldset>
+
+        <!-- SECCIÓN 4: GALERÍA DE ENVASE Y ETIQUETA -->
+        <fieldset class="border-t border-border pt-6">
+          <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <legend class="flex items-center gap-2 text-sm font-headline font-bold text-[#1b4332]">
+              <i data-lucide="images" class="w-4 h-4"></i>
+              4. Evidencia Visual de Envase y Etiqueta
+            </legend>
+            <span id="product-image-counter" class="rounded-full border border-border bg-muted/50 px-2.5 py-0.5 font-mono text-[10px] font-bold text-muted-foreground">0 / 10 fotos</span>
+          </div>
+
+          <input type="hidden" id="product-removed-image-ids" name="removed_image_ids" value="" />
+          <input type="hidden" id="product-primary-image-id" name="primary_image_id" value="" />
+          <input id="image" name="images" type="file" multiple accept="image/jpeg,image/png,image/webp" class="hidden" tabindex="-1" />
+
+          <button type="button" id="product-image-picker" class="flex w-full cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#1b4332]/25 bg-[#e6f0e6]/25 px-6 py-7 text-center transition-all hover:border-[#1b4332]/50 hover:bg-[#e6f0e6]/45">
+            <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-[#1b4332]/10 text-[#1b4332]">
+              <i data-lucide="upload-cloud" class="w-5 h-5"></i>
+            </span>
+            <span class="mt-2 text-xs font-bold text-[#1b4332]">Haz clic o arrastra imágenes del producto aquí</span>
+            <span class="mt-1 text-[11px] text-muted-foreground">Hasta 10 archivos JPG, PNG o WEBP · Máximo 5 MB por fotografía</span>
+          </button>
+
+          <p id="product-image-error" class="mt-2 hidden text-xs font-semibold text-rose-700"></p>
+          <p id="product-existing-images-note" class="mt-2 hidden text-[11px] text-muted-foreground">
+            Puedes elegir cuál fotografía será la portada principal o retirar imágenes individuales antes de guardar.
+          </p>
+
+          <div class="mt-2.5 flex items-center justify-between">
+            <p id="selected-image-count" class="text-xs text-muted-foreground">Ninguna imagen seleccionada.</p>
+            <button type="button" id="clear-selected-images" class="hidden text-xs font-bold text-rose-700 hover:underline cursor-pointer">
+              Descartar nuevas imágenes
+            </button>
+          </div>
+
+          <div id="selected-image-preview" class="mt-3 hidden grid-cols-2 gap-3 sm:grid-cols-4 md:grid-cols-5"></div>
+        </fieldset>
+
+        <aside class="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50/80 p-4 text-amber-950">
+          <i data-lucide="info" class="w-4 h-4 text-amber-700 shrink-0 mt-0.5"></i>
+          <div>
+            <p class="text-xs font-bold">Control editorial institucional</p>
+            <p class="mt-0.5 text-[11px] leading-relaxed text-amber-800">
+              Las fichas nuevas inician como borrador privado (<code class="font-mono">draft</code>) y no son visibles en el portal público ni en bitácoras de parcelas hasta su publicación administrativa.
+            </p>
+          </div>
+        </aside>
+      </div>
+
+      <footer class="flex flex-col-reverse gap-2.5 border-t border-border bg-muted/30 px-6 py-4 sm:flex-row sm:justify-end">
+        <button type="button" id="modal-product-cancel" class="rounded-xl border border-border bg-card px-5 py-2.5 text-xs font-bold text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer">
+          Cancelar
+        </button>
+        <button id="btn-save-product" type="submit" class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#1b4332] px-5 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-[#2d6a4f] transition-colors cursor-pointer">
+          <i data-lucide="save" class="w-4 h-4"></i>
+          <span>Guardar producto</span>
+        </button>
+      </footer>
     </form>
   </div>
 </div>

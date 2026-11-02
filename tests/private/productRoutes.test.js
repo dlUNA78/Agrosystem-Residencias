@@ -143,23 +143,53 @@ describe('rutas privadas de productos', () => {
     expect(detail.text).toContain('data-product-gallery-next');
   });
 
-  it('crea siempre un borrador e ignora estados manipulados', async () => {
+  it('crea siempre un borrador inactivo e ignora estados manipulados', async () => {
     const name = 'Producto creado por ruta QA';
     const response = await authorAgent.post('/private/products/create').send({
       ...completeData,
       name,
       workflow_status: 'published',
       validation_status: 'Aprobado',
-      status: false,
+      status: true,
     });
     const created = await Product.findOne({ where: { name } });
     try {
       expect(response.status).toBe(302);
       expect(created.workflow_status).toBe('draft');
+      expect(created.status).toBe(false);
       expect(created.created_by_user_id).toBe(author.id);
     } finally {
       if (created) await created.destroy();
     }
+  });
+
+  it('retorna payload JSON editable en GET /private/products/:id con Accept application/json', async () => {
+    const res = await authorAgent
+      .get(`/private/products/${product.id}`)
+      .set('Accept', 'application/json');
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.product.id).toBe(product.id);
+    expect(res.body.readiness.isReady).toBe(true);
+  });
+
+  it('permite actualizar relaciones técnicas dedicadas al autor y rechaza al revisor', async () => {
+    const denied = await reviewerAgent
+      .post(`/private/products/${product.id}/relations`)
+      .send({ crop_ids: String(crop.id), plague_ids: String(plague.id) });
+    expect(denied.status).toBe(403);
+
+    const allowed = await authorAgent
+      .post(`/private/products/${product.id}/relations`)
+      .send({ crop_ids: String(crop.id), plague_ids: String(plague.id) });
+    expect(allowed.status).toBe(302);
+
+    const [crops, plagues] = await Promise.all([
+      product.getCrops(),
+      product.getPlagues(),
+    ]);
+    expect(crops.map((c) => c.id)).toContain(crop.id);
+    expect(plagues.map((p) => p.id)).toContain(plague.id);
   });
 
   it('permite editar al autor y rechaza al revisor', async () => {

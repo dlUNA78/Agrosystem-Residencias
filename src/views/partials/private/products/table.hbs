@@ -1,18 +1,79 @@
 <section id="products-table-view" class="hidden overflow-hidden rounded-2xl border border-border/80 bg-card shadow-2xs" aria-label="Productos en tabla">
   <div class="overflow-x-auto">
-    <table class="w-full min-w-225 text-left">
-      <thead class="border-b border-border bg-muted/50"><tr><th class="px-5 py-4 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Producto</th><th class="px-5 py-4 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Identificación</th><th class="px-5 py-4 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Fabricante</th><th class="px-5 py-4 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Estado editorial</th><th class="px-5 py-4 text-right text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Acciones</th></tr></thead>
-      <tbody class="divide-y divide-border/70">
+    <table class="w-full min-w-235 text-left border-collapse">
+      <thead class="border-b border-border bg-muted/45">
+        <tr>
+          <th class="px-5 py-3.5 font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Producto / Ingrediente</th>
+          <th class="px-5 py-3.5 font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Registro COFEPRIS</th>
+          <th class="px-5 py-3.5 font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Banda NOM-232</th>
+          <th class="px-5 py-3.5 font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Fabricante / Uso</th>
+          <th class="px-5 py-3.5 font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Estado Editorial</th>
+          <th class="px-5 py-3.5 text-right font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Acciones</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-border/70 text-xs">
         {{#each products}}
-          <tr class="transition hover:bg-muted/30">
-            <td class="px-5 py-4"><div class="flex items-center gap-3"><div class="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-muted p-1"><img src="{{image_url}}" alt="" class="h-full w-full object-contain" data-fallback-src="/images/test/default.png"></div><div><a href="/private/products/{{id}}" class="text-sm font-bold hover:text-primary">{{name}}</a><p class="mt-0.5 text-xs text-muted-foreground">{{active_ingredient}}</p></div></div></td>
-            <td class="px-5 py-4"><p class="text-xs font-bold">{{category}}</p><p class="mt-1 font-mono text-[10px] text-muted-foreground">{{registration_code}}</p></td>
-            <td class="px-5 py-4 text-xs">{{manufacturer}}</td>
-            <td class="px-5 py-4">{{> private/products/workflow-badge}}</td>
-            <td class="px-5 py-4"><div class="flex justify-end gap-1"><a href="/private/products/{{id}}" class="rounded-lg p-2 text-primary hover:bg-primary/10" aria-label="Ver {{name}}"><span class="material-symbols-outlined text-lg">visibility</span></a>{{#if canEditRecord}}<button type="button" class="btn-edit-product rounded-lg p-2 text-primary hover:bg-primary/10" data-id="{{id}}" aria-label="Editar {{name}}"><span class="material-symbols-outlined text-lg">edit</span></button>{{/if}}{{#if canDeleteRecord}}<button type="button" data-delete-btn data-id="{{id}}" data-name="{{name}}" class="rounded-lg p-2 text-red-700 hover:bg-red-50" aria-label="Eliminar {{name}}"><span class="material-symbols-outlined text-lg">delete</span></button>{{/if}}</div></td>
+          <tr class="transition-colors hover:bg-muted/30">
+            <td class="px-5 py-3.5">
+              <div class="flex items-center gap-3.5">
+                <div class="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border/70 bg-slate-50 p-1.5">
+                  <img src="{{image_url}}" alt="{{name}}" loading="lazy" class="h-full w-full object-contain" data-fallback-src="/images/products/default.png" />
+                </div>
+                <div class="min-w-0">
+                  <div class="flex items-center gap-1.5">
+                    <span class="font-mono text-[10px] font-bold text-muted-foreground">#{{id}}</span>
+                    <a href="/private/products/{{id}}" class="truncate text-sm font-bold text-foreground hover:text-[#1b4332] transition-colors">{{name}}</a>
+                  </div>
+                  <p class="mt-0.5 truncate text-xs font-medium text-[#2d6a4f]">{{active_ingredient}}</p>
+                </div>
+              </div>
+            </td>
+            <td class="px-5 py-3.5">
+              <span class="inline-block rounded-md bg-[#e6f0e6] px-2 py-0.5 font-mono text-[10px] font-bold uppercase text-[#1b4332]">{{category}}</span>
+              <p class="mt-1 font-mono text-[11px] font-semibold text-foreground">{{registration_code}}</p>
+              {{#if expirationDateFormatted}}
+                <p class="mt-0.5 text-[10px] text-muted-foreground">Vence: {{expirationDateFormatted}}</p>
+              {{/if}}
+            </td>
+            <td class="px-5 py-3.5">
+              <span class="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold {{hazardTheme.badgeClass}}">
+                <span class="h-1.5 w-1.5 rounded-full {{hazardTheme.dotClass}}"></span>
+                {{hazardTheme.shortLabel}}
+              </span>
+            </td>
+            <td class="px-5 py-3.5">
+              <p class="font-bold text-foreground">{{manufacturer}}</p>
+              {{#if suggested_dosage}}
+                <p class="mt-0.5 text-[11px] text-muted-foreground">Dosis: {{suggested_dosage}}</p>
+              {{/if}}
+            </td>
+            <td class="px-5 py-3.5">
+              {{> private/products/workflow-badge}}
+            </td>
+            <td class="px-5 py-3.5">
+              <div class="flex justify-end items-center gap-1">
+                <a href="/private/products/{{id}}" title="Ver expediente" aria-label="Ver {{name}}" class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-[#1b4332] hover:bg-[#e6f0e6]/70 transition-colors">
+                  <i data-lucide="eye" class="w-4 h-4"></i>
+                </a>
+                {{#if canEditRecord}}
+                  <button type="button" class="btn-edit-product inline-flex h-8 w-8 items-center justify-center rounded-lg text-[#1b4332] hover:bg-[#e6f0e6]/70 transition-colors cursor-pointer" data-id="{{id}}" title="Editar producto" aria-label="Editar {{name}}">
+                    <i data-lucide="pencil" class="w-4 h-4"></i>
+                  </button>
+                {{/if}}
+                {{#if canDeleteRecord}}
+                  <button type="button" data-delete-btn data-id="{{id}}" data-name="{{name}}" title="Eliminar producto" aria-label="Eliminar {{name}}" class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-rose-700 hover:bg-rose-50 transition-colors cursor-pointer">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                  </button>
+                {{/if}}
+              </div>
+            </td>
           </tr>
         {{else}}
-          <tr><td colspan="5" class="px-6 py-14 text-center text-sm text-muted-foreground">No hay productos para mostrar.</td></tr>
+          <tr>
+            <td colspan="6" class="px-6 py-14 text-center text-xs text-muted-foreground">
+              No hay productos registrados que coincidan con los filtros seleccionados.
+            </td>
+          </tr>
         {{/each}}
       </tbody>
     </table>

@@ -29,6 +29,28 @@ describe('workflow y RBAC de productos', () => {
     ).toBe(expected);
   });
 
+  it('mantiene status=true únicamente al publicar y status=false al archivar o restaurar', () => {
+    const published = transitionProductWorkflow({
+      currentStatus: 'verified',
+      action: 'publish',
+      actor: { id: 1 },
+    });
+    const archived = transitionProductWorkflow({
+      currentStatus: 'published',
+      action: 'archive',
+      actor: { id: 1 },
+    });
+    const restored = transitionProductWorkflow({
+      currentStatus: 'archived',
+      action: 'restore',
+      actor: { id: 1 },
+    });
+
+    expect(published.status).toBe(true);
+    expect(archived.status).toBe(false);
+    expect(restored.status).toBe(false);
+  });
+
   it('exige observaciones para solicitar cambios', () => {
     expect(() =>
       transitionProductWorkflow({

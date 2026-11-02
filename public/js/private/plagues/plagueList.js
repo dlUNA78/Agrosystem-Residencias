@@ -75,6 +75,29 @@ const syncFilterInputsFromUrl = (urlString) => {
   if (searchInput) searchInput.value = params.get('search') || '';
   if (categorySelect) categorySelect.value = params.get('category') || '';
   if (workflowSelect) workflowSelect.value = params.get('workflow') || '';
+  updatePrivatePlagueActiveCount();
+};
+
+const updatePrivatePlagueActiveCount = () => {
+  const badge = document.getElementById('private-plagues-active-filters-count');
+  const toggleBtn = document.getElementById(
+    'toggle-private-plagues-filters-btn',
+  );
+  if (!badge && !toggleBtn) return;
+
+  const count = Array.from(
+    document.querySelectorAll('#plague-filter-form .filter-select'),
+  ).filter((select) => Boolean(select.value)).length;
+
+  if (badge) {
+    badge.textContent = String(count);
+    badge.classList.toggle('hidden', count === 0);
+  }
+  if (toggleBtn) {
+    toggleBtn.classList.toggle('bg-emerald-50', count > 0);
+    toggleBtn.classList.toggle('border-emerald-300', count > 0);
+    toggleBtn.classList.toggle('text-[#1b4332]', count > 0);
+  }
 };
 
 export const applyCatalogDocument = (
@@ -163,6 +186,19 @@ const initializeAsyncFiltersAndLinks = () => {
   const form = document.getElementById('plague-filter-form');
   const searchInput = document.getElementById('plague-search');
   const workflowSelect = document.getElementById('filter-workflow');
+  const toggleBtn = document.getElementById(
+    'toggle-private-plagues-filters-btn',
+  );
+  const collapsibleFilters = document.getElementById(
+    'private-plagues-collapsible-filters',
+  );
+
+  toggleBtn?.addEventListener('click', () => {
+    if (!collapsibleFilters) return;
+    const isHidden = collapsibleFilters.classList.contains('hidden');
+    collapsibleFilters.classList.toggle('hidden', !isHidden);
+    toggleBtn.setAttribute('aria-expanded', String(isHidden));
+  });
 
   form?.addEventListener('submit', (event) => {
     event.preventDefault();
@@ -170,13 +206,18 @@ const initializeAsyncFiltersAndLinks = () => {
   });
 
   document.querySelectorAll('.filter-select').forEach((select) => {
-    select.addEventListener('change', submitFilterFormAsync);
+    select.addEventListener('change', () => {
+      updatePrivatePlagueActiveCount();
+      submitFilterFormAsync();
+    });
   });
 
   searchInput?.addEventListener('input', () => {
     clearTimeout(searchDebounceTimer);
     searchDebounceTimer = window.setTimeout(submitFilterFormAsync, 320);
   });
+
+  updatePrivatePlagueActiveCount();
 
   document.addEventListener('click', (event) => {
     const pill = event.target.closest('[data-workflow-pill]');

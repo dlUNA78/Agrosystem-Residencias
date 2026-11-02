@@ -347,7 +347,9 @@ describe('operaciones del expediente de terrenos', () => {
     );
 
     expect(mockDb.Product.findOne).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { id: 15, status: true } }),
+      expect.objectContaining({
+        where: { id: 15, status: true, workflow_status: 'published' },
+      }),
     );
     expect(mockDb.FarmApplication.create).toHaveBeenCalledWith(
       expect.objectContaining({

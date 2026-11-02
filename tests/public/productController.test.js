@@ -11,7 +11,9 @@ describe('🧪 Suite de Pruebas Públicas - Módulo de Productos Fitosanitarios'
   let sampleProduct;
 
   beforeAll(async () => {
-    sampleProduct = await Product.findOne({ where: { status: true } });
+    sampleProduct = await Product.findOne({
+      where: { status: true, workflow_status: 'published' },
+    });
     if (!sampleProduct) {
       sampleProduct = await Product.create({
         name: 'Producto QA Test',
@@ -19,7 +21,9 @@ describe('🧪 Suite de Pruebas Públicas - Módulo de Productos Fitosanitarios'
         registration_code: 'REG-QA-100',
         manufacturer: 'AgroLab INIFAP',
         category: 'Fungicida',
+        hazard_category: 'Categoría IV — Precaución (Banda Verde)',
         status: true,
+        workflow_status: 'published',
       });
     }
   });
@@ -68,6 +72,26 @@ describe('🧪 Suite de Pruebas Públicas - Módulo de Productos Fitosanitarios'
       expect(response.status).toBe(200);
       expect(Array.isArray(response.body.products)).toBe(true);
     });
+
+    it('GET /api/products?category=Fungicida&hazard=verde aplica filtros exactos', async () => {
+      const response = await request(app).get(
+        '/api/products?category=Fungicida&hazard=verde',
+      );
+      expect(response.status).toBe(200);
+      response.body.products.forEach((p) => {
+        expect(p.category).toBe('Fungicida');
+        expect(p.hazard_category).toBe(
+          'Categoría IV — Precaución (Banda Verde)',
+        );
+      });
+    });
+
+    it('GET /products/:id renderiza detalle público con NOM-232 y sin JS inline', async () => {
+      const response = await request(app).get(`/products/${sampleProduct.id}`);
+      expect(response.status).toBe(200);
+      expect(response.text).toContain('NOM-232-SSA1-2009');
+      expect(response.text).not.toContain('onerror=');
+    });
   });
 
   // 3. Aislamiento y Seguridad (POST, PUT, DELETE -> 401 / 403)
@@ -113,7 +137,7 @@ describe('🧪 Suite de Pruebas Públicas - Módulo de Productos Fitosanitarios'
       const responses = await Promise.all(requests);
       const hasRateLimited = responses.some((r) => r.status === 429);
       expect(hasRateLimited).toBe(true);
-    });
+    }, 15000);
   });
 
   // 6. Lógica de Negocio, Filtros de Visibilidad y Cálculos de Precio

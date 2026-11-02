@@ -67,7 +67,11 @@ const resolveReportPlague = async (validatedInput, transaction) => {
 const resolveApplicationProduct = async (validatedInput, transaction) => {
   if (validatedInput.product_id) {
     const product = await Product.findOne({
-      where: { id: validatedInput.product_id, status: true },
+      where: {
+        id: validatedInput.product_id,
+        status: true,
+        workflow_status: 'published',
+      },
       transaction,
     });
     if (!product) return null;

@@ -315,6 +315,27 @@ const updateChipStyles = (containerSelector, activeValue) => {
   });
 };
 
+const updateCropActiveCount = () => {
+  const categorySelect = document.getElementById('category-crops-filter');
+  const seasonSelect = document.getElementById('season-crops-filter');
+  const countBadge = document.getElementById('crops-active-filters-count');
+  const toggleBtn = document.getElementById('toggle-crops-filters-btn');
+
+  const count = [categorySelect?.value, seasonSelect?.value].filter(
+    Boolean,
+  ).length;
+
+  if (countBadge) {
+    countBadge.textContent = String(count);
+    countBadge.classList.toggle('hidden', count === 0);
+  }
+  if (toggleBtn) {
+    toggleBtn.classList.toggle('bg-emerald-50', count > 0);
+    toggleBtn.classList.toggle('border-emerald-300', count > 0);
+    toggleBtn.classList.toggle('text-[#1b4332]', count > 0);
+  }
+};
+
 const resetAllFilters = () => {
   const searchInput = document.getElementById('search-crops-input');
   const categorySelect = document.getElementById('category-crops-filter');
@@ -326,6 +347,7 @@ const resetAllFilters = () => {
 
   updateChipStyles('#category-chips-container', '');
   updateChipStyles('#season-chips-container', '');
+  updateCropActiveCount();
 
   fetchCrops({ page: 1 });
 };
@@ -379,14 +401,32 @@ document.addEventListener('DOMContentLoaded', () => {
     triggerDebouncedFetch(1);
   });
 
+  const toggleBtn = document.getElementById('toggle-crops-filters-btn');
+  const collapsibleFilters = document.getElementById(
+    'crops-collapsible-filters',
+  );
+  const secondaryChips = document.getElementById('crops-secondary-chips');
+
+  toggleBtn?.addEventListener('click', () => {
+    if (!collapsibleFilters) return;
+    const isHidden = collapsibleFilters.classList.contains('hidden');
+    collapsibleFilters.classList.toggle('hidden', !isHidden);
+    if (secondaryChips) {
+      secondaryChips.classList.toggle('hidden', !isHidden);
+    }
+    toggleBtn.setAttribute('aria-expanded', String(isHidden));
+  });
+
   categorySelect?.addEventListener('change', () => {
     updateChipStyles('#category-chips-container', categorySelect.value);
+    updateCropActiveCount();
     const filters = getFilterValues();
     fetchCrops({ ...filters, page: 1 });
   });
 
   seasonSelect?.addEventListener('change', () => {
     updateChipStyles('#season-chips-container', seasonSelect.value);
+    updateCropActiveCount();
     const filters = getFilterValues();
     fetchCrops({ ...filters, page: 1 });
   });
@@ -399,6 +439,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const value = btn.dataset.value;
         if (categorySelect) categorySelect.value = value;
         updateChipStyles('#category-chips-container', value);
+        updateCropActiveCount();
         const filters = getFilterValues();
         fetchCrops({ ...filters, page: 1 });
       });
@@ -412,6 +453,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const value = btn.dataset.value;
         if (seasonSelect) seasonSelect.value = value;
         updateChipStyles('#season-chips-container', value);
+        updateCropActiveCount();
         const filters = getFilterValues();
         fetchCrops({ ...filters, page: 1 });
       });
@@ -432,4 +474,6 @@ document.addEventListener('DOMContentLoaded', () => {
   document
     .getElementById('btn-reset-crop-filters')
     ?.addEventListener('click', resetAllFilters);
+
+  updateCropActiveCount();
 });

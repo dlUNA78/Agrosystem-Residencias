@@ -1,0 +1,242 @@
+{{! Modal Institucional de Vista Previa y Descarga de Ficha Técnica PDF de Productos (100% Local) }}
+<div
+  id="product-pdf-preview-modal"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="product-pdf-modal-title"
+  class="no-print fixed inset-0 z-[75] hidden items-center justify-center bg-black/70 p-2 sm:p-5 backdrop-blur-xs font-['Geist']"
+>
+  <div class="flex h-[92vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-border bg-slate-100 shadow-2xl">
+    {{! Barra Superior de Acciones }}
+    <div class="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-card px-4 py-3.5 sm:px-6 shrink-0">
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 text-[#1b4332]">
+          <span class="material-symbols-outlined text-base">picture_as_pdf</span>
+        </div>
+        <div class="min-w-0">
+          <h2 id="product-pdf-modal-title" class="truncate text-sm font-headline font-bold text-foreground">
+            Vista previa de Ficha Técnica Fitosanitaria PDF
+          </h2>
+          <p class="truncate text-[11px] text-muted-foreground">
+            Expediente #{{product.id}} · {{product.name}} ({{product.registration_code}}) — Generación 100% local
+          </p>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2">
+        <div class="hidden sm:inline-flex items-center rounded-xl border border-border bg-muted/60 p-0.5 text-xs">
+          <button
+            type="button"
+            data-pdf-tab="sheet"
+            class="rounded-lg bg-card px-2.5 py-1 font-bold text-[#1b4332] shadow-2xs transition-colors cursor-pointer"
+          >
+            Hoja de datos
+          </button>
+          <button
+            type="button"
+            data-pdf-tab="native"
+            class="rounded-lg px-2.5 py-1 font-semibold text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+          >
+            Visor PDF
+          </button>
+        </div>
+
+        <a
+          id="product-pdf-download-btn"
+          href="{{#if isPrivate}}/private/products/{{product.id}}?format=pdf&download=1{{else}}/products/{{product.id}}?format=pdf&download=1{{/if}}"
+          class="inline-flex items-center gap-1.5 rounded-xl bg-[#1b4332] px-4 py-2 text-xs font-bold text-white shadow-2xs transition-colors hover:bg-[#2d6a4f] cursor-pointer"
+        >
+          <span class="material-symbols-outlined text-sm">download</span>
+          <span>Guardar PDF</span>
+        </a>
+
+        <button
+          id="product-pdf-print-action-btn"
+          type="button"
+          data-pdf-print-url="{{#if isPrivate}}/private/products/{{product.id}}?format=pdf{{else}}/products/{{product.id}}?format=pdf{{/if}}"
+          class="inline-flex items-center gap-1.5 rounded-xl border border-border bg-card px-3.5 py-2 text-xs font-bold text-foreground shadow-2xs transition-colors hover:bg-muted cursor-pointer"
+        >
+          <span class="material-symbols-outlined text-sm">print</span>
+          <span>Imprimir</span>
+        </button>
+
+        <button
+          id="product-pdf-preview-close-btn"
+          type="button"
+          class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground transition-colors hover:bg-muted hover:text-foreground cursor-pointer"
+          aria-label="Cerrar vista previa PDF"
+          title="Cerrar vista previa"
+        >
+          <span class="material-symbols-outlined text-base">close</span>
+        </button>
+      </div>
+    </div>
+
+    {{! Área de Previsualización del Documento }}
+    <div class="flex-1 overflow-y-auto p-3 sm:p-6 md:p-8">
+      {{! Vista 1: Hoja Estructurada de Datos }}
+      <div id="product-pdf-sheet-preview-pane" class="mx-auto max-w-3xl rounded-lg border border-slate-300 bg-white p-6 text-slate-900 shadow-xl sm:p-10 space-y-6">
+        <div class="flex flex-wrap items-start justify-between gap-4 rounded-lg bg-[#1b4332] p-4 text-white sm:p-5">
+          <div>
+            <p class="font-mono text-[10px] font-bold uppercase tracking-widest text-emerald-200">
+              INIFAP · PADRÓN FITOSANITARIO Y REGISTRO SANITARIO COFEPRIS
+            </p>
+            <h3 class="mt-1 text-lg sm:text-xl font-headline font-black leading-tight">
+              {{product.name}}
+            </h3>
+            <p class="mt-0.5 font-mono text-xs text-emerald-100/90">
+              Ingrediente activo: {{product.active_ingredient}}
+            </p>
+          </div>
+          <div class="text-right font-mono text-[11px]">
+            <p class="font-bold">EXPEDIENTE #{{product.id}}</p>
+            <p class="mt-0.5 text-emerald-200">{{product.registration_code}}</p>
+          </div>
+        </div>
+
+        {{! Banda Toxicológica NOM-232 }}
+        <div class="rounded-lg border p-3.5 {{product.hazardTheme.cardClass}}">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <span class="block font-mono text-[10px] font-bold uppercase tracking-wider opacity-80">Clasificación Toxicológica NOM-232-SSA1-2009</span>
+              <strong class="text-sm font-headline font-bold">{{product.hazardTheme.fullLabel}}</strong>
+              <p class="mt-0.5 text-xs {{product.hazardTheme.subtitleClass}}">{{product.hazardTheme.normSubtitle}}</p>
+            </div>
+            <span class="rounded-full border px-2.5 py-1 font-mono text-[10px] font-bold {{product.hazardTheme.badgeClass}}">
+              {{product.hazardTheme.shortLabel}}
+            </span>
+          </div>
+        </div>
+
+        {{! Identificación y Descripción }}
+        <div class="space-y-3 border-b border-slate-200 pb-5">
+          <div class="grid grid-cols-2 gap-2.5 rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs sm:grid-cols-4">
+            <div>
+              <span class="block font-mono text-[10px] uppercase text-slate-500">Categoría</span>
+              <strong class="text-slate-900">{{product.category}}</strong>
+            </div>
+            <div>
+              <span class="block font-mono text-[10px] uppercase text-slate-500">Fabricante</span>
+              <strong class="text-slate-900">{{product.manufacturer}}</strong>
+            </div>
+            <div>
+              <span class="block font-mono text-[10px] uppercase text-slate-500">Registro RSCO</span>
+              <strong class="font-mono text-slate-900">{{product.registration_code}}</strong>
+            </div>
+            <div>
+              <span class="block font-mono text-[10px] uppercase text-slate-500">Vigencia</span>
+              <strong class="text-slate-900">{{product.expiration.badgeLabel}}</strong>
+            </div>
+          </div>
+
+          <p class="text-xs leading-relaxed text-slate-700">
+            {{product.descriptionText}}
+          </p>
+        </div>
+
+        {{! 01. Parámetros Técnicos de Aplicación }}
+        <section class="space-y-2">
+          <h4 class="rounded bg-emerald-50 px-3 py-1.5 font-mono text-[11px] font-bold uppercase tracking-wider text-[#1b4332]">
+            01. Especificaciones técnicas y parámetros de aplicación
+          </h4>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            {{#each kpis}}
+              <div class="flex items-center justify-between rounded-lg border border-slate-200 p-3">
+                <span class="text-slate-500">{{this.label}}:</span>
+                <strong class="text-slate-900 {{#if this.isMono}}font-mono{{/if}}">{{this.value}}</strong>
+              </div>
+            {{/each}}
+          </div>
+          {{#if product.target_crops}}
+            <div class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs">
+              <span class="font-bold text-slate-900">Alcance en etiqueta: </span>
+              <span class="text-slate-700">{{product.target_crops}}</span>
+            </div>
+          {{/if}}
+        </section>
+
+        {{! 02. Plagas Blanco }}
+        <section class="space-y-2">
+          <h4 class="rounded bg-emerald-50 px-3 py-1.5 font-mono text-[11px] font-bold uppercase tracking-wider text-[#1b4332]">
+            02. Plagas y patógenos blanco vinculados
+          </h4>
+          {{#if product.plagues.length}}
+            <div class="overflow-x-auto rounded-lg border border-slate-200">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 font-mono text-[10px] uppercase text-slate-600 border-b border-slate-200">
+                  <tr>
+                    <th class="px-3 py-2">Organismo</th>
+                    <th class="px-3 py-2">Nombre científico</th>
+                    <th class="px-3 py-2">Categoría</th>
+                    <th class="px-3 py-2 text-right">Riesgo</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200">
+                  {{#each product.plagues}}
+                    <tr>
+                      <td class="px-3 py-2 font-bold text-slate-900">{{this.name}}</td>
+                      <td class="px-3 py-2 italic text-slate-600">{{#if this.scientific_name}}{{this.scientific_name}}{{else}}—{{/if}}</td>
+                      <td class="px-3 py-2 text-slate-600">{{this.category}}</td>
+                      <td class="px-3 py-2 text-right font-bold text-slate-800">{{#if this.risk_level}}{{this.risk_level}}{{else}}Estándar{{/if}}</td>
+                    </tr>
+                  {{/each}}
+                </tbody>
+              </table>
+            </div>
+          {{else}}
+            <p class="text-xs italic text-slate-500">Sin plagas específicas vinculadas en el catálogo institucional.</p>
+          {{/if}}
+        </section>
+
+        {{! 03. Cultivos Autorizados }}
+        <section class="space-y-2">
+          <h4 class="rounded bg-emerald-50 px-3 py-1.5 font-mono text-[11px] font-bold uppercase tracking-wider text-[#1b4332]">
+            03. Cultivos autorizados vinculados
+          </h4>
+          {{#if product.crops.length}}
+            <div class="overflow-x-auto rounded-lg border border-slate-200">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 font-mono text-[10px] uppercase text-slate-600 border-b border-slate-200">
+                  <tr>
+                    <th class="px-3 py-2">Cultivo</th>
+                    <th class="px-3 py-2">Nombre científico</th>
+                    <th class="px-3 py-2">Categoría</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200">
+                  {{#each product.crops}}
+                    <tr>
+                      <td class="px-3 py-2 font-bold text-slate-900">{{this.name}}</td>
+                      <td class="px-3 py-2 italic text-slate-600">{{#if this.scientific_name}}{{this.scientific_name}}{{else}}—{{/if}}</td>
+                      <td class="px-3 py-2 text-slate-600">{{this.category}}</td>
+                    </tr>
+                  {{/each}}
+                </tbody>
+              </table>
+            </div>
+          {{else}}
+            <p class="text-xs italic text-slate-500">Consulta la sección de alcance en etiqueta para los cultivos declarados ante COFEPRIS.</p>
+          {{/if}}
+        </section>
+
+        {{! Pie Normativo }}
+        <footer class="border-t border-slate-200 pt-4 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500">
+          <span>Estado: <strong class="text-slate-800">{{product.workflowLabel}}</strong></span>
+          <span>Validación: <strong class="text-slate-800">{{product.verifiedByLabel}}</strong></span>
+        </footer>
+      </div>
+
+      {{! Vista 2: Visor PDF Nativo Embebido }}
+      <div id="product-pdf-native-preview-pane" class="hidden h-full min-h-[70vh]">
+        <iframe
+          id="product-pdf-native-iframe"
+          title="Documento PDF de ficha técnica de producto"
+          data-pdf-url="{{#if isPrivate}}/private/products/{{product.id}}?format=pdf{{else}}/products/{{product.id}}?format=pdf{{/if}}"
+          class="h-full min-h-[72vh] w-full rounded-lg border border-slate-300 bg-white shadow-lg"
+        ></iframe>
+      </div>
+    </div>
+
+    <iframe id="product-pdf-hidden-print-frame" title="Marco auxiliar de impresión PDF de producto" class="hidden"></iframe>
+  </div>
+</div>

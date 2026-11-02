@@ -1,33 +1,109 @@
 <section id="products-grid-view" class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" aria-label="Productos en tarjetas">
   {{#each products}}
-    <article class="group flex min-h-105 flex-col overflow-hidden rounded-2xl border border-border/80 bg-card shadow-2xs transition hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md">
-      <a href="/private/products/{{id}}" class="relative flex h-48 items-center justify-center overflow-hidden bg-muted/50 p-5">
-        <img src="{{image_url}}" alt="{{name}}" class="h-full w-full object-contain transition duration-300 group-hover:scale-105" data-fallback-src="/images/test/default.png">
+    <article class="group flex min-h-108 flex-col overflow-hidden rounded-2xl border border-border/80 bg-card shadow-2xs transition-all duration-300 hover:-translate-y-0.5 hover:border-[#1b4332]/35 hover:shadow-md">
+      <div class="h-1.5 w-full {{hazardTheme.barClass}}" title="{{hazardTheme.fullLabel}}"></div>
+
+      <a href="/private/products/{{id}}" class="relative flex h-44 items-center justify-center overflow-hidden bg-gradient-to-b from-slate-50 to-muted/40 p-5 border-b border-border/50">
+        <img src="{{image_url}}" alt="{{name}}" loading="lazy" class="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105" data-fallback-src="/images/products/default.png" />
         <span class="absolute left-3 top-3">{{> private/products/workflow-badge}}</span>
-        <span class="absolute bottom-3 right-3 rounded-lg border border-white/60 bg-white/90 px-2 py-1 font-mono text-[9px] font-bold text-primary shadow-2xs">{{registration_code}}</span>
+        <span class="absolute right-3 top-3 rounded-md bg-white/90 backdrop-blur-xs border border-border/70 px-2 py-0.5 font-mono text-[10px] font-bold text-muted-foreground shadow-2xs">
+          #{{id}}
+        </span>
+        {{#if registration_code}}
+          <span class="absolute bottom-2.5 right-3 rounded-lg border border-border/70 bg-white/95 px-2 py-0.5 font-mono text-[10px] font-bold text-[#1b4332] shadow-2xs">
+            {{registration_code}}
+          </span>
+        {{/if}}
       </a>
+
       <div class="flex flex-1 flex-col p-5">
-        <div class="mb-3 flex items-center justify-between gap-3">
-          <span class="font-mono text-[10px] font-bold uppercase tracking-wider text-primary">{{category}}</span>
-          {{#if expirationDateFormatted}}<span class="text-[10px] text-muted-foreground">Vence {{expirationDateFormatted}}</span>{{/if}}
+        <div class="mb-2.5 flex flex-wrap items-center justify-between gap-1.5">
+          <span class="rounded-md bg-[#e6f0e6] px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-[#1b4332]">
+            {{category}}
+          </span>
+          <span class="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold {{hazardTheme.badgeClass}}">
+            <span class="h-1.5 w-1.5 rounded-full {{hazardTheme.dotClass}}"></span>
+            {{hazardTheme.shortLabel}}
+          </span>
         </div>
-        <h2 class="text-lg font-black leading-tight text-foreground"><a href="/private/products/{{id}}" class="hover:text-primary">{{name}}</a></h2>
-        <p class="mt-1 text-xs font-semibold text-primary/80">{{active_ingredient}}</p>
-        <p class="mt-3 line-clamp-3 text-xs leading-relaxed text-muted-foreground">{{#if description}}{{description}}{{else}}Sin descripción técnica registrada.{{/if}}</p>
-        <div class="mt-auto flex items-center justify-between gap-3 border-t border-border/70 pt-4">
-          <div class="min-w-0"><p class="truncate text-[10px] uppercase tracking-wide text-muted-foreground">Fabricante</p><p class="truncate text-xs font-bold">{{manufacturer}}</p></div>
+
+        <h2 class="text-base font-headline font-black leading-snug text-foreground line-clamp-1">
+          <a href="/private/products/{{id}}" class="hover:text-[#1b4332] transition-colors">{{name}}</a>
+        </h2>
+        <p class="mt-0.5 line-clamp-1 text-xs font-semibold text-[#2d6a4f]">{{active_ingredient}}</p>
+
+        <p class="mt-2.5 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+          {{#if description}}{{description}}{{else}}Sin descripción técnica registrada en la ficha.{{/if}}
+        </p>
+
+        <div class="mt-3 flex flex-wrap gap-1.5 text-[10px]">
+          {{#if suggested_dosage}}
+            <span class="inline-flex items-center gap-1 rounded-md border border-border/70 bg-muted/40 px-2 py-0.5 font-medium text-foreground">
+              <i data-lucide="pipette" class="w-3 h-3 text-[#2d6a4f]"></i>
+              {{suggested_dosage}}
+            </span>
+          {{/if}}
+          {{#if safetyShort}}
+            <span class="inline-flex items-center gap-1 rounded-md border border-border/70 bg-muted/40 px-2 py-0.5 font-medium text-foreground">
+              <i data-lucide="shield-alert" class="w-3 h-3 text-[#2d6a4f]"></i>
+              IS: {{safetyShort}}
+            </span>
+          {{/if}}
+          {{#if expirationDateFormatted}}
+            <span class="inline-flex items-center gap-1 rounded-md border border-border/70 bg-muted/40 px-2 py-0.5 font-mono text-muted-foreground">
+              Vence {{expirationDateFormatted}}
+            </span>
+          {{/if}}
+        </div>
+
+        <div class="mt-auto flex items-center justify-between gap-3 border-t border-border/70 pt-3.5">
+          <div class="min-w-0">
+            <p class="truncate text-[10px] font-mono uppercase tracking-wider text-muted-foreground">Fabricante</p>
+            <p class="truncate text-xs font-bold text-foreground">{{manufacturer}}</p>
+          </div>
           <div class="flex shrink-0 items-center gap-1">
-            <a href="/private/products/{{id}}" aria-label="Ver {{name}}" class="rounded-lg p-2 text-primary hover:bg-primary/10"><span class="material-symbols-outlined text-lg">visibility</span></a>
-            {{#if canEditRecord}}<button type="button" class="btn-edit-product rounded-lg p-2 text-primary hover:bg-primary/10" data-id="{{id}}" aria-label="Editar {{name}}"><span class="material-symbols-outlined text-lg">edit</span></button>{{/if}}
-            {{#if canDeleteRecord}}<button type="button" data-delete-btn data-id="{{id}}" data-name="{{name}}" class="rounded-lg p-2 text-red-700 hover:bg-red-50" aria-label="Eliminar {{name}}"><span class="material-symbols-outlined text-lg">delete</span></button>{{/if}}
+            <a href="/private/products/{{id}}" title="Ver expediente" aria-label="Ver {{name}}" class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-transparent text-[#1b4332] hover:border-border hover:bg-[#e6f0e6]/70 transition-colors">
+              <i data-lucide="eye" class="w-4 h-4"></i>
+            </a>
+            {{#if canEditRecord}}
+              <button type="button" class="btn-edit-product inline-flex h-8 w-8 items-center justify-center rounded-lg border border-transparent text-[#1b4332] hover:border-border hover:bg-[#e6f0e6]/70 transition-colors cursor-pointer" data-id="{{id}}" title="Editar producto" aria-label="Editar {{name}}">
+                <i data-lucide="pencil" class="w-4 h-4"></i>
+              </button>
+            {{/if}}
+            {{#if canDeleteRecord}}
+              <button type="button" data-delete-btn data-id="{{id}}" data-name="{{name}}" title="Eliminar producto" aria-label="Eliminar {{name}}" class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-transparent text-rose-700 hover:border-rose-200 hover:bg-rose-50 transition-colors cursor-pointer">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+              </button>
+            {{/if}}
           </div>
         </div>
       </div>
     </article>
   {{else}}
-    <div class="col-span-full rounded-2xl border border-dashed border-border bg-card px-6 py-16 text-center"><span class="material-symbols-outlined text-5xl text-muted-foreground/40">science_off</span><h2 class="mt-3 text-lg font-bold">No encontramos productos</h2><p class="mt-1 text-sm text-muted-foreground">Ajusta los filtros o registra una nueva ficha.</p></div>
+    <div class="col-span-full flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card px-6 py-16 text-center">
+      <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#e6f0e6] text-[#1b4332]">
+        <i data-lucide="flask-conical" class="w-7 h-7"></i>
+      </div>
+      <h2 class="mt-4 text-base font-headline font-bold text-foreground">No se encontraron productos agroquímicos</h2>
+      <p class="mt-1 max-w-md text-xs leading-relaxed text-muted-foreground">
+        No existen registros que coincidan con los criterios de búsqueda actuales. Ajusta los filtros o registra una nueva ficha técnica.
+      </p>
+      {{#if hasActiveFilters}}
+        <a href="/private/products" data-async-filter-link class="mt-4 inline-flex items-center gap-1.5 rounded-xl border border-border bg-background px-4 py-2 text-xs font-bold text-foreground hover:bg-muted transition-colors">
+          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+          Restablecer filtros
+        </a>
+      {{/if}}
+    </div>
   {{/each}}
+
   {{#if permissions.canCreate}}
-    <button type="button" id="btn-add-product-card" class="flex min-h-105 flex-col items-center justify-center rounded-2xl border-2 border-dashed border-primary/20 bg-primary/3 p-6 text-center transition hover:border-primary/40 hover:bg-primary/5"><span class="material-symbols-outlined text-4xl text-primary/50">add_circle</span><span class="mt-3 text-sm font-bold text-primary">Añadir producto</span><span class="mt-1 text-xs text-muted-foreground">Crear una nueva ficha técnica</span></button>
+    <button type="button" id="btn-add-product-card" class="group flex min-h-108 flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#1b4332]/25 bg-[#e6f0e6]/25 p-6 text-center transition-all hover:border-[#1b4332]/50 hover:bg-[#e6f0e6]/50 cursor-pointer">
+      <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#1b4332] text-white shadow-sm transition-transform group-hover:scale-105">
+        <i data-lucide="plus" class="w-6 h-6"></i>
+      </span>
+      <span class="mt-3 text-sm font-headline font-bold text-[#1b4332]">Registrar producto</span>
+      <span class="mt-1 max-w-48 text-xs text-muted-foreground">Capturar nueva ficha fitosanitaria en borrador</span>
+    </button>
   {{/if}}
 </section>

@@ -46,6 +46,7 @@ import {
   updateProduct,
   deleteProduct,
   updateProductWorkflow,
+  updateProductRelations,
 } from '../../controllers/private/productsController.js';
 import { requireRole } from '../../middlewares/authMiddleware.js';
 import {
@@ -188,6 +189,11 @@ catalogRouter.post(
   '/private/products/:id/workflow',
   requireProductWorkflowPermission,
   updateProductWorkflow,
+);
+catalogRouter.post(
+  '/private/products/:id/relations',
+  requireProductPermission(PRODUCT_PERMISSIONS.MANAGE_RELATIONS),
+  updateProductRelations,
 );
 
 // ══════════════════════════════════════════════════════════════════════════════
