@@ -1,66 +1,237 @@
-<div class="min-h-screen bg-background pb-12 text-foreground">
-  <div class="mx-auto max-w-7xl space-y-7 px-0 pt-6 md:px-4">
-    <header class="flex flex-col justify-between gap-5 border-b border-border/80 pb-7 lg:flex-row lg:items-end">
-      <div class="space-y-3">
-        <span class="inline-block rounded-full bg-primary/5 px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-wider text-primary">Catálogo agronómico · INIFAP</span>
-        <h1 class="text-3xl font-black tracking-tight text-primary md:text-4xl">Gestión de Cultivos</h1>
-        <p class="max-w-2xl text-sm leading-relaxed text-muted-foreground">Administra las fichas agronómicas, revisa su información técnica y prepara su publicación.</p>
-      </div>
-      {{#if permissions.canCreate}}
-        <button type="button" id="btn-add-crop" class="inline-flex shrink-0 items-center justify-center gap-2 self-start rounded-xl bg-primary px-5 py-3 text-xs font-bold text-primary-foreground shadow-2xs transition hover:bg-primary/90">
-          <span class="inline-flex shrink-0 text-lg" aria-hidden="true">{{> private/crops/icon name="add"}}</span>Nuevo cultivo
-        </button>
-      {{/if}}
-    </header>
-    <section aria-label="Resumen editorial de cultivos" class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-      <div class="flex items-center justify-between gap-3 rounded-2xl border border-border/80 bg-card p-5 shadow-2xs">
-        <div><p class="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Resultados</p><p class="mt-1 text-3xl font-black tabular-nums text-primary">{{stats.total}}</p><p class="mt-1 text-[11px] text-muted-foreground">Según los filtros seleccionados</p></div>
-        <span class="inline-flex shrink-0 rounded-xl bg-primary/5 p-3 text-primary" aria-hidden="true">{{> private/crops/icon name="grass"}}</span>
-      </div>
-      <a href="/private/crops?workflow=published" class="flex items-center justify-between gap-3 rounded-2xl border border-border/80 bg-card p-5 shadow-2xs transition hover:border-emerald-300">
-        <div><p class="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Publicados</p><p class="mt-1 text-3xl font-black tabular-nums text-emerald-700">{{stats.published}}</p><p class="mt-1 text-[11px] text-muted-foreground">Visibles en el catálogo público</p></div>
-        <span class="inline-flex shrink-0 rounded-xl bg-emerald-50 p-3 text-emerald-700" aria-hidden="true">{{> private/crops/icon name="public"}}</span>
-      </a>
-      <a href="/private/crops?workflow=in_review" class="flex items-center justify-between gap-3 rounded-2xl border border-border/80 bg-card p-5 shadow-2xs transition hover:border-amber-300">
-        <div><p class="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">En revisión</p><p class="mt-1 text-3xl font-black tabular-nums text-amber-700">{{stats.inReview}}</p><p class="mt-1 text-[11px] text-muted-foreground">Pendientes de evaluación técnica</p></div>
-        <span class="inline-flex shrink-0 rounded-xl bg-amber-50 p-3 text-amber-700" aria-hidden="true">{{> private/crops/icon name="fact_check"}}</span>
-      </a>
-      <a href="/private/crops?workflow=changes_requested" class="flex items-center justify-between gap-3 rounded-2xl border border-border/80 bg-card p-5 shadow-2xs transition hover:border-orange-300">
-        <div><p class="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Con cambios</p><p class="mt-1 text-3xl font-black tabular-nums text-orange-700">{{stats.changesRequested}}</p><p class="mt-1 text-[11px] text-muted-foreground">Requieren ajustes del autor</p></div>
-        <span class="inline-flex shrink-0 rounded-xl bg-orange-50 p-3 text-orange-700" aria-hidden="true">{{> private/crops/icon name="edit_note"}}</span>
-      </a>
-    </section>
-    <form method="GET" action="/private/crops" class="flex flex-wrap items-end gap-3 rounded-2xl border border-border/80 bg-card p-4 shadow-2xs" aria-label="Filtrar cultivos">
-      <div class="min-w-0 basis-full lg:flex-1">
-        <label for="crop-search" class="mb-2 block text-xs font-medium text-muted-foreground">Buscar cultivo</label>
-        <div class="relative">
-          <span class="inline-flex shrink-0 pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-lg text-muted-foreground" aria-hidden="true">{{> private/crops/icon name="search"}}</span>
-          <input id="crop-search" name="search" type="search" maxlength="120" value="{{filters.search}}" placeholder="Nombre, especie o categoría…" class="w-full rounded-xl border border-input bg-background py-2.5 pl-10 pr-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20">
+<!-- Catálogo Privado y Panel de Control Agronómico INIFAP (RBAC + KPIs + Geist Design System) -->
+<main class="min-h-screen font-['Geist'] antialiased bg-background text-foreground pb-20">
+
+    <div class="max-w-7xl mx-auto px-4 md:px-10 pt-6 space-y-6">
+
+        <!-- ===================================================== -->
+        <!-- ENCABEZADO ADMINISTRATIVO + ACCIONES SEGÚN ROL (RBAC) -->
+        <!-- ===================================================== -->
+        <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-6 border-b border-border/80 pb-6">
+            <div class="space-y-2">
+                <div class="flex flex-wrap items-center gap-2">
+                    <span class="px-3 py-1 rounded-full bg-[#e6f0e6] text-[#1b4332] text-[11px] font-mono font-bold tracking-wider uppercase">
+                        SISTEMA NACIONAL DE INFORMACIÓN AGRONÓMICA · INIFAP
+                    </span>
+                    {{#if isAdmin}}
+                    <span class="px-2.5 py-0.5 rounded-md bg-purple-100 text-purple-800 text-[10px] font-mono font-bold uppercase">
+                        ADMINISTRADOR
+                    </span>
+                    {{else}}{{#if isInifap}}
+                    <span class="px-2.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-mono font-bold uppercase">
+                        ESPECIALISTA INIFAP
+                    </span>
+                    {{else}}
+                    <span class="px-2.5 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[10px] font-mono font-bold uppercase">
+                        CONSULTA PRIVADA
+                    </span>
+                    {{/if}}{{/if}}
+                </div>
+                <h1 class="text-2xl sm:text-4xl font-headline font-black tracking-tight text-[#1b4332] leading-tight">
+                    Gestión Técnica de Cultivos Agrícolas
+                </h1>
+                <p class="max-w-2xl text-xs md:text-sm leading-relaxed text-muted-foreground">
+                    Administración de fichas agronómicas, requerimientos edafoclimáticos, vinculación fitosanitaria y dictamen editorial.
+                </p>
+            </div>
+
+            <!-- Botones de Acción (Protegidos por RBAC) -->
+            <div class="flex items-center gap-2.5 shrink-0">
+                {{#if permissions.canCreate}}
+                <button type="button" id="btn-add-crop"
+                    class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#1b4332] text-white text-xs font-bold hover:bg-[#2d6a4f] transition-all shadow-md active:scale-95 cursor-pointer">
+                    <i data-lucide="plus" class="w-4 h-4"></i>
+                    <span>Nuevo Cultivo</span>
+                </button>
+                {{/if}}
+            </div>
         </div>
-      </div>
-      {{#each searchFilters}}
-        <div class="min-w-0 flex-1 basis-40 lg:flex-none">
-          <label for="{{id}}" class="mb-2 block text-xs font-medium text-muted-foreground">{{label}}</label>
-          <select id="{{id}}" name="{{param}}" class="w-full rounded-xl border border-input bg-background px-3 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20">
-            <option value="">Todos</option>
-            {{#each options}}<option value="{{value}}" {{#if selected}}selected{{/if}}>{{text}}</option>{{/each}}
-          </select>
+
+        <!-- ===================================================== -->
+        <!-- TARJETAS KPIS INTERACTIVAS DE FLUJO EDITORIAL         -->
+        <!-- ===================================================== -->
+        <div id="crops-kpi-region" class="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
+
+            <!-- KPI 1: Total Cultivos (Acceso rápido a Todos) -->
+            <a href="/private/crops"
+                class="group bg-card border {{#unless filters.workflow}}border-[#1b4332]/40 ring-1 ring-[#1b4332]/15{{else}}border-border/80 hover:border-[#1b4332]/40{{/unless}} rounded-2xl p-4 sm:p-5 shadow-2xs flex items-center justify-between transition-all">
+                <div>
+                    <p class="text-[10px] sm:text-[11px] font-mono font-bold uppercase tracking-wider text-muted-foreground">Total Catalogados</p>
+                    <h3 class="text-2xl sm:text-3xl font-headline font-black text-[#1b4332] mt-1 tabular-nums">{{stats.total}}</h3>
+                    <p class="text-[11px] text-muted-foreground mt-1 flex items-center gap-1">
+                        <i data-lucide="database" class="w-3.5 h-3.5 text-[#2d6a4f]"></i>
+                        <span>Padrón general</span>
+                    </p>
+                </div>
+                <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-[#e6f0e6] text-[#1b4332] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                    <i data-lucide="sprout" class="w-5 h-5 sm:w-6 sm:h-6"></i>
+                </div>
+            </a>
+
+            <!-- KPI 2: Cultivos publicados -->
+            <a href="/private/crops?workflow=published"
+                class="group bg-card border {{#if (eq filters.workflow 'published')}}border-emerald-500 ring-1 ring-emerald-500/20{{else}}border-border/80 hover:border-emerald-400{{/if}} rounded-2xl p-4 sm:p-5 shadow-2xs flex items-center justify-between transition-all">
+                <div>
+                    <p class="text-[10px] sm:text-[11px] font-mono font-bold uppercase tracking-wider text-muted-foreground">Publicados</p>
+                    <h3 class="text-2xl sm:text-3xl font-headline font-black text-emerald-700 mt-1 tabular-nums">{{stats.published}}</h3>
+                    <p class="text-[11px] text-emerald-700 mt-1 flex items-center gap-1 font-medium">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span>Visibles al público</span>
+                    </p>
+                </div>
+                <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                    <i data-lucide="globe" class="w-5 h-5 sm:w-6 sm:h-6"></i>
+                </div>
+            </a>
+
+            <!-- KPI 3: Pendientes de Verificación / Revisión -->
+            <a href="/private/crops?workflow=in_review"
+                class="group bg-card border {{#if (eq filters.workflow 'in_review')}}border-amber-500 ring-1 ring-amber-500/20{{else}}border-border/80 hover:border-amber-400{{/if}} rounded-2xl p-4 sm:p-5 shadow-2xs flex items-center justify-between transition-all">
+                <div>
+                    <p class="text-[10px] sm:text-[11px] font-mono font-bold uppercase tracking-wider text-muted-foreground">En Revisión</p>
+                    <h3 class="text-2xl sm:text-3xl font-headline font-black text-amber-600 mt-1 tabular-nums">{{stats.inReview}}</h3>
+                    <p class="text-[11px] text-amber-700 mt-1 flex items-center gap-1 font-medium">
+                        <i data-lucide="clock" class="w-3.5 h-3.5"></i>
+                        <span>Evaluación técnica</span>
+                    </p>
+                </div>
+                <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                    <i data-lucide="file-check" class="w-5 h-5 sm:w-6 sm:h-6"></i>
+                </div>
+            </a>
+
+            <!-- KPI 4: Con Cambios Solicitados -->
+            <a href="/private/crops?workflow=changes_requested"
+                class="group bg-card border {{#if (eq filters.workflow 'changes_requested')}}border-orange-500 ring-1 ring-orange-500/20{{else}}border-border/80 hover:border-orange-400{{/if}} rounded-2xl p-4 sm:p-5 shadow-2xs flex items-center justify-between transition-all">
+                <div>
+                    <p class="text-[10px] sm:text-[11px] font-mono font-bold uppercase tracking-wider text-muted-foreground">Con Cambios</p>
+                    <h3 class="text-2xl sm:text-3xl font-headline font-black text-orange-600 mt-1 tabular-nums">{{stats.changesRequested}}</h3>
+                    <p class="text-[11px] text-orange-700 mt-1 flex items-center gap-1 font-medium">
+                        <i data-lucide="alert-circle" class="w-3.5 h-3.5"></i>
+                        <span>Ajustes pendientes</span>
+                    </p>
+                </div>
+                <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-orange-50 text-orange-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                    <i data-lucide="file-edit" class="w-5 h-5 sm:w-6 sm:h-6"></i>
+                </div>
+            </a>
+
         </div>
-      {{/each}}
-      <button type="submit" class="rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground hover:bg-primary/90">Aplicar</button>
-      <a href="/private/crops" class="rounded-xl border border-border px-4 py-2.5 text-sm font-medium hover:bg-muted">Limpiar</a>
-      <div class="flex items-center gap-1 rounded-xl border border-input p-1" role="group" aria-label="Presentación del catálogo">
-        <button type="button" id="view-grid" title="Vista en tarjetas" aria-label="Vista en tarjetas" aria-pressed="true" class="rounded-lg bg-primary p-2 text-white"><span class="inline-flex shrink-0 block text-lg" aria-hidden="true">{{> private/crops/icon name="grid_view"}}</span></button>
-        <button type="button" id="view-table" title="Vista en tabla" aria-label="Vista en tabla" aria-pressed="false" class="rounded-lg p-2 text-muted-foreground"><span class="inline-flex shrink-0 block text-lg" aria-hidden="true">{{> private/crops/icon name="table_rows"}}</span></button>
-      </div>
-    </form>
-    <p class="text-xs text-muted-foreground" role="status">Mostrando <strong class="text-foreground">{{pagination.fromItem}}–{{pagination.toItem}}</strong> de <strong class="text-foreground">{{pagination.totalItems}}</strong> cultivos.</p>
-    {{> private/crops/grid}}
-    {{> private/crops/table}}
-    {{> private/crop-pagination}}
-  </div>
-</div>
+
+        <!-- ===================================================== -->
+        <!-- BARRA PEGAJOSA DE FILTROS + TABS RÁPIDOS DE WORKFLOW   -->
+        <!-- ===================================================== -->
+        <div class="sticky top-16 z-30 -mx-4 md:-mx-10 px-4 md:px-10 py-3.5 bg-background/95 backdrop-blur-md border-b border-border/80 shadow-2xs space-y-3">
+            <form id="crop-filter-form" action="/private/crops" method="GET" class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+
+                <!-- Buscador de Administración con Atajo "/" -->
+                <div class="relative flex-1 min-w-65">
+                    <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"></i>
+                    <input id="crop-search" name="search" type="search" value="{{filters.search}}" maxlength="120"
+                        class="w-full pl-10 pr-12 py-2.5 bg-card border border-input rounded-xl text-xs text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all"
+                        placeholder="Buscar por nombre, especie científica o categoría..." />
+                    <kbd class="hidden sm:inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground bg-muted border border-border rounded-md absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" title="Presiona / para buscar">/</kbd>
+                </div>
+
+                <!-- Dropdowns y Selectores -->
+                <div class="flex flex-wrap items-center gap-2.5">
+                    {{#each searchFilters}}
+                    <div class="relative min-w-36">
+                        <select id="{{id}}" name="{{param}}"
+                            class="filter-select appearance-none w-full bg-card border border-input rounded-xl px-3.5 py-2.5 pr-8 text-xs font-medium text-foreground focus:outline-hidden focus:border-[#1b4332] transition-all cursor-pointer">
+                            <option value="">{{label}} Todos</option>
+                            {{#each options}}
+                            <option value="{{value}}" {{#if selected}}selected{{/if}}>{{text}}</option>
+                            {{/each}}
+                        </select>
+                        <i data-lucide="chevron-down" class="w-3.5 h-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"></i>
+                    </div>
+                    {{/each}}
+
+                    <!-- Cambiador de Vista Grilla / Tabla -->
+                    <div class="flex items-center bg-card border border-input rounded-xl p-1 gap-1 shrink-0">
+                        <button type="button" id="view-grid" title="Vista en tarjetas" aria-label="Vista en tarjetas" aria-pressed="true"
+                            class="p-2 rounded-lg bg-[#1b4332] text-white transition-all cursor-pointer">
+                            <i data-lucide="layout-grid" class="w-4 h-4"></i>
+                        </button>
+                        <button type="button" id="view-table" title="Vista en tabla" aria-label="Vista en tabla" aria-pressed="false"
+                            class="p-2 rounded-lg text-muted-foreground hover:text-foreground transition-all cursor-pointer">
+                            <i data-lucide="table-properties" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+
+                    <button type="submit" class="inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#1b4332] px-4 py-2.5 text-xs font-bold text-white shadow-2xs transition-colors hover:bg-[#2d6a4f] cursor-pointer">
+                        <i data-lucide="search" class="h-3.5 w-3.5"></i>
+                        Filtrar
+                    </button>
+
+                    <span id="crop-clear-filters-slot">
+                        {{#if hasActiveFilters}}
+                        <a href="/private/crops" data-async-filter-link class="inline-flex items-center justify-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-2.5 text-xs font-bold text-rose-700 transition-colors hover:bg-rose-100">
+                            <i data-lucide="rotate-ccw" class="h-3.5 w-3.5"></i>
+                            Limpiar
+                        </a>
+                        {{/if}}
+                    </span>
+                </div>
+            </form>
+
+            <!-- Píldoras Rápidas de Bandeja Editorial -->
+            <div id="crops-toolbar-pills" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5 text-xs">
+                <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground mr-1 shrink-0">Bandeja:</span>
+                <button type="button" data-workflow-pill=""
+                    class="px-2.5 py-1 rounded-lg border transition-colors shrink-0 cursor-pointer {{#unless filters.workflow}}bg-[#1b4332] text-white border-[#1b4332] font-bold shadow-2xs{{else}}bg-card text-muted-foreground border-border hover:text-foreground hover:bg-muted{{/unless}}">
+                    Todos
+                </button>
+                <button type="button" data-workflow-pill="draft"
+                    class="px-2.5 py-1 rounded-lg border transition-colors shrink-0 cursor-pointer {{#if (eq filters.workflow 'draft')}}bg-[#1b4332] text-white border-[#1b4332] font-bold shadow-2xs{{else}}bg-card text-muted-foreground border-border hover:text-foreground hover:bg-muted{{/if}}">
+                    Borradores
+                </button>
+                <button type="button" data-workflow-pill="changes_requested"
+                    class="px-2.5 py-1 rounded-lg border transition-colors shrink-0 cursor-pointer {{#if (eq filters.workflow 'changes_requested')}}bg-orange-600 text-white border-orange-600 font-bold shadow-2xs{{else}}bg-card text-muted-foreground border-border hover:text-foreground hover:bg-muted{{/if}}">
+                    Con cambios
+                </button>
+                <button type="button" data-workflow-pill="in_review"
+                    class="px-2.5 py-1 rounded-lg border transition-colors shrink-0 cursor-pointer {{#if (eq filters.workflow 'in_review')}}bg-amber-600 text-white border-amber-600 font-bold shadow-2xs{{else}}bg-card text-muted-foreground border-border hover:text-foreground hover:bg-muted{{/if}}">
+                    En revisión
+                </button>
+                <button type="button" data-workflow-pill="verified"
+                    class="px-2.5 py-1 rounded-lg border transition-colors shrink-0 cursor-pointer {{#if (eq filters.workflow 'verified')}}bg-blue-600 text-white border-blue-600 font-bold shadow-2xs{{else}}bg-card text-muted-foreground border-border hover:text-foreground hover:bg-muted{{/if}}">
+                    Verificados
+                </button>
+                <button type="button" data-workflow-pill="published"
+                    class="px-2.5 py-1 rounded-lg border transition-colors shrink-0 cursor-pointer {{#if (eq filters.workflow 'published')}}bg-emerald-700 text-white border-emerald-700 font-bold shadow-2xs{{else}}bg-card text-muted-foreground border-border hover:text-foreground hover:bg-muted{{/if}}">
+                    Publicados
+                </button>
+                <button type="button" data-workflow-pill="archived"
+                    class="px-2.5 py-1 rounded-lg border transition-colors shrink-0 cursor-pointer {{#if (eq filters.workflow 'archived')}}bg-zinc-700 text-white border-zinc-700 font-bold shadow-2xs{{else}}bg-card text-muted-foreground border-border hover:text-foreground hover:bg-muted{{/if}}">
+                    Archivados
+                </button>
+            </div>
+        </div>
+
+        <!-- ===================================================== -->
+        <!-- REGIÓN DE RESULTADOS ASÍNCRONA                        -->
+        <!-- ===================================================== -->
+        <div id="crops-results-region" class="space-y-6">
+            <div class="flex flex-col gap-1 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+                <p>
+                    Mostrando <strong class="text-foreground">{{pagination.fromItem}}–{{pagination.toItem}}</strong>
+                    de <strong class="text-foreground">{{pagination.totalItems}}</strong> cultivos registrados.
+                </p>
+                {{#if hasActiveFilters}}
+                <p class="font-mono text-[10px] uppercase tracking-wider text-[#2d6a4f] font-bold">Vista filtrada activa</p>
+                {{/if}}
+            </div>
+            {{> private/crops/grid}}
+            {{> private/crops/table}}
+            {{> private/crop-pagination}}
+        </div>
+
+    </div>
+</main>
+
 {{> private/crops/form-modal}}
 {{> private/crops/delete-modal}}
+
 <script type="module" src="/js/private/crops.js"></script>
 <script src="/js/shared/image-fallback.js"></script>

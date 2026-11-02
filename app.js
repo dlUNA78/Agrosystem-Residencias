@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import express from 'express';
@@ -196,9 +197,60 @@ hbs.registerHelper('userInitial', function (user, options) {
   return name.trim().charAt(0).toUpperCase();
 });
 
+// Resolución resiliente de imágenes estáticas (compatibilidad de extensiones .webp/.jpg y fallbacks locales)
+const publicDir = path.join(__dirname, 'public');
+const supportedImageExtensions = ['.webp', '.jpg', '.jpeg', '.png'];
+const defaultFallbackPath = path.join(
+  publicDir,
+  'images',
+  'test',
+  'default.png',
+);
+
+app.use((req, res, next) => {
+  if (
+    (req.method !== 'GET' && req.method !== 'HEAD') ||
+    !req.path.startsWith('/images/')
+  ) {
+    return next();
+  }
+
+  const requestedFile = path.join(publicDir, req.path);
+  if (fs.existsSync(requestedFile)) {
+    return next();
+  }
+
+  const ext = path.extname(req.path).toLowerCase();
+  if (supportedImageExtensions.includes(ext)) {
+    const basePath = requestedFile.slice(0, -ext.length);
+    const candidateExtensions = supportedImageExtensions.filter(
+      (e) => e !== ext,
+    );
+    for (const altExt of candidateExtensions) {
+      if (fs.existsSync(`${basePath}${altExt}`)) {
+        req.url = req.url.slice(0, -ext.length) + altExt;
+        return next();
+      }
+    }
+  }
+
+  if (
+    fs.existsSync(defaultFallbackPath) &&
+    (req.path.includes('/default.') ||
+      req.path.startsWith('/images/cultivos/') ||
+      req.path.startsWith('/images/crops/') ||
+      req.path.startsWith('/images/products/') ||
+      req.path.startsWith('/images/plagas/'))
+  ) {
+    req.url = '/images/test/default.png';
+  }
+
+  next();
+});
+
 // Archivos estáticos y Middlewares base con política de caché
 app.use(
-  express.static(path.join(__dirname, 'public'), {
+  express.static(publicDir, {
     maxAge: process.env.NODE_ENV === 'production' ? '1y' : 0,
     etag: true,
   }),
