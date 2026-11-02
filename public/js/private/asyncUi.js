@@ -352,6 +352,7 @@ const buildConfirmDialogElements = ({
   const wrapper = document.createElement('div');
   wrapper.setAttribute('role', 'dialog');
   wrapper.setAttribute('aria-modal', 'true');
+  wrapper.setAttribute('aria-labelledby', 'confirm-dialog-title');
   wrapper.className =
     "no-print fixed inset-0 z-[90] flex items-center justify-center p-4 font-['Geist']";
 
@@ -373,6 +374,7 @@ const buildConfirmDialogElements = ({
   copy.className = 'min-w-0 flex-1';
 
   const heading = document.createElement('h3');
+  heading.id = 'confirm-dialog-title';
   heading.className = 'text-base font-headline font-bold text-foreground';
   heading.textContent = title;
 

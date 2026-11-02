@@ -1,3 +1,4 @@
+import fs from 'fs';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 
 const mockDb = {
@@ -16,6 +17,12 @@ const mockDb = {
     count: jest.fn(),
   },
   Product: {
+    count: jest.fn(),
+  },
+  ActiveIngredient: {
+    count: jest.fn(),
+  },
+  Supplier: {
     count: jest.fn(),
   },
   Farm: {
@@ -47,7 +54,9 @@ const {
   getMonitoredLandMetrics,
   getTopPlaguesOfMonth,
   getActiveCropDistribution,
+  getCatalogEcosystemMetrics,
   getRecentAuditActivity,
+  buildQuickActions,
   getDashboardSummary,
 } = await import('../../src/services/dashboardMetricsService.js');
 
@@ -61,6 +70,8 @@ describe('módulo de métricas del dashboard', () => {
     mockDb.Plague.count.mockResolvedValue(4);
     mockDb.Crop.count.mockResolvedValue(2);
     mockDb.Product.count.mockResolvedValue(3);
+    mockDb.ActiveIngredient.count.mockResolvedValue(12);
+    mockDb.Supplier.count.mockResolvedValue(7);
 
     mockDb.Farm.count.mockResolvedValue(10);
     mockDb.Farm.sum.mockResolvedValue(1250.5);
@@ -84,7 +95,7 @@ describe('módulo de métricas del dashboard', () => {
         plague_name: 'Gusano Cogollero',
         severity: 'high',
         status: 'open',
-        farm: { name: 'Rancho San José' },
+        farm: { id: 42, name: 'Rancho San José' },
       }),
     });
     mockDb.FarmHealthReport.findAll.mockResolvedValue([
@@ -109,7 +120,7 @@ describe('módulo de métricas del dashboard', () => {
   describe('dashboardMetricsService', () => {
     it('calcula métricas de validaciones pendientes sumando catálogos', async () => {
       const result = await getPendingValidationsMetrics();
-      expect(result.total).toBe(9); // 4 + 2 + 3
+      expect(result.total).toBe(9);
       expect(result.plaguesPending).toBe(4);
       expect(result.cropsPending).toBe(2);
       expect(result.productsPending).toBe(3);
@@ -122,6 +133,7 @@ describe('módulo de métricas del dashboard', () => {
       });
       expect(adminResult.criticalCount).toBe(3);
       expect(adminResult.latestAlert?.plague_name).toBe('Gusano Cogollero');
+      expect(adminResult.latestAlert?.farm?.id).toBe(42);
 
       await getCriticalAlertsMetrics({ id: 5, role: 'inifap' });
       expect(mockDb.FarmHealthReport.count).toHaveBeenCalledWith(
@@ -160,7 +172,7 @@ describe('módulo de métricas del dashboard', () => {
       expect(topPlagues).toEqual([]);
     });
 
-    it('calcula la distribución de cultivos y genera paradas para degradado cónico', async () => {
+    it('calcula la distribución de cultivos con segmentos vectoriales SVG y degradado', async () => {
       const distribution = await getActiveCropDistribution({
         id: 1,
         role: 'admin',
@@ -168,6 +180,8 @@ describe('módulo de métricas del dashboard', () => {
       expect(distribution.hasData).toBe(true);
       expect(distribution.crops).toHaveLength(2);
       expect(distribution.conicGradientStyle).toContain('conic-gradient');
+      expect(distribution.crops[0].dashArray).toMatch(/^\d+(\.\d+)?\s+\d+/);
+      expect(typeof distribution.crops[0].dashOffset).toBe('number');
     });
 
     it('retorna estado degradado cuando no hay cultivos activos', async () => {
@@ -180,12 +194,41 @@ describe('módulo de métricas del dashboard', () => {
       expect(distribution.crops).toEqual([]);
     });
 
-    it('obtiene registros recientes de auditoría con iniciales formateadas', async () => {
+    it('consolida métricas del ecosistema de ingredientes activos y proveedores', async () => {
+      const ecosystem = await getCatalogEcosystemMetrics();
+      expect(ecosystem.totalIngredients).toBe(12);
+      expect(ecosystem.activeIngredients).toBe(12);
+      expect(ecosystem.totalSuppliers).toBe(7);
+      expect(ecosystem.activeSuppliers).toBe(7);
+      expect(ecosystem.publishedTotal).toBe(9);
+    });
+
+    it('obtiene registros recientes de auditoría con iniciales y etiquetas en español', async () => {
       const activity = await getRecentAuditActivity(5);
       expect(activity).toHaveLength(1);
       expect(activity[0].userName).toBe('Juan Pérez');
       expect(activity[0].initials).toBe('JP');
+      expect(activity[0].actionLabel).toBe('registró');
+      expect(activity[0].moduleLabel).toBe('Terrenos');
       expect(activity[0].entityName).toBe('Parcela Nueva');
+    });
+
+    it('construye accesos rápidos contextuales diferenciados por rol', () => {
+      const adminActions = buildQuickActions({ role: 'admin' });
+      const inifapActions = buildQuickActions({ role: 'inifap' });
+
+      expect(adminActions.some((item) => item.href === '/private/audit')).toBe(
+        true,
+      );
+      expect(adminActions.some((item) => item.href === '/private/users')).toBe(
+        true,
+      );
+      expect(inifapActions.some((item) => item.href === '/private/audit')).toBe(
+        false,
+      );
+      expect(
+        inifapActions.some((item) => item.href === '/private/reports'),
+      ).toBe(true);
     });
 
     it('consolida el resumen completo del dashboard distinguiendo rol administrativo', async () => {
@@ -194,10 +237,12 @@ describe('módulo de métricas del dashboard', () => {
       expect(summary.isInifap).toBe(false);
       expect(summary.validations).toBeDefined();
       expect(summary.land).toBeDefined();
+      expect(summary.ecosystem.totalIngredients).toBe(12);
+      expect(summary.quickActions.length).toBeGreaterThan(0);
     });
   });
 
-  describe('controlador dashboard', () => {
+  describe('controlador dashboard y plantillas Geist sin JS/CSS inline', () => {
     it('renderiza el dashboard con todas las métricas calculadas', async () => {
       const req = { user: { id: 1, role: 'admin' } };
       const res = {
@@ -215,6 +260,7 @@ describe('módulo de métricas del dashboard', () => {
           isAdmin: true,
           validations: expect.objectContaining({ total: 9 }),
           land: expect.objectContaining({ totalFarms: 10 }),
+          ecosystem: expect.objectContaining({ totalIngredients: 12 }),
         }),
       );
     });
@@ -239,8 +285,51 @@ describe('módulo de métricas del dashboard', () => {
           activePage: 'dashboard',
           error: expect.stringContaining('Ocurrió un error'),
           validations: expect.objectContaining({ total: 0 }),
+          ecosystem: expect.objectContaining({ totalIngredients: 0 }),
         }),
       );
+    });
+
+    it('garantiza cero estilos inline, cero eventos inline y cero enlaces muertos en dashboard y layout privado', () => {
+      const dashboardView = fs.readFileSync(
+        new URL('../../src/views/private/dashboard/index.hbs', import.meta.url),
+        'utf8',
+      );
+      const sidebarPartial = fs.readFileSync(
+        new URL(
+          '../../src/views/partials/private/sidebar.hbs',
+          import.meta.url,
+        ),
+        'utf8',
+      );
+      const navbarPartial = fs.readFileSync(
+        new URL('../../src/views/partials/private/navbar.hbs', import.meta.url),
+        'utf8',
+      );
+      const footerPartial = fs.readFileSync(
+        new URL('../../src/views/partials/private/footer.hbs', import.meta.url),
+        'utf8',
+      );
+      const privateLayoutFile = fs.readFileSync(
+        new URL('../../src/views/layouts/private.hbs', import.meta.url),
+        'utf8',
+      );
+
+      for (const content of [
+        dashboardView,
+        sidebarPartial,
+        navbarPartial,
+        footerPartial,
+        privateLayoutFile,
+      ]) {
+        expect(content).not.toMatch(/\sstyle=/i);
+        expect(content).not.toMatch(/\son[a-z]+=/i);
+        expect(content).not.toMatch(/href="#"/i);
+      }
+
+      expect(dashboardView).not.toMatch(/<main[\s>]/i);
+      expect(privateLayoutFile).not.toMatch(/<script>\s*document/i);
+      expect(sidebarPartial).toContain('href="/private/profile"');
     });
   });
 });

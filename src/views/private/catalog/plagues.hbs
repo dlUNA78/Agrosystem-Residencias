@@ -1,5 +1,5 @@
 <!-- Catálogo Privado y Panel de Control Fitosanitario INIFAP (RBAC + KPIs + Geist Design System) -->
-<main class="min-h-screen font-['Geist'] antialiased bg-background text-foreground pb-20">
+<div class="min-h-screen font-['Geist'] antialiased bg-background text-foreground pb-20">
 
     <div class="max-w-7xl mx-auto px-4 md:px-10 pt-6 space-y-6">
 
@@ -148,13 +148,13 @@
 
                     <!-- Cambiador de Vista Grilla / Tabla -->
                     <div class="flex items-center bg-card border border-input rounded-xl p-0.5 gap-0.5 shrink-0">
-                        <button type="button" id="view-grid" title="Vista en tarjetas"
+                        <button type="button" id="view-grid" aria-label="Vista en tarjetas" title="Vista en tarjetas"
                             class="p-1.5 rounded-lg bg-[#1b4332] text-white transition-all cursor-pointer">
-                            <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i>
+                            <i data-lucide="layout-grid" class="w-3.5 h-3.5" aria-hidden="true"></i>
                         </button>
-                        <button type="button" id="view-table" title="Vista en tabla"
+                        <button type="button" id="view-table" aria-label="Vista en tabla" title="Vista en tabla"
                             class="p-1.5 rounded-lg text-muted-foreground hover:text-foreground transition-all cursor-pointer">
-                            <i data-lucide="table-properties" class="w-3.5 h-3.5"></i>
+                            <i data-lucide="table-properties" class="w-3.5 h-3.5" aria-hidden="true"></i>
                         </button>
                     </div>
                 </div>
@@ -257,7 +257,7 @@
             {{> private/plagues/table}}
         </div>
     </div>
-</main>
+</div>
 {{> private/plagues/delete-modal}}
 {{> private/plagues/form-modal}}
 <!-- JS de la vista -->

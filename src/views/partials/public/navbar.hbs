@@ -55,9 +55,11 @@
     <div class="flex items-center gap-3">
       {{#if user}}
       <button
+        type="button"
+        aria-label="Notificaciones"
         class="p-2 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-md transition-all cursor-pointer"
         title="Notificaciones">
-        <span class="material-symbols-outlined text-xl">notifications</span>
+        <span class="material-symbols-outlined text-xl" aria-hidden="true">notifications</span>
       </button>
 
       <!-- Menú Desplegable de Usuario (Profile Dropdown) -->
@@ -154,7 +156,7 @@
 <!-- ─── Backdrop y Drawer Móvil Off-Canvas ───────────────────────────────── -->
 <div id="mobile-drawer-backdrop" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 hidden opacity-0 transition-opacity duration-300 md:hidden" aria-hidden="true"></div>
 
-  <div id="mobile-drawer" class="fixed top-0 right-0 bottom-0 w-[85%] max-w-sm bg-card z-50 shadow-2xl border-l border-border flex flex-col justify-between translate-x-full invisible pointer-events-none transition-transform duration-300 md:hidden pb-safe">
+  <div id="mobile-drawer" role="dialog" aria-modal="true" aria-label="Menú de navegación móvil" class="fixed top-0 right-0 bottom-0 w-[85%] max-w-sm bg-card z-50 shadow-2xl border-l border-border flex flex-col justify-between translate-x-full invisible pointer-events-none transition-transform duration-300 md:hidden pb-safe">
     <!-- Header del Drawer -->
     <div class="p-5 border-b border-border flex items-center justify-between bg-secondary/30">
       <div class="flex items-center gap-2.5">

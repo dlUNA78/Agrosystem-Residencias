@@ -1,47 +1,47 @@
 <!DOCTYPE html>
-<html class="light" lang="es">
+<html class="light scroll-smooth" lang="es">
 
 <head>
-    <meta charset="utf-8">
-    <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <title>{{#if pageTitle}}{{pageTitle}} — INIFAP{{else}}Agrosystem | Panel de Administrador{{/if}}</title>
-    <!-- Iconos Lucide Locales (/vendor/lucide) + Material Symbols Servidos Localmente -->
-    <script src="/vendor/lucide/lucide.min.js"></script>
-    <link rel="stylesheet" href="/css/style.css?v=2.8">
-    {{#if extraHead}}{{{extraHead}}}{{/if}}
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>{{#if pageTitle}}{{pageTitle}} — INIFAP{{else}}Agrosystem | Panel de Administrador{{/if}}</title>
+  <!-- Iconos Lucide Locales (/vendor/lucide) + Tipografía Geist Local (Cero CDNs) -->
+  <script src="/vendor/lucide/lucide.min.js"></script>
+  <link rel="stylesheet" href="/css/style.css?v=2.8">
+  {{#if extraHead}}{{{extraHead}}}{{/if}}
 </head>
 
-<body class="bg-background text-on-surface antialiased">
-    {{> private/sidebar}}
-    {{> private/navbar}}
+<body class="bg-[#fafafa] text-[#0a0a0a] antialiased">
+  {{> private/sidebar}}
+  {{> private/navbar}}
 
-    <!-- Backdrop overlay para móvil -->
-    <div id="sidebar-backdrop"
-        class="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300"
-        aria-hidden="true"></div>
+  <!-- Backdrop overlay para móvil -->
+  <div
+    id="sidebar-backdrop"
+    class="pointer-events-none fixed inset-0 z-40 bg-black/50 opacity-0 backdrop-blur-sm transition-opacity duration-300"
+    aria-hidden="true"
+  ></div>
 
-    <main id="main-content" class="pt-20 px-4 sm:px-8 pb-12 transition-all duration-300 ease-in-out">
-        {{{body}}}
-        {{> private/footer}}
-    </main>
+  <main id="main-content" class="px-4 pt-20 pb-12 transition-all duration-300 ease-in-out sm:px-8">
+    {{{body}}}
+    {{> private/footer}}
+  </main>
 
-    <!-- Contextual FAB -->
-    <div class="no-print fixed bottom-8 right-8 z-50">
-        <button
-            class="w-14 h-14 bg-primary text-on-primary rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all">
-            <i data-lucide="terminal" class="w-6 h-6"></i>
-        </button>
-    </div>
+  <!-- Botón Flotante Accesible para Volver Arriba -->
+  <div class="no-print fixed right-6 bottom-6 z-40">
+    <button
+      id="private-scroll-top"
+      type="button"
+      aria-label="Volver al inicio de la página"
+      title="Volver arriba"
+      class="pointer-events-none flex h-11 w-11 translate-y-3 cursor-pointer items-center justify-center rounded-full border border-emerald-500/30 bg-[#1b4332] text-white opacity-0 shadow-lg transition-all hover:bg-[#143326] active:scale-95"
+    >
+      <i data-lucide="arrow-up" class="h-4.5 w-4.5" aria-hidden="true"></i>
+    </button>
+  </div>
 
-    <script src="/js/main.js"></script>
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            if (typeof lucide !== 'undefined') {
-                lucide.createIcons();
-            }
-        });
-    </script>
-    {{#if extraScripts}}{{{extraScripts}}}{{/if}}
+  <script src="/js/main.js?v=2.8"></script>
+  {{#if extraScripts}}{{{extraScripts}}}{{/if}}
 </body>
 
 </html>

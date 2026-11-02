@@ -5,6 +5,8 @@ const {
   Plague,
   Crop,
   Product,
+  ActiveIngredient,
+  Supplier,
   Farm,
   FarmCrop,
   FarmHealthReport,
@@ -14,6 +16,112 @@ const {
 } = db;
 
 const { Op } = Sequelize;
+
+const DONUT_RADIUS = 46;
+const DONUT_CIRCUMFERENCE = Number((2 * Math.PI * DONUT_RADIUS).toFixed(2));
+const PALETTE = ['#1b4332', '#2d6a4f', '#40916c', '#74c69d', '#b7e4c7'];
+
+const ACTION_LABELS = {
+  create: 'registró',
+  update: 'actualizó',
+  delete: 'eliminó',
+  export: 'exportó',
+  status_change: 'cambió estado en',
+  approve: 'validó',
+};
+
+const MODULE_LABELS = {
+  Farms: 'Terrenos',
+  farms: 'Terrenos',
+  Plagues: 'Plagas',
+  plagues: 'Plagas',
+  Crops: 'Cultivos',
+  crops: 'Cultivos',
+  Products: 'Productos',
+  products: 'Productos',
+  ActiveIngredients: 'Ingredientes Activos',
+  active_ingredients: 'Ingredientes Activos',
+  Suppliers: 'Proveedores',
+  suppliers: 'Proveedores',
+  Reports: 'Reportes',
+  reports: 'Reportes',
+  Users: 'Usuarios',
+  users: 'Usuarios',
+};
+
+const ADMIN_QUICK_ACTIONS = [
+  {
+    href: '/private/lands',
+    icon: 'map-pin',
+    label: 'Registrar predio',
+  },
+  {
+    href: '/private/ingredients',
+    icon: 'flask-conical',
+    label: 'Ingredientes activos',
+  },
+  {
+    href: '/private/suppliers',
+    icon: 'truck',
+    label: 'Proveedores',
+  },
+  {
+    href: '/private/reports',
+    icon: 'bar-chart-3',
+    label: 'Resumen ejecutivo PDF',
+  },
+  {
+    href: '/private/audit',
+    icon: 'shield-check',
+    label: 'Bitácora de auditoría',
+  },
+  {
+    href: '/private/users',
+    icon: 'key',
+    label: 'Usuarios y códigos INIFAP',
+  },
+];
+
+const INIFAP_QUICK_ACTIONS = [
+  {
+    href: '/private/lands',
+    icon: 'map-pin',
+    label: 'Predios monitoreados',
+  },
+  {
+    href: '/private/catalog/plagues',
+    icon: 'bug',
+    label: 'Catálogo de plagas',
+  },
+  {
+    href: '/private/crops',
+    icon: 'sprout',
+    label: 'Cultivos validados',
+  },
+  {
+    href: '/private/products',
+    icon: 'package',
+    label: 'Insumos fitosanitarios',
+  },
+  {
+    href: '/private/ingredients',
+    icon: 'flask-conical',
+    label: 'Ingredientes activos',
+  },
+  {
+    href: '/private/reports',
+    icon: 'bar-chart-3',
+    label: 'Reportes operativos',
+  },
+];
+
+const countSafely = async (model, where) => {
+  if (typeof model?.count !== 'function') {
+    return 0;
+  }
+  const value = where ? await model.count({ where }) : await model.count();
+  return Number(value) || 0;
+};
 
 /**
  * Calcula conteo de fichas de catálogo pendientes de validación técnica
@@ -169,8 +277,6 @@ export const getTopPlaguesOfMonth = async () => {
   });
 };
 
-const PALETTE = ['#1b4332', '#40916c', '#74c69d', '#b7e4c7', '#d8f3dc'];
-
 const extractCropAggregates = (activeCrops) => {
   const totalsByCrop = new Map();
   let totalHectares = 0;
@@ -191,6 +297,7 @@ const extractCropAggregates = (activeCrops) => {
 
 const buildCropSegments = (sorted, totalCount) => {
   let currentPercent = 0;
+  let cumulativeArc = 0;
   const gradientStops = [];
 
   const crops = sorted.map((item, idx) => {
@@ -200,10 +307,19 @@ const buildCropSegments = (sorted, totalCount) => {
     gradientStops.push(`${color} ${currentPercent}% ${nextPercent}%`);
     currentPercent = nextPercent;
 
+    const arcLength = Number(((pct / 100) * DONUT_CIRCUMFERENCE).toFixed(2));
+    const dashArray = `${arcLength} ${DONUT_CIRCUMFERENCE}`;
+    const dashOffset = Number((-cumulativeArc).toFixed(2));
+    cumulativeArc += arcLength;
+
     return {
       name: item.name,
+      count: item.count,
+      hectares: Math.round(item.hectares * 10) / 10,
       percentage: pct,
       color,
+      dashArray,
+      dashOffset,
     };
   });
 
@@ -218,7 +334,7 @@ const formatHectaresLabel = (totalHectares) => {
 };
 
 /**
- * Distribución de cultivos con ciclos activos
+ * Distribución de cultivos con ciclos activos (con segmentos SVG vectoriales)
  */
 export const getActiveCropDistribution = async (user) => {
   const farmWhere = getLandListWhere(user, { status: 'active' });
@@ -274,6 +390,40 @@ export const getActiveCropDistribution = async (user) => {
   };
 };
 
+/**
+ * Obtiene resumen del ecosistema de catálogos, ingredientes activos y proveedores
+ */
+export const getCatalogEcosystemMetrics = async () => {
+  const [
+    totalIngredients,
+    activeIngredients,
+    totalSuppliers,
+    activeSuppliers,
+    publishedPlagues,
+    publishedCrops,
+    publishedProducts,
+  ] = await Promise.all([
+    countSafely(ActiveIngredient),
+    countSafely(ActiveIngredient, { status: 'active' }),
+    countSafely(Supplier),
+    countSafely(Supplier, { status: 'active' }),
+    countSafely(Plague, { workflow_status: 'published' }),
+    countSafely(Crop, { workflow_status: 'published' }),
+    countSafely(Product, { workflow_status: 'published' }),
+  ]);
+
+  return {
+    totalIngredients,
+    activeIngredients,
+    totalSuppliers,
+    activeSuppliers,
+    publishedPlagues,
+    publishedCrops,
+    publishedProducts,
+    publishedTotal: publishedPlagues + publishedCrops + publishedProducts,
+  };
+};
+
 const getRelativeTime = (date) => {
   if (!date) return 'Reciente';
   const diffMs = Date.now() - new Date(date).getTime();
@@ -296,8 +446,43 @@ const getUserInitials = (fullName) => {
   return fullName.slice(0, 2).toUpperCase();
 };
 
+const resolveEntityName = (values) =>
+  values.name || values.full_name || values.plague_name || '';
+
+const resolveActionLabel = (rawAction) => {
+  if (!rawAction) return 'modificó';
+  return ACTION_LABELS[String(rawAction).toLowerCase()] || rawAction;
+};
+
+const resolveModuleLabel = (rawTableName) => {
+  const tableName = rawTableName || 'Sistema';
+  return {
+    tableName,
+    moduleLabel: MODULE_LABELS[tableName] || tableName,
+  };
+};
+
+const formatAuditItem = (log) => {
+  const raw = log.toJSON();
+  const actor = raw.user || {};
+  const values = raw.new_values || raw.old_values || {};
+  const { tableName, moduleLabel } = resolveModuleLabel(raw.table_name);
+
+  return {
+    id: raw.id,
+    userName: actor.full_name || 'Usuario del sistema',
+    initials: getUserInitials(actor.full_name),
+    action: raw.action,
+    actionLabel: resolveActionLabel(raw.action),
+    tableName,
+    moduleLabel,
+    entityName: resolveEntityName(values),
+    relativeTime: getRelativeTime(raw.createdAt || raw.created_at),
+  };
+};
+
 /**
- * Obtiene los últimos 5 eventos de auditoría para el feed del dashboard
+ * Obtiene los últimos eventos de auditoría para el feed del dashboard
  */
 export const getRecentAuditActivity = async (limit = 5) => {
   const logs = await AuditLog.findAll({
@@ -313,24 +498,11 @@ export const getRecentAuditActivity = async (limit = 5) => {
     ],
   });
 
-  return logs.map((log) => {
-    const raw = log.toJSON();
-    const user = raw.user || {};
-    const values = raw.new_values || raw.old_values || {};
-    const entityName =
-      values.name || values.full_name || values.plague_name || '';
-
-    return {
-      id: raw.id,
-      userName: user.full_name || 'Usuario del sistema',
-      initials: getUserInitials(user.full_name),
-      action: raw.action,
-      tableName: raw.table_name,
-      entityName,
-      relativeTime: getRelativeTime(raw.createdAt || raw.created_at),
-    };
-  });
+  return logs.map(formatAuditItem);
 };
+
+export const buildQuickActions = (user) =>
+  user?.role === 'admin' ? ADMIN_QUICK_ACTIONS : INIFAP_QUICK_ACTIONS;
 
 /**
  * Consolida todas las métricas para el controlador del Dashboard
@@ -343,6 +515,7 @@ export const getDashboardSummary = async (user) => {
     topPlagues,
     cropDistribution,
     recentActivity,
+    ecosystem,
   ] = await Promise.all([
     getPendingValidationsMetrics(),
     getCriticalAlertsMetrics(user),
@@ -350,6 +523,7 @@ export const getDashboardSummary = async (user) => {
     getTopPlaguesOfMonth(),
     getActiveCropDistribution(user),
     getRecentAuditActivity(5),
+    getCatalogEcosystemMetrics(),
   ]);
 
   return {
@@ -359,6 +533,8 @@ export const getDashboardSummary = async (user) => {
     topPlagues,
     cropDistribution,
     recentActivity,
+    ecosystem,
+    quickActions: buildQuickActions(user),
     isAdmin: user?.role === 'admin',
     isInifap: user?.role === 'inifap',
   };

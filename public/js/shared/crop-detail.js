@@ -500,6 +500,12 @@ const refreshDetailAfterEdit = async () => {
 const initCropInSituActions = () => {
   initializeCropForm({ onAfterSave: refreshDetailAfterEdit });
   document.addEventListener('click', (event) => {
+    const pdfShortcutBtn = event.target.closest('[data-open-crop-pdf]');
+    if (pdfShortcutBtn) {
+      document.getElementById('btn-open-crop-pdf-modal')?.click();
+      return;
+    }
+
     const deleteBtn = event.target.closest('#btn-delete-crop-dossier');
     if (deleteBtn) {
       handleCropDeleteDossier(deleteBtn);

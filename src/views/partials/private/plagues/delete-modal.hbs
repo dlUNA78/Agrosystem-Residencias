@@ -2,7 +2,7 @@
 <!-- MODAL ELIMINAR PLAGA -->
 <!-- ========================================================= -->
 {{#if permissions.canDelete}}
-<div id="modal-delete-plague" class="fixed inset-0 z-50 hidden items-center justify-center p-4 font-['Geist']">
+<div id="modal-delete-plague" role="dialog" aria-modal="true" aria-labelledby="modal-delete-plague-title" class="fixed inset-0 z-50 hidden items-center justify-center p-4 font-['Geist']">
     <div id="modal-delete-plague-backdrop" class="absolute inset-0 bg-black/40 backdrop-blur-xs"></div>
     <div class="relative z-10 w-full max-w-md bg-card border border-border/80 rounded-2xl shadow-xl overflow-hidden">
         <div class="p-6 border-b border-border/60">
@@ -11,7 +11,7 @@
                     <i data-lucide="alert-triangle" class="w-5 h-5"></i>
                 </div>
                 <div>
-                    <h3 class="text-base font-bold text-foreground">¿Eliminar plaga?</h3>
+                    <h3 id="modal-delete-plague-title" class="text-base font-bold text-foreground">¿Eliminar plaga?</h3>
                     <p class="mt-0.5 text-xs text-muted-foreground">
                         Esta acción removerá el registro del catálogo INIFAP permanentemente.
                     </p>
