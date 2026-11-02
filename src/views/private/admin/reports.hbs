@@ -1,303 +1,570 @@
-<main class="pt-24 px-10 pb-12 min-h-screen">
+<div id="reports-page-root" class="mx-auto max-w-7xl space-y-5 font-['Geist'] text-slate-900">
+  <header class="flex flex-col gap-3 rounded-2xl border border-slate-200/90 bg-white p-5 shadow-2xs sm:flex-row sm:items-center sm:justify-between">
+    <div>
+      <nav aria-label="Ruta de navegación" class="mb-1.5 flex items-center gap-1.5 text-[11px] font-medium text-slate-500">
+        <a href="/dashboard" class="transition-colors hover:text-[#1b4332]">Panel</a>
+        <span aria-hidden="true">/</span>
+        <span class="font-semibold text-slate-800">Reportes y Estadísticas</span>
+      </nav>
+      <div class="flex flex-wrap items-center gap-2.5">
+        <h1 class="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
+          Reportes Operativos e Inteligencia Fitosanitaria
+        </h1>
+        <span class="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider text-[#1b4332]">
+          Período: <span id="reports-period-badge">{{query.period}}</span>
+        </span>
+      </div>
+      <p class="mt-1 text-xs text-slate-500">
+        Consolidado técnico de aplicaciones de insumos, vigilancia epidemiológica de plagas y desempeño de predios.
+      </p>
+    </div>
+  </header>
 
-    {{!-- ── Page Header ── --}}
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+  {{#if errorMessage}}
+  <div role="alert" class="flex items-center gap-2.5 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-xs font-semibold text-rose-800">
+    <i data-lucide="alert-circle" class="h-4 w-4 shrink-0 text-rose-600"></i>
+    <span>{{errorMessage}}</span>
+  </div>
+  {{/if}}
+
+  <section
+    aria-label="Controles de período, predio y exportación"
+    class="sticky top-16 z-30 flex flex-wrap items-center justify-between gap-2.5 rounded-2xl border border-slate-200/90 bg-white/95 p-2.5 shadow-xs backdrop-blur-md"
+  >
+    <div class="flex flex-wrap items-center gap-2">
+      <div class="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50/80 px-3 py-1.5">
+        <i data-lucide="calendar-clock" class="h-3.5 w-3.5 text-[#1b4332]"></i>
+        <label for="report-period" class="font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+          Ventana:
+        </label>
+        <select
+          id="report-period"
+          name="period"
+          class="bg-transparent text-xs font-semibold text-slate-800 focus:outline-none cursor-pointer"
+        >
+          <option value="semanal" {{#if (eq query.period 'semanal')}}selected{{/if}}>Últimos 7 días</option>
+          <option value="mensual" {{#if (eq query.period 'mensual')}}selected{{/if}}>Último mes (30 días)</option>
+          <option value="trimestral" {{#if (eq query.period 'trimestral')}}selected{{/if}}>Trimestre (90 días)</option>
+          <option value="anual" {{#if (eq query.period 'anual')}}selected{{/if}}>Año completo (365 días)</option>
+        </select>
+      </div>
+
+      <div class="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50/80 px-3 py-1.5">
+        <i data-lucide="map-pin" class="h-3.5 w-3.5 text-[#1b4332]"></i>
+        <label for="report-farm" class="font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+          Predio:
+        </label>
+        <select
+          id="report-farm"
+          name="farmId"
+          class="max-w-[200px] truncate bg-transparent text-xs font-semibold text-slate-800 focus:outline-none cursor-pointer"
+        >
+          <option value="">Todos los predios activos</option>
+          {{#each farmOptions}}
+          <option value="{{id}}" {{#if selected}}selected{{/if}}>
+            {{name}}{{#if municipality}} · {{municipality}}{{/if}}
+          </option>
+          {{/each}}
+        </select>
+      </div>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-2">
+      <button
+        type="button"
+        id="btn-preview-report-pdf"
+        class="inline-flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-2 text-xs font-semibold text-[#1b4332] transition-colors hover:bg-emerald-100 cursor-pointer"
+      >
+        <i data-lucide="file-text" class="h-3.5 w-3.5"></i>
+        <span>Resumen Ejecutivo PDF</span>
+      </button>
+
+      <div class="relative">
+        <button
+          type="button"
+          id="btn-export-report"
+          aria-expanded="false"
+          aria-controls="export-dropdown-menu"
+          class="inline-flex items-center gap-1.5 rounded-xl bg-[#1b4332] px-3.5 py-2 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-[#143326] cursor-pointer"
+        >
+          <i data-lucide="download" class="h-3.5 w-3.5"></i>
+          <span>Exportar Datos</span>
+          <i data-lucide="chevron-down" class="h-3.5 w-3.5"></i>
+        </button>
+
+        <div
+          id="export-dropdown-menu"
+          role="menu"
+          class="absolute right-0 z-50 mt-2 hidden w-64 overflow-hidden rounded-2xl border border-slate-200 bg-white py-1.5 shadow-xl"
+        >
+          <div class="border-b border-slate-100 px-4 py-2">
+            <p class="font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+              Formatos Oficiales INIFAP
+            </p>
+          </div>
+          <a
+            data-export-link="pdf"
+            href="/private/reports?format=pdf&period={{query.period}}{{#if query.farmId}}&farmId={{query.farmId}}{{/if}}"
+            class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 hover:text-[#1b4332]"
+          >
+            <i data-lucide="file-check-2" class="h-4 w-4 text-[#1b4332]"></i>
+            <span>Descargar PDF Ejecutivo</span>
+          </a>
+          <a
+            data-export-link="applications"
+            href="/private/reports?format=csv&period={{query.period}}&reportType=applications{{#if query.farmId}}&farmId={{query.farmId}}{{/if}}"
+            class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 hover:text-[#1b4332]"
+          >
+            <i data-lucide="droplets" class="h-4 w-4 text-sky-600"></i>
+            <span>CSV · Aplicaciones de Insumos</span>
+          </a>
+          <a
+            data-export-link="health"
+            href="/private/reports?format=csv&period={{query.period}}&reportType=health{{#if query.farmId}}&farmId={{query.farmId}}{{/if}}"
+            class="flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 hover:text-[#1b4332]"
+          >
+            <i data-lucide="bug" class="h-4 w-4 text-emerald-600"></i>
+            <span>CSV · Sanidad e Incidencias</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div id="reports-analytics-region" class="space-y-5">
+    <section aria-label="Indicadores operativos clave" class="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <article class="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-2xs">
+        <div class="mb-3 flex items-center justify-between">
+          <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-[#1b4332]">
+            <i data-lucide="bug" class="h-5 w-5"></i>
+          </span>
+          <span class="rounded-full bg-emerald-50 px-2.5 py-0.5 font-['Geist_Mono'] text-[10px] font-semibold uppercase text-emerald-700">
+            Vigilancia
+          </span>
+        </div>
+        <p class="font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+          Plagas Reportadas
+        </p>
+        <p class="mt-1 font-['Geist_Mono'] text-2xl font-bold text-slate-900">
+          {{kpis.reportedPlagues}}
+        </p>
+      </article>
+
+      <article class="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-2xs">
+        <div class="mb-3 flex items-center justify-between">
+          <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-50 text-sky-600">
+            <i data-lucide="droplets" class="h-5 w-5"></i>
+          </span>
+          <span class="rounded-full bg-sky-50 px-2.5 py-0.5 font-['Geist_Mono'] text-[10px] font-semibold text-sky-700">
+            {{kpis.formattedHectares}}
+          </span>
+        </div>
+        <p class="font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+          Aplicaciones Químicas
+        </p>
+        <p class="mt-1 font-['Geist_Mono'] text-2xl font-bold text-slate-900">
+          {{kpis.chemicalApplications}}
+        </p>
+      </article>
+
+      <article class="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-2xs">
+        <div class="mb-3 flex items-center justify-between">
+          <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
+            <i data-lucide="map" class="h-5 w-5"></i>
+          </span>
+          <span class="rounded-full bg-amber-50 px-2.5 py-0.5 font-['Geist_Mono'] text-[10px] font-semibold uppercase text-amber-700">
+            Activos
+          </span>
+        </div>
+        <p class="font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+          Predios Monitoreados
+        </p>
+        <p class="mt-1 font-['Geist_Mono'] text-2xl font-bold text-slate-900">
+          {{kpis.monitoredFarms}}
+        </p>
+      </article>
+
+      <article class="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-2xs">
+        <div class="mb-3 flex items-center justify-between">
+          <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-50 text-rose-600">
+            <i data-lucide="shield-alert" class="h-5 w-5"></i>
+          </span>
+          <span class="rounded-full bg-rose-50 px-2.5 py-0.5 font-['Geist_Mono'] text-[10px] font-semibold uppercase text-rose-700">
+            Críticas
+          </span>
+        </div>
+        <p class="font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+          Alertas Sanitarias
+        </p>
+        <p class="mt-1 font-['Geist_Mono'] text-2xl font-bold text-rose-700">
+          {{kpis.criticalAlerts}}
+        </p>
+      </article>
+    </section>
+
+    <section class="grid grid-cols-1 gap-5 lg:grid-cols-3">
+      <article class="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-2xs lg:col-span-2">
+        <div class="mb-4 flex items-center justify-between gap-2">
+          <div>
+            <h2 class="text-sm font-bold text-slate-900">Aplicaciones Químicas por Mes</h2>
+            <p class="mt-0.5 text-xs text-slate-500">
+              Volumen comparativo de aplicaciones registradas en los últimos 4 meses
+            </p>
+          </div>
+          <span class="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 font-['Geist_Mono'] text-[10px] font-semibold uppercase text-[#1b4332]">
+            Serie Vectorial
+          </span>
+        </div>
+
+        <div class="rounded-xl border border-slate-100 bg-slate-50/50 p-4">
+          <svg
+            viewBox="0 0 360 154"
+            role="img"
+            aria-label="Gráfico de barras de aplicaciones químicas por mes"
+            class="h-44 w-full"
+          >
+            <line x1="16" y1="30" x2="344" y2="30" stroke="#e2e8f0" stroke-dasharray="3 3" stroke-width="1" />
+            <line x1="16" y1="78" x2="344" y2="78" stroke="#e2e8f0" stroke-dasharray="3 3" stroke-width="1" />
+            <line x1="16" y1="126" x2="344" y2="126" stroke="#cbd5e1" stroke-width="1" />
+
+            {{#each monthlyApplications}}
+            <g>
+              <text
+                x="{{centerX}}"
+                y="{{countY}}"
+                text-anchor="middle"
+                fill="#334155"
+                font-size="10"
+                font-weight="700"
+                font-family="Geist Mono, monospace"
+              >
+                {{count}}
+              </text>
+              <rect
+                x="{{barX}}"
+                y="{{barY}}"
+                width="{{barWidth}}"
+                height="{{barHeight}}"
+                rx="6"
+                fill="{{barColor}}"
+              />
+              <text
+                x="{{centerX}}"
+                y="144"
+                text-anchor="middle"
+                fill="#64748b"
+                font-size="10"
+                font-weight="600"
+                font-family="Geist, sans-serif"
+              >
+                {{label}}
+              </text>
+            </g>
+            {{/each}}
+          </svg>
+        </div>
+
+        <div class="mt-4 flex flex-wrap items-center gap-5 text-[11px] font-medium text-slate-500">
+          <span class="inline-flex items-center gap-1.5">
+            <span class="h-2.5 w-2.5 rounded-xs bg-[#1b4332]"></span>
+            Aplicaciones ejecutadas
+          </span>
+          <span class="inline-flex items-center gap-1.5">
+            <span class="h-2.5 w-2.5 rounded-xs bg-slate-200"></span>
+            Mes sin registros
+          </span>
+        </div>
+      </article>
+
+      <article class="flex flex-col justify-between rounded-2xl border border-slate-200/90 bg-white p-6 shadow-2xs">
         <div>
-            <h2 class="text-2xl font-extrabold text-[#0F2E2E] leading-tight">Reportes y Estadísticas Operativas</h2>
-            <p class="text-xs text-slate-400 font-medium mt-1">Ciclo agrícola activo · Sinaloa, México · Período: <span class="capitalize font-bold text-slate-600">{{query.period}}</span></p>
-        </div>
-        <div class="flex items-center gap-3 relative">
-            <!-- Period Selector -->
-            <label for="report-period" class="sr-only">Seleccionar Período</label>
-            <select id="report-period"
-                class="bg-white border border-slate-200 rounded-xl py-2.5 px-4 text-sm text-slate-600 font-semibold shadow-sm focus:ring-2 focus:ring-primary/20 cursor-pointer">
-                <option value="mensual" {{#if (eq query.period 'mensual')}}selected{{/if}}>Último Mes (30 días)</option>
-                <option value="trimestral" {{#if (eq query.period 'trimestral')}}selected{{/if}}>Trimestre (90 días)</option>
-                <option value="anual" {{#if (eq query.period 'anual')}}selected{{/if}}>Año Completo</option>
-            </select>
+          <h2 class="text-sm font-bold text-slate-900">Tipo de Producto Aplicado</h2>
+          <p class="mt-0.5 text-xs text-slate-500">Proporción por familia agroquímica</p>
 
-            <!-- Export Button & Dropdown -->
-            <div class="relative">
-                <button type="button" id="btn-export-report"
-                    class="bg-[#2D4F4F] hover:bg-[#0F2E2E] text-white px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 transition-colors shadow-sm">
-                    <span class="material-symbols-outlined text-base" data-icon="download">download</span>
-                    <span>Exportar CSV</span>
-                    <span class="material-symbols-outlined text-xs" data-icon="arrow_drop_down">arrow_drop_down</span>
-                </button>
-
-                <!-- Export Options Menu -->
-                <div id="export-dropdown-menu"
-                    class="hidden absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-slate-100 py-2 z-50 animate-in fade-in zoom-in-95 duration-100">
-                    <div class="px-4 py-2 border-b border-slate-100">
-                        <p class="text-[10px] font-black uppercase tracking-wider text-slate-400">Descargar reporte en Excel / CSV</p>
-                    </div>
-                    <a href="/private/reports?format=csv&period={{query.period}}&reportType=applications"
-                        class="flex items-center gap-3 px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-primary transition-colors">
-                        <span class="material-symbols-outlined text-lg text-blue-600" data-icon="water_drop">water_drop</span>
-                        <span>Aplicaciones de Agroquímicos</span>
-                    </a>
-                    <a href="/private/reports?format=csv&period={{query.period}}&reportType=health"
-                        class="flex items-center gap-3 px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-primary transition-colors">
-                        <span class="material-symbols-outlined text-lg text-emerald-600" data-icon="bug_report">bug_report</span>
-                        <span>Sanidad e Incidencias</span>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    {{#if errorMessage}}
-    <div class="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm font-semibold flex items-center gap-3">
-        <span class="material-symbols-outlined text-xl">error</span>
-        <span>{{errorMessage}}</span>
-    </div>
-    {{/if}}
-
-    {{!-- ── Row 1: KPI Cards ── --}}
-    <section class="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div class="bg-white p-6 rounded-2xl shadow-[0_4px_20px_-2px_rgba(0,0,0,0.05),0_2px_10px_-2px_rgba(0,0,0,0.02)] border border-slate-50 hover:shadow-[0_20px_25px_-5px_rgba(0,0,0,0.07)] transition-all">
-            <div class="flex items-start justify-between mb-5">
-                <div class="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
-                    <span class="material-symbols-outlined text-2xl" data-icon="bug_report">bug_report</span>
-                </div>
-                <span class="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">Período</span>
-            </div>
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Plagas Reportadas</p>
-            <span class="text-3xl font-extrabold text-[#0F2E2E]">{{kpis.reportedPlagues}}</span>
-        </div>
-
-        <div class="bg-white p-6 rounded-2xl shadow-[0_4px_20px_-2px_rgba(0,0,0,0.05),0_2px_10px_-2px_rgba(0,0,0,0.02)] border border-slate-50 hover:shadow-[0_20px_25px_-5px_rgba(0,0,0,0.07)] transition-all">
-            <div class="flex items-start justify-between mb-5">
-                <div class="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-blue-500">
-                    <span class="material-symbols-outlined text-2xl" data-icon="water_drop">water_drop</span>
-                </div>
-                <span class="text-[11px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full">{{kpis.formattedHectares}}</span>
-            </div>
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Aplicaciones Químicas</p>
-            <span class="text-3xl font-extrabold text-[#0F2E2E]">{{kpis.chemicalApplications}}</span>
-        </div>
-
-        <div class="bg-white p-6 rounded-2xl shadow-[0_4px_20px_-2px_rgba(0,0,0,0.05),0_2px_10px_-2px_rgba(0,0,0,0.02)] border border-slate-50 hover:shadow-[0_20px_25px_-5px_rgba(0,0,0,0.07)] transition-all">
-            <div class="flex items-start justify-between mb-5">
-                <div class="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center text-amber-500">
-                    <span class="material-symbols-outlined text-2xl" data-icon="landscape">landscape</span>
-                </div>
-                <span class="text-[11px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full">Activos</span>
-            </div>
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Predios Monitoreados</p>
-            <span class="text-3xl font-extrabold text-[#0F2E2E]">{{kpis.monitoredFarms}}</span>
-        </div>
-
-        <div class="bg-white p-6 rounded-2xl shadow-[0_4px_20px_-2px_rgba(0,0,0,0.05),0_2px_10px_-2px_rgba(0,0,0,0.02)] border border-slate-50 hover:shadow-[0_20px_25px_-5px_rgba(0,0,0,0.07)] transition-all">
-            <div class="flex items-start justify-between mb-5">
-                <div class="w-12 h-12 rounded-xl bg-red-50 flex items-center justify-center text-red-500">
-                    <span class="material-symbols-outlined text-2xl" data-icon="notification_important">notification_important</span>
-                </div>
-                <span class="text-[11px] font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-full uppercase">Críticas</span>
-            </div>
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Alertas Sanitarias</p>
-            <span class="text-3xl font-extrabold text-[#0F2E2E]">{{kpis.criticalAlerts}}</span>
-        </div>
-    </section>
-
-    {{!-- ── Row 2: Charts ── --}}
-    <section class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-
-        {{!-- Left (2/3): Aplicaciones por mes — Bar Chart CSS --}}
-        <div class="lg:col-span-2 bg-white p-8 rounded-2xl shadow-[0_4px_20px_-2px_rgba(0,0,0,0.05),0_2px_10px_-2px_rgba(0,0,0,0.02)] border border-slate-50">
-            <div class="flex items-center justify-between mb-6">
-                <div>
-                    <h3 class="font-extrabold text-[#0F2E2E]">Aplicaciones Químicas por Mes</h3>
-                    <p class="text-[11px] text-slate-400 font-medium mt-0.5">Histórico reciente de aplicaciones</p>
-                </div>
-                <span class="text-[11px] font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-full">Operación Campo</span>
-            </div>
-            <!-- Bar Chart -->
-            <div class="flex items-end gap-3 h-44 mt-4">
-                {{#each monthlyApplications}}
-                <div class="flex-1 flex flex-col items-center gap-2">
-                    <span class="text-[10px] font-bold text-slate-500">{{count}}</span>
-                    <div class="w-full rounded-t-lg transition-all hover:opacity-80" style="height: {{heightPercentage}}%; background-color: {{barColor}};"></div>
-                    <span class="text-[10px] text-slate-400 font-semibold">{{label}}</span>
-                </div>
+          <div class="my-5 flex justify-center">
+            <div class="relative flex h-36 w-36 items-center justify-center">
+              <svg
+                viewBox="0 0 120 120"
+                role="img"
+                aria-label="Distribución porcentual de tipos de productos aplicados"
+                class="h-36 w-36 -rotate-90"
+              >
+                <circle
+                  cx="60"
+                  cy="60"
+                  r="44"
+                  fill="none"
+                  stroke="#f1f5f9"
+                  stroke-width="16"
+                />
+                {{#each productDistribution.types}}
+                <circle
+                  cx="60"
+                  cy="60"
+                  r="44"
+                  fill="none"
+                  stroke="{{color}}"
+                  stroke-width="16"
+                  stroke-dasharray="{{dashArray}}"
+                  stroke-dashoffset="{{dashOffset}}"
+                />
                 {{/each}}
+              </svg>
+              <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
+                <span class="font-['Geist_Mono'] text-xl font-bold leading-none text-slate-900">
+                  {{productDistribution.total}}
+                </span>
+                <span class="mt-0.5 font-['Geist_Mono'] text-[9px] font-semibold uppercase tracking-wider text-slate-400">
+                  Apps.
+                </span>
+              </div>
             </div>
-            <div class="flex items-center gap-5 mt-4 pt-4 border-t border-slate-100">
-                <div class="flex items-center gap-2">
-                    <div class="w-3 h-3 rounded-sm bg-[#0F2E2E]"></div>
-                    <span class="text-[11px] text-slate-500 font-semibold">Aplicaciones realizadas</span>
-                </div>
-                <div class="flex items-center gap-2">
-                    <div class="w-3 h-3 rounded-sm bg-slate-200"></div>
-                    <span class="text-[11px] text-slate-500 font-semibold">Sin registros</span>
-                </div>
-            </div>
+          </div>
         </div>
 
-        {{!-- Right (1/3): Distribución por tipo de producto --}}
-        <div class="bg-white p-8 rounded-2xl shadow-[0_4px_20px_-2px_rgba(0,0,0,0.05),0_2px_10px_-2px_rgba(0,0,0,0.02)] border border-slate-50">
-            <div class="flex items-center justify-between mb-6">
-                <h3 class="font-extrabold text-[#0F2E2E]">Tipo de Producto Aplicado</h3>
+        <div class="space-y-2.5 border-t border-slate-100 pt-3.5 text-xs">
+          {{#if productDistribution.types.length}}
+          {{#each productDistribution.types}}
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <svg class="h-2.5 w-2.5 shrink-0" viewBox="0 0 10 10" aria-hidden="true">
+                <circle cx="5" cy="5" r="5" fill="{{color}}" />
+              </svg>
+              <span class="font-medium text-slate-700">{{name}}</span>
             </div>
-            <!-- Donut -->
-            <div class="flex justify-center mb-6">
-                <div class="relative w-36 h-36 rounded-full flex items-center justify-center">
-                    <div class="absolute inset-0 rounded-full"
-                        style="{{productDistribution.conicGradientStyle}} mask: radial-gradient(transparent 62%, black 64%); -webkit-mask: radial-gradient(transparent 62%, black 64%);">
-                    </div>
-                    <div class="text-center z-10">
-                        <span class="block text-xl font-black text-[#0F2E2E] leading-none">{{productDistribution.total}}</span>
-                        <span class="text-[9px] text-slate-400 uppercase font-bold tracking-wide">apps.</span>
-                    </div>
-                </div>
-            </div>
-            <!-- Legend -->
-            <div class="space-y-3">
-                {{#if productDistribution.types.length}}
-                    {{#each productDistribution.types}}
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-2.5">
-                            <div class="w-2.5 h-2.5 rounded-full" style="background-color: {{color}};"></div>
-                            <span class="text-xs font-semibold text-slate-600">{{name}}</span>
-                        </div>
-                        <span class="text-xs font-black text-slate-800">{{percentage}}% ({{count}})</span>
-                    </div>
-                    {{/each}}
-                {{else}}
-                    <p class="text-xs text-center text-slate-400 py-4">Sin datos de aplicación en este período</p>
-                {{/if}}
-            </div>
+            <span class="font-['Geist_Mono'] text-[11px] font-semibold text-slate-900">
+              {{percentage}}% ({{count}})
+            </span>
+          </div>
+          {{/each}}
+          {{else}}
+          <p class="py-2 text-center text-xs text-slate-400">
+            Sin datos de aplicación en este período
+          </p>
+          {{/if}}
         </div>
+      </article>
     </section>
 
-    {{!-- ── Row 3: Top Plagas + Top Predios ── --}}
-    <section class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-
-        {{!-- Top 5 Plagas --}}
-        <div class="bg-white p-8 rounded-2xl shadow-[0_4px_20px_-2px_rgba(0,0,0,0.05),0_2px_10px_-2px_rgba(0,0,0,0.02)] border border-slate-50">
-            <div class="flex items-center justify-between mb-7">
-                <h3 class="font-extrabold text-[#0F2E2E]">Top Plagas del Período</h3>
-                <a href="/private/plagues" class="text-xs font-bold text-primary hover:underline">Ver catálogo →</a>
-            </div>
-            <div class="space-y-5">
-                {{#if hasPlagues}}
-                    {{#each topPlagues}}
-                    <div class="space-y-1.5">
-                        <div class="flex justify-between text-xs font-bold">
-                            <span class="text-slate-600">{{name}}</span>
-                            <span class="text-slate-900">{{count}} reportes</span>
-                        </div>
-                        <div class="w-full bg-slate-100 rounded-full h-2">
-                            <div class="h-2 rounded-full" style="width: {{percentage}}%; background-color: {{color}};"></div>
-                        </div>
-                    </div>
-                    {{/each}}
-                {{else}}
-                    <div class="py-8 text-center">
-                        <span class="material-symbols-outlined text-4xl text-slate-300 mb-2">pest_control</span>
-                        <p class="text-xs font-semibold text-slate-400">No se registraron incidencias fitosanitarias en este período.</p>
-                    </div>
-                {{/if}}
-            </div>
+    <section class="grid grid-cols-1 gap-5 lg:grid-cols-2">
+      <article class="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-2xs">
+        <div class="mb-5 flex items-center justify-between">
+          <div>
+            <h2 class="text-sm font-bold text-slate-900">Top Plagas del Período</h2>
+            <p class="mt-0.5 text-xs text-slate-500">Agentes fitopatógenos con mayor incidencia</p>
+          </div>
+          <a href="/private/plagues" class="text-xs font-semibold text-[#1b4332] hover:underline">
+            Ver catálogo →
+          </a>
         </div>
 
-        {{!-- Predios con más alertas --}}
-        <div class="bg-white p-8 rounded-2xl shadow-[0_4px_20px_-2px_rgba(0,0,0,0.05),0_2px_10px_-2px_rgba(0,0,0,0.02)] border border-slate-50">
-            <div class="flex items-center justify-between mb-7">
-                <h3 class="font-extrabold text-[#0F2E2E]">Predios con Mayor Actividad</h3>
-                <a href="/private/lands" class="text-xs font-bold text-primary hover:underline">Ver terrenos →</a>
+        <div class="space-y-4">
+          {{#if hasPlagues}}
+          {{#each topPlagues}}
+          <div class="space-y-1.5">
+            <div class="flex items-center justify-between text-xs">
+              <span class="font-semibold text-slate-800">{{name}}</span>
+              <span class="font-['Geist_Mono'] text-[11px] font-semibold text-slate-600">
+                {{count}} reportes
+              </span>
             </div>
-            <div class="space-y-3">
-                {{#if activeFarms.length}}
-                    {{#each activeFarms}}
-                    <div class="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 transition-colors">
-                        <div class="flex items-center gap-3">
-                            <div class="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0">
-                                <span class="material-symbols-outlined text-emerald-600 text-lg" data-icon="landscape">landscape</span>
-                            </div>
-                            <div>
-                                <p class="text-sm font-bold text-slate-800">{{name}}</p>
-                                <p class="text-[10px] text-slate-400">{{municipality}} · {{sizeHectares}} ha</p>
-                            </div>
-                        </div>
-                        <div class="text-right">
-                            <span class="px-2.5 py-1 {{alertBadgeClass}} rounded-full text-[10px] font-black uppercase">{{alertBadgeText}}</span>
-                        </div>
-                    </div>
-                    {{/each}}
-                {{else}}
-                    <div class="py-8 text-center">
-                        <span class="material-symbols-outlined text-4xl text-slate-300 mb-2">landscape</span>
-                        <p class="text-xs font-semibold text-slate-400">No se encontraron predios activos registrados.</p>
-                    </div>
-                {{/if}}
+            <svg
+              viewBox="0 0 100 6"
+              preserveAspectRatio="none"
+              class="h-2 w-full overflow-hidden rounded-full bg-slate-100"
+              aria-hidden="true"
+            >
+              <rect x="0" y="0" width="{{percentage}}" height="6" rx="3" fill="{{color}}" />
+            </svg>
+          </div>
+          {{/each}}
+          {{else}}
+          <div class="py-8 text-center">
+            <div class="mx-auto mb-2.5 flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
+              <i data-lucide="bug-off" class="h-5 w-5"></i>
             </div>
+            <p class="text-xs font-medium text-slate-500">
+              No se registraron incidencias fitosanitarias en este período.
+            </p>
+          </div>
+          {{/if}}
         </div>
+      </article>
+
+      <article class="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-2xs">
+        <div class="mb-5 flex items-center justify-between">
+          <div>
+            <h2 class="text-sm font-bold text-slate-900">Predios con Mayor Actividad</h2>
+            <p class="mt-0.5 text-xs text-slate-500">Superficie monitoreada y nivel de alerta</p>
+          </div>
+          <a href="/private/lands" class="text-xs font-semibold text-[#1b4332] hover:underline">
+            Ver terrenos →
+          </a>
+        </div>
+
+        <div class="space-y-2.5">
+          {{#if activeFarms.length}}
+          {{#each activeFarms}}
+          <a
+            href="/private/lands/{{id}}/expediente"
+            class="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50/60 p-3 transition-colors hover:border-[#1b4332]/30 hover:bg-emerald-50/40"
+          >
+            <div class="flex min-w-0 items-center gap-3">
+              <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-[#1b4332] shadow-2xs">
+                <i data-lucide="map-pin" class="h-4 w-4"></i>
+              </span>
+              <div class="min-w-0">
+                <p class="truncate text-xs font-bold text-slate-900">{{name}}</p>
+                <p class="font-['Geist_Mono'] text-[11px] text-slate-500">
+                  {{municipality}} · {{sizeHectares}} ha
+                </p>
+              </div>
+            </div>
+            <span class="shrink-0 rounded-full px-2.5 py-0.5 font-['Geist_Mono'] text-[10px] font-semibold uppercase {{alertBadgeClass}}">
+              {{alertBadgeText}}
+            </span>
+          </a>
+          {{/each}}
+          {{else}}
+          <div class="py-8 text-center">
+            <div class="mx-auto mb-2.5 flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
+              <i data-lucide="map" class="h-5 w-5"></i>
+            </div>
+            <p class="text-xs font-medium text-slate-500">
+              No se encontraron predios activos registrados.
+            </p>
+          </div>
+          {{/if}}
+        </div>
+      </article>
     </section>
 
-    {{!-- ── Row 4: Últimas Aplicaciones Químicas ── --}}
-    <section class="bg-white rounded-2xl shadow-[0_4px_20px_-2px_rgba(0,0,0,0.05),0_2px_10px_-2px_rgba(0,0,0,0.02)] border border-slate-50 overflow-hidden mb-8">
-        <div class="flex items-center justify-between px-8 py-6 border-b border-slate-50">
-            <div>
-                <h3 class="font-extrabold text-[#0F2E2E]">Últimas Aplicaciones Registradas</h3>
-                <p class="text-xs text-slate-400 font-medium mt-0.5">Trazabilidad de agroquímicos aplicados en campo</p>
-            </div>
-            <a href="/private/reports?format=csv&period={{query.period}}&reportType=applications"
-               class="text-xs font-bold text-[#2D4F4F] hover:text-[#0F2E2E] transition-colors flex items-center gap-1">
-                <span class="material-symbols-outlined text-sm" data-icon="download">download</span>
-                Descargar bitácora completa
-            </a>
+    <section class="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-2xs">
+      <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-6 py-4">
+        <div>
+          <h2 class="text-sm font-bold text-slate-900">Últimas Aplicaciones Registradas</h2>
+          <p class="mt-0.5 text-xs text-slate-500">
+            Trazabilidad operativa de agroquímicos aplicados en campo
+          </p>
         </div>
-        <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse min-w-[700px]">
-                <thead>
-                    <tr class="bg-slate-50/60">
-                        <th class="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Fecha</th>
-                        <th class="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Predio</th>
-                        <th class="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Producto</th>
-                        <th class="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Ingrediente Activo</th>
-                        <th class="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 text-center">Dosis</th>
-                        <th class="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 text-center">Técnico</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-50">
-                    {{#if hasApplications}}
-                        {{#each latestApplications}}
-                        <tr class="hover:bg-slate-50/50 transition-colors">
-                            <td class="px-8 py-5 text-xs text-slate-500 font-semibold">{{formattedDate}}</td>
-                            <td class="px-8 py-5">
-                                <p class="text-sm font-bold text-slate-800">{{farmName}}</p>
-                                <p class="text-[10px] text-slate-400">{{farmDetails}}</p>
-                            </td>
-                            <td class="px-8 py-5">
-                                <p class="text-sm font-semibold text-slate-700">{{productName}}</p>
-                                <span class="px-2 py-0.5 {{categoryBadgeClass}} rounded text-[10px] font-bold">{{category}}</span>
-                            </td>
-                            <td class="px-8 py-5 text-sm text-slate-600 italic">{{activeIngredient}}</td>
-                            <td class="px-8 py-5 text-center text-xs font-bold text-slate-700">{{doseText}}</td>
-                            <td class="px-8 py-5 text-center">
-                                <div class="flex items-center justify-center gap-2">
-                                    <div class="w-7 h-7 rounded-full bg-[#0F2E2E] flex items-center justify-center text-white text-[10px] font-extrabold">{{technicianInitials}}</div>
-                                    <span class="text-xs font-semibold text-slate-600">{{technicianName}}</span>
-                                </div>
-                            </td>
-                        </tr>
-                        {{/each}}
-                    {{else}}
-                        <tr>
-                            <td colspan="6" class="px-8 py-10 text-center text-sm font-medium text-slate-400">
-                                <div class="flex flex-col items-center gap-2">
-                                    <span class="material-symbols-outlined text-4xl text-slate-300">water_drop</span>
-                                    <span>No se encontraron aplicaciones de agroquímicos registradas en este período.</span>
-                                </div>
-                            </td>
-                        </tr>
-                    {{/if}}
-                </tbody>
-            </table>
-        </div>
+        <a
+          data-export-link="applications-bottom"
+          href="/private/reports?format=csv&period={{query.period}}&reportType=applications{{#if query.farmId}}&farmId={{query.farmId}}{{/if}}"
+          class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-emerald-50 hover:text-[#1b4332]"
+        >
+          <i data-lucide="download" class="h-3.5 w-3.5"></i>
+          <span>Descargar bitácora CSV</span>
+        </a>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full min-w-[760px] border-collapse text-left">
+          <thead>
+            <tr class="border-b border-slate-200 bg-slate-50/80 font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+              <th class="px-5 py-3">Fecha</th>
+              <th class="px-4 py-3">Predio</th>
+              <th class="px-4 py-3">Producto Comercial</th>
+              <th class="px-4 py-3">Ingrediente Activo</th>
+              <th class="px-4 py-3 text-center">Dosis</th>
+              <th class="px-5 py-3 text-right">Técnico</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 text-xs">
+            {{#if hasApplications}}
+            {{#each latestApplications}}
+            <tr class="transition-colors hover:bg-slate-50/70">
+              <td class="px-5 py-3.5 font-['Geist_Mono'] text-[11px] font-semibold text-slate-600">
+                {{formattedDate}}
+              </td>
+              <td class="px-4 py-3.5">
+                <p class="font-semibold text-slate-900">{{farmName}}</p>
+                <p class="font-['Geist_Mono'] text-[11px] text-slate-500">{{farmDetails}}</p>
+              </td>
+              <td class="px-4 py-3.5">
+                <p class="font-semibold text-slate-800">{{productName}}</p>
+                <span class="mt-0.5 inline-block rounded-md px-2 py-0.5 text-[10px] font-semibold {{categoryBadgeClass}}">
+                  {{category}}
+                </span>
+              </td>
+              <td class="px-4 py-3.5 italic text-slate-600">{{activeIngredient}}</td>
+              <td class="px-4 py-3.5 text-center font-['Geist_Mono'] font-semibold text-slate-800">
+                {{doseText}}
+              </td>
+              <td class="px-5 py-3.5 text-right">
+                <div class="inline-flex items-center justify-end gap-2">
+                  <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-[#1b4332] font-['Geist_Mono'] text-[10px] font-bold text-white">
+                    {{technicianInitials}}
+                  </span>
+                  <span class="font-medium text-slate-700">{{technicianName}}</span>
+                </div>
+              </td>
+            </tr>
+            {{/each}}
+            {{else}}
+            <tr>
+              <td colspan="6" class="px-6 py-12 text-center text-xs font-medium text-slate-500">
+                No se encontraron aplicaciones de agroquímicos registradas en este período.
+              </td>
+            </tr>
+            {{/if}}
+          </tbody>
+        </table>
+      </div>
     </section>
+  </div>
+</div>
 
-</main>
+<div
+  id="modal-report-pdf-preview"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="report-pdf-modal-title"
+  class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/60 p-4 backdrop-blur-xs font-['Geist']"
+>
+  <div class="flex h-[88vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
+    <div class="flex items-center justify-between border-b border-slate-200 px-6 py-3.5">
+      <div class="flex items-center gap-3">
+        <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-[#1b4332]">
+          <i data-lucide="file-text" class="h-4 w-4"></i>
+        </span>
+        <div>
+          <h2 id="report-pdf-modal-title" class="text-sm font-bold text-slate-900">
+            Resumen Ejecutivo Oficial · INIFAP
+          </h2>
+          <p class="font-['Geist_Mono'] text-[11px] text-slate-500">
+            Documento generado localmente con trazabilidad fitosanitaria
+          </p>
+        </div>
+      </div>
 
-<script src="/js/private/reports/reportsFilter.js"></script>
+      <div class="flex items-center gap-2">
+        <a
+          id="btn-download-report-pdf"
+          href="/private/reports?format=pdf&period={{query.period}}{{#if query.farmId}}&farmId={{query.farmId}}{{/if}}"
+          class="inline-flex items-center gap-1.5 rounded-xl bg-[#1b4332] px-3.5 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-[#143326]"
+        >
+          <i data-lucide="download" class="h-3.5 w-3.5"></i>
+          <span>Descargar PDF</span>
+        </a>
+        <button
+          id="btn-close-report-pdf"
+          type="button"
+          aria-label="Cerrar vista previa de reporte PDF"
+          class="rounded-xl p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 cursor-pointer"
+        >
+          <i data-lucide="x" class="h-4 w-4"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="flex-1 bg-slate-100 p-3">
+      <iframe
+        id="report-pdf-frame"
+        title="Vista previa del Resumen Ejecutivo Operativo en PDF"
+        class="h-full w-full rounded-xl border border-slate-200 bg-white"
+      ></iframe>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="/js/private/reports/reportsFilter.js"></script>

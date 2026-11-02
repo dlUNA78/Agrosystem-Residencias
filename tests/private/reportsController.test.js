@@ -1,4 +1,7 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { buildOperationalReportPdfBuffer } from '../../src/services/reportPdfService.js';
 
 const mockDb = {
   Sequelize: {
@@ -290,6 +293,106 @@ describe('módulo privado de reportes y estadísticas operativas', () => {
           hasApplications: false,
         }),
       );
+    });
+
+    it('genera Resumen Ejecutivo en PDF (format=pdf) y soporta disposición inline', async () => {
+      mockDb.Farm.findAll.mockResolvedValue([]);
+      mockDb.FarmHealthReport.count.mockResolvedValue(0);
+      mockDb.FarmApplication.count.mockResolvedValue(0);
+      mockDb.Farm.count.mockResolvedValue(0);
+      mockDb.Farm.sum.mockResolvedValue(0);
+      mockDb.FarmApplication.findAll.mockResolvedValue([]);
+      mockDb.FarmHealthReport.findAll.mockResolvedValue([]);
+      mockDb.AuditLog.create.mockResolvedValue({});
+
+      const req = {
+        user: { id: 3, role: 'admin', full_name: 'Dra. Elena Ríos' },
+        query: { format: 'pdf', period: 'semanal', disposition: 'inline' },
+      };
+
+      const res = {
+        render: jest.fn(),
+        status: jest.fn().mockReturnThis(),
+        setHeader: jest.fn(),
+        send: jest.fn(),
+      };
+
+      await reportsPrivate(req, res);
+
+      expect(res.setHeader).toHaveBeenCalledWith(
+        'Content-Type',
+        'application/pdf',
+      );
+      expect(res.setHeader).toHaveBeenCalledWith(
+        'Content-Disposition',
+        expect.stringContaining(
+          'inline; filename="INIFAP-Reporte-Operativo-semanal-',
+        ),
+      );
+      const sentBuffer = res.send.mock.calls[0][0];
+      expect(Buffer.isBuffer(sentBuffer)).toBe(true);
+      expect(sentBuffer.subarray(0, 5).toString('ascii')).toBe('%PDF-');
+      expect(mockDb.AuditLog.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          user_id: 3,
+          action: 'export',
+          table_name: 'Reports',
+          new_values: expect.objectContaining({
+            format: 'pdf',
+            period: 'semanal',
+          }),
+        }),
+      );
+    });
+
+    it('construye PDF con secciones completas y la plantilla reports.hbs cumple cero estilos/scripts inline', async () => {
+      const pdfBuf = await buildOperationalReportPdfBuffer(
+        {
+          query: { period: 'trimestral' },
+          kpis: {
+            reportedPlagues: 12,
+            chemicalApplications: 8,
+            criticalAlerts: 2,
+            monitoredFarms: 4,
+            formattedHectares: '85.5 ha',
+          },
+          monthlyApplications: [{ label: 'Oct', count: 5 }],
+          productDistribution: {
+            total: 8,
+            types: [{ name: 'Herbicidas', count: 5, percentage: 63 }],
+          },
+          topPlagues: [{ name: 'Roya Amarilla', count: 6, percentage: 100 }],
+          activeFarms: [
+            {
+              name: 'Campo Celaya',
+              municipality: 'Celaya',
+              sizeHectares: 40,
+              alertBadgeText: '2 alertas',
+            },
+          ],
+          latestApplications: [
+            {
+              formattedDate: '20 Oct 2026',
+              farmName: 'Campo Celaya',
+              productName: 'Belt 480 SC',
+              doseText: '0.2 L/ha',
+              technicianName: 'Ing. Ruiz',
+            },
+          ],
+        },
+        { full_name: 'Ing. Ruiz' },
+      );
+
+      expect(pdfBuf.subarray(0, 5).toString('ascii')).toBe('%PDF-');
+      expect(pdfBuf.length).toBeGreaterThan(1200);
+
+      const templateContent = fs.readFileSync(
+        path.resolve('src/views/private/admin/reports.hbs'),
+        'utf8',
+      );
+      expect(templateContent).not.toMatch(/<main\b/i);
+      expect(templateContent).not.toMatch(/\bstyle\s*=\s*["']/i);
+      expect(templateContent).not.toMatch(/\bon[a-z]+\s*=/i);
     });
   });
 });

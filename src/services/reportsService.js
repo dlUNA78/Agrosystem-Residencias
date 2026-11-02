@@ -21,26 +21,29 @@ export const MONTH_ABBRS = [
   'Dic',
 ];
 
-const PALETTE = ['#0F2E2E', '#43655c', '#40916c', '#f59e0b', '#ef4444'];
+const PALETTE = ['#1b4332', '#2d6a4f', '#40916c', '#d97706', '#e11d48'];
 
 const CATEGORY_COLORS = {
-  herbicida: '#43655c',
-  insecticida: '#0F2E2E',
-  fungicida: '#74c69d',
-  fertilizante: '#F2A900',
-  otros: '#94a3b8',
+  herbicida: '#1b4332',
+  insecticida: '#0f172a',
+  fungicida: '#059669',
+  fertilizante: '#d97706',
+  otros: '#64748b',
 };
+
+const DONUT_RADIUS = 44;
+const DONUT_CIRCUMFERENCE = Number((2 * Math.PI * DONUT_RADIUS).toFixed(2));
 
 /**
  * Normaliza y sanea los parámetros de consulta de reportes
  */
 export const normalizeReportQuery = (query = {}) => {
-  const allowedPeriods = ['mensual', 'trimestral', 'anual'];
+  const allowedPeriods = ['semanal', 'mensual', 'trimestral', 'anual'];
   const rawPeriod =
     typeof query.period === 'string' ? query.period.trim().toLowerCase() : '';
   const period = allowedPeriods.includes(rawPeriod) ? rawPeriod : 'mensual';
 
-  const allowedFormats = ['csv'];
+  const allowedFormats = ['csv', 'pdf'];
   const rawFormat =
     typeof query.format === 'string' ? query.format.trim().toLowerCase() : '';
   const format = allowedFormats.includes(rawFormat) ? rawFormat : '';
@@ -62,6 +65,7 @@ export const normalizeReportQuery = (query = {}) => {
  */
 export const getPeriodDateRange = (period, referenceDate = new Date()) => {
   const periodDaysMap = {
+    semanal: 7,
     mensual: 30,
     trimestral: 90,
     anual: 365,
@@ -124,9 +128,6 @@ export const getCategoryBadgeClass = (category) => {
   return badgeMap[norm] ?? 'bg-slate-100 text-slate-600';
 };
 
-/**
- * Obtiene los IDs de los predios accesibles por el usuario
- */
 export const getActiveFarmIds = async (user, farmId) => {
   const farmWhere = getLandListWhere(user, { status: 'active' });
   if (farmId) {
@@ -142,9 +143,6 @@ export const getActiveFarmIds = async (user, farmId) => {
   return farms.map((f) => f.id);
 };
 
-/**
- * Construye las cláusulas de inclusión y filtro para predios según RBAC
- */
 export const buildFarmScope = (user, farmId) => {
   const farmWhere = getLandListWhere(user, { status: 'active' });
   if (farmId) {
@@ -163,9 +161,6 @@ export const buildFarmScope = (user, farmId) => {
   };
 };
 
-/**
- * Calcula los 4 KPIs principales del período
- */
 export const calculateKpis = async (dateRange, user, farmId) => {
   const { startDate, endDate } = dateRange;
   const { farmWhere } = buildFarmScope(user, farmId);
@@ -219,9 +214,6 @@ export const calculateKpis = async (dateRange, user, farmId) => {
   };
 };
 
-/**
- * Genera la secuencia de los últimos N meses finalizando en el actual
- */
 const buildRecentMonthsSequence = (count = 4, referenceDate = new Date()) => {
   const list = [];
   const ref = new Date(referenceDate);
@@ -239,9 +231,28 @@ const buildRecentMonthsSequence = (count = 4, referenceDate = new Date()) => {
   return list;
 };
 
-/**
- * Agrega el conteo de aplicaciones en las barras mensuales
- */
+const attachSvgBarMetrics = (months, maxCount) =>
+  months.map((m, idx) => {
+    const heightPercentage =
+      maxCount > 0 ? Math.max(12, Math.round((m.count / maxCount) * 100)) : 8;
+    const barHeight = Math.max(8, Math.round((heightPercentage / 100) * 102));
+    const barX = 28 + idx * 82;
+    const barY = 126 - barHeight;
+
+    return {
+      label: m.label,
+      count: m.count,
+      heightPercentage,
+      barColor: m.count > 0 ? '#1b4332' : '#e2e8f0',
+      barX,
+      barY,
+      barWidth: 46,
+      barHeight,
+      centerX: barX + 23,
+      countY: Math.max(14, barY - 6),
+    };
+  });
+
 export const calculateMonthlyApplications = async (
   dateRange,
   user,
@@ -253,12 +264,7 @@ export const calculateMonthlyApplications = async (
   const months = buildRecentMonthsSequence(4, referenceDate);
 
   if (farmIds.length === 0) {
-    return months.map((m) => ({
-      label: m.label,
-      count: 0,
-      heightPercentage: 8,
-      barColor: '#cbd5e1',
-    }));
+    return attachSvgBarMetrics(months, 0);
   }
 
   const applications = await FarmApplication.findAll({
@@ -285,21 +291,7 @@ export const calculateMonthlyApplications = async (
     if (item.count > maxCount) maxCount = item.count;
   }
 
-  return months.map((m) => {
-    const heightPercentage =
-      maxCount > 0
-        ? Math.max(15, Math.round((m.count / maxCount) * 100))
-        : m.count > 0
-          ? 20
-          : 8;
-
-    return {
-      label: m.label,
-      count: m.count,
-      heightPercentage,
-      barColor: m.count > 0 ? '#0F2E2E' : '#cbd5e1',
-    };
-  });
+  return attachSvgBarMetrics(months, maxCount);
 };
 
 const normalizeCategory = (category) => {
@@ -307,14 +299,45 @@ const normalizeCategory = (category) => {
   if (val.includes('herbicida')) return 'Herbicidas';
   if (val.includes('insecticida')) return 'Insecticidas';
   if (val.includes('fungicida')) return 'Fungicidas';
-  if (val.includes('fertilizante') || val.includes('abono'))
+  if (val.includes('fertilizante') || val.includes('abono')) {
     return 'Fertilizantes';
+  }
   return 'Otros';
 };
 
-/**
- * Construye los segmentos y leyenda para la distribución de tipo de producto
- */
+const buildDonutSegments = (counts, total) => {
+  let currentPercent = 0;
+  let cumulativeArc = 0;
+  const gradientStops = [];
+  const types = [];
+
+  for (const [name, count] of counts.entries()) {
+    const pct = Math.round((count / total) * 100);
+    const colorKey = name.toLowerCase().replace(/s$/, '');
+    const color = CATEGORY_COLORS[colorKey] || CATEGORY_COLORS.otros;
+    const nextPercent = currentPercent + pct;
+    const arcLength = Number(
+      ((count / total) * DONUT_CIRCUMFERENCE).toFixed(2),
+    );
+    const dashOffset = Number((-cumulativeArc).toFixed(2));
+
+    gradientStops.push(`${color} ${currentPercent}% ${nextPercent}%`);
+    currentPercent = nextPercent;
+    cumulativeArc += arcLength;
+
+    types.push({
+      name,
+      count,
+      percentage: pct,
+      color,
+      dashArray: `${arcLength} ${DONUT_CIRCUMFERENCE}`,
+      dashOffset,
+    });
+  }
+
+  return { types, gradientStops };
+};
+
 export const calculateProductDistribution = async (dateRange, user, farmId) => {
   const { startDate, endDate } = dateRange;
   const farmIds = await getActiveFarmIds(user, farmId);
@@ -357,21 +380,7 @@ export const calculateProductDistribution = async (dateRange, user, farmId) => {
   }
 
   const total = apps.length;
-  let currentPercent = 0;
-  const gradientStops = [];
-  const types = [];
-
-  for (const [name, count] of counts.entries()) {
-    const pct = Math.round((count / total) * 100);
-    const colorKey = name.toLowerCase().replace(/s$/, '');
-    const color = CATEGORY_COLORS[colorKey] || CATEGORY_COLORS.otros;
-    const nextPercent = currentPercent + pct;
-
-    gradientStops.push(`${color} ${currentPercent}% ${nextPercent}%`);
-    currentPercent = nextPercent;
-
-    types.push({ name, count, percentage: pct, color });
-  }
+  const { types, gradientStops } = buildDonutSegments(counts, total);
 
   return {
     total,
@@ -380,9 +389,6 @@ export const calculateProductDistribution = async (dateRange, user, farmId) => {
   };
 };
 
-/**
- * Obtiene el Top 5 de plagas registradas en el período
- */
 export const calculateTopPlagues = async (dateRange, user, farmId) => {
   const { startDate, endDate } = dateRange;
   const farmIds = await getActiveFarmIds(user, farmId);
@@ -425,31 +431,28 @@ export const calculateTopPlagues = async (dateRange, user, farmId) => {
 const getAlertBadgeInfo = (count) => {
   if (count >= 3) {
     return {
-      badgeClass: 'bg-red-50 text-red-600',
+      badgeClass: 'bg-rose-50 text-rose-700 border border-rose-200',
       badgeText: `${count} alertas`,
     };
   }
   if (count === 2) {
     return {
-      badgeClass: 'bg-amber-50 text-amber-600',
+      badgeClass: 'bg-amber-50 text-amber-700 border border-amber-200',
       badgeText: `${count} alertas`,
     };
   }
   if (count === 1) {
     return {
-      badgeClass: 'bg-emerald-50 text-emerald-600',
+      badgeClass: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
       badgeText: '1 alerta',
     };
   }
   return {
-    badgeClass: 'bg-slate-100 text-slate-500',
+    badgeClass: 'bg-slate-100 text-slate-600 border border-slate-200',
     badgeText: 'Sin alertas',
   };
 };
 
-/**
- * Consulta predios activos y clasifica los que tienen mayor actividad
- */
 export const calculateActiveFarms = async (dateRange, user, farmId) => {
   const { startDate, endDate } = dateRange;
   const { farmWhere } = buildFarmScope(user, farmId);
@@ -549,9 +552,6 @@ const formatApplicationItem = (item) => {
   };
 };
 
-/**
- * Consulta las últimas aplicaciones registradas en el período
- */
 export const fetchLatestApplications = async (
   dateRange,
   user,
@@ -611,9 +611,6 @@ const formatHealthReportItem = (item) => {
   };
 };
 
-/**
- * Consulta los reportes de sanidad fitosanitaria para exportación detallada
- */
 export const fetchHealthReportsForExport = async (dateRange, user, farmId) => {
   const { startDate, endDate } = dateRange;
   const { includeFarm } = buildFarmScope(user, farmId);
@@ -640,9 +637,22 @@ export const fetchHealthReportsForExport = async (dateRange, user, farmId) => {
   return rows.map(formatHealthReportItem);
 };
 
-/**
- * Orquestador principal que reúne todas las métricas operativas
- */
+const fetchAccessibleFarmOptions = async (user, selectedFarmId) => {
+  const farmWhere = getLandListWhere(user, { status: 'active' });
+  const farms = await Farm.findAll({
+    where: farmWhere,
+    attributes: ['id', 'name', 'municipality'],
+    raw: true,
+  });
+
+  return (farms || []).map((farm) => ({
+    id: farm.id,
+    name: farm.name,
+    municipality: farm.municipality || '',
+    selected: Number(farm.id) === Number(selectedFarmId),
+  }));
+};
+
 export const getOperationalReportsData = async (user, query = {}) => {
   const normalizedQuery = normalizeReportQuery(query);
   const dateRange = getPeriodDateRange(normalizedQuery.period);
@@ -654,6 +664,7 @@ export const getOperationalReportsData = async (user, query = {}) => {
     topPlagues,
     activeFarms,
     latestApplications,
+    farmOptions,
   ] = await Promise.all([
     calculateKpis(dateRange, user, normalizedQuery.farmId),
     calculateMonthlyApplications(
@@ -666,6 +677,7 @@ export const getOperationalReportsData = async (user, query = {}) => {
     calculateTopPlagues(dateRange, user, normalizedQuery.farmId),
     calculateActiveFarms(dateRange, user, normalizedQuery.farmId),
     fetchLatestApplications(dateRange, user, normalizedQuery.farmId, 10),
+    fetchAccessibleFarmOptions(user, normalizedQuery.farmId),
   ]);
 
   return {
@@ -675,6 +687,7 @@ export const getOperationalReportsData = async (user, query = {}) => {
     productDistribution,
     topPlagues,
     activeFarms,
+    farmOptions,
     latestApplications,
     hasApplications: latestApplications.length > 0,
     hasPlagues: topPlagues.length > 0,
@@ -684,6 +697,9 @@ export const getOperationalReportsData = async (user, query = {}) => {
 const escapeCsv = (val) => {
   if (val === null || val === undefined) return '""';
   const str = String(val).replace(/"/g, '""');
+  if (/^[=+\-@]/.test(str)) {
+    return `"'${str}"`;
+  }
   return `"${str}"`;
 };
 
@@ -743,9 +759,6 @@ const resolveCsvTableRows = async (reportType, data, user) => {
   return buildApplicationsCsvRows(data.latestApplications);
 };
 
-/**
- * Genera el archivo CSV estructurado con UTF-8 BOM
- */
 export const generateOperationalReportCsv = async ({
   reportType,
   data,
