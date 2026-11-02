@@ -1,7 +1,9 @@
-<section id="crop-section-images" class="scroll-mt-4 rounded-2xl border border-border bg-card p-4 sm:p-6 space-y-4">
+<section id="crop-section-images" class="scroll-mt-4 rounded-2xl border border-border/80 bg-card p-4 sm:p-6 shadow-2xs space-y-4">
   <div class="flex items-center justify-between gap-2 border-b border-border/60 pb-3">
-    <div class="flex items-center gap-2">
-      <span class="inline-flex shrink-0 text-primary">{{> private/crops/icon name="image"}}</span>
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-lg bg-[#e6f0e6] text-[#1b4332] flex items-center justify-center shrink-0">
+        <i data-lucide="image" class="w-4 h-4"></i>
+      </div>
       <div>
         <h4 class="font-bold text-foreground">Imágenes del cultivo</h4>
         <p class="text-xs text-muted-foreground">Agrega hasta 10 imágenes para documentar las características del cultivo</p>
@@ -13,10 +15,10 @@
   </div>
 
   <label for="crop-images"
-    class="group flex flex-col items-center justify-center w-full min-h-36 border-2 border-dashed border-primary/30 rounded-2xl bg-primary/5 hover:bg-primary/10 hover:border-primary/60 transition-all cursor-pointer p-4 text-center">
-    <span class="material-symbols-outlined text-4xl text-primary/50 group-hover:text-primary transition-colors">cloud_upload</span>
-    <p class="mt-2 text-sm font-bold text-foreground">Seleccionar imágenes del cultivo</p>
-    <p class="text-xs text-muted-foreground mt-0.5">o arrastra archivos aquí</p>
+    class="group flex flex-col items-center justify-center w-full min-h-36 border-2 border-dashed border-[#1b4332]/30 rounded-2xl bg-[#1b4332]/5 hover:bg-[#1b4332]/10 hover:border-[#1b4332]/60 transition-all cursor-pointer p-5 text-center">
+    <i data-lucide="cloud-upload" class="w-8 h-8 text-[#2d6a4f]/70 group-hover:text-[#1b4332] transition-colors"></i>
+    <p class="mt-2 text-xs sm:text-sm font-bold text-foreground">Seleccionar imágenes del cultivo</p>
+    <p class="text-[11px] text-muted-foreground mt-0.5">o arrastra archivos aquí</p>
     <p class="text-[10px] text-muted-foreground mt-1">JPG, JPEG, PNG o WEBP • Máximo 5 MB por imagen</p>
     <input type="file" id="crop-images" name="images" data-max-files="10" data-max-file-size="5242880"
       accept="image/jpeg,image/jpg,image/png,image/webp" multiple class="hidden">

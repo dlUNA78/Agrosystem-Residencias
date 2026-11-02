@@ -41,6 +41,7 @@ const buildListItem = (record, user) => {
   return {
     ...crop,
     image_url: normalizeImageUrl(primaryImage?.image_url),
+    imageCount: images.length,
     canEditRecord: permissions.canEdit && isCropEditable(crop.workflow_status),
     canDeleteRecord: permissions.canDelete,
   };
@@ -104,6 +105,8 @@ export const cropsPrivate = async (req, res) => {
       layout: privateLayout,
       pageTitle: 'Gestión agronómica - Cultivos',
       activePage: 'crops',
+      isAdmin: req.user?.role === 'admin',
+      isInifap: req.user?.role === 'inifap',
       crops: records.map((record) => buildListItem(record, req.user)),
       filters: query,
       pagination,

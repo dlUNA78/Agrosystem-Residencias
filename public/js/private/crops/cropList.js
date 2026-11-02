@@ -37,11 +37,13 @@ const applyCropView = (view) => {
   const gridButton = document.getElementById('view-grid');
   if (!tableButton || !gridButton) return;
 
+  tableButton.classList.toggle('bg-[#1b4332]', showTable);
   tableButton.classList.toggle('bg-primary', showTable);
   tableButton.classList.toggle('text-white', showTable);
   tableButton.classList.toggle('text-muted-foreground', !showTable);
   tableButton.setAttribute('aria-pressed', String(showTable));
 
+  gridButton.classList.toggle('bg-[#1b4332]', !showTable);
   gridButton.classList.toggle('bg-primary', !showTable);
   gridButton.classList.toggle('text-white', !showTable);
   gridButton.classList.toggle('text-muted-foreground', showTable);
