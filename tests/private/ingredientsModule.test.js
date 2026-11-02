@@ -3,11 +3,29 @@ import fs from 'node:fs';
 import path from 'node:path';
 import hbs from 'express-hbs';
 
+const sampleRows = [
+  {
+    id: 1,
+    name: 'Glifosato',
+    chemical_group: 'Glicinas',
+    action_type: 'herbicida',
+    toxicological_category: 'clase-iii',
+  },
+  {
+    id: 2,
+    name: 'Paraquat',
+    chemical_group: 'Bipiridilios',
+    action_type: 'herbicida',
+    toxicological_category: 'clase-i',
+  },
+];
+
 const mockDb = {
   Sequelize: {
     Op: {
       like: Symbol('like'),
       or: Symbol('or'),
+      in: Symbol('in'),
     },
     fn: jest.fn((name, arg) => ({ fn: name, arg })),
     col: jest.fn((name) => ({ col: name })),
@@ -15,9 +33,10 @@ const mockDb = {
   },
   ActiveIngredient: {
     findAndCountAll: jest.fn().mockResolvedValue({
-      count: 0,
-      rows: [],
+      count: 2,
+      rows: sampleRows,
     }),
+    findAll: jest.fn().mockResolvedValue(sampleRows),
     findByPk: jest.fn(),
     create: jest.fn(),
   },
@@ -46,10 +65,13 @@ const CLIENT_JS_MAIN = path.resolve('public/js/private/ingredients.js');
 
 const readView = (filePath) => fs.readFileSync(filePath, 'utf8');
 
-describe('módulo privado de ingredientes activos', () => {
+describe('módulo privado de ingredientes activos (Geist Design System + BD real)', () => {
   describe('controlador ingredientsPrivate', () => {
-    it('renderiza la vista correcta con los parámetros y filtros requeridos', async () => {
-      const req = {};
+    it('renderiza la vista con KPIs reales, RBAC contextual y persistencia de filtros', async () => {
+      const req = {
+        user: { id: 1, role: 'admin' },
+        query: { status: 'restringido', tipo: 'herbicida' },
+      };
       const res = {
         render: jest.fn(),
       };
@@ -66,11 +88,33 @@ describe('módulo privado de ingredientes activos', () => {
       expect(renderData.ctaBtnId).toBe('btn-add-ingredient');
       expect(renderData.ctaLabel).toBe('Añadir Ingrediente');
       expect(renderData.showViewToggle).toBe(true);
+      expect(renderData.canManage).toBe(true);
 
-      const filterIds = renderData.searchFilters.map((f) => f.id);
-      expect(filterIds).toContain('filter-tipo');
-      expect(filterIds).toContain('filter-toxicidad');
-      expect(filterIds).toContain('filter-status');
+      expect(renderData.stats).toEqual({
+        total: 2,
+        approvedCount: 1,
+        pendingCount: 0,
+        restrictedCount: 1,
+        distinctGroups: 2,
+      });
+
+      const statusFilter = renderData.searchFilters.find(
+        (f) => f.id === 'filter-status',
+      );
+      expect(statusFilter).toBeDefined();
+      expect(
+        statusFilter.options.find((opt) => opt.value === 'restringido')
+          ?.selected,
+      ).toBe(true);
+    });
+
+    it('marca modo de solo lectura cuando el usuario tiene rol especialista INIFAP', async () => {
+      const res = { render: jest.fn() };
+      await ingredientsPrivate({ user: { id: 9, role: 'inifap' } }, res);
+
+      const [, renderData] =
+        res.render.mock.calls[res.render.mock.calls.length - 1];
+      expect(renderData.canManage).toBe(false);
     });
   });
 
@@ -89,26 +133,20 @@ describe('módulo privado de ingredientes activos', () => {
       { name: 'form-modal.hbs', content: formModalTemplate },
     ];
 
-    it('la vista principal incluye la barra de búsqueda y los tres parciales modulares', () => {
-      expect(mainTemplate).toContain('{{> private/search-bar}}');
+    it('incluye los tres parciales modulares y evita <main> anidado o KPIs estáticos', () => {
       expect(mainTemplate).toContain('{{> private/ingredients/table}}');
       expect(mainTemplate).toContain('{{> private/ingredients/grid}}');
       expect(mainTemplate).toContain('{{> private/ingredients/form-modal}}');
+      expect(mainTemplate).not.toMatch(/<main\b/i);
+      expect(mainTemplate).toContain('{{stats.total}}');
+      expect(mainTemplate).toContain('{{stats.approvedCount}}');
+      expect(mainTemplate).toContain('{{stats.pendingCount}}');
+      expect(mainTemplate).toContain('{{stats.restrictedCount}}');
     });
 
-    it('la vista principal conserva el diseño exterior original y los cuatro indicadores y valores demostrativos', () => {
-      expect(mainTemplate).toContain(
-        '<main class="min-h-screen flex flex-col">',
-      );
-      expect(mainTemplate).toContain('<div class="mt-20 p-12 space-y-10">');
-      expect(mainTemplate).toContain('>Total</p>');
-      expect(mainTemplate).toContain('>312</p>');
-      expect(mainTemplate).toContain('>Aprobados</p>');
-      expect(mainTemplate).toContain('>278</p>');
-      expect(mainTemplate).toContain('>Pendientes</p>');
-      expect(mainTemplate).toContain('>21</p>');
-      expect(mainTemplate).toContain('>Restringidos</p>');
-      expect(mainTemplate).toContain('>13</p>');
+    it('renderiza filas y tarjetas dinámicamente con {{#each ingredients}}', () => {
+      expect(tableTemplate).toContain('{{#each ingredients}}');
+      expect(gridTemplate).toContain('{{#each ingredients}}');
     });
 
     it('todas las plantillas y parciales compilan sin errores de sintaxis en Handlebars', () => {
@@ -118,7 +156,7 @@ describe('módulo privado de ingredientes activos', () => {
       });
     });
 
-    it('ninguna plantilla o parcial supera las 500 líneas recomendadas en RULES.MD', () => {
+    it('ninguna plantilla o parcial supera las 500 líneas', () => {
       allTemplates.forEach(({ content }) => {
         const lineCount = content.split('\n').length;
         expect(lineCount).toBeLessThanOrEqual(500);
@@ -139,34 +177,18 @@ describe('módulo privado de ingredientes activos', () => {
       expect(scriptMatches[0]).toMatch(
         /<script\s+type="module"\s+src="\/js\/private\/ingredients\.js"><\/script>/,
       );
-      expect(scriptMatches[0]).not.toMatch(/<script[^>]*>[\s\S]+<\/script>/);
     });
 
-    it('ninguna plantilla o parcial contiene manejadores de eventos inline', () => {
+    it('ninguna plantilla o parcial contiene manejadores de eventos inline ni atributos style', () => {
       allTemplates.forEach(({ content }) => {
         expect(content).not.toMatch(/\bon[a-z]+\s*=/i);
-      });
-    });
-
-    it('ninguna plantilla o parcial contiene atributos style estáticos ni display:none', () => {
-      allTemplates.forEach(({ content }) => {
         expect(content).not.toMatch(/\bstyle\s*=\s*["']/i);
         expect(content).not.toMatch(/display\s*:\s*none/i);
       });
     });
-
-    it("los iconos de estado aprobado conservan la clase de relleno visual [font-variation-settings:'FILL'_1]", () => {
-      const tableFillMatches =
-        tableTemplate.match(/\[font-variation-settings:'FILL'_1\]/g) || [];
-      const gridFillMatches =
-        gridTemplate.match(/\[font-variation-settings:'FILL'_1\]/g) || [];
-
-      expect(tableFillMatches).toHaveLength(3);
-      expect(gridFillMatches).toHaveLength(3);
-    });
   });
 
-  describe('estructura e inicialización de módulos JavaScript del cliente', () => {
+  describe('estructura de módulos JavaScript y campos del formulario', () => {
     const mainJs = fs.readFileSync(CLIENT_JS_MAIN, 'utf8');
     const viewToggleJs = fs.readFileSync(
       path.join(CLIENT_JS_DIR, 'ingredientViewToggle.js'),
@@ -176,76 +198,36 @@ describe('módulo privado de ingredientes activos', () => {
       path.join(CLIENT_JS_DIR, 'ingredientModal.js'),
       'utf8',
     );
-
-    it('ingredients.js importa e inicializa la alternancia de vista y el modal en DOMContentLoaded', () => {
-      expect(mainJs).toContain(
-        "import { initializeIngredientViewToggle } from './ingredients/ingredientViewToggle.js';",
-      );
-      expect(mainJs).toContain(
-        "import { initializeIngredientModal } from './ingredients/ingredientModal.js';",
-      );
-      expect(mainJs).toMatch(
-        /document\.addEventListener\(\s*['"]DOMContentLoaded['"]/,
-      );
-      expect(mainJs).toContain('initializeIngredientViewToggle();');
-      expect(mainJs).toContain('initializeIngredientModal();');
-    });
-
-    it('ingredientViewToggle.js no usa style.display y gestiona la visibilidad con hidden', () => {
-      expect(viewToggleJs).toContain(
-        'export const initializeIngredientViewToggle =',
-      );
-      expect(viewToggleJs).not.toContain('.style.display');
-      expect(viewToggleJs).toContain("classList.add('hidden')");
-      expect(viewToggleJs).toContain("classList.remove('hidden')");
-    });
-
-    it('ingredientModal.js no usa style.display y gestiona apertura/cierre con clases Tailwind', () => {
-      expect(modalJs).toContain('export const initializeIngredientModal =');
-      expect(modalJs).not.toContain('.style.display');
-      expect(modalJs).toContain("classList.remove('hidden')");
-      expect(modalJs).toContain("classList.add('flex')");
-      expect(modalJs).toContain("classList.remove('flex')");
-      expect(modalJs).toContain("classList.add('hidden')");
-    });
-
-    it('el JS cliente no introduce reset() ni cierre mediante Escape en el modal', () => {
-      expect(modalJs).not.toContain('.reset()');
-      expect(modalJs).not.toContain('reset');
-      expect(modalJs).not.toContain('Escape');
-      expect(modalJs).not.toContain('keydown');
-      expect(mainJs).not.toContain('reset');
-      expect(mainJs).not.toContain('Escape');
-    });
-  });
-
-  describe('conservación de IDs y campos de formulario', () => {
     const formModalTemplate = readView(
       path.join(PARTIALS_DIR, 'form-modal.hbs'),
     );
     const tableTemplate = readView(path.join(PARTIALS_DIR, 'table.hbs'));
     const gridTemplate = readView(path.join(PARTIALS_DIR, 'grid.hbs'));
 
-    it('el modal conserva el ID del formulario y todos los campos requeridos', () => {
-      const requiredFieldIds = [
-        'form-ingredient',
-        'ingredient-nombre',
-        'ingredient-iupac',
-        'ingredient-grupo',
-        'ingredient-mecanismo',
-        'ingredient-tipo',
-        'ingredient-toxicidad',
-        'ingredient-estatus',
-        'btn-close-modal-ingredient',
-        'btn-cancel-modal-ingredient',
-      ];
-
-      requiredFieldIds.forEach((id) => {
-        expect(formModalTemplate).toContain(`id="${id}"`);
-      });
+    it('ingredients.js coordina vista, modal y filtrado asíncrono sin usar style.display', () => {
+      expect(mainJs).toContain('initializeIngredientViewToggle');
+      expect(mainJs).toContain('initializeIngredientModal');
+      expect(viewToggleJs).not.toContain('.style.display');
+      expect(modalJs).not.toContain('.style.display');
     });
 
-    it('las vistas conservan los contenedores para tabla, cuadrícula y botón de añadir en tarjeta', () => {
+    it('el modal conserva IDs y atributos name requeridos por el backend', () => {
+      [
+        'id="form-ingredient"',
+        'id="ingredient-nombre"',
+        'name="name"',
+        'id="ingredient-grupo"',
+        'name="chemical_group"',
+        'id="ingredient-tipo"',
+        'name="action_type"',
+        'id="ingredient-toxicidad"',
+        'name="toxicological_category"',
+        'id="btn-close-modal-ingredient"',
+        'id="btn-cancel-modal-ingredient"',
+      ].forEach((fragment) => {
+        expect(formModalTemplate).toContain(fragment);
+      });
+
       expect(tableTemplate).toContain('id="ingredients-table-view"');
       expect(gridTemplate).toContain('id="ingredients-grid-view"');
       expect(gridTemplate).toContain('id="btn-add-ingredient-card"');

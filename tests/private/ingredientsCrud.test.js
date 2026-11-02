@@ -285,5 +285,31 @@ describe('módulo de persistencia y validación de ingredientes activos', () => 
         '/private/ingredients?success=eliminado',
       );
     });
+
+    it('createIngredient responde con JSON 201 cuando proviene de petición asíncrona fetch', async () => {
+      const req = {
+        headers: { 'x-requested-with': 'fetch' },
+        body: {
+          name: 'Azoxistrobina',
+          chemical_group: 'Estrobilurinas',
+          action_type: 'fungicida',
+          toxicological_category: 'clase-iv',
+        },
+        user: { id: 7, role: 'admin' },
+      };
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+        redirect: jest.fn(),
+      };
+
+      await createIngredient(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(201);
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({ success: true }),
+      );
+      expect(res.redirect).not.toHaveBeenCalled();
+    });
   });
 });
