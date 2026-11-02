@@ -1,29 +1,31 @@
 import db from '../../../models/index.js';
 import { getContextualProductPermissions } from '../../../services/productAuthorizationService.js';
-import {
-  buildProductImageRecords,
-  cleanupStoredProductImages,
-  cleanupUploadedProductFiles,
-} from '../../../services/productImageService.js';
-import { validateProductInput } from '../../../services/productValidationService.js';
-import { validateProductRelationsInput } from '../../../services/productRelationService.js';
 import { CROP_WORKFLOW_STATUSES } from '../../../services/cropWorkflowService.js';
 import { PLAGUE_WORKFLOW_STATUSES } from '../../../services/plagueWorkflowService.js';
+import {
+  MAX_PRODUCT_IMAGES,
+  buildProductImageRecords,
+  buildProductImageUpdatePlan,
+  cleanupStoredProductImages,
+  cleanupUploadedProductFiles,
+  parsePrimaryProductImageId,
+  parseRemovedProductImageIds,
+} from '../../../services/productImageService.js';
+import { validateProductRelationsInput } from '../../../services/productRelationService.js';
+import { validateProductInput } from '../../../services/productValidationService.js';
 import {
   PRODUCT_WORKFLOW_STATUSES,
   isProductEditable,
 } from '../../../services/productWorkflowService.js';
+import { parsePositiveId } from './productControllerUtils.js';
 
-const { Product, ProductImage, Plague, Crop, AuditLog } = db;
-const parseId = (value) => {
-  if (!/^[1-9]\d*$/.test(String(value || ''))) return null;
-  const id = Number(value);
-  return Number.isSafeInteger(id) ? id : null;
-};
+const { AuditLog, Crop, Plague, Product, ProductImage } = db;
+
 const wantsJson = (req) =>
   String(req.get?.('accept') || req.headers?.accept || '').includes(
     'application/json',
   );
+
 const failure = (req, res, status, message, validation = {}) => {
   if (wantsJson(req)) {
     return res.status(status).json({
@@ -35,14 +37,17 @@ const failure = (req, res, status, message, validation = {}) => {
   }
   return res.status(status).send(message);
 };
+
 const success = (req, res, message, redirect = '/private/products') => {
   if (wantsJson(req)) return res.json({ success: true, message, redirect });
   return res.redirect(redirect);
 };
+
 const rollbackWithFiles = async (transaction, files) => {
   await transaction.rollback();
   await cleanupUploadedProductFiles(files);
 };
+
 const getUpdateRestriction = (product, user) => {
   const permissions = getContextualProductPermissions({
     role: user.role,
@@ -63,6 +68,7 @@ const getUpdateRestriction = (product, user) => {
   }
   return null;
 };
+
 const requireProduct = (product) => {
   if (product) return product;
   const error = new Error('Producto no encontrado.');
@@ -70,6 +76,7 @@ const requireProduct = (product) => {
   error.safeMessage = error.message;
   throw error;
 };
+
 const getSafeErrorResponse = (error) => ({
   status: error.status || 500,
   message: error.safeMessage || 'No se pudo actualizar el producto.',
@@ -77,58 +84,134 @@ const getSafeErrorResponse = (error) => ({
 
 const validateRelationsExist = async ({ cropIds, plagueIds }, transaction) => {
   const [cropCount, plagueCount] = await Promise.all([
-    Crop.count({
-      where: {
-        id: cropIds,
-        status: 'aprobado',
-        workflow_status: CROP_WORKFLOW_STATUSES.PUBLISHED,
-      },
-      transaction,
-    }),
-    Plague.count({
-      where: {
-        id: plagueIds,
-        status: true,
-        workflow_status: PLAGUE_WORKFLOW_STATUSES.PUBLISHED,
-      },
-      transaction,
-    }),
+    cropIds.length
+      ? Crop.count({
+          where: {
+            id: cropIds,
+            status: 'aprobado',
+            workflow_status: CROP_WORKFLOW_STATUSES.PUBLISHED,
+          },
+          transaction,
+        })
+      : 0,
+    plagueIds.length
+      ? Plague.count({
+          where: {
+            id: plagueIds,
+            status: true,
+            workflow_status: PLAGUE_WORKFLOW_STATUSES.PUBLISHED,
+          },
+          transaction,
+        })
+      : 0,
   ]);
   return cropCount === cropIds.length && plagueCount === plagueIds.length;
 };
 
-const readRelations = (req) => {
-  const relations = validateProductRelationsInput(req.body);
-  if (!relations.isValid) {
+const parseMutationInputs = (req, files) => {
+  if (files.length > MAX_PRODUCT_IMAGES) {
     return {
-      error: {
-        isValid: false,
-        errors: relations.errors,
-        fieldErrors: { relations: relations.errors },
-      },
+      errorMessage: 'La galería puede contener como máximo 10 imágenes.',
     };
   }
-  return { value: relations.value };
+  const removedImageIds = parseRemovedProductImageIds(
+    req.body?.removed_image_ids,
+  );
+  if (removedImageIds === null) {
+    return {
+      errorMessage: 'La selección de imágenes que deseas quitar no es válida.',
+    };
+  }
+  const validation = validateProductInput(req.body);
+  const relations = validateProductRelationsInput(req.body);
+  if (!validation.isValid || !relations.isValid) {
+    return {
+      errorMessage: 'Revisa los datos marcados antes de guardar el producto.',
+      validation: !relations.isValid
+        ? {
+            errors: relations.errors,
+            fieldErrors: { relations: relations.errors },
+          }
+        : validation,
+    };
+  }
+  return {
+    value: validation.value,
+    relations: relations.value,
+    removedImageIds,
+    primaryImageId: parsePrimaryProductImageId(req.body?.primary_image_id),
+  };
+};
+
+const applyImageUpdates = async ({
+  product,
+  files,
+  removedImageIds,
+  primaryImageId,
+  transaction,
+}) => {
+  const existingRows = await ProductImage.findAll({
+    where: { product_id: product.id },
+    order: [
+      ['is_primary', 'DESC'],
+      ['display_order', 'ASC'],
+    ],
+    transaction,
+  });
+  const plan = buildProductImageUpdatePlan({
+    existingImages: existingRows.map((row) => row.toJSON()),
+    removedImageIds,
+    newFileCount: files.length,
+    primaryImageId,
+  });
+  if (plan.error) return { error: plan.error };
+
+  if (removedImageIds.length > 0) {
+    await ProductImage.destroy({
+      where: { id: removedImageIds, product_id: product.id },
+      transaction,
+    });
+  }
+  if (plan.remainingImages.length > 0) {
+    await ProductImage.update(
+      { is_primary: false },
+      { where: { product_id: product.id }, transaction },
+    );
+    if (plan.nextPrimaryId) {
+      await ProductImage.update(
+        { is_primary: true },
+        {
+          where: { id: plan.nextPrimaryId, product_id: product.id },
+          transaction,
+        },
+      );
+    }
+  }
+  if (files.length > 0) {
+    await ProductImage.bulkCreate(
+      buildProductImageRecords({
+        productId: product.id,
+        files,
+        startOrder: plan.nextImageOrder,
+        hasPrimary: plan.hasPrimary,
+      }),
+      { transaction },
+    );
+  }
+  return { removedImages: plan.removedImages };
 };
 
 export const createProduct = async (req, res) => {
   const files = Array.isArray(req.files) ? req.files : [];
-  const validation = validateProductInput(req.body);
-  const relations = readRelations(req);
-  if (!validation.isValid || relations.error) {
+  const parsed = parseMutationInputs(req, files);
+  if (parsed.errorMessage) {
     await cleanupUploadedProductFiles(files);
-    return failure(
-      req,
-      res,
-      400,
-      'Revisa los datos marcados antes de guardar el producto.',
-      relations.error || validation,
-    );
+    return failure(req, res, 400, parsed.errorMessage, parsed.validation);
   }
 
   const transaction = await db.sequelize.transaction();
   try {
-    if (!(await validateRelationsExist(relations.value, transaction))) {
+    if (!(await validateRelationsExist(parsed.relations, transaction))) {
       await rollbackWithFiles(transaction, files);
       return failure(
         req,
@@ -139,23 +222,23 @@ export const createProduct = async (req, res) => {
     }
     const product = await Product.create(
       {
-        ...validation.value,
+        ...parsed.value,
         workflow_status: PRODUCT_WORKFLOW_STATUSES.DRAFT,
         validation_status: 'En revisión',
-        status: true,
+        status: false,
         created_by_user_id: req.user.id,
         updated_by_user_id: req.user.id,
       },
       { transaction },
     );
-    if (files.length) {
+    if (files.length > 0) {
       await ProductImage.bulkCreate(
         buildProductImageRecords({ productId: product.id, files }),
         { transaction },
       );
     }
-    await product.setCrops(relations.value.cropIds, { transaction });
-    await product.setPlagues(relations.value.plagueIds, { transaction });
+    await product.setCrops(parsed.relations.cropIds, { transaction });
+    await product.setPlagues(parsed.relations.plagueIds, { transaction });
     await AuditLog.create(
       {
         action: 'product.create',
@@ -178,22 +261,15 @@ export const createProduct = async (req, res) => {
 
 export const updateProduct = async (req, res) => {
   const files = Array.isArray(req.files) ? req.files : [];
-  const productId = parseId(req.params.id);
+  const productId = parsePositiveId(req.params.id);
   if (!productId) {
     await cleanupUploadedProductFiles(files);
     return failure(req, res, 400, 'ID de producto no válido.');
   }
-  const validation = validateProductInput(req.body);
-  const relations = readRelations(req);
-  if (!validation.isValid || relations.error) {
+  const parsed = parseMutationInputs(req, files);
+  if (parsed.errorMessage) {
     await cleanupUploadedProductFiles(files);
-    return failure(
-      req,
-      res,
-      400,
-      'Revisa los datos marcados antes de guardar el producto.',
-      relations.error || validation,
-    );
+    return failure(req, res, 400, parsed.errorMessage, parsed.validation);
   }
 
   const transaction = await db.sequelize.transaction();
@@ -209,7 +285,7 @@ export const updateProduct = async (req, res) => {
       await rollbackWithFiles(transaction, files);
       return failure(req, res, restriction.status, restriction.message);
     }
-    if (!(await validateRelationsExist(relations.value, transaction))) {
+    if (!(await validateRelationsExist(parsed.relations, transaction))) {
       await rollbackWithFiles(transaction, files);
       return failure(
         req,
@@ -221,26 +297,23 @@ export const updateProduct = async (req, res) => {
 
     const oldValues = product.toJSON();
     await product.update(
-      { ...validation.value, updated_by_user_id: req.user.id },
+      { ...parsed.value, updated_by_user_id: req.user.id },
       { transaction },
     );
-    if (files.length) {
-      const existing = await ProductImage.count({
-        where: { product_id: product.id },
-        transaction,
-      });
-      await ProductImage.bulkCreate(
-        buildProductImageRecords({
-          productId: product.id,
-          files,
-          startOrder: existing,
-          hasPrimary: existing > 0,
-        }),
-        { transaction },
-      );
+    const imageUpdate = await applyImageUpdates({
+      product,
+      files,
+      removedImageIds: parsed.removedImageIds,
+      primaryImageId: parsed.primaryImageId,
+      transaction,
+    });
+    if (imageUpdate.error) {
+      await rollbackWithFiles(transaction, files);
+      return failure(req, res, 400, imageUpdate.error);
     }
-    await product.setCrops(relations.value.cropIds, { transaction });
-    await product.setPlagues(relations.value.plagueIds, { transaction });
+
+    await product.setCrops(parsed.relations.cropIds, { transaction });
+    await product.setPlagues(parsed.relations.plagueIds, { transaction });
     await AuditLog.create(
       {
         action: 'product.update',
@@ -253,6 +326,7 @@ export const updateProduct = async (req, res) => {
       { transaction },
     );
     await transaction.commit();
+    await cleanupStoredProductImages(imageUpdate.removedImages);
     return success(
       req,
       res,
@@ -268,7 +342,7 @@ export const updateProduct = async (req, res) => {
 };
 
 export const deleteProduct = async (req, res) => {
-  const productId = parseId(req.params.id);
+  const productId = parsePositiveId(req.params.id);
   if (!productId) return failure(req, res, 400, 'ID de producto no válido.');
   const transaction = await db.sequelize.transaction();
 
@@ -301,16 +375,9 @@ export const deleteProduct = async (req, res) => {
       { transaction },
     );
     await transaction.commit();
-    try {
-      await cleanupStoredProductImages(
-        images.map((image) => image.toJSON?.() || image),
-      );
-    } catch (cleanupError) {
-      console.error(
-        'El producto se eliminó, pero quedaron imágenes huérfanas:',
-        cleanupError,
-      );
-    }
+    await cleanupStoredProductImages(
+      images.map((image) => image.toJSON?.() || image),
+    );
     return success(req, res, 'Producto eliminado correctamente.');
   } catch (error) {
     await transaction.rollback();

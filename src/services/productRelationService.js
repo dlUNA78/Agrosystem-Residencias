@@ -35,3 +35,38 @@ export const validateProductRelationsInput = (body = {}) => {
     value: { cropIds, plagueIds },
   };
 };
+
+const toIdSet = (records = []) =>
+  new Set(
+    records
+      .map((item) => Number(item?.id ?? item))
+      .filter((id) => Number.isSafeInteger(id) && id > 0),
+  );
+
+const mapRelationOption = (item, selectedIds, subtitleField) => ({
+  id: item.id,
+  name: item.name,
+  subtitle: item[subtitleField] || null,
+  category: item.category || null,
+  selected: selectedIds.has(Number(item.id)),
+});
+
+export const buildProductRelationEditor = ({
+  product = {},
+  crops = [],
+  plagues = [],
+} = {}) => {
+  const selectedCropIds = toIdSet(product.crops);
+  const selectedPlagueIds = toIdSet(product.plagues);
+
+  return {
+    crops: crops.map((crop) =>
+      mapRelationOption(crop, selectedCropIds, 'scientific_name'),
+    ),
+    plagues: plagues.map((plague) =>
+      mapRelationOption(plague, selectedPlagueIds, 'scientific_name'),
+    ),
+    selectedCropsCount: selectedCropIds.size,
+    selectedPlaguesCount: selectedPlagueIds.size,
+  };
+};

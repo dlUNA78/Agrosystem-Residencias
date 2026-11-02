@@ -7,4 +7,5 @@ export {
   deleteProduct,
   updateProduct,
 } from './products/productMutationController.js';
+export { updateProductRelations } from './products/productRelationController.js';
 export { updateProductWorkflow } from './products/productWorkflowController.js';

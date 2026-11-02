@@ -205,7 +205,7 @@ const getCatalogs = () =>
       raw: true,
     }),
     Product.findAll({
-      where: { status: true },
+      where: { status: true, workflow_status: 'published' },
       attributes: [
         'id',
         'name',

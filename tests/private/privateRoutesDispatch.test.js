@@ -62,6 +62,7 @@ const mockControllers = {
   updateProduct: createMockController('updateProduct'),
   deleteProduct: createMockController('deleteProduct'),
   updateProductWorkflow: createMockController('updateProductWorkflow'),
+  updateProductRelations: createMockController('updateProductRelations'),
 
   // Ingredients
   ingredientsPrivate: createMockController('ingredientsPrivate'),
@@ -154,6 +155,7 @@ jest.unstable_mockModule(
     updateProduct: mockControllers.updateProduct,
     deleteProduct: mockControllers.deleteProduct,
     updateProductWorkflow: mockControllers.updateProductWorkflow,
+    updateProductRelations: mockControllers.updateProductRelations,
   }),
 );
 
@@ -560,6 +562,14 @@ const ALL_50_DISPATCH_ENDPOINTS = [
     params: { id: '103' },
     authEvent: 'auth:product:workflow',
   },
+  {
+    method: 'post',
+    routePath: '/private/products/:id/relations',
+    dispatchPath: '/private/products/103/relations',
+    controller: 'updateProductRelations',
+    params: { id: '103' },
+    authEvent: 'auth:product:products.manageRelations',
+  },
 
   // ─── CATÁLOGO: INGREDIENTES (4) ────────────────────────────────────────────
   {
@@ -818,13 +828,13 @@ describe('pruebas de despacho HTTP del router privado', () => {
   // ════════════════════════════════════════════════════════════════════════════
   // 1. COBERTURA PARAMETRIZADA DE LOS 58 ENDPOINTS
   // ════════════════════════════════════════════════════════════════════════════
-  describe('cobertura parametrizada exhaustiva de los 60 endpoints', () => {
-    it('el catálogo de pruebas de despacho cubre exactamente 60 endpoints únicos', () => {
-      expect(ALL_50_DISPATCH_ENDPOINTS).toHaveLength(60);
+  describe('cobertura parametrizada exhaustiva de los 61 endpoints', () => {
+    it('el catálogo de pruebas de despacho cubre exactamente 61 endpoints únicos', () => {
+      expect(ALL_50_DISPATCH_ENDPOINTS).toHaveLength(61);
       const keys = ALL_50_DISPATCH_ENDPOINTS.map(
         (e) => `${e.method.toUpperCase()} ${e.routePath}`,
       );
-      expect(new Set(keys).size).toBe(60);
+      expect(new Set(keys).size).toBe(61);
     });
 
     test.each(ALL_50_DISPATCH_ENDPOINTS)(

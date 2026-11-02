@@ -230,7 +230,39 @@ const getDOMElements = () => ({
   prevPageBtn: document.getElementById('prev-page-btn'),
   nextPageBtn: document.getElementById('next-page-btn'),
   currentPageDisplay: document.getElementById('current-page-display'),
+  toggleFiltersBtn: document.getElementById('toggle-plagues-filters-btn'),
+  collapsibleFilters: document.getElementById('plagues-collapsible-filters'),
+  secondaryChips: document.getElementById('plagues-secondary-chips'),
+  activeCountBadge: document.getElementById('plagues-active-filters-count'),
 });
+
+const isPlagueFilterActive = (selectEl, defaultVal) => {
+  const val = selectEl?.value;
+  return Boolean(val && val !== defaultVal);
+};
+
+const countActivePlagueFilters = (els) => {
+  let count = 0;
+  if (isPlagueFilterActive(els.categoryFilter, 'Categoría')) count++;
+  if (isPlagueFilterActive(els.cropFilter, 'Cultivo')) count++;
+  if (isPlagueFilterActive(els.regionFilter, 'Región')) count++;
+  if (isPlagueFilterActive(els.riskFilter, 'Riesgo')) count++;
+  return count;
+};
+
+const updatePlagueActiveCount = (els) => {
+  const count = countActivePlagueFilters(els);
+
+  if (els.activeCountBadge) {
+    els.activeCountBadge.textContent = String(count);
+    els.activeCountBadge.classList.toggle('hidden', count === 0);
+  }
+  if (els.toggleFiltersBtn) {
+    els.toggleFiltersBtn.classList.toggle('bg-emerald-50', count > 0);
+    els.toggleFiltersBtn.classList.toggle('border-emerald-300', count > 0);
+    els.toggleFiltersBtn.classList.toggle('text-[#1b4332]', count > 0);
+  }
+};
 
 function initPlaguesCatalog() {
   const els = getDOMElements();
@@ -325,6 +357,7 @@ function initPlaguesCatalog() {
   const handleFilterChange = () => {
     currentPage = 1;
     syncChips();
+    updatePlagueActiveCount(els);
     fetchPlagues();
   };
 
@@ -391,6 +424,16 @@ function initPlaguesCatalog() {
       });
     });
 
+    els.toggleFiltersBtn?.addEventListener('click', () => {
+      if (!els.collapsibleFilters) return;
+      const isHidden = els.collapsibleFilters.classList.contains('hidden');
+      els.collapsibleFilters.classList.toggle('hidden', !isHidden);
+      if (els.secondaryChips) {
+        els.secondaryChips.classList.toggle('hidden', !isHidden);
+      }
+      els.toggleFiltersBtn.setAttribute('aria-expanded', String(isHidden));
+    });
+
     bindSelectAndResetControls();
 
     els.prevPageBtn?.addEventListener('click', () => {
@@ -406,6 +449,8 @@ function initPlaguesCatalog() {
       fetchPlagues();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     });
+
+    updatePlagueActiveCount(els);
   };
 
   setupEvents();

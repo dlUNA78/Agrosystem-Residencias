@@ -1,0 +1,27 @@
+{{#if pagination.hasMultiplePages}}
+  <nav class="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border/80 bg-card px-6 py-4 shadow-2xs font-['Geist']" aria-label="Paginación de productos">
+    <p class="text-xs font-medium text-muted-foreground">
+      Mostrando <span class="font-bold text-foreground">{{pagination.fromItem}}–{{pagination.toItem}}</span> de
+      <span class="font-bold text-foreground">{{pagination.totalItems}}</span> productos
+    </p>
+    <div class="flex items-center gap-1.5">
+      {{#if pagination.hasPrevPage}}
+        <a href="{{pagination.prevUrl}}" class="inline-flex items-center gap-1 rounded-xl border border-border px-3 py-2 text-xs font-bold text-muted-foreground hover:bg-muted hover:text-foreground transition-colors" title="Página anterior">
+          <i data-lucide="chevron-left" class="w-4 h-4"></i>
+          <span class="hidden sm:inline">Anterior</span>
+        </a>
+      {{/if}}
+      {{#each pagination.pages}}
+        <a href="{{this.url}}" class="min-w-9 text-center rounded-xl px-3 py-2 text-xs font-bold transition-colors {{#if this.isCurrent}}bg-[#1b4332] text-white shadow-2xs{{else}}border border-border text-muted-foreground hover:bg-muted hover:text-foreground{{/if}}" {{#if this.isCurrent}}aria-current="page"{{/if}}>
+          {{this.number}}
+        </a>
+      {{/each}}
+      {{#if pagination.hasNextPage}}
+        <a href="{{pagination.nextUrl}}" class="inline-flex items-center gap-1 rounded-xl border border-border px-3 py-2 text-xs font-bold text-muted-foreground hover:bg-muted hover:text-foreground transition-colors" title="Página siguiente">
+          <span class="hidden sm:inline">Siguiente</span>
+          <i data-lucide="chevron-right" class="w-4 h-4"></i>
+        </a>
+      {{/if}}
+    </div>
+  </nav>
+{{/if}}

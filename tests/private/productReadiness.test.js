@@ -19,19 +19,26 @@ const completeProduct = {
 };
 
 describe('requisitos editoriales de productos', () => {
-  it('considera lista una ficha completa', () => {
+  it('considera lista una ficha completa (incluyendo 0 días de seguridad)', () => {
     expect(buildProductPublicationReadiness(completeProduct).isReady).toBe(
       true,
     );
+    expect(
+      buildProductPublicationReadiness({
+        ...completeProduct,
+        safety_interval_days: 0,
+      }).isReady,
+    ).toBe(true);
   });
 
-  it('explica los requisitos faltantes', () => {
+  it('explica los requisitos faltantes incluyendo intervalo de seguridad nulo', () => {
     const result = buildProductPublicationReadiness({});
     expect(result.isReady).toBe(false);
     expect(result.missingItems).toEqual(
       expect.arrayContaining([
         'Identificación comercial',
         'Registro oficial',
+        'Intervalo de seguridad',
         'Evidencia fotográfica',
       ]),
     );

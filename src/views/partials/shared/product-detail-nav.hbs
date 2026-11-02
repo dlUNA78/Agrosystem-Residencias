@@ -1,0 +1,67 @@
+<header class="no-print sticky top-0 md:top-16 z-30 bg-card/90 backdrop-blur-md border-b border-border shadow-2xs transition-all">
+  <div class="max-w-7xl mx-auto px-3 sm:px-6 md:px-10 py-1.5 sm:py-2 flex items-center justify-between gap-2 sm:gap-4">
+    <nav id="sub-nav" class="flex items-center gap-1 sm:gap-1.5 text-xs font-medium text-muted-foreground whitespace-nowrap overflow-x-auto no-scrollbar scroll-smooth py-0.5" aria-label="Secciones de la ficha">
+      <a href="#resumen" data-spy-link="resumen" class="px-2.5 py-1 text-[11px] sm:text-xs rounded-md sm:rounded-lg border text-[#1b4332] bg-emerald-50 border-emerald-200/80 font-bold transition-all flex items-center gap-1 sm:gap-1.5 shadow-2xs">
+        <span class="material-symbols-outlined text-xs sm:text-sm text-[#1b4332]">info</span>
+        <span>Resumen</span>
+      </a>
+      <a href="#ficha-tecnica" data-spy-link="ficha-tecnica" class="px-2.5 py-1 text-[11px] sm:text-xs rounded-md sm:rounded-lg border border-transparent hover:text-foreground hover:bg-muted transition-all flex items-center gap-1 sm:gap-1.5">
+        <span class="material-symbols-outlined text-xs sm:text-sm">science</span>
+        <span>Ficha Técnica</span>
+      </a>
+      <a href="#plagas-objetivo" data-spy-link="plagas-objetivo" class="px-2.5 py-1 text-[11px] sm:text-xs rounded-md sm:rounded-lg border border-transparent hover:text-foreground hover:bg-muted transition-all flex items-center gap-1 sm:gap-1.5">
+        <span class="material-symbols-outlined text-xs sm:text-sm">pest_control</span>
+        <span>Plagas Blanco</span>
+        <span id="nav-plagues-count" class="px-1.5 py-0.2 text-[9px] sm:text-[10px] font-mono bg-rose-50 text-rose-700 rounded-full font-bold">{{product.plagues.length}}</span>
+      </a>
+      <a href="#cultivos-autorizados" data-spy-link="cultivos-autorizados" class="px-2.5 py-1 text-[11px] sm:text-xs rounded-md sm:rounded-lg border border-transparent hover:text-foreground hover:bg-muted transition-all flex items-center gap-1 sm:gap-1.5">
+        <span class="material-symbols-outlined text-xs sm:text-sm">psychiatry</span>
+        <span>Cultivos</span>
+        <span class="hidden md:inline">Autorizados</span>
+        <span id="nav-crops-count" class="px-1.5 py-0.2 text-[9px] sm:text-[10px] font-mono bg-emerald-50 text-emerald-700 rounded-full font-bold">{{product.crops.length}}</span>
+      </a>
+      {{#if isPrivate}}
+        <a href="#relaciones-tecnicas" data-spy-link="relaciones-tecnicas" class="px-2.5 py-1 text-[11px] sm:text-xs rounded-md sm:rounded-lg border border-transparent hover:text-foreground hover:bg-muted transition-all flex items-center gap-1 sm:gap-1.5">
+          <span class="material-symbols-outlined text-xs sm:text-sm">hub</span>
+          <span>Relaciones</span>
+        </a>
+      {{/if}}
+    </nav>
+
+    <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+      <button
+        type="button"
+        id="btn-open-product-pdf-modal"
+        class="inline-flex items-center justify-center gap-1 h-7 sm:h-8 px-2 sm:px-2.5 bg-emerald-50 text-[#1b4332] border border-emerald-200/80 font-bold text-xs rounded-md sm:rounded-lg hover:bg-emerald-100 transition-colors shadow-2xs cursor-pointer"
+        title="Ver o descargar ficha técnica institucional en PDF"
+      >
+        <span class="material-symbols-outlined text-xs sm:text-sm">picture_as_pdf</span>
+        <span class="hidden sm:inline">PDF</span>
+      </button>
+
+      <button
+        type="button"
+        id="btn-share-product"
+        data-share-title="{{product.name}}"
+        data-share-text="Ficha técnica fitosanitaria de {{product.name}} ({{product.active_ingredient}}) - INIFAP Agrosystem"
+        class="inline-flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 bg-card border border-border text-foreground text-xs rounded-md sm:rounded-lg hover:bg-secondary transition-colors shadow-2xs cursor-pointer"
+        title="Compartir o copiar enlace del expediente"
+        aria-label="Compartir ficha técnica"
+      >
+        <span class="material-symbols-outlined text-xs sm:text-sm">share</span>
+      </button>
+
+      {{#if isPrivate}}
+        <a href="/private/products" class="inline-flex items-center justify-center gap-1 h-7 sm:h-8 px-2 sm:px-2.5 bg-card border border-border text-foreground font-bold text-xs rounded-md sm:rounded-lg hover:bg-secondary transition-colors shadow-2xs">
+          <span class="material-symbols-outlined text-xs sm:text-sm">arrow_back</span>
+          <span class="hidden sm:inline">Panel</span>
+        </a>
+      {{else}}
+        <a href="/products" class="inline-flex items-center justify-center gap-1 h-7 sm:h-8 px-2 sm:px-2.5 bg-card border border-border text-foreground font-bold text-xs rounded-md sm:rounded-lg hover:bg-secondary transition-colors shadow-2xs">
+          <span class="material-symbols-outlined text-xs sm:text-sm">arrow_back</span>
+          <span class="hidden sm:inline">Catálogo</span>
+        </a>
+      {{/if}}
+    </div>
+  </div>
+</header>

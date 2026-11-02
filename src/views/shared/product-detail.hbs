@@ -1,312 +1,352 @@
 <div class="min-h-screen font-['Geist'] antialiased bg-background text-foreground">
+  {{! Barra Superior Pegajosa Compartida }}
+  {{> shared/product-detail-nav}}
 
-  {{! ── SUB-NAVBAR PEGAJOSO (NAVEGACIÓN RÁPIDA GLASSMORPHIC) ─────────────── }}
-  <header class="sticky top-16 z-30 bg-background/80 backdrop-blur-md border-b border-border shadow-2xs transition-all">
-    <div class="max-w-7xl mx-auto px-4 md:px-10 py-2.5 flex items-center justify-between gap-4 overflow-x-auto no-scrollbar">
-      <nav class="flex items-center gap-1.5 md:gap-3 text-xs font-medium text-muted-foreground whitespace-nowrap">
-        <a href="#resumen" class="px-3 py-1.5 rounded-lg hover:text-foreground hover:bg-muted transition-colors flex items-center gap-1.5 font-bold text-foreground">
-          <span class="material-symbols-outlined text-sm text-[#1b4332]">info</span> Resumen
-        </a>
-        <a href="#ficha-tecnica" class="px-3 py-1.5 rounded-lg hover:text-foreground hover:bg-muted transition-colors flex items-center gap-1.5">
-          <span class="material-symbols-outlined text-sm">science</span> Ficha Técnica
-        </a>
-        <a href="#plagas-objetivo" class="px-3 py-1.5 rounded-lg hover:text-foreground hover:bg-muted transition-colors flex items-center gap-1.5">
-          <span class="material-symbols-outlined text-sm">pest_control</span> Plagas Blanco
-          {{#if product.plagues.length}}<span class="px-1.5 py-0.5 text-[10px] font-mono bg-rose-50 text-rose-700 rounded-full font-bold">{{product.plagues.length}}</span>{{/if}}
-        </a>
-        <a href="#cultivos-autorizados" class="px-3 py-1.5 rounded-lg hover:text-foreground hover:bg-muted transition-colors flex items-center gap-1.5">
-          <span class="material-symbols-outlined text-sm">eco</span> Cultivos Autorizados
-          {{#if product.crops.length}}<span class="px-1.5 py-0.5 text-[10px] font-mono bg-emerald-50 text-emerald-700 rounded-full font-bold">{{product.crops.length}}</span>{{/if}}
-        </a>
-      </nav>
+  <main class="px-4 sm:px-6 md:px-10 pt-6 pb-20">
+    {{! ===================================================================== }}
+    {{! PANEL EDITORIAL Y TRAZABILIDAD (EXCLUSIVO EN MODO PRIVADO)            }}
+    {{! ===================================================================== }}
+    {{#if isPrivate}}
+      <section id="private-editorial-panel" class="no-print mx-auto mb-8 w-full max-w-7xl rounded-2xl border border-border/80 bg-card p-5 sm:p-6 shadow-2xs space-y-5">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div class="space-y-2">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="font-mono text-[10px] font-bold uppercase tracking-widest text-[#1b4332] bg-[#e6f0e6] px-2.5 py-0.5 rounded-full">
+                Flujo editorial
+              </span>
+              {{> private/products/workflow-badge workflow_status=product.workflow_status}}
+              <span class="rounded-full border border-border bg-muted/40 px-2.5 py-0.5 font-mono text-[10px] font-bold text-muted-foreground">
+                Completitud: {{readiness.completeCount}} / {{readiness.totalCount}}
+              </span>
+            </div>
 
-      <div class="flex items-center gap-2 shrink-0">
-        {{#if isPrivate}}
-          <a href="/private/products" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-card border border-border text-foreground font-bold text-xs rounded-md hover:bg-secondary transition-colors shadow-2xs">
-            <span class="material-symbols-outlined text-xs">arrow_back</span> Panel
-          </a>
-        {{else}}
-          <a href="/products" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-card border border-border text-foreground font-bold text-xs rounded-md hover:bg-secondary transition-colors shadow-2xs">
-            <span class="material-symbols-outlined text-xs">arrow_back</span> Catálogo
-          </a>
-        {{/if}}
-      </div>
-    </div>
-  </header>
+            <p class="text-xs text-muted-foreground">
+              Estado actual: <strong class="text-foreground">{{product.workflowLabel}}</strong>
+              {{#if product.verifiedAtFormatted}}
+                · Dictamen: <strong class="text-foreground">{{product.verifiedByLabel}}</strong> ({{product.verifiedAtFormatted}})
+              {{/if}}
+            </p>
 
-  {{#if isPrivate}}
-    <section class="mx-auto mt-6 w-full max-w-7xl rounded-xl border border-border bg-card p-5 shadow-2xs">
-      <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <p class="text-[10px] font-mono font-bold uppercase tracking-widest text-muted-foreground">Flujo editorial</p>
-          <div class="mt-1 flex flex-wrap items-center gap-2">
-            <span class="rounded-full border border-border bg-muted px-3 py-1 text-xs font-bold">
-              {{#if (eq product.workflow_status 'draft')}}Borrador
-              {{else if (eq product.workflow_status 'in_review')}}En revisión
-              {{else if (eq product.workflow_status 'changes_requested')}}Cambios solicitados
-              {{else if (eq product.workflow_status 'verified')}}Verificado
-              {{else if (eq product.workflow_status 'published')}}Publicado
-              {{else if (eq product.workflow_status 'archived')}}Archivado
-              {{else}}Sin estado editorial{{/if}}
-            </span>
-            {{#if product.review_notes}}<span class="text-xs text-amber-700">{{product.review_notes}}</span>{{/if}}
+            {{#if product.review_notes}}
+              <div class="flex items-start gap-2.5 rounded-xl border border-amber-200 bg-amber-50/90 p-3 text-xs text-amber-950">
+                <span class="material-symbols-outlined text-base text-amber-700 shrink-0 mt-0.5">warning</span>
+                <div>
+                  <span class="font-bold">Observaciones de revisión técnica:</span>
+                  <p class="mt-0.5 leading-relaxed text-amber-900">{{product.review_notes}}</p>
+                </div>
+              </div>
+            {{/if}}
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2 shrink-0">
+            {{#if canEditRecord}}
+              <button type="button" data-id="{{product.id}}" class="btn-edit-product inline-flex items-center gap-1.5 rounded-xl border border-[#1b4332]/30 bg-[#e6f0e6]/50 px-3.5 py-2 text-xs font-bold text-[#1b4332] hover:bg-[#e6f0e6] transition-colors cursor-pointer">
+                <span class="material-symbols-outlined text-sm">edit</span>
+                <span>Editar ficha</span>
+              </button>
+            {{/if}}
+
+            {{#if (eq product.workflow_status 'draft')}}
+              {{#if permissions.canSubmitReview}}
+                <form method="POST" action="/private/products/{{product.id}}/workflow">
+                  <input type="hidden" name="action" value="submit_review" />
+                  <button type="submit" {{#unless readiness.isReady}}disabled title="Completa los 10 requisitos editoriales antes de enviar"{{/unless}} class="inline-flex items-center gap-1.5 rounded-xl bg-[#1b4332] px-4 py-2 text-xs font-bold text-white shadow-2xs hover:bg-[#2d6a4f] transition-colors disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer">
+                    <span class="material-symbols-outlined text-sm">send</span>
+                    <span>Enviar a revisión</span>
+                  </button>
+                </form>
+              {{/if}}
+            {{/if}}
+
+            {{#if (eq product.workflow_status 'changes_requested')}}
+              {{#if permissions.canSubmitReview}}
+                <form method="POST" action="/private/products/{{product.id}}/workflow">
+                  <input type="hidden" name="action" value="submit_review" />
+                  <button type="submit" {{#unless readiness.isReady}}disabled title="Completa los requisitos faltantes antes de reenviar"{{/unless}} class="inline-flex items-center gap-1.5 rounded-xl bg-[#1b4332] px-4 py-2 text-xs font-bold text-white shadow-2xs hover:bg-[#2d6a4f] transition-colors disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer">
+                    <span class="material-symbols-outlined text-sm">send</span>
+                    <span>Reenviar a revisión</span>
+                  </button>
+                </form>
+              {{/if}}
+            {{/if}}
+
+            {{#if (eq product.workflow_status 'in_review')}}
+              {{#if permissions.canVerify}}
+                <form method="POST" action="/private/products/{{product.id}}/workflow" class="flex flex-wrap items-center gap-2">
+                  <input type="hidden" name="action" value="request_changes" />
+                  <input type="text" name="review_notes" required maxlength="500" placeholder="Observaciones requeridas…" class="rounded-xl border border-input bg-background px-3 py-2 text-xs focus:border-[#1b4332] focus:outline-hidden" />
+                  <button type="submit" class="inline-flex items-center gap-1.5 rounded-xl border border-amber-300 bg-amber-50 px-3.5 py-2 text-xs font-bold text-amber-900 hover:bg-amber-100 transition-colors cursor-pointer">
+                    <span class="material-symbols-outlined text-sm">assignment_return</span>
+                    <span>Solicitar cambios</span>
+                  </button>
+                </form>
+                <form method="POST" action="/private/products/{{product.id}}/workflow">
+                  <input type="hidden" name="action" value="verify" />
+                  <button type="submit" {{#unless readiness.isReady}}disabled{{/unless}} class="inline-flex items-center gap-1.5 rounded-xl bg-[#1b4332] px-4 py-2 text-xs font-bold text-white shadow-2xs hover:bg-[#2d6a4f] transition-colors disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer">
+                    <span class="material-symbols-outlined text-sm">verified</span>
+                    <span>Verificar</span>
+                  </button>
+                </form>
+              {{/if}}
+            {{/if}}
+
+            {{#if (eq product.workflow_status 'verified')}}
+              {{#if permissions.canPublish}}
+                <form method="POST" action="/private/products/{{product.id}}/workflow">
+                  <input type="hidden" name="action" value="publish" />
+                  <button type="submit" {{#unless readiness.isReady}}disabled{{/unless}} class="inline-flex items-center gap-1.5 rounded-xl bg-emerald-700 px-4 py-2 text-xs font-bold text-white shadow-2xs hover:bg-emerald-800 transition-colors disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer">
+                    <span class="material-symbols-outlined text-sm">public</span>
+                    <span>Publicar</span>
+                  </button>
+                </form>
+              {{/if}}
+            {{/if}}
+
+            {{#if (eq product.workflow_status 'published')}}
+              {{#if permissions.canArchive}}
+                <form method="POST" action="/private/products/{{product.id}}/workflow">
+                  <input type="hidden" name="action" value="archive" />
+                  <button type="submit" class="inline-flex items-center gap-1.5 rounded-xl border border-border bg-background px-3.5 py-2 text-xs font-bold text-foreground hover:bg-muted transition-colors cursor-pointer">
+                    <span class="material-symbols-outlined text-sm">archive</span>
+                    <span>Archivar</span>
+                  </button>
+                </form>
+              {{/if}}
+            {{/if}}
+
+            {{#if (eq product.workflow_status 'archived')}}
+              {{#if permissions.canRestore}}
+                <form method="POST" action="/private/products/{{product.id}}/workflow">
+                  <input type="hidden" name="action" value="restore" />
+                  <button type="submit" class="inline-flex items-center gap-1.5 rounded-xl border border-border bg-background px-3.5 py-2 text-xs font-bold text-foreground hover:bg-muted transition-colors cursor-pointer">
+                    <span class="material-symbols-outlined text-sm">restore</span>
+                    <span>Restaurar como borrador</span>
+                  </button>
+                </form>
+              {{/if}}
+            {{/if}}
+
+            {{#if product.canDeleteRecord}}
+              <button type="button" id="btn-delete-product-dossier" data-id="{{product.id}}" data-name="{{product.name}}" class="inline-flex items-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-2 text-xs font-bold text-rose-700 hover:bg-rose-100 transition-colors cursor-pointer">
+                <span class="material-symbols-outlined text-sm">delete</span>
+                <span>Eliminar</span>
+              </button>
+            {{/if}}
           </div>
         </div>
 
-        <div class="flex flex-wrap items-center gap-2">
-          {{#if (eq product.workflow_status 'draft')}}
-            {{#if permissions.canSubmitReview}}
-              <form method="POST" action="/private/products/{{product.id}}/workflow">
-                <input type="hidden" name="action" value="submit_review">
-                <button type="submit" {{#unless readiness.isReady}}disabled{{/unless}} class="rounded-lg bg-[#1b4332] px-4 py-2 text-xs font-bold text-white disabled:cursor-not-allowed disabled:opacity-50">Enviar a revisión</button>
-              </form>
-            {{/if}}
-          {{/if}}
-          {{#if (eq product.workflow_status 'changes_requested')}}
-            {{#if permissions.canSubmitReview}}
-              <form method="POST" action="/private/products/{{product.id}}/workflow">
-                <input type="hidden" name="action" value="submit_review">
-                <button type="submit" {{#unless readiness.isReady}}disabled{{/unless}} class="rounded-lg bg-[#1b4332] px-4 py-2 text-xs font-bold text-white disabled:cursor-not-allowed disabled:opacity-50">Reenviar a revisión</button>
-              </form>
-            {{/if}}
-          {{/if}}
-          {{#if (eq product.workflow_status 'in_review')}}
-            {{#if permissions.canVerify}}
-              <form method="POST" action="/private/products/{{product.id}}/workflow" class="flex flex-wrap gap-2">
-                <input type="hidden" name="action" value="request_changes">
-                <input type="text" name="review_notes" required maxlength="500" placeholder="Observaciones requeridas" class="rounded-lg border border-input px-3 py-2 text-xs">
-                <button type="submit" class="rounded-lg border border-amber-300 bg-amber-50 px-4 py-2 text-xs font-bold text-amber-800">Solicitar cambios</button>
-              </form>
-              <form method="POST" action="/private/products/{{product.id}}/workflow">
-                <input type="hidden" name="action" value="verify">
-                <button type="submit" {{#unless readiness.isReady}}disabled{{/unless}} class="rounded-lg bg-[#1b4332] px-4 py-2 text-xs font-bold text-white disabled:cursor-not-allowed disabled:opacity-50">Verificar</button>
-              </form>
-            {{/if}}
-          {{/if}}
-          {{#if (eq product.workflow_status 'verified')}}
-            {{#if permissions.canPublish}}
-              <form method="POST" action="/private/products/{{product.id}}/workflow">
-                <input type="hidden" name="action" value="publish">
-                <button type="submit" {{#unless readiness.isReady}}disabled{{/unless}} class="rounded-lg bg-[#1b4332] px-4 py-2 text-xs font-bold text-white disabled:cursor-not-allowed disabled:opacity-50">Publicar</button>
-              </form>
-            {{/if}}
-          {{/if}}
-          {{#if (eq product.workflow_status 'published')}}
-            {{#if permissions.canArchive}}
-              <form method="POST" action="/private/products/{{product.id}}/workflow">
-                <input type="hidden" name="action" value="archive">
-                <button type="submit" class="rounded-lg border border-border px-4 py-2 text-xs font-bold">Archivar</button>
-              </form>
-            {{/if}}
-          {{/if}}
-          {{#if (eq product.workflow_status 'archived')}}
-            {{#if permissions.canRestore}}
-              <form method="POST" action="/private/products/{{product.id}}/workflow">
-                <input type="hidden" name="action" value="restore">
-                <button type="submit" class="rounded-lg border border-border px-4 py-2 text-xs font-bold">Restaurar como borrador</button>
-              </form>
-            {{/if}}
-          {{/if}}
-        </div>
-      </div>
-      <div class="mt-4 grid grid-cols-2 gap-2 md:grid-cols-5">
-        {{#each readiness.items}}
-          <div class="rounded-lg border p-3 text-xs {{#if complete}}border-emerald-100 bg-emerald-50 text-emerald-800{{else}}border-amber-100 bg-amber-50 text-amber-800{{/if}}">
-            <span class="font-bold">{{#if complete}}✓{{else}}○{{/if}} {{label}}</span>
+        <div class="border-t border-border/70 pt-4">
+          <div class="mb-2.5 flex items-center justify-between text-[11px]">
+            <span class="font-mono font-bold uppercase tracking-wider text-muted-foreground">Lista de verificación editorial para dictamen</span>
+            {{#unless readiness.isReady}}
+              <span class="font-medium text-amber-800">Faltan {{readiness.missingItems.length}} requisito(s) para avanzar</span>
+            {{/unless}}
           </div>
-        {{/each}}
-      </div>
-    </section>
-  {{/if}}
+          <div class="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
+            {{#each readiness.items}}
+              <div class="flex items-center gap-2 rounded-xl border px-3 py-2 text-xs {{#if complete}}border-emerald-200/80 bg-emerald-50/70 text-emerald-900{{else}}border-amber-200 bg-amber-50/70 text-amber-900{{/if}}">
+                <span class="font-mono font-bold">{{#if complete}}✓{{else}}○{{/if}}</span>
+                <span class="truncate font-semibold">{{label}}</span>
+              </div>
+            {{/each}}
+          </div>
+        </div>
+      </section>
+    {{/if}}
 
-  <main class="px-4 md:px-10 pt-8 pb-16">
-
-    {{! ── BREADCRUMBS & ENCABEZADO ────────────────────────────────────────── }}
-    <div id="resumen" class="scroll-mt-32 mb-8 max-w-7xl mx-auto">
-      <nav aria-label="Breadcrumb" class="flex mb-4">
-        <ol class="inline-flex items-center space-x-1 md:space-x-3 text-xs font-mono tracking-widest uppercase text-muted-foreground">
-          <li class="inline-flex items-center">
-            {{#if isPrivate}}
-              <a class="hover:text-[#1b4332] transition-colors" href="/dashboard">Dashboard</a>
-            {{else}}
-              <a class="hover:text-[#1b4332] transition-colors" href="/">Inicio</a>
-            {{/if}}
-          </li>
-          <li>
-            <div class="flex items-center">
-              <span class="material-symbols-outlined text-sm mx-1">chevron_right</span>
+    {{! ===================================================================== }}
+    {{! SECCIÓN 1: RESUMEN, HERO Y BANDA TOXICOLÓGICA NOM-232                 }}
+    {{! ===================================================================== }}
+    <section id="resumen" class="scroll-mt-24 md:scroll-mt-28 mb-12 max-w-7xl mx-auto space-y-7">
+      <div>
+        <nav aria-label="Ruta de navegación" class="mb-4 flex">
+          <ol class="inline-flex flex-wrap items-center gap-1.5 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+            <li>
+              {{#if isPrivate}}
+                <a class="hover:text-[#1b4332] transition-colors" href="/dashboard">Dashboard</a>
+              {{else}}
+                <a class="hover:text-[#1b4332] transition-colors" href="/">Inicio</a>
+              {{/if}}
+            </li>
+            <li class="flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-xs mx-1">chevron_right</span>
               {{#if isPrivate}}
                 <a class="hover:text-[#1b4332] transition-colors" href="/private/products">Productos</a>
               {{else}}
                 <a class="hover:text-[#1b4332] transition-colors" href="/products">Productos</a>
               {{/if}}
-            </div>
-          </li>
-          <li aria-current="page">
-            <div class="flex items-center">
-              <span class="material-symbols-outlined text-sm mx-1">chevron_right</span>
-              <span class="text-[#1b4332] font-bold">{{product.name}}</span>
-            </div>
-          </li>
-        </ol>
-      </nav>
+            </li>
+            <li aria-current="page" class="flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-xs mx-1">chevron_right</span>
+              <span class="font-bold text-[#1b4332]">{{product.name}}</span>
+            </li>
+          </ol>
+        </nav>
 
-      <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div>
-          <div class="flex items-center gap-3 mb-2 flex-wrap">
-            <span class="px-3 py-1 bg-[#1b4332]/10 text-[#1b4332] text-xs font-mono font-bold uppercase rounded-md flex items-center gap-1">
-              <span class="material-symbols-outlined text-sm">science</span> {{#if product.category}}{{product.category}}{{else}}Fitosanitario{{/if}}
-            </span>
-            {{#if product.validation_status}}
-              <span class="px-3 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-mono font-bold uppercase rounded-md flex items-center gap-1">
-                <span class="material-symbols-outlined text-sm text-emerald-600">verified</span> {{product.validation_status}}
-              </span>
-            {{else}}
-              <span class="px-3 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-mono font-bold uppercase rounded-md flex items-center gap-1">
-                <span class="material-symbols-outlined text-sm text-emerald-600">verified</span> Aprobado INIFAP
-              </span>
-            {{/if}}
-          </div>
-          <h1 class="text-4xl md:text-5xl font-headline font-extrabold text-foreground tracking-tight mb-1">
-            {{product.name}}
-          </h1>
-          <p class="text-base text-muted-foreground font-medium">
-            Ingrediente Activo: <span class="font-mono font-bold text-[#1b4332]">{{product.active_ingredient}}</span>
-            │ Fabricante: <span class="font-bold text-foreground">{{product.manufacturer}}</span>
-          </p>
-        </div>
-
-        {{#if canEditRecord}}
-          <div class="flex items-center gap-3 shrink-0">
-            <a href="/private/products" class="px-4 py-2 bg-card border border-border text-foreground font-bold text-xs rounded-md hover:bg-secondary transition-colors shadow-2xs flex items-center gap-2">
-              <span class="material-symbols-outlined text-sm">edit</span> Volver para editar
-            </a>
-          </div>
-        {{/if}}
-      </div>
-    </div>
-
-    {{! ── HERO BANNER & RESUMEN DE AGROQUÍMICO ────────────────────────────── }}
-    <div class="mb-10 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
-      <!-- Columna Izquierda: Fotografía/Empaque del Producto -->
-      <div class="col-span-1 lg:col-span-5">
-        {{> shared/products/gallery}}
-      </div>
-
-      <!-- Columna Derecha: Descripción y Clasificación NOM -->
-      <div class="col-span-1 lg:col-span-7 flex flex-col gap-4">
-        <div class="bg-card p-6 md:p-8 rounded-xl border border-border shadow-2xs flex-1 flex flex-col justify-between">
+        <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-5">
           <div>
-            <span class="text-mono-label text-muted-foreground font-bold uppercase block mb-2 tracking-wider">DESCRIPCIÓN GENERAL DEL AGROQUÍMICO</span>
-            <p class="text-sm text-foreground leading-relaxed">
-              {{#if product.description}}{{product.description}}{{else}}Producto fitosanitario registrado en la plataforma institucional del INIFAP para el control agronómico.{{/if}}
+            <div class="mb-2.5 flex flex-wrap items-center gap-2">
+              <span class="inline-flex items-center gap-1.5 rounded-lg bg-[#e6f0e6] px-3 py-1 font-mono text-xs font-bold uppercase text-[#1b4332]">
+                <span class="material-symbols-outlined text-xs">science</span>
+                {{product.category}}
+              </span>
+              <span class="inline-flex items-center gap-1.5 rounded-lg border px-3 py-1 font-mono text-xs font-bold {{product.expiration.badgeClass}}">
+                <span class="material-symbols-outlined text-xs">verified</span>
+                {{product.expiration.badgeLabel}}
+              </span>
+              {{#if product.isVerified}}
+                <span class="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1 font-mono text-xs font-bold uppercase text-emerald-800">
+                  <span class="material-symbols-outlined text-xs">workspace_premium</span>
+                  Aval Técnico INIFAP
+                </span>
+              {{/if}}
+            </div>
+
+            <h1 class="text-3xl sm:text-4xl md:text-5xl font-headline font-black tracking-tight text-foreground">
+              {{product.name}}
+            </h1>
+            <p class="mt-2 text-sm sm:text-base text-muted-foreground">
+              Ingrediente activo: <span class="font-mono font-bold text-[#1b4332]">{{product.active_ingredient}}</span>
+              <span class="mx-2 text-border">|</span>
+              Titular / Fabricante: <strong class="text-foreground">{{product.manufacturer}}</strong>
             </p>
           </div>
+        </div>
+      </div>
 
-          <!-- Banda de Clasificación Toxicológica (NOM) -->
-          <div class="mt-6 pt-5 border-t border-border">
-            <span class="text-mono-label text-muted-foreground block text-[10px] uppercase font-bold mb-2">CLASIFICACIÓN DE TOXICOLOGÍA (NOM)</span>
-            <div class="p-4 rounded-xl border border-amber-200 bg-amber-50/60 flex items-center gap-3">
-              <span class="material-symbols-outlined text-2xl text-amber-600 shrink-0">warning</span>
-              <div>
-                <p class="text-sm font-headline font-bold text-amber-950">
-                  {{#if product.hazard_category}}{{product.hazard_category}}{{else}}Categoría III — Ligeramente Peligroso (Banda Azul){{/if}}
-                </p>
-                <p class="text-xs text-amber-800/80">Norma Oficial Mexicana de Manejo Seguro de Agroquímicos</p>
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-7 items-stretch">
+        <div class="lg:col-span-5">
+          {{> shared/products/gallery}}
+        </div>
+
+        <div class="lg:col-span-7 flex flex-col gap-4">
+          <div class="bg-card p-6 sm:p-7 rounded-2xl border border-border/80 shadow-2xs flex-1 flex flex-col justify-between gap-6">
+            <div class="space-y-4">
+              <div class="flex flex-wrap items-center justify-between gap-2 border-b border-border/60 pb-3">
+                <span class="font-mono text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                  Descripción técnica y espectro agronómico
+                </span>
+                <span class="font-mono text-[11px] font-bold text-[#1b4332]">
+                  COFEPRIS · {{product.registration_code}}
+                </span>
+              </div>
+
+              <p class="text-sm text-foreground leading-relaxed">
+                {{product.descriptionText}}
+              </p>
+
+              {{#if targetCropTags.length}}
+                <div class="pt-1">
+                  <span class="block font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2">
+                    Alcance declarado en etiqueta:
+                  </span>
+                  <div class="flex flex-wrap gap-1.5">
+                    {{#each targetCropTags}}
+                      <span class="inline-flex items-center gap-1 rounded-lg border border-border bg-muted/45 px-2.5 py-1 text-xs font-semibold text-foreground">
+                        <span class="material-symbols-outlined text-xs text-[#2d6a4f]">psychiatry</span>
+                        {{this}}
+                      </span>
+                    {{/each}}
+                  </div>
+                </div>
+              {{/if}}
+            </div>
+
+            {{! Banda Dinámica de Clasificación Toxicológica NOM-232-SSA1-2009 }}
+            <div class="border-t border-border/70 pt-5">
+              <span class="mb-2 block font-mono text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                Clasificación Toxicológica Oficial (NOM-232-SSA1-2009)
+              </span>
+              <div class="flex items-start sm:items-center gap-3.5 rounded-2xl border p-4 {{product.hazardTheme.cardClass}}">
+                <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border {{product.hazardTheme.iconClass}}">
+                  <span class="material-symbols-outlined text-2xl">warning</span>
+                </span>
+                <div class="min-w-0 flex-1">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <p class="text-sm font-headline font-bold">
+                      {{product.hazardTheme.fullLabel}}
+                    </p>
+                    <span class="rounded-full border px-2 py-0.5 font-mono text-[10px] font-bold {{product.hazardTheme.badgeClass}}">
+                      {{product.hazardTheme.shortLabel}}
+                    </span>
+                  </div>
+                  <p class="mt-0.5 text-xs {{product.hazardTheme.subtitleClass}}">
+                    {{product.hazardTheme.normSubtitle}}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {{#if product.safety_sheet_url}}
-          <a href="{{product.safety_sheet_url}}" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-2 p-3.5 bg-secondary hover:bg-emerald-100 text-[#1b4332] font-bold text-xs rounded-xl transition-colors border border-border shadow-2xs">
-            <span class="material-symbols-outlined text-base">picture_as_pdf</span> Descargar Ficha Técnica / Hoja de Seguridad (PDF)
-          </a>
-        {{/if}}
-      </div>
-    </div>
+          <div class="no-print grid grid-cols-1 {{#if product.safety_sheet_url}}sm:grid-cols-2{{/if}} gap-3">
+            <button type="button" id="btn-open-product-pdf-hero" class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#1b4332] px-4 py-3 text-xs font-bold text-white shadow-sm hover:bg-[#2d6a4f] transition-colors cursor-pointer">
+              <span class="material-symbols-outlined text-base">picture_as_pdf</span>
+              <span>Vista previa / Descargar Ficha Técnica PDF</span>
+            </button>
 
-    {{! ── BARRA DE KPIS FITOSANITARIOS (4 TARJETAS TÉCNICAS) ───────────────── }}
-    <section id="ficha-tecnica" class="scroll-mt-32 mb-14 max-w-7xl mx-auto">
-      <div class="flex items-center justify-between mb-6">
-        <div>
-          <h2 class="text-2xl font-headline font-extrabold tracking-tight text-foreground flex items-center gap-2">
-            <span class="material-symbols-outlined text-[#1b4332]">science</span> Ficha Técnica Fitosanitaria
-          </h2>
-          <p class="text-xs text-muted-foreground">Parámetros de dosificación y modo de acción validados por INIFAP.</p>
-        </div>
-        <span class="hidden sm:inline-flex px-3 py-1 bg-emerald-50 text-emerald-800 text-xs font-mono font-bold rounded-md border border-emerald-200">
-          NORMATIVA INIFAP
-        </span>
-      </div>
-
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <!-- KPI 1: Mecanismo de Acción -->
-        <div class="bg-card p-5 rounded-xl border border-border shadow-2xs flex flex-col justify-between">
-          <span class="text-[10px] font-mono font-bold uppercase tracking-widest text-muted-foreground block mb-2">MECANISMO DE ACCIÓN</span>
-          <div class="flex items-center justify-between">
-            <span class="text-base font-headline font-black text-foreground">
-              {{#if product.mode_of_action}}{{product.mode_of_action}}{{else}}Sistémico y de contacto{{/if}}
-            </span>
-            <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0">
-              <span class="material-symbols-outlined text-lg">bolt</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- KPI 2: Formulación -->
-        <div class="bg-card p-5 rounded-xl border border-border shadow-2xs flex flex-col justify-between">
-          <span class="text-[10px] font-mono font-bold uppercase tracking-widest text-muted-foreground block mb-2">FORMULACIÓN</span>
-          <div class="flex items-center justify-between">
-            <span class="text-base font-headline font-black text-foreground">
-              {{#if product.formulation_type}}{{product.formulation_type}}{{else}}Suspensión Concentrada (SC){{/if}}
-            </span>
-            <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center shrink-0">
-              <span class="material-symbols-outlined text-lg">view_in_ar</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- KPI 3: Dosis Sugerida -->
-        <div class="bg-card p-5 rounded-xl border border-border shadow-2xs flex flex-col justify-between">
-          <span class="text-[10px] font-mono font-bold uppercase tracking-widest text-muted-foreground block mb-2">DOSIS SUGERIDA</span>
-          <div class="flex items-center justify-between">
-            <span class="text-base font-headline font-black text-[#1b4332] font-mono">
-              {{#if product.suggested_dosage}}{{product.suggested_dosage}}{{else}}350 – 500 ml / Ha{{/if}}
-            </span>
-            <div class="w-8 h-8 rounded-lg bg-cyan-50 text-cyan-700 flex items-center justify-center shrink-0">
-              <span class="material-symbols-outlined text-lg">vaccines</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- KPI 4: Periodo de Carencia -->
-        <div class="bg-card p-5 rounded-xl border border-border shadow-2xs flex flex-col justify-between">
-          <span class="text-[10px] font-mono font-bold uppercase tracking-widest text-muted-foreground block mb-2">PERIODO DE CARENCIA</span>
-          <div class="flex items-center justify-between">
-            <span class="text-base font-headline font-black text-foreground font-mono">
-              {{#if product.safety_interval_days}}{{product.safety_interval_days}} días pre-cosecha{{else}}14 días pre-cosecha{{/if}}
-            </span>
-            <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center shrink-0">
-              <span class="material-symbols-outlined text-lg">event_busy</span>
-            </div>
+            {{#if product.safety_sheet_url}}
+              <a href="{{product.safety_sheet_url}}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-card px-4 py-3 text-xs font-bold text-[#1b4332] shadow-2xs hover:bg-muted transition-colors">
+                <span class="material-symbols-outlined text-base">open_in_new</span>
+                <span>Consultar Hoja de Seguridad Externa (HDS)</span>
+              </a>
+            {{/if}}
           </div>
         </div>
       </div>
     </section>
 
-    {{! ── SECCIÓN 1: PLAGAS BLANCO COMBATIDAS ─────────────────────────────── }}
-    <section id="plagas-objetivo" class="scroll-mt-32 mb-14 max-w-7xl mx-auto">
-      <div class="flex items-center justify-between mb-6">
+    {{! ===================================================================== }}
+    {{! SECCIÓN 2: PARÁMETROS TÉCNICOS DE DOSIFICACIÓN Y SEGURIDAD            }}
+    {{! ===================================================================== }}
+    <section id="ficha-tecnica" class="scroll-mt-24 md:scroll-mt-28 mb-14 max-w-7xl mx-auto">
+      <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h3 class="text-2xl font-headline font-extrabold text-foreground flex items-center gap-2">
-            <span class="material-symbols-outlined text-rose-600">pest_control</span> Plagas Blanco Combatidas
-          </h3>
-          <p class="text-xs text-muted-foreground">Organismos nocivos registrados para el control con este producto.</p>
+          <h2 class="text-2xl font-headline font-extrabold tracking-tight text-foreground flex items-center gap-2">
+            <span class="material-symbols-outlined text-xl text-[#1b4332]">tune</span>
+            <span>Parámetros Técnicos Fitosanitarios</span>
+          </h2>
+          <p class="mt-0.5 text-xs text-muted-foreground">Especificaciones de formulación, mecanismo de acción, dosificación e intervalo de seguridad.</p>
+        </div>
+        <span class="hidden sm:inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1 font-mono text-xs font-bold text-[#1b4332]">
+          <span class="material-symbols-outlined text-xs">verified</span>
+          DATOS VERIFICADOS DEL EXPEDIENTE
+        </span>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {{#each kpis}}
+          <article class="bg-card p-5 rounded-2xl border border-border/80 shadow-2xs flex flex-col justify-between gap-3">
+            <div class="flex items-center justify-between gap-2">
+              <span class="font-mono text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                {{this.label}}
+              </span>
+              <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border {{this.toneClass}}">
+                <span class="material-symbols-outlined text-lg">{{this.icon}}</span>
+              </span>
+            </div>
+            <p class="text-base font-headline font-black {{#if this.hasValue}}text-foreground{{else}}text-muted-foreground font-semibold italic text-sm{{/if}} {{#if this.isMono}}font-mono{{/if}}">
+              {{this.value}}
+            </p>
+          </article>
+        {{/each}}
+      </div>
+    </section>
+
+    {{! ===================================================================== }}
+    {{! SECCIÓN 3: PLAGAS Y PATÓGENOS BLANCO                                  }}
+    {{! ===================================================================== }}
+    <section id="plagas-objetivo" class="scroll-mt-24 md:scroll-mt-28 mb-14 max-w-7xl mx-auto">
+      <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 class="text-2xl font-headline font-extrabold text-foreground flex items-center gap-2">
+            <span class="material-symbols-outlined text-xl text-rose-600">pest_control</span>
+            <span>Plagas y Patógenos Blanco</span>
+          </h2>
+          <p class="mt-0.5 text-xs text-muted-foreground">Organismos nocivos vinculados para el control fitosanitario con este insumo.</p>
         </div>
         {{#if product.plagues.length}}
-          <span class="px-3 py-1 bg-rose-50 text-rose-800 text-xs font-mono font-bold rounded-md border border-rose-200">
-            {{product.plagues.length}} Plagas Registradas
+          <span class="rounded-lg border border-rose-200 bg-rose-50 px-3 py-1 font-mono text-xs font-bold text-rose-800">
+            {{product.plagues.length}} organismo(s) vinculado(s)
           </span>
         {{/if}}
       </div>
@@ -314,68 +354,72 @@
       {{#if product.plagues.length}}
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {{#each product.plagues}}
-            <div class="bg-card rounded-xl border border-border hover:border-[#1b4332]/40 transition-all flex flex-col justify-between shadow-2xs group overflow-hidden">
+            <article class="bg-card rounded-2xl border border-border/80 hover:border-[#1b4332]/40 transition-all flex flex-col justify-between shadow-2xs group overflow-hidden">
               <div>
-                <!-- Imagen de la Plaga con Overlay y Badges -->
                 <div class="relative h-44 w-full bg-muted overflow-hidden">
-                  <img src="{{this.image_url}}" alt="{{this.name}}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" onerror="this.onerror=null; this.src='/images/plagas/pulgon-verde.webp';" />
-                  <div class="absolute inset-0 bg-linear-to-t from-black/80 via-black/30 to-transparent pointer-events-none"></div>
+                  <img src="{{this.image_url}}" alt="{{this.name}}" loading="lazy" data-fallback-src="/images/plagas/pulgon-verde.webp" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                  <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent pointer-events-none"></div>
 
-                  <!-- Categoría y Riesgo flotantes -->
                   <div class="absolute top-3 left-3 right-3 flex items-center justify-between gap-2 z-10">
-                    <span class="text-[10px] font-mono font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-black/60 text-white backdrop-blur-xs select-none">
-                      {{#if this.category}}{{this.category}}{{else}}Insecto Plaga{{/if}}
+                    <span class="text-[10px] font-mono font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-black/60 text-white backdrop-blur-xs">
+                      {{this.category}}
                     </span>
                     {{#if this.risk_level}}
-                      <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold border {{#if this.riskTheme}}{{this.riskTheme.badgeClass}}{{else}}bg-rose-50 text-rose-800 border-rose-200{{/if}} shadow-xs">
+                      <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold border {{this.riskTheme.badgeClass}} shadow-xs">
                         <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
                         Riesgo {{this.risk_level}}
                       </span>
                     {{/if}}
                   </div>
 
-                  <!-- Nombre y Especie sobre la imagen -->
                   <div class="absolute bottom-3 left-3 right-3 z-10">
-                    <h4 class="text-lg font-headline font-bold text-white leading-tight drop-shadow-md group-hover:text-emerald-200 transition-colors">{{this.name}}</h4>
-                    <p class="font-mono text-xs italic text-white/90 drop-shadow-xs">{{this.scientific_name}}</p>
+                    <h3 class="text-lg font-headline font-bold text-white leading-tight drop-shadow-md group-hover:text-emerald-200 transition-colors">{{this.name}}</h3>
+                    {{#if this.scientific_name}}
+                      <p class="font-mono text-xs italic text-white/90 drop-shadow-xs">{{this.scientific_name}}</p>
+                    {{/if}}
                   </div>
                 </div>
 
-                <!-- Descripción Breve -->
                 <div class="p-5">
                   <p class="text-xs text-muted-foreground line-clamp-2 leading-relaxed">{{this.description}}</p>
                 </div>
               </div>
 
               <div class="px-5 pb-5 pt-0">
-                <a href="/plagues/{{this.id}}" class="inline-flex items-center justify-center gap-2 w-full py-2.5 bg-secondary hover:bg-emerald-100 text-[#1b4332] font-bold text-xs rounded-lg transition-colors border border-border">
-                  Ver Ficha Fitosanitaria Completa <span class="material-symbols-outlined text-xs">arrow_forward</span>
+                <a href="{{#if ../isPrivate}}/private/plagues/{{this.id}}{{else}}/plagues/{{this.id}}{{/if}}" class="inline-flex items-center justify-center gap-2 w-full py-2.5 bg-secondary hover:bg-[#e6f0e6] text-[#1b4332] font-bold text-xs rounded-xl transition-colors border border-border">
+                  <span>Ver ficha de la plaga</span>
+                  <span class="material-symbols-outlined text-xs">arrow_forward</span>
                 </a>
               </div>
-            </div>
+            </article>
           {{/each}}
         </div>
       {{else}}
-        <div class="p-8 bg-card rounded-xl border border-border text-center shadow-2xs max-w-2xl mx-auto">
-          <span class="material-symbols-outlined text-4xl text-muted-foreground/40 mb-2">pest_control_rodent</span>
-          <p class="text-sm font-bold text-foreground mb-1">Sin Plagas Específicas Vinculadas</p>
-          <p class="text-xs text-muted-foreground">Consulte la etiqueta del fabricante para ver el catálogo ampliado de plagas blanco.</p>
+        <div class="p-8 bg-card rounded-2xl border border-dashed border-border text-center shadow-2xs max-w-2xl mx-auto">
+          <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
+            <span class="material-symbols-outlined text-3xl">pest_control</span>
+          </div>
+          <p class="mt-3 text-sm font-headline font-bold text-foreground">Sin plagas específicas vinculadas</p>
+          <p class="mt-1 text-xs text-muted-foreground">Consulta la etiqueta autorizada por COFEPRIS para revisar el espectro ampliado de control.</p>
         </div>
       {{/if}}
     </section>
 
-    {{! ── SECCIÓN 2: CULTIVOS AUTORIZADOS ─────────────────────────────────── }}
-    <section id="cultivos-autorizados" class="scroll-mt-32 mb-14 max-w-7xl mx-auto">
-      <div class="flex items-center justify-between mb-6">
+    {{! ===================================================================== }}
+    {{! SECCIÓN 4: CULTIVOS AUTORIZADOS                                       }}
+    {{! ===================================================================== }}
+    <section id="cultivos-autorizados" class="scroll-mt-24 md:scroll-mt-28 mb-14 max-w-7xl mx-auto">
+      <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h3 class="text-2xl font-headline font-extrabold text-foreground flex items-center gap-2">
-            <span class="material-symbols-outlined text-emerald-600">eco</span> Cultivos Autorizados
-          </h3>
-          <p class="text-xs text-muted-foreground">Especies agrícolas habilitadas para la aplicación según registro oficial.</p>
+          <h2 class="text-2xl font-headline font-extrabold text-foreground flex items-center gap-2">
+            <span class="material-symbols-outlined text-xl text-emerald-700">psychiatry</span>
+            <span>Cultivos Autorizados</span>
+          </h2>
+          <p class="mt-0.5 text-xs text-muted-foreground">Especies agrícolas habilitadas dentro del padrón institucional para el uso de este producto.</p>
         </div>
         {{#if product.crops.length}}
-          <span class="px-3 py-1 bg-emerald-50 text-emerald-800 text-xs font-mono font-bold rounded-md border border-emerald-200">
-            {{product.crops.length}} Cultivos Autorizados
+          <span class="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1 font-mono text-xs font-bold text-emerald-800">
+            {{product.crops.length}} cultivo(s) autorizado(s)
           </span>
         {{/if}}
       </div>
@@ -383,54 +427,179 @@
       {{#if product.crops.length}}
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {{#each product.crops}}
-            <div class="bg-card rounded-xl border border-border hover:border-[#1b4332]/40 transition-all flex flex-col justify-between shadow-2xs group overflow-hidden">
+            <article class="bg-card rounded-2xl border border-border/80 hover:border-[#1b4332]/40 transition-all flex flex-col justify-between shadow-2xs group overflow-hidden">
               <div>
-                <!-- Imagen del Cultivo -->
                 <div class="relative h-44 w-full bg-muted overflow-hidden">
-                  <img src="{{this.image_url}}" alt="{{this.name}}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" onerror="this.onerror=null; this.src='/images/test/default.png';" />
-                  <div class="absolute inset-0 bg-linear-to-t from-black/80 via-black/30 to-transparent pointer-events-none"></div>
+                  <img src="{{this.image_url}}" alt="{{this.name}}" loading="lazy" data-fallback-src="/images/test/default.png" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                  <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent pointer-events-none"></div>
 
-                  <!-- Categoría Flotante -->
                   <div class="absolute top-3 left-3 z-10">
-                    <span class="text-[10px] font-mono font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-black/60 text-white backdrop-blur-xs select-none">
-                      {{#if this.category}}{{this.category}}{{else}}Agrícola{{/if}}
+                    <span class="text-[10px] font-mono font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-black/60 text-white backdrop-blur-xs">
+                      {{this.category}}
                     </span>
                   </div>
 
-                  <!-- Nombre y Especie sobre la imagen -->
                   <div class="absolute bottom-3 left-3 right-3 z-10">
-                    <h4 class="text-lg font-headline font-bold text-white leading-tight drop-shadow-md group-hover:text-emerald-200 transition-colors">{{this.name}}</h4>
+                    <h3 class="text-lg font-headline font-bold text-white leading-tight drop-shadow-md group-hover:text-emerald-200 transition-colors">{{this.name}}</h3>
                     {{#if this.scientific_name}}
                       <p class="font-mono text-xs italic text-white/90 drop-shadow-xs">{{this.scientific_name}}</p>
                     {{/if}}
                   </div>
                 </div>
 
-                <!-- Descripción Breve -->
                 <div class="p-5">
-                  <p class="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
-                    {{#if this.description}}{{this.description}}{{else}}Cultivo registrado formalmente para la aplicación de este agroquímico.{{/if}}
-                  </p>
+                  <p class="text-xs text-muted-foreground line-clamp-2 leading-relaxed">{{this.description}}</p>
                 </div>
               </div>
 
               <div class="px-5 pb-5 pt-0">
-                <a href="/crops/{{this.id}}" class="inline-flex items-center justify-center gap-2 w-full py-2.5 bg-secondary hover:bg-emerald-100 text-[#1b4332] font-bold text-xs rounded-lg transition-colors border border-border">
-                  Ver Ficha del Cultivo <span class="material-symbols-outlined text-xs">arrow_forward</span>
+                <a href="{{#if ../isPrivate}}/private/crops/{{this.id}}{{else}}/crops/{{this.id}}{{/if}}" class="inline-flex items-center justify-center gap-2 w-full py-2.5 bg-secondary hover:bg-[#e6f0e6] text-[#1b4332] font-bold text-xs rounded-xl transition-colors border border-border">
+                  <span>Ver ficha del cultivo</span>
+                  <span class="material-symbols-outlined text-xs">arrow_forward</span>
                 </a>
               </div>
-            </div>
+            </article>
           {{/each}}
         </div>
       {{else}}
-        <div class="p-8 bg-card rounded-xl border border-border text-center shadow-2xs max-w-2xl mx-auto">
-          <span class="material-symbols-outlined text-4xl text-muted-foreground/40 mb-2">agriculture</span>
-          <p class="text-sm font-bold text-foreground mb-1">Sin Cultivos Específicos Vinculados</p>
-          <p class="text-xs text-muted-foreground">Este insumo puede aplicarse a los cultivos declarados en el registro oficial CICOPLAFEST.</p>
+        <div class="p-8 bg-card rounded-2xl border border-dashed border-border text-center shadow-2xs max-w-2xl mx-auto">
+          <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
+            <span class="material-symbols-outlined text-3xl">psychiatry</span>
+          </div>
+          <p class="mt-3 text-sm font-headline font-bold text-foreground">Sin cultivos específicos vinculados</p>
+          <p class="mt-1 text-xs text-muted-foreground">Revisa el alcance declarado en etiqueta ({{#if product.target_crops}}{{product.target_crops}}{{else}}registro oficial RSCO{{/if}}).</p>
         </div>
       {{/if}}
     </section>
 
+    {{! ===================================================================== }}
+    {{! SECCIÓN 5: EDITOR DE RELACIONES TÉCNICAS (SOLO MODO PRIVADO)          }}
+    {{! ===================================================================== }}
+    {{#if isPrivate}}
+      <section id="relaciones-tecnicas" class="no-print scroll-mt-24 md:scroll-mt-28 max-w-7xl mx-auto rounded-2xl border border-border/80 bg-card p-6 sm:p-7 shadow-2xs space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/70 pb-5">
+          <div>
+            <span class="font-mono text-[10px] font-bold uppercase tracking-widest text-[#1b4332]">Vinculación cruzada del catálogo</span>
+            <h2 class="mt-1 text-xl font-headline font-extrabold text-foreground flex items-center gap-2">
+              <span class="material-symbols-outlined text-xl text-[#1b4332]">hub</span>
+              <span>Relaciones Técnicas del Producto</span>
+            </h2>
+            <p class="mt-0.5 text-xs text-muted-foreground">
+              Asocia las plagas combatidas y los cultivos autorizados publicados en el sistema para enriquecer las recomendaciones cruzadas.
+            </p>
+          </div>
+          {{#unless canManageRelations}}
+            <span class="inline-flex items-center gap-1.5 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900">
+              <span class="material-symbols-outlined text-xs text-amber-700">lock</span>
+              Edición habilitada sólo para el autor o administrador en etapa borrador / con cambios
+            </span>
+          {{/unless}}
+        </div>
+
+        <form method="POST" action="/private/products/{{product.id}}/relations" class="space-y-6">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {{! Grupo 1: Plagas Blanco }}
+            <fieldset data-relation-group class="rounded-2xl border border-border bg-muted/20 p-4 space-y-3" {{#unless canManageRelations}}disabled{{/unless}}>
+              <div class="flex items-center justify-between gap-2">
+                <legend class="text-xs font-bold text-foreground flex items-center gap-1.5">
+                  <span class="material-symbols-outlined text-sm text-rose-600">pest_control</span>
+                  <span>Plagas y patógenos objetivo</span>
+                </legend>
+                <div class="flex items-center gap-2">
+                  <span class="rounded-full bg-[#e6f0e6] px-2.5 py-0.5 font-mono text-[10px] font-bold text-[#1b4332]">
+                    <span data-relation-counter>{{relationEditor.selectedPlaguesCount}}</span> seleccionadas
+                  </span>
+                  <button type="button" data-relation-only-selected class="rounded-lg border border-border bg-white px-2.5 py-1 text-[10px] font-bold text-muted-foreground transition-colors cursor-pointer">
+                    Solo seleccionadas
+                  </button>
+                </div>
+              </div>
+
+              <div class="relative">
+                <span class="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground select-none">search</span>
+                <input type="search" data-relation-search placeholder="Buscar plaga por nombre o especie…" class="w-full rounded-xl border border-input bg-background py-2 pl-9 pr-3 text-xs focus:border-[#1b4332] focus:outline-hidden" />
+              </div>
+
+              <div class="max-h-60 space-y-1 overflow-y-auto pr-1">
+                {{#each relationEditor.plagues}}
+                  <label data-relation-item class="flex cursor-pointer items-start gap-2.5 rounded-xl px-3 py-2 hover:bg-background transition-colors">
+                    <input type="checkbox" name="plague_ids" value="{{this.id}}" {{#if this.selected}}checked{{/if}} class="mt-0.5 rounded border-input accent-[#1b4332]" />
+                    <span class="min-w-0 flex-1">
+                      <span class="block text-xs font-semibold text-foreground">{{this.name}}</span>
+                      {{#if this.subtitle}}<span class="block text-[10px] italic text-muted-foreground">{{this.subtitle}}</span>{{/if}}
+                    </span>
+                    {{#if this.category}}
+                      <span class="rounded bg-muted px-2 py-0.5 font-mono text-[10px] text-muted-foreground">{{this.category}}</span>
+                    {{/if}}
+                  </label>
+                {{else}}
+                  <p class="py-6 text-center text-xs text-muted-foreground">No hay plagas publicadas disponibles.</p>
+                {{/each}}
+                <p data-relation-empty class="hidden py-6 text-center text-xs text-muted-foreground">Ninguna plaga coincide con el filtro actual.</p>
+              </div>
+            </fieldset>
+
+            {{! Grupo 2: Cultivos Autorizados }}
+            <fieldset data-relation-group class="rounded-2xl border border-border bg-muted/20 p-4 space-y-3" {{#unless canManageRelations}}disabled{{/unless}}>
+              <div class="flex items-center justify-between gap-2">
+                <legend class="text-xs font-bold text-foreground flex items-center gap-1.5">
+                  <span class="material-symbols-outlined text-sm text-emerald-700">psychiatry</span>
+                  <span>Cultivos autorizados</span>
+                </legend>
+                <div class="flex items-center gap-2">
+                  <span class="rounded-full bg-[#e6f0e6] px-2.5 py-0.5 font-mono text-[10px] font-bold text-[#1b4332]">
+                    <span data-relation-counter>{{relationEditor.selectedCropsCount}}</span> seleccionados
+                  </span>
+                  <button type="button" data-relation-only-selected class="rounded-lg border border-border bg-white px-2.5 py-1 text-[10px] font-bold text-muted-foreground transition-colors cursor-pointer">
+                    Solo seleccionados
+                  </button>
+                </div>
+              </div>
+
+              <div class="relative">
+                <span class="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground select-none">search</span>
+                <input type="search" data-relation-search placeholder="Buscar cultivo por nombre o especie…" class="w-full rounded-xl border border-input bg-background py-2 pl-9 pr-3 text-xs focus:border-[#1b4332] focus:outline-hidden" />
+              </div>
+
+              <div class="max-h-60 space-y-1 overflow-y-auto pr-1">
+                {{#each relationEditor.crops}}
+                  <label data-relation-item class="flex cursor-pointer items-start gap-2.5 rounded-xl px-3 py-2 hover:bg-background transition-colors">
+                    <input type="checkbox" name="crop_ids" value="{{this.id}}" {{#if this.selected}}checked{{/if}} class="mt-0.5 rounded border-input accent-[#1b4332]" />
+                    <span class="min-w-0 flex-1">
+                      <span class="block text-xs font-semibold text-foreground">{{this.name}}</span>
+                      {{#if this.subtitle}}<span class="block text-[10px] italic text-muted-foreground">{{this.subtitle}}</span>{{/if}}
+                    </span>
+                    {{#if this.category}}
+                      <span class="rounded bg-muted px-2 py-0.5 font-mono text-[10px] text-muted-foreground">{{this.category}}</span>
+                    {{/if}}
+                  </label>
+                {{else}}
+                  <p class="py-6 text-center text-xs text-muted-foreground">No hay cultivos publicados disponibles.</p>
+                {{/each}}
+                <p data-relation-empty class="hidden py-6 text-center text-xs text-muted-foreground">Ningún cultivo coincide con el filtro actual.</p>
+              </div>
+            </fieldset>
+          </div>
+
+          {{#if canManageRelations}}
+            <div class="flex justify-end border-t border-border/70 pt-4">
+              <button type="submit" class="inline-flex items-center gap-2 rounded-xl bg-[#1b4332] px-5 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-[#2d6a4f] transition-colors cursor-pointer">
+                <span class="material-symbols-outlined text-base">save</span>
+                <span>Guardar relaciones técnicas</span>
+              </button>
+            </div>
+          {{/if}}
+        </form>
+      </section>
+    {{/if}}
   </main>
 </div>
+
+{{> shared/product-pdf-modal}}
+{{#if isPrivate}}
+  {{> private/products/form-modal}}
+{{/if}}
+
+<script type="module" src="/js/shared/product-detail.js"></script>
 <script type="module" src="/js/shared/product-gallery.js"></script>
+<script src="/js/shared/image-fallback.js"></script>

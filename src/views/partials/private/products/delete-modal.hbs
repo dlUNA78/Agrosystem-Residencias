@@ -1,8 +1,25 @@
-<div id="delete-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/55 p-4 backdrop-blur-xs" role="dialog" aria-modal="true" aria-labelledby="delete-product-title">
-  <div class="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-2xl">
-    <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-red-50 text-red-700"><span class="material-symbols-outlined">delete_forever</span></div>
-    <h2 id="delete-product-title" class="mt-4 text-xl font-black">Eliminar producto</h2>
-    <p class="mt-2 text-sm leading-relaxed text-muted-foreground">Esta acción elimina definitivamente <strong id="delete-product-name" class="text-foreground"></strong> y sus imágenes. Para retirarlo temporalmente del catálogo, utiliza “Archivar”.</p>
-    <form id="product-delete-form" method="POST" class="mt-6 flex justify-end gap-3"><button type="button" id="cancel-delete" class="rounded-xl border border-border px-4 py-2.5 text-sm font-bold hover:bg-muted">Cancelar</button><button type="button" id="confirm-delete" class="rounded-xl bg-red-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-red-800">Eliminar definitivamente</button></form>
+<div id="delete-modal" class="no-print fixed inset-0 z-50 hidden items-center justify-center p-4 font-['Geist']" role="dialog" aria-modal="true" aria-labelledby="delete-product-title">
+  <button type="button" id="delete-modal-backdrop" class="absolute inset-0 bg-black/50 backdrop-blur-xs" aria-label="Cancelar eliminación"></button>
+
+  <div class="relative z-10 w-full max-w-md overflow-hidden rounded-2xl border border-border bg-card shadow-2xl">
+    <div class="p-6">
+      <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-rose-100 text-rose-700">
+        <i data-lucide="trash-2" class="w-5 h-5"></i>
+      </div>
+      <h2 id="delete-product-title" class="mt-4 text-lg font-headline font-black text-foreground">Eliminar ficha de producto</h2>
+      <p class="mt-2 text-xs leading-relaxed text-muted-foreground">
+        Esta operación eliminará permanentemente <strong id="delete-product-name" class="text-foreground"></strong> junto con su galería de envases y vinculaciones fitosanitarias. Si sólo deseas retirarlo del catálogo público, utiliza la acción <strong>Archivar</strong> en su expediente.
+      </p>
+    </div>
+
+    <form id="product-delete-form" method="POST" class="flex items-center justify-end gap-2.5 border-t border-border bg-muted/30 px-6 py-3.5">
+      <button type="button" id="cancel-delete" class="rounded-xl border border-border bg-card px-4 py-2 text-xs font-bold text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer">
+        Cancelar
+      </button>
+      <button type="submit" id="confirm-delete" class="inline-flex items-center gap-1.5 rounded-xl bg-rose-600 px-4 py-2 text-xs font-bold text-white shadow-2xs hover:bg-rose-700 transition-colors cursor-pointer">
+        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+        <span>Eliminar definitivamente</span>
+      </button>
+    </form>
   </div>
 </div>

@@ -120,24 +120,53 @@
         <!-- ===================================================== -->
         <!-- BARRA PEGAJOSA DE FILTROS + TABS RÁPIDOS DE WORKFLOW   -->
         <!-- ===================================================== -->
-        <div class="sticky top-16 z-30 -mx-4 md:-mx-10 px-4 md:px-10 py-3.5 bg-background/95 backdrop-blur-md border-b border-border/80 shadow-2xs space-y-3">
-            <form id="crop-filter-form" action="/private/crops" method="GET" class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+        <div class="sticky top-16 z-30 -mx-4 md:-mx-10 px-4 md:px-10 py-2.5 sm:py-3 bg-background/95 backdrop-blur-md border-b border-border/80 shadow-2xs space-y-2">
+            <form id="crop-filter-form" action="/private/crops" method="GET" class="flex flex-col lg:flex-row lg:items-center justify-between gap-2">
+                <input type="hidden" id="filter-workflow" name="workflow" value="{{filters.workflow}}" />
 
-                <!-- Buscador de Administración con Atajo "/" -->
-                <div class="relative flex-1 min-w-65">
-                    <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"></i>
-                    <input id="crop-search" name="search" type="search" value="{{filters.search}}" maxlength="120"
-                        class="w-full pl-10 pr-12 py-2.5 bg-card border border-input rounded-xl text-xs text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all"
-                        placeholder="Buscar por nombre, especie científica o categoría..." />
-                    <kbd class="hidden sm:inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground bg-muted border border-border rounded-md absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" title="Presiona / para buscar">/</kbd>
+                <!-- Fila Superior: Buscador + Toggle Móvil + Conmutador Vista -->
+                <div class="flex items-center gap-2 flex-1">
+                    <div class="relative flex-1">
+                        <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"></i>
+                        <input id="crop-search" name="search" type="search" value="{{filters.search}}" maxlength="120"
+                            class="w-full pl-10 pr-10 py-2 bg-card border border-input rounded-xl text-xs text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all"
+                            placeholder="Buscar por nombre, especie científica o categoría..." />
+                        <kbd class="hidden sm:inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground bg-muted border border-border rounded-md absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" title="Presiona / para buscar">/</kbd>
+                    </div>
+
+                    <!-- Botón Toggle Filtros en Móvil (< lg) -->
+                    <button
+                        type="button"
+                        id="toggle-private-crops-filters-btn"
+                        class="lg:hidden h-9 px-2.5 flex items-center gap-1.5 rounded-xl border border-input bg-card text-foreground font-semibold text-xs hover:bg-secondary transition-colors cursor-pointer shrink-0 shadow-2xs"
+                        aria-expanded="false"
+                        aria-controls="private-crops-collapsible-filters"
+                        title="Mostrar u ocultar filtros avanzados"
+                    >
+                        <span class="material-symbols-outlined text-base text-[#1b4332]">tune</span>
+                        <span class="text-xs">Filtros</span>
+                        <span id="private-crops-active-filters-count" class="hidden px-1.5 py-0.2 rounded-full bg-[#1b4332] text-white text-[10px] font-mono font-bold leading-none">0</span>
+                    </button>
+
+                    <!-- Cambiador de Vista Grilla / Tabla -->
+                    <div class="flex items-center bg-card border border-input rounded-xl p-0.5 gap-0.5 shrink-0" role="group" aria-label="Presentación del catálogo">
+                        <button type="button" id="view-grid" title="Vista en tarjetas" aria-label="Vista en tarjetas" aria-pressed="true"
+                            class="p-1.5 rounded-lg bg-[#1b4332] text-white transition-all cursor-pointer">
+                            <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i>
+                        </button>
+                        <button type="button" id="view-table" title="Vista en tabla" aria-label="Vista en tabla" aria-pressed="false"
+                            class="p-1.5 rounded-lg text-muted-foreground hover:text-foreground transition-all cursor-pointer">
+                            <i data-lucide="table-properties" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
                 </div>
 
-                <!-- Dropdowns y Selectores -->
-                <div class="flex flex-wrap items-center gap-2.5">
+                <!-- Dropdowns y Selectores (Desktop: en línea; Móvil: colapsables) -->
+                <div id="private-crops-collapsible-filters" class="hidden lg:flex flex-wrap items-center gap-2 pt-2 lg:pt-0 border-t border-border/50 lg:border-t-0 mt-1 lg:mt-0">
                     {{#each searchFilters}}
-                    <div class="relative min-w-36">
+                    <div class="relative w-full sm:w-auto min-w-36">
                         <select id="{{id}}" name="{{param}}"
-                            class="filter-select appearance-none w-full bg-card border border-input rounded-xl px-3.5 py-2.5 pr-8 text-xs font-medium text-foreground focus:outline-hidden focus:border-[#1b4332] transition-all cursor-pointer">
+                            class="filter-select appearance-none w-full bg-card border border-input rounded-xl px-3 py-2 pr-8 text-xs font-medium text-foreground focus:outline-hidden focus:border-[#1b4332] transition-all cursor-pointer">
                             <option value="">{{label}} Todos</option>
                             {{#each options}}
                             <option value="{{value}}" {{#if selected}}selected{{/if}}>{{text}}</option>
@@ -147,26 +176,14 @@
                     </div>
                     {{/each}}
 
-                    <!-- Cambiador de Vista Grilla / Tabla -->
-                    <div class="flex items-center bg-card border border-input rounded-xl p-1 gap-1 shrink-0">
-                        <button type="button" id="view-grid" title="Vista en tarjetas" aria-label="Vista en tarjetas" aria-pressed="true"
-                            class="p-2 rounded-lg bg-[#1b4332] text-white transition-all cursor-pointer">
-                            <i data-lucide="layout-grid" class="w-4 h-4"></i>
-                        </button>
-                        <button type="button" id="view-table" title="Vista en tabla" aria-label="Vista en tabla" aria-pressed="false"
-                            class="p-2 rounded-lg text-muted-foreground hover:text-foreground transition-all cursor-pointer">
-                            <i data-lucide="table-properties" class="w-4 h-4"></i>
-                        </button>
-                    </div>
-
-                    <button type="submit" class="inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#1b4332] px-4 py-2.5 text-xs font-bold text-white shadow-2xs transition-colors hover:bg-[#2d6a4f] cursor-pointer">
+                    <button type="submit" class="inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#1b4332] px-4 py-2 text-xs font-bold text-white shadow-2xs transition-colors hover:bg-[#2d6a4f] cursor-pointer">
                         <i data-lucide="search" class="h-3.5 w-3.5"></i>
                         Filtrar
                     </button>
 
                     <span id="crop-clear-filters-slot">
                         {{#if hasActiveFilters}}
-                        <a href="/private/crops" data-async-filter-link class="inline-flex items-center justify-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-2.5 text-xs font-bold text-rose-700 transition-colors hover:bg-rose-100">
+                        <a href="/private/crops" data-async-filter-link class="inline-flex items-center justify-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-2 text-xs font-bold text-rose-700 transition-colors hover:bg-rose-100">
                             <i data-lucide="rotate-ccw" class="h-3.5 w-3.5"></i>
                             Limpiar
                         </a>
@@ -176,7 +193,7 @@
             </form>
 
             <!-- Píldoras Rápidas de Bandeja Editorial -->
-            <div id="crops-toolbar-pills" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5 text-xs">
+            <div id="crops-toolbar-pills" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 pt-1.5 border-t border-border/40 text-xs">
                 <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground mr-1 shrink-0">Bandeja:</span>
                 <button type="button" data-workflow-pill=""
                     class="px-2.5 py-1 rounded-lg border transition-colors shrink-0 cursor-pointer {{#unless filters.workflow}}bg-[#1b4332] text-white border-[#1b4332] font-bold shadow-2xs{{else}}bg-card text-muted-foreground border-border hover:text-foreground hover:bg-muted{{/unless}}">

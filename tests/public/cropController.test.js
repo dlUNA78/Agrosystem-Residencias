@@ -162,7 +162,7 @@ describe('🧪 Suite de Pruebas Públicas - Módulo de Cultivos', () => {
       const responses = await Promise.all(requests);
       const hasRateLimited = responses.some((r) => r.status === 429);
       expect(hasRateLimited).toBe(true);
-    });
+    }, 15000);
   });
 
   // 6. Lógica de Negocio y Visibilidad

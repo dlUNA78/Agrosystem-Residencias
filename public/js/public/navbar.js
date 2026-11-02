@@ -78,4 +78,8 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') closeDrawer();
   });
+
+  if (typeof window.lucide?.createIcons === 'function') {
+    window.lucide.createIcons();
+  }
 });

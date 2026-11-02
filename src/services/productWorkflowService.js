@@ -68,7 +68,7 @@ const actionChanges = Object.freeze({
   archive: () => ({ status: false }),
   restore: () => ({
     validation_status: 'En revisión',
-    status: true,
+    status: false,
     verified_by_user_id: null,
     verified_at: null,
     published_by_user_id: null,

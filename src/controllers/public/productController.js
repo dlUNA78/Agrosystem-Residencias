@@ -1,77 +1,78 @@
 import db from '../../models/index.js';
+import { CROP_WORKFLOW_STATUSES } from '../../services/cropWorkflowService.js';
+import { PLAGUE_WORKFLOW_STATUSES } from '../../services/plagueWorkflowService.js';
+import { buildProductDetailView } from '../../services/productDetailService.js';
+import { sendProductPdfResponse } from '../../services/productPdfService.js';
 import {
+  buildPublicProductCard,
+  buildPublicProductPageUrl,
   buildPublishedProductWhere,
   normalizePublicProductQuery,
   parsePublicProductId,
 } from '../../services/productPublicQueryService.js';
-import { CROP_WORKFLOW_STATUSES } from '../../services/cropWorkflowService.js';
-import { PLAGUE_WORKFLOW_STATUSES } from '../../services/plagueWorkflowService.js';
+import {
+  PRODUCT_CATEGORIES,
+  PRODUCT_HAZARD_BANDS,
+} from '../../services/productValidationService.js';
 
-const { Product, ProductImage, Plague, Crop } = db;
-const normalizeImagePath = (value) => {
-  if (!value) return null;
-  const relative = String(value)
-    .trim()
-    .replace(/^\/+/, '')
-    .replace(/^public\/+/, '');
-  return relative ? `/${relative}` : null;
-};
+const { Crop, CropImage, Plague, PlagueImage, Product, ProductImage, User } =
+  db;
+
 const productImageInclude = {
   model: ProductImage,
   as: 'images',
   required: false,
+  separate: true,
+  order: [
+    ['is_primary', 'DESC'],
+    ['display_order', 'ASC'],
+  ],
 };
-const riskThemes = Object.freeze({
-  Alto: { label: 'Crítico', badgeClass: 'bg-rose-50 text-rose-800' },
-  Medio: { label: 'Moderado', badgeClass: 'bg-amber-50 text-amber-800' },
-  Bajo: { label: 'Bajo', badgeClass: 'bg-emerald-50 text-emerald-800' },
-});
-const buildPublicProduct = (record) => {
-  const product = record.toJSON();
-  const primary =
-    product.images?.find((image) => image.is_primary) || product.images?.[0];
-  return {
-    id: product.id,
-    name: product.name,
-    category: product.category,
-    active_ingredient: product.active_ingredient,
-    registration_code: product.registration_code,
-    manufacturer: product.manufacturer,
-    validation_status: product.validation_status,
-    expiration_date: product.expiration_date,
-    target_crops: product.target_crops,
-    description: product.description,
-    mode_of_action: product.mode_of_action,
-    hazard_category: product.hazard_category,
-    suggested_dosage: product.suggested_dosage,
-    safety_interval_days: product.safety_interval_days,
-    formulation_type: product.formulation_type,
-    safety_sheet_url: product.safety_sheet_url,
-    plagues: product.plagues,
-    crops: product.crops,
-    images: (product.images || [])
-      .map((image) => ({
-        is_primary: image.is_primary,
-        display_order: image.display_order,
-        image_url: normalizeImagePath(image.image_url),
-      }))
-      .sort(
-        (first, second) =>
-          Number(second.is_primary) - Number(first.is_primary) ||
-          first.display_order - second.display_order,
-      ),
-    image_url:
-      normalizeImagePath(primary?.image_url || product.image_url) ||
-      '/images/products/default.png',
-  };
-};
+
+const buildCatalogRelationIncludes = (query) => [
+  productImageInclude,
+  {
+    model: Crop,
+    as: 'crops',
+    attributes: ['id', 'name'],
+    through: { attributes: [] },
+    required: Boolean(query.cropId),
+    where: query.cropId
+      ? {
+          id: query.cropId,
+          status: 'aprobado',
+          workflow_status: CROP_WORKFLOW_STATUSES.PUBLISHED,
+        }
+      : {
+          status: 'aprobado',
+          workflow_status: CROP_WORKFLOW_STATUSES.PUBLISHED,
+        },
+  },
+  {
+    model: Plague,
+    as: 'plagues',
+    attributes: ['id', 'name'],
+    through: { attributes: [] },
+    required: Boolean(query.plagueId),
+    where: query.plagueId
+      ? {
+          id: query.plagueId,
+          status: true,
+          workflow_status: PLAGUE_WORKFLOW_STATUSES.PUBLISHED,
+        }
+      : {
+          status: true,
+          workflow_status: PLAGUE_WORKFLOW_STATUSES.PUBLISHED,
+        },
+  },
+];
 
 const queryPublishedProducts = async (query) => {
   const where = buildPublishedProductWhere(db.Sequelize.Op, query);
   const offset = (query.page - 1) * query.limit;
   return Product.findAndCountAll({
     where,
-    include: [productImageInclude],
+    include: buildCatalogRelationIncludes(query),
     order: [['name', 'ASC']],
     limit: query.limit,
     offset,
@@ -79,12 +80,61 @@ const queryPublishedProducts = async (query) => {
   });
 };
 
+const buildPublicPagination = (count, query) => {
+  const totalPages = Math.max(1, Math.ceil(count / query.limit));
+  const currentPage = Math.min(Math.max(1, query.page), totalPages);
+  const pages = Array.from({ length: totalPages }, (_, index) => {
+    const number = index + 1;
+    return {
+      number,
+      isCurrent: number === currentPage,
+      url: buildPublicProductPageUrl(number, query),
+    };
+  });
+
+  return {
+    currentPage,
+    totalPages,
+    hasMultiplePages: totalPages > 1,
+    hasPrevPage: currentPage > 1,
+    hasNextPage: currentPage < totalPages,
+    prevUrl: buildPublicProductPageUrl(Math.max(1, currentPage - 1), query),
+    nextUrl: buildPublicProductPageUrl(
+      Math.min(totalPages, currentPage + 1),
+      query,
+    ),
+    pages,
+  };
+};
+
+const loadPublicFilterCatalogs = () =>
+  Promise.all([
+    Crop.findAll({
+      where: {
+        status: 'aprobado',
+        workflow_status: CROP_WORKFLOW_STATUSES.PUBLISHED,
+      },
+      attributes: ['id', 'name'],
+      order: [['name', 'ASC']],
+      raw: true,
+    }),
+    Plague.findAll({
+      where: {
+        status: true,
+        workflow_status: PLAGUE_WORKFLOW_STATUSES.PUBLISHED,
+      },
+      attributes: ['id', 'name'],
+      order: [['name', 'ASC']],
+      raw: true,
+    }),
+  ]);
+
 export const getProductsData = async (req, res) => {
   try {
     const query = normalizePublicProductQuery(req.query);
     const { count, rows } = await queryPublishedProducts(query);
     return res.json({
-      products: rows.map(buildPublicProduct),
+      products: rows.map(buildPublicProductCard),
       totalCount: count,
       totalPages: Math.ceil(count / query.limit) || 1,
       currentPage: query.page,
@@ -97,14 +147,53 @@ export const getProductsData = async (req, res) => {
 
 export const renderProductsPublic = async (req, res) => {
   try {
-    const query = normalizePublicProductQuery({ ...req.query, limit: 24 });
-    const { count, rows } = await queryPublishedProducts(query);
+    const query = normalizePublicProductQuery({
+      ...req.query,
+      limit: req.query?.limit || 12,
+    });
+    const [{ count, rows }, [cropList, plagueList]] = await Promise.all([
+      queryPublishedProducts(query),
+      loadPublicFilterCatalogs(),
+    ]);
+    const pagination = buildPublicPagination(count, query);
+
     return res.render('public/products', {
       pageTitle: 'Catálogo de Agroquímicos y Productos',
       activePage: 'products',
-      products: rows.map(buildPublicProduct),
+      products: rows.map(buildPublicProductCard),
       totalCount: count,
+      totalPages: pagination.totalPages,
+      currentPage: pagination.currentPage,
+      pagination,
       search: query.search,
+      selectedCategory: query.category,
+      selectedHazard: query.hazard,
+      selectedCropId: query.cropId,
+      selectedPlagueId: query.plagueId,
+      hasActiveFilters: Boolean(
+        query.search ||
+        query.category ||
+        query.hazard ||
+        query.cropId ||
+        query.plagueId,
+      ),
+      categories: PRODUCT_CATEGORIES.map((value) => ({
+        value,
+        label: value,
+        selected: value === query.category,
+      })),
+      hazardBands: PRODUCT_HAZARD_BANDS.map((band) => ({
+        ...band,
+        selected: band.value === query.hazard,
+      })),
+      cropOptions: cropList.map((crop) => ({
+        ...crop,
+        selected: Number(crop.id) === query.cropId,
+      })),
+      plagueOptions: plagueList.map((plague) => ({
+        ...plague,
+        selected: Number(plague.id) === query.plagueId,
+      })),
     });
   } catch (error) {
     console.error('Error al renderizar productos públicos:', error);
@@ -112,6 +201,7 @@ export const renderProductsPublic = async (req, res) => {
       pageTitle: 'Productos',
       activePage: 'products',
       products: [],
+      totalCount: 0,
       error: 'Error al cargar el catálogo de productos.',
     });
   }
@@ -128,7 +218,7 @@ const detailIncludes = [
       status: true,
       workflow_status: PLAGUE_WORKFLOW_STATUSES.PUBLISHED,
     },
-    include: [{ model: db.PlagueImage, as: 'images', required: false }],
+    include: [{ model: PlagueImage, as: 'images', required: false }],
   },
   {
     model: Crop,
@@ -139,74 +229,68 @@ const detailIncludes = [
       status: 'aprobado',
       workflow_status: CROP_WORKFLOW_STATUSES.PUBLISHED,
     },
-    include: [{ model: db.CropImage, as: 'images', required: false }],
+    include: [{ model: CropImage, as: 'images', required: false }],
+  },
+  {
+    model: User,
+    as: 'verifiedBy',
+    required: false,
+    attributes: ['id', 'full_name'],
+  },
+  {
+    model: User,
+    as: 'publishedBy',
+    required: false,
+    attributes: ['id', 'full_name'],
   },
 ];
-const normalizeRelatedImages = (records = [], fallback) =>
-  records.map((record) => {
-    const image =
-      record.images?.find((candidate) => candidate.is_primary) ||
-      record.images?.[0];
-    return {
-      id: record.id,
-      name: record.name,
-      scientific_name: record.scientific_name,
-      category: record.category,
-      description: record.description,
-      risk_level: record.risk_level,
-      riskTheme: riskThemes[record.risk_level] || riskThemes.Bajo,
-      image_url:
-        normalizeImagePath(image?.image_url || record.image_url) || fallback,
-    };
+
+const renderPublicNotFound = (res) =>
+  res.status(404).render('public/products', {
+    pageTitle: 'Producto no encontrado',
+    activePage: 'products',
+    products: [],
+    totalCount: 0,
+    error: 'El producto solicitado no existe o no está publicado.',
   });
 
 export const renderProductDetail = async (req, res) => {
   const productId = parsePublicProductId(req.params.id);
-  if (!productId) {
-    return res.status(404).render('shared/product-detail', {
-      pageTitle: 'Producto no encontrado',
-      error: 'El producto solicitado no existe o no está publicado.',
-    });
-  }
+  if (!productId) return renderPublicNotFound(res);
 
   try {
     const record = await Product.findOne({
       where: {
-        ...buildPublishedProductWhere(db.Sequelize.Op, { search: '' }),
+        ...buildPublishedProductWhere(db.Sequelize.Op, {}),
         id: productId,
       },
       include: detailIncludes,
     });
-    if (!record) {
-      return res.status(404).render('shared/product-detail', {
-        pageTitle: 'Producto no encontrado',
-        error: 'El producto solicitado no existe o no está publicado.',
+    if (!record) return renderPublicNotFound(res);
+
+    const detail = buildProductDetailView(record);
+    if (req.query?.format === 'pdf') {
+      return await sendProductPdfResponse(res, detail, {
+        download: req.query.download === '1',
+        isPrivate: false,
       });
     }
-    return renderPublishedProduct(res, record);
+
+    return res.render('shared/product-detail', {
+      pageTitle: detail.product.name,
+      activePage: 'products',
+      isPrivate: false,
+      ...detail,
+      product: detail.product,
+    });
   } catch (error) {
     console.error('Error al renderizar el detalle del producto:', error);
-    return res.status(500).render('shared/product-detail', {
+    return res.status(500).render('public/products', {
       pageTitle: 'Error',
+      activePage: 'products',
+      products: [],
+      totalCount: 0,
       error: 'Error al cargar el detalle del producto.',
     });
   }
-};
-
-const renderPublishedProduct = (res, record) => {
-  const product = buildPublicProduct(record);
-  product.plagues = normalizeRelatedImages(
-    product.plagues,
-    '/images/plagas/pulgon-verde.webp',
-  );
-  product.crops = normalizeRelatedImages(
-    product.crops,
-    '/images/test/default.png',
-  );
-  return res.render('shared/product-detail', {
-    pageTitle: product.name,
-    activePage: 'products',
-    isPrivate: false,
-    product,
-  });
 };
