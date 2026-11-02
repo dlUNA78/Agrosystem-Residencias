@@ -7,6 +7,10 @@ import {
   getContextualLandPermissions,
   getLandListWhere,
 } from '../../../services/landAuthorizationService.js';
+import {
+  buildLandExpedienteCsv,
+  buildLandExpedientePayload,
+} from '../../../services/landExportService.js';
 import { summarizeLandCropStages } from '../../../services/landPhenologyService.js';
 import { parseLandId } from '../../../services/landValidationService.js';
 import { PLAGUE_WORKFLOW_STATUSES } from '../../../services/plagueWorkflowService.js';
@@ -226,6 +230,131 @@ const getCatalogs = () =>
     }),
   ]);
 
+const serializeCatalogProducts = (rawProducts = []) =>
+  rawProducts.map((prod) => {
+    const p = prod.toJSON ? prod.toJSON() : prod;
+    const targetPlagues = Array.isArray(p.plagues) ? p.plagues : [];
+    const presentation = p.formulation_type || p.category || '';
+    return {
+      ...p,
+      presentation,
+      targetPlagueIds: targetPlagues.map((pl) => pl.id).join(','),
+      targetPlagueNames: targetPlagues.map((pl) => pl.name).join(', '),
+    };
+  });
+
+const extractDetectedPlagues = (healthReports = []) => {
+  const withPlague = healthReports.filter((report) => report.plague_name);
+  const detectedPlagues = [
+    ...new Map(
+      withPlague.map((report) => [
+        report.plague_id || report.plague_name,
+        {
+          id: report.plague_id,
+          name: report.plague_name,
+          severity: report.severityLabel,
+        },
+      ]),
+    ).values(),
+  ];
+
+  const detectedPlaguesByCrop = withPlague.map((report) => ({
+    farmCropId: report.farm_crop_id ? String(report.farm_crop_id) : '',
+    lotName: report.lotName || 'General',
+    id: report.plague_id ? String(report.plague_id) : '',
+    name: report.plague_name,
+    severity: report.severityLabel,
+  }));
+
+  return { detectedPlagues, detectedPlaguesByCrop };
+};
+
+const sendLandExportIfRequested = (req, res, context) => {
+  const format = String(req.query?.format || '').toLowerCase();
+  if (format === 'csv') {
+    const csv = buildLandExpedienteCsv(context);
+    res.setHeader?.('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader?.(
+      'Content-Disposition',
+      `attachment; filename="expediente-predio-${context.land.id}.csv"`,
+    );
+    return res.status(200).send(csv);
+  }
+  if (format === 'json') {
+    const payload = buildLandExpedientePayload(context);
+    res.setHeader?.('Content-Type', 'application/json; charset=utf-8');
+    res.setHeader?.(
+      'Content-Disposition',
+      `attachment; filename="expediente-predio-${context.land.id}.json"`,
+    );
+    return res.status(200).json(payload);
+  }
+  return null;
+};
+
+const buildLandDetailViewModel = ({
+  land,
+  regions,
+  crops,
+  plagues,
+  products,
+  lots,
+  farmCrops,
+  healthReports,
+  applications,
+  permissions,
+}) => {
+  const activeFarmCrops = farmCrops.filter((c) => c.is_active);
+  const nonArchivedFarmCrops = farmCrops.filter((c) => !c.isArchived);
+  const archivedFarmCrops = farmCrops.filter((c) => c.isArchived);
+  const { detectedPlagues, detectedPlaguesByCrop } =
+    extractDetectedPlagues(healthReports);
+
+  return {
+    layout: privateLayout,
+    pageTitle: `Expediente — ${land.name}`,
+    activePage: 'lands',
+    extraHead: '<link rel="stylesheet" href="/vendor/leaflet/leaflet.css" />',
+    extraScripts: `
+      <script src="/vendor/leaflet/leaflet.js"></script>
+      <script type="module" src="/js/private/land-detail.js"></script>
+    `,
+    land,
+    regions,
+    crops,
+    cropCategories: [
+      ...new Set(crops.map((item) => item.category).filter(Boolean)),
+    ].sort(),
+    plagues,
+    plagueCategories: [
+      ...new Set(plagues.map((item) => item.category).filter(Boolean)),
+    ].sort(),
+    products,
+    detectedPlagues,
+    detectedPlaguesJson: JSON.stringify(detectedPlaguesByCrop),
+    lots,
+    lotsCount: lots.length,
+    farmCrops,
+    activeFarmCrops,
+    nonArchivedFarmCrops,
+    archivedFarmCrops,
+    healthReports,
+    applications,
+    farmCropsCount: farmCrops.length,
+    activeFarmCropsCount: activeFarmCrops.length,
+    nonArchivedFarmCropsCount: nonArchivedFarmCrops.length,
+    archivedFarmCropsCount: archivedFarmCrops.length,
+    healthReportsCount: healthReports.length,
+    applicationsCount: applications.length,
+    today: new Date().toISOString().slice(0, 10),
+    permissions,
+    landLat: land.location_lat ? String(land.location_lat) : 'N/A',
+    landLng: land.location_lng ? String(land.location_lng) : 'N/A',
+    landHectares: land.size_hectares ? String(land.size_hectares) : '0',
+    landId: `#PRD-${String(land.id).padStart(4, '0')}`,
+  };
+};
+
 export const landDetail = async (req, res) => {
   const id = parseLandId(req.params.id);
   if (!id) return res.status(400).send('Identificador de terreno inválido');
@@ -252,36 +381,7 @@ export const landDetail = async (req, res) => {
     if (!farm) return res.status(404).send('Predio no encontrado');
 
     const land = farm.toJSON();
-    const [regions, crops, plagues, rawProducts] = await getCatalogs();
-    const cropCategories = [
-      ...new Set(crops.map((cropItem) => cropItem.category).filter(Boolean)),
-    ].sort();
-    const plagueCategories = [
-      ...new Set(
-        plagues.map((plagueItem) => plagueItem.category).filter(Boolean),
-      ),
-    ].sort();
-
-    const products = rawProducts.map((prod) => {
-      const p = prod.toJSON ? prod.toJSON() : prod;
-      const targetPlagues = Array.isArray(p.plagues) ? p.plagues : [];
-      const presentation = p.formulation_type || p.category || '';
-      return {
-        ...p,
-        presentation,
-        targetPlagueIds: targetPlagues.map((pl) => pl.id).join(','),
-        targetPlagueNames: targetPlagues.map((pl) => pl.name).join(', '),
-      };
-    });
-
     const farmCrops = prepareCropCycles(land.farmCrops);
-    const activeFarmCrops = farmCrops.filter((farmCrop) => farmCrop.is_active);
-    const nonArchivedFarmCrops = farmCrops.filter(
-      (farmCrop) => !farmCrop.isArchived,
-    );
-    const archivedFarmCrops = farmCrops.filter(
-      (farmCrop) => farmCrop.isArchived,
-    );
     const healthReports = prepareHealthReports(land.healthReports);
     const applications = prepareApplications(land.applications);
     const lots = await prepareLandLots(
@@ -289,68 +389,33 @@ export const landDetail = async (req, res) => {
       land.lots || [],
       land.farmCrops || [],
     );
-    const permissions = buildPermissions(land, req.user);
+    const landId = `#PRD-${String(land.id).padStart(4, '0')}`;
 
-    const detectedPlagues = [
-      ...new Map(
-        healthReports
-          .filter((report) => report.plague_name)
-          .map((report) => [
-            report.plague_id || report.plague_name,
-            {
-              id: report.plague_id,
-              name: report.plague_name,
-              severity: report.severityLabel,
-            },
-          ]),
-      ).values(),
-    ];
+    const exported = sendLandExportIfRequested(req, res, {
+      land,
+      landId,
+      lots,
+      farmCrops,
+      healthReports,
+      applications,
+    });
+    if (exported) return exported;
 
-    const detectedPlaguesByCrop = healthReports
-      .filter((report) => report.plague_name)
-      .map((report) => ({
-        farmCropId: report.farm_crop_id ? String(report.farm_crop_id) : '',
-        lotName: report.lotName || 'General',
-        id: report.plague_id ? String(report.plague_id) : '',
-        name: report.plague_name,
-        severity: report.severityLabel,
-      }));
-
-    return res.render('private/lands/detail', {
-      layout: privateLayout,
-      pageTitle: `Expediente — ${land.name}`,
-      activePage: 'lands',
-      extraScripts: '<script src="/js/private/land-detail.js"></script>',
+    const [regions, crops, plagues, rawProducts] = await getCatalogs();
+    const viewModel = buildLandDetailViewModel({
       land,
       regions,
       crops,
-      cropCategories,
       plagues,
-      plagueCategories,
-      products,
-      detectedPlagues,
-      detectedPlaguesJson: JSON.stringify(detectedPlaguesByCrop),
+      products: serializeCatalogProducts(rawProducts),
       lots,
-      lotsCount: lots.length,
       farmCrops,
-      activeFarmCrops,
-      nonArchivedFarmCrops,
-      archivedFarmCrops,
       healthReports,
       applications,
-      farmCropsCount: farmCrops.length,
-      activeFarmCropsCount: activeFarmCrops.length,
-      nonArchivedFarmCropsCount: nonArchivedFarmCrops.length,
-      archivedFarmCropsCount: archivedFarmCrops.length,
-      healthReportsCount: healthReports.length,
-      applicationsCount: applications.length,
-      today: new Date().toISOString().slice(0, 10),
-      permissions,
-      landLat: land.location_lat ? String(land.location_lat) : 'N/A',
-      landLng: land.location_lng ? String(land.location_lng) : 'N/A',
-      landHectares: land.size_hectares ? String(land.size_hectares) : '0',
-      landId: `#PRD-${String(land.id).padStart(4, '0')}`,
+      permissions: buildPermissions(land, req.user),
     });
+
+    return res.render('private/lands/detail', viewModel);
   } catch (error) {
     console.error('Error al obtener el expediente del terreno:', error);
     return res.status(500).send('Error al obtener el expediente del terreno');

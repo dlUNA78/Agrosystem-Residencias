@@ -1,55 +1,67 @@
-<section class="rounded-2xl border border-border bg-card p-6 shadow-sm">
+<section id="aplicaciones-predio" class="scroll-mt-32 rounded-2xl border border-slate-200/90 bg-white p-6 shadow-xs">
     <div class="flex flex-wrap items-center justify-between gap-3">
         <div>
-            <h2 class="text-lg font-extrabold text-foreground">Bitácora de aplicaciones</h2>
-            <p class="mt-1 text-sm text-muted-foreground">{{applicationsCount}} aplicación(es) registradas.</p>
+            <h2 class="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+                <i data-lucide="flask-conical" class="h-4 w-4 text-sky-700"></i>
+                <span>Bitácora de aplicaciones</span>
+            </h2>
+            <p class="mt-1 text-xs text-slate-500">{{applicationsCount}} aplicación(es) de insumos registradas con trazabilidad de dosis.</p>
         </div>
         {{#if permissions.canEdit}}
-        <button type="button" data-land-modal-open="application" class="rounded-xl border border-primary/30 px-4 py-2.5 text-sm font-bold text-primary hover:bg-primary/5">Registrar aplicación</button>
+        <button type="button" data-land-modal-open="application" class="inline-flex items-center gap-1.5 rounded-xl border border-[#1b4332]/30 bg-emerald-50/70 px-3.5 py-2 text-xs font-bold text-[#1b4332] hover:bg-[#1b4332] hover:text-white transition-colors">
+            <i data-lucide="droplets" class="h-3.5 w-3.5"></i>
+            <span>Registrar aplicación</span>
+        </button>
         {{/if}}
     </div>
 
     {{#if applications}}
-    <div class="mt-5 overflow-x-auto">
+    <div class="mt-5 overflow-x-auto rounded-xl border border-slate-200/80">
         <table class="w-full min-w-[680px] text-left text-sm">
-            <thead class="border-b border-border text-xs uppercase text-muted-foreground">
+            <thead class="border-b border-slate-200 bg-slate-50/80 font-['Geist_Mono'] text-[11px] font-bold uppercase tracking-wider text-slate-500">
                 <tr>
-                    <th class="px-3 py-3">Fecha</th>
-                    <th class="px-3 py-3">Lote / Sección</th>
-                    <th class="px-3 py-3">Producto</th>
-                    <th class="px-3 py-3">Ingrediente activo</th>
-                    <th class="px-3 py-3">Dosis</th>
-                    <th class="px-3 py-3">Notas</th>
+                    <th class="px-4 py-3">Fecha</th>
+                    <th class="px-4 py-3">Lote / Sección</th>
+                    <th class="px-4 py-3">Producto</th>
+                    <th class="px-4 py-3">Ingrediente activo</th>
+                    <th class="px-4 py-3">Dosis</th>
+                    <th class="px-4 py-3">Notas</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-border">
+            <tbody class="divide-y divide-slate-100 bg-white">
                 {{#each applications}}
-                <tr data-application-lot="{{this.lotName}}">
-                    <td class="px-3 py-3 text-muted-foreground whitespace-nowrap">{{this.appliedDate}}</td>
-                    <td class="px-3 py-3 whitespace-nowrap">
-                        <span class="inline-flex items-center gap-1 rounded bg-muted px-2 py-0.5 text-xs font-semibold text-foreground">
-                            📍 {{this.lotName}}{{#if this.cropName}} · {{this.cropName}}{{/if}}
+                <tr data-application-lot="{{this.lotName}}" class="hover:bg-slate-50/70 transition-colors">
+                    <td class="px-4 py-3 font-['Geist_Mono'] text-xs text-slate-600 whitespace-nowrap">{{this.appliedDate}}</td>
+                    <td class="px-4 py-3 whitespace-nowrap">
+                        <span class="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 text-xs font-semibold text-slate-700">
+                            <i data-lucide="map-pin" class="h-3 w-3 text-[#1b4332]"></i>
+                            <span>{{this.lotName}}{{#if this.cropName}} · {{this.cropName}}{{/if}}</span>
                         </span>
                     </td>
-                    <td class="px-3 py-3">
-                        <div class="flex items-center gap-1.5 flex-wrap">
-                            <span class="font-bold text-foreground">{{this.product_name}}</span>
+                    <td class="px-4 py-3">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="font-bold text-slate-900">{{this.product_name}}</span>
                             {{#if this.product_id}}
-                            <a href="/private/products/{{this.product_id}}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 rounded bg-blue-100/70 px-1.5 py-0.5 text-[10px] font-bold text-blue-700 hover:bg-blue-200 transition-colors" title="Ver ficha técnica oficial del agroquímico">
-                                🧪 Ficha ↗
+                            <a href="/private/products/{{this.product_id}}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 rounded-md border border-sky-200 bg-sky-50 px-1.5 py-0.5 text-[10px] font-bold text-sky-800 hover:bg-sky-100 transition-colors" title="Ver ficha técnica oficial del agroquímico">
+                                <span>Ficha</span>
+                                <i data-lucide="external-link" class="h-2.5 w-2.5"></i>
                             </a>
                             {{/if}}
                         </div>
                     </td>
-                    <td class="px-3 py-3 text-muted-foreground">{{#if this.active_ingredient}}{{this.active_ingredient}}{{else}}No especificado{{/if}}</td>
-                    <td class="px-3 py-3 font-semibold text-foreground whitespace-nowrap">{{this.dose_value}} {{this.dose_unit}}</td>
-                    <td class="max-w-xs px-3 py-3 text-muted-foreground">{{#if this.notes}}{{this.notes}}{{else}}Sin notas{{/if}}</td>
+                    <td class="px-4 py-3 text-xs text-slate-600">{{#if this.active_ingredient}}{{this.active_ingredient}}{{else}}No especificado{{/if}}</td>
+                    <td class="px-4 py-3 whitespace-nowrap">
+                        <span class="rounded-md bg-emerald-50 px-2 py-0.5 font-['Geist_Mono'] text-xs font-bold text-[#1b4332]">
+                            {{this.dose_value}} {{this.dose_unit}}
+                        </span>
+                    </td>
+                    <td class="max-w-xs px-4 py-3 text-xs text-slate-600">{{#if this.notes}}{{this.notes}}{{else}}Sin notas{{/if}}</td>
                 </tr>
                 {{/each}}
             </tbody>
         </table>
     </div>
     {{else}}
-    <p class="mt-5 rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">No hay aplicaciones registradas.</p>
+    <p class="mt-5 rounded-xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500">No hay aplicaciones agroquímicas registradas en este predio.</p>
     {{/if}}
 </section>

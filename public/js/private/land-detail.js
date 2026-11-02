@@ -1,3 +1,7 @@
+import { confirmAsyncAction, refreshLucideIcons } from './asyncUi.js';
+
+const DEFAULT_MEXICO_CENTER = [23.634501, -102.552784];
+
 const normalizeText = (text) =>
   (text || '')
     .toLowerCase()
@@ -977,9 +981,191 @@ const setupLotEditUX = () => {
 };
 
 /* ══════════════════════════════════════════════════════════════════════════
+   4. MÓDULO: MAPAS INTERACTIVOS Y CONFIRMACIONES ASÍNCRONAS
+   ══════════════════════════════════════════════════════════════════════════ */
+const createLandPinIcon = (leaflet) =>
+  leaflet.divIcon({
+    html: `<div class="w-7 h-7 bg-[#1b4332] border-2 border-white rounded-full flex items-center justify-center shadow-md">
+      <svg width="13" height="13" fill="white" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+      </svg>
+    </div>`,
+    className: '',
+    iconSize: [28, 28],
+    iconAnchor: [14, 28],
+    popupAnchor: [0, -28],
+  });
+
+const attachTileLayer = (leaflet, map) => {
+  leaflet
+    .tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap',
+      maxZoom: 19,
+      referrerPolicy: 'strict-origin-when-cross-origin',
+    })
+    .addTo(map);
+};
+
+const initLandDetailMap = () => {
+  const leaflet = window.L;
+  const mapEl = document.getElementById('land-detail-map');
+  if (!leaflet || !mapEl) return;
+
+  const lat = Number.parseFloat(mapEl.dataset.lat);
+  const lng = Number.parseFloat(mapEl.dataset.lng);
+  if (Number.isNaN(lat) || Number.isNaN(lng)) return;
+
+  const map = leaflet.map(mapEl, { zoomControl: true }).setView([lat, lng], 14);
+  attachTileLayer(leaflet, map);
+  const popupNode = document.createElement('strong');
+  popupNode.textContent = mapEl.dataset.name || 'Predio';
+  leaflet
+    .marker([lat, lng], { icon: createLandPinIcon(leaflet) })
+    .addTo(map)
+    .bindPopup(popupNode);
+};
+
+const parseCoordsPair = (latInput, lngInput) => {
+  const lat = Number.parseFloat(latInput?.value);
+  const lng = Number.parseFloat(lngInput?.value);
+  if (Number.isNaN(lat) || Number.isNaN(lng)) return null;
+  return [lat, lng];
+};
+
+const initEditLandMapPicker = (editTrigger) => {
+  const leaflet = window.L;
+  const mapEl = document.getElementById('edit-land-map');
+  const latInput = document.getElementById('edit-land-lat');
+  const lngInput = document.getElementById('edit-land-lng');
+  if (!leaflet || !mapEl || !latInput || !lngInput) return;
+
+  const initial = parseCoordsPair(latInput, lngInput);
+  const map = leaflet
+    .map(mapEl, { zoomControl: true })
+    .setView(initial || DEFAULT_MEXICO_CENTER, initial ? 13 : 5);
+  attachTileLayer(leaflet, map);
+
+  const icon = createLandPinIcon(leaflet);
+  let marker = initial ? leaflet.marker(initial, { icon }).addTo(map) : null;
+
+  const placeMarker = (coords) => {
+    if (marker) {
+      marker.setLatLng(coords);
+    } else {
+      marker = leaflet.marker(coords, { icon }).addTo(map);
+    }
+  };
+
+  map.on('click', (evt) => {
+    const { lat, lng } = evt.latlng;
+    latInput.value = lat.toFixed(7);
+    lngInput.value = lng.toFixed(7);
+    placeMarker([lat, lng]);
+  });
+
+  const syncFromInputs = () => {
+    const coords = parseCoordsPair(latInput, lngInput);
+    if (coords) {
+      placeMarker(coords);
+      map.panTo(coords);
+    }
+  };
+
+  latInput.addEventListener('change', syncFromInputs);
+  lngInput.addEventListener('change', syncFromInputs);
+  editTrigger?.addEventListener('click', () => {
+    window.setTimeout(() => map.invalidateSize(), 120);
+  });
+};
+
+const CONFIRM_DIALOG_CONFIGS = Object.freeze({
+  'lot-delete': (name) => ({
+    title: `Eliminar lote "${name}"`,
+    description:
+      'Los ciclos asociados conservarán su historial y pasarán al terreno general. ¿Deseas continuar?',
+    confirmLabel: 'Eliminar lote',
+    variant: 'danger',
+  }),
+  'land-archive': (name) => ({
+    title: `Archivar terreno "${name}"`,
+    description:
+      'El predio pasará a archivo inactivo conservando todos sus ciclos, hallazgos y aplicaciones.',
+    confirmLabel: 'Archivar predio',
+    variant: 'warning',
+  }),
+  'land-restore': (name) => ({
+    title: `Restaurar terreno "${name}"`,
+    description:
+      'El predio volverá a mostrarse en tu listado operativo activo.',
+    confirmLabel: 'Restaurar predio',
+    variant: 'primary',
+  }),
+  'cycle-revert': (name) => ({
+    title: `Revertir a etapa "${name}"`,
+    description:
+      'Las etapas posteriores volverán a estado pendiente y el ajuste quedará auditado.',
+    confirmLabel: 'Revertir etapa',
+    variant: 'warning',
+  }),
+  'cycle-finish': (name) => ({
+    title: `Finalizar ciclo de ${name}`,
+    description:
+      'Se marcará el cultivo como cosechado/completado conservando toda su bitácora.',
+    confirmLabel: 'Finalizar ciclo',
+    variant: 'primary',
+  }),
+  'cycle-archive': (name) => ({
+    title: `Archivar ciclo de ${name}`,
+    description:
+      'El ciclo se moverá a la sección de cultivos archivados de este expediente.',
+    confirmLabel: 'Archivar ciclo',
+    variant: 'warning',
+  }),
+});
+
+const setupConfirmableForms = () => {
+  document.querySelectorAll('form[data-confirm-form]').forEach((form) => {
+    form.addEventListener('submit', async (event) => {
+      if (form.dataset.confirmed === 'true') return;
+      event.preventDefault();
+
+      const kind = form.dataset.confirmForm;
+      const name = form.dataset.confirmName || 'este registro';
+      const builder = CONFIRM_DIALOG_CONFIGS[kind];
+      if (!builder) {
+        form.dataset.confirmed = 'true';
+        form.submit();
+        return;
+      }
+
+      const accepted = await confirmAsyncAction(builder(name));
+      if (accepted) {
+        form.dataset.confirmed = 'true';
+        form.submit();
+      }
+    });
+  });
+};
+
+const setupExpedienteSubnav = () => {
+  const links = document.querySelectorAll('[data-expediente-nav]');
+  links.forEach((link) => {
+    link.addEventListener('click', () => {
+      links.forEach((item) => {
+        item.classList.remove('bg-[#1b4332]/10', 'font-bold', 'text-[#1b4332]');
+        item.classList.add('font-semibold', 'text-slate-600');
+      });
+      link.classList.add('bg-[#1b4332]/10', 'font-bold', 'text-[#1b4332]');
+      link.classList.remove('font-semibold', 'text-slate-600');
+    });
+  });
+};
+
+/* ══════════════════════════════════════════════════════════════════════════
    INICIALIZACIÓN PRINCIPAL
    ══════════════════════════════════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', () => {
+  refreshLucideIcons();
   const closers = [];
   const editModal = document.getElementById('modal-edit-land');
   const editTrigger = document.getElementById('btn-open-edit-land');
@@ -1008,6 +1194,10 @@ document.addEventListener('DOMContentLoaded', () => {
   setupLotEditUX();
   setupHealthModalUX();
   setupApplicationModalUX();
+  initLandDetailMap();
+  initEditLandMapPicker(editTrigger);
+  setupConfirmableForms();
+  setupExpedienteSubnav();
 
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') closers.forEach((close) => close());

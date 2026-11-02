@@ -1,164 +1,373 @@
-<div class="mx-auto max-w-7xl space-y-7 pb-12 pt-6 text-foreground">
-    <nav class="flex items-center gap-2 text-xs text-muted-foreground" aria-label="Ruta de navegación">
-        <a href="/private/lands" class="font-semibold transition-colors hover:text-primary">Terrenos</a>
-        <span aria-hidden="true">/</span>
-        <span class="font-bold text-foreground">{{land.name}}</span>
+<div class="mx-auto max-w-7xl space-y-6 pb-12 pt-2 font-['Geist'] text-slate-900">
+    <!-- Ruta de navegación -->
+    <nav class="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500" aria-label="Ruta de navegación">
+        <div class="flex items-center gap-2">
+            <a href="/private/lands" class="inline-flex items-center gap-1.5 font-semibold text-slate-600 transition-colors hover:text-[#1b4332]">
+                <i data-lucide="arrow-left" class="h-3.5 w-3.5"></i>
+                <span>Terrenos y Parcelas</span>
+            </a>
+            <span aria-hidden="true" class="text-slate-300">/</span>
+            <span class="font-bold text-slate-900">{{land.name}}</span>
+        </div>
+        <span class="rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 font-['Geist_Mono'] text-[11px] font-semibold text-slate-600">
+            {{landId}}
+        </span>
     </nav>
 
-    <header class="rounded-2xl border border-border bg-card p-6 shadow-sm">
+    <!-- Encabezado ejecutivo del expediente -->
+    <header id="resumen-predio" class="scroll-mt-32 rounded-2xl border border-slate-200/90 bg-white p-6 shadow-sm">
         <div class="flex flex-col justify-between gap-5 lg:flex-row lg:items-start">
-            <div>
-                <div class="mb-2 flex flex-wrap items-center gap-3">
-                    <p class="text-xs font-black uppercase tracking-[0.18em] text-primary">Expediente operativo</p>
-                    <span class="rounded-full px-2.5 py-1 text-[10px] font-black uppercase {{#if land.status}}bg-emerald-50 text-emerald-700{{else}}bg-slate-100 text-slate-600{{/if}}">
+            <div class="space-y-2">
+                <div class="flex flex-wrap items-center gap-2.5">
+                    <span class="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50/70 px-2.5 py-0.5 font-['Geist_Mono'] text-[10px] font-bold uppercase tracking-[0.14em] text-[#1b4332]">
+                        <i data-lucide="folder-kanban" class="h-3 w-3"></i>
+                        Expediente operativo
+                    </span>
+                    <span class="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-bold {{#if land.status}}border-emerald-200 bg-emerald-50 text-emerald-800{{else}}border-slate-200 bg-slate-100 text-slate-600{{/if}}">
+                        <span class="h-1.5 w-1.5 rounded-full {{#if land.status}}bg-emerald-500{{else}}bg-slate-400{{/if}}"></span>
                         {{#if land.status}}Activo{{else}}Archivado{{/if}}
                     </span>
                 </div>
-                <h1 class="text-2xl font-extrabold tracking-tight text-foreground md:text-3xl">{{land.name}}</h1>
-                <p class="mt-2 text-sm text-muted-foreground">
-                    {{#if land.municipality}}{{land.municipality}}{{else}}Municipio sin especificar{{/if}}
-                    {{#if land.region}} · {{land.region.name}}{{/if}}
-                    · {{landId}}
-                </p>
-                {{#if land.user}}
-                <p class="mt-1 text-sm text-muted-foreground">Responsable: <span class="font-semibold text-foreground">{{land.user.full_name}}</span></p>
-                {{/if}}
+                <h1 class="text-2xl font-extrabold tracking-tight text-slate-900 md:text-3xl">{{land.name}}</h1>
+                <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-slate-600">
+                    <span class="inline-flex items-center gap-1.5">
+                        <i data-lucide="map-pin" class="h-3.5 w-3.5 text-slate-400"></i>
+                        {{#if land.municipality}}{{land.municipality}}{{else}}Municipio sin especificar{{/if}}
+                    </span>
+                    {{#if land.region}}
+                    <span class="text-slate-300">·</span>
+                    <span class="inline-flex items-center gap-1.5 font-medium text-slate-700">
+                        <i data-lucide="compass" class="h-3.5 w-3.5 text-[#1b4332]"></i>
+                        {{land.region.name}}
+                    </span>
+                    {{/if}}
+                    {{#if land.user}}
+                    <span class="text-slate-300">·</span>
+                    <span class="inline-flex items-center gap-1.5">
+                        <i data-lucide="user-check" class="h-3.5 w-3.5 text-slate-400"></i>
+                        Responsable: <strong class="font-semibold text-slate-900">{{land.user.full_name}}</strong>
+                    </span>
+                    {{/if}}
+                </div>
             </div>
 
-            <div class="flex flex-wrap gap-2">
+            <div class="flex flex-wrap items-center gap-2">
+                <a
+                    href="/private/lands/{{land.id}}/expediente?format=csv"
+                    class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 shadow-xs transition-colors hover:border-[#1b4332]/40 hover:bg-emerald-50/40 hover:text-[#1b4332]"
+                    title="Descargar bitácora integral del predio en formato CSV (UTF-8)"
+                >
+                    <i data-lucide="file-spreadsheet" class="h-3.5 w-3.5"></i>
+                    <span>Exportar CSV</span>
+                </a>
+                <a
+                    href="/private/lands/{{land.id}}/expediente?format=json"
+                    class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 font-['Geist_Mono'] text-xs font-bold text-slate-600 shadow-xs transition-colors hover:bg-slate-50 hover:text-slate-900"
+                    title="Descargar respaldo estructurado en JSON"
+                >
+                    <i data-lucide="braces" class="h-3.5 w-3.5"></i>
+                    <span>JSON</span>
+                </a>
+
                 {{#if permissions.canEdit}}
-                <button id="btn-open-edit-land" type="button" class="rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-bold text-foreground transition-colors hover:bg-muted">
-                    Editar terreno
+                <button
+                    id="btn-open-edit-land"
+                    type="button"
+                    class="inline-flex items-center gap-1.5 rounded-xl bg-[#1b4332] px-4 py-2 text-xs font-bold text-white shadow-xs transition-colors hover:bg-[#143325]"
+                >
+                    <i data-lucide="sliders-horizontal" class="h-3.5 w-3.5"></i>
+                    <span>Editar terreno</span>
                 </button>
                 {{/if}}
+
                 {{#if permissions.canArchive}}
-                <form action="/private/lands/archive/{{land.id}}" method="POST">
-                    <button type="submit" class="rounded-xl border border-amber-200 px-4 py-2.5 text-sm font-bold text-amber-700 transition-colors hover:bg-amber-50">Archivar</button>
+                <form action="/private/lands/archive/{{land.id}}" method="POST" data-confirm-form="land-archive" data-confirm-name="{{land.name}}">
+                    <button type="submit" class="inline-flex items-center gap-1.5 rounded-xl border border-amber-200 bg-amber-50/60 px-3.5 py-2 text-xs font-bold text-amber-800 transition-colors hover:bg-amber-100">
+                        <i data-lucide="archive" class="h-3.5 w-3.5"></i>
+                        <span>Archivar</span>
+                    </button>
                 </form>
                 {{/if}}
+
                 {{#if permissions.canRestore}}
-                <form action="/private/lands/restore/{{land.id}}" method="POST">
-                    <button type="submit" class="rounded-xl border border-emerald-200 px-4 py-2.5 text-sm font-bold text-emerald-700 transition-colors hover:bg-emerald-50">Restaurar</button>
+                <form action="/private/lands/restore/{{land.id}}" method="POST" data-confirm-form="land-restore" data-confirm-name="{{land.name}}">
+                    <button type="submit" class="inline-flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50/70 px-3.5 py-2 text-xs font-bold text-emerald-800 transition-colors hover:bg-emerald-100">
+                        <i data-lucide="archive-restore" class="h-3.5 w-3.5"></i>
+                        <span>Restaurar</span>
+                    </button>
                 </form>
                 {{/if}}
             </div>
         </div>
     </header>
 
-    <section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label="Resumen del terreno">
-        <article class="rounded-2xl border border-border bg-card p-5 shadow-sm">
-            <p class="text-xs font-bold uppercase tracking-wider text-muted-foreground">Superficie</p>
-            <p class="mt-2 text-2xl font-extrabold text-foreground">{{landHectares}} <span class="text-sm font-semibold text-muted-foreground">ha</span></p>
+    <!-- Barra de subnavegación pegajosa compacta -->
+    <nav
+        aria-label="Secciones del expediente"
+        class="sticky top-16 z-30 -mx-1 rounded-xl border border-slate-200/90 bg-white/95 px-2.5 py-1.5 shadow-xs backdrop-blur-md"
+    >
+        <div class="flex items-center justify-between gap-2 overflow-x-auto no-scrollbar">
+            <div class="flex items-center gap-1">
+                <a href="#resumen-predio" data-expediente-nav class="inline-flex items-center gap-1.5 rounded-lg bg-[#1b4332]/10 px-3 py-1.5 text-xs font-bold text-[#1b4332] whitespace-nowrap transition-colors">
+                    <i data-lucide="layout-grid" class="h-3.5 w-3.5"></i>
+                    <span>Resumen</span>
+                </a>
+                <a href="#lotes-predio" data-expediente-nav class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 whitespace-nowrap transition-colors">
+                    <i data-lucide="land-plot" class="h-3.5 w-3.5"></i>
+                    <span>Lotes</span>
+                    <span class="rounded-full bg-slate-100 px-1.5 py-0.5 font-['Geist_Mono'] text-[10px] font-bold text-slate-700">{{lotsCount}}</span>
+                </a>
+                <a href="#ciclos-predio" data-expediente-nav class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 whitespace-nowrap transition-colors">
+                    <i data-lucide="sprout" class="h-3.5 w-3.5"></i>
+                    <span>Ciclos</span>
+                    <span class="rounded-full bg-emerald-50 px-1.5 py-0.5 font-['Geist_Mono'] text-[10px] font-bold text-[#1b4332]">{{farmCropsCount}}</span>
+                </a>
+                <a href="#hallazgos-predio" data-expediente-nav class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 whitespace-nowrap transition-colors">
+                    <i data-lucide="bug" class="h-3.5 w-3.5"></i>
+                    <span>Hallazgos</span>
+                    <span class="rounded-full bg-rose-50 px-1.5 py-0.5 font-['Geist_Mono'] text-[10px] font-bold text-rose-700">{{healthReportsCount}}</span>
+                </a>
+                <a href="#aplicaciones-predio" data-expediente-nav class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900 whitespace-nowrap transition-colors">
+                    <i data-lucide="flask-conical" class="h-3.5 w-3.5"></i>
+                    <span>Aplicaciones</span>
+                    <span class="rounded-full bg-sky-50 px-1.5 py-0.5 font-['Geist_Mono'] text-[10px] font-bold text-sky-700">{{applicationsCount}}</span>
+                </a>
+            </div>
+            {{#if permissions.canEdit}}
+            <div class="hidden sm:flex items-center gap-1.5 pr-1">
+                <button type="button" data-land-modal-open="cycle" class="inline-flex items-center gap-1 rounded-lg border border-emerald-200 bg-emerald-50/70 px-2.5 py-1 text-[11px] font-bold text-[#1b4332] hover:bg-emerald-100 transition-colors whitespace-nowrap">
+                    <i data-lucide="plus" class="h-3 w-3"></i>
+                    <span>Ciclo</span>
+                </button>
+                <button type="button" data-land-modal-open="health" class="inline-flex items-center gap-1 rounded-lg border border-rose-200 bg-rose-50/70 px-2.5 py-1 text-[11px] font-bold text-rose-700 hover:bg-rose-100 transition-colors whitespace-nowrap">
+                    <i data-lucide="alert-triangle" class="h-3 w-3"></i>
+                    <span>Hallazgo</span>
+                </button>
+                <button type="button" data-land-modal-open="application" class="inline-flex items-center gap-1 rounded-lg border border-sky-200 bg-sky-50/70 px-2.5 py-1 text-[11px] font-bold text-sky-800 hover:bg-sky-100 transition-colors whitespace-nowrap">
+                    <i data-lucide="droplets" class="h-3 w-3"></i>
+                    <span>Aplicación</span>
+                </button>
+            </div>
+            {{/if}}
+        </div>
+    </nav>
+
+    <!-- KPIs del predio -->
+    <section class="grid gap-3.5 sm:grid-cols-2 xl:grid-cols-4" aria-label="Resumen del terreno">
+        <article class="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-xs">
+            <div class="flex items-center justify-between">
+                <p class="font-['Geist_Mono'] text-[11px] font-bold uppercase tracking-wider text-slate-500">Superficie</p>
+                <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 text-[#1b4332]">
+                    <i data-lucide="maximize-2" class="h-4 w-4"></i>
+                </span>
+            </div>
+            <p class="mt-2 font-['Geist_Mono'] text-2xl font-extrabold text-slate-900">{{landHectares}} <span class="text-xs font-semibold text-slate-500">ha</span></p>
         </article>
-        <article class="rounded-2xl border border-border bg-card p-5 shadow-sm">
-            <p class="text-xs font-bold uppercase tracking-wider text-muted-foreground">Agricultura</p>
-            <p class="mt-2 text-lg font-extrabold text-foreground">{{#if land.farming_type}}{{land.farming_type}}{{else}}No especificada{{/if}}</p>
+        <article class="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-xs">
+            <div class="flex items-center justify-between">
+                <p class="font-['Geist_Mono'] text-[11px] font-bold uppercase tracking-wider text-slate-500">Régimen hídrico</p>
+                <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-sky-50 text-sky-700">
+                    <i data-lucide="droplets" class="h-4 w-4"></i>
+                </span>
+            </div>
+            <p class="mt-2 text-lg font-extrabold text-slate-900">{{#if land.farming_type}}{{land.farming_type}}{{else}}No especificada{{/if}}</p>
         </article>
-        <article class="rounded-2xl border border-border bg-card p-5 shadow-sm">
-            <p class="text-xs font-bold uppercase tracking-wider text-muted-foreground">Región</p>
-            <p class="mt-2 text-lg font-extrabold text-foreground">{{#if land.region}}{{land.region.name}}{{else}}Sin región{{/if}}</p>
+        <article class="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-xs">
+            <div class="flex items-center justify-between">
+                <p class="font-['Geist_Mono'] text-[11px] font-bold uppercase tracking-wider text-slate-500">Región agroecológica</p>
+                <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-50 text-amber-700">
+                    <i data-lucide="map" class="h-4 w-4"></i>
+                </span>
+            </div>
+            <p class="mt-2 text-lg font-extrabold text-slate-900 truncate">{{#if land.region}}{{land.region.name}}{{else}}Sin región{{/if}}</p>
         </article>
-        <article class="rounded-2xl border border-border bg-card p-5 shadow-sm">
-            <p class="text-xs font-bold uppercase tracking-wider text-muted-foreground">Municipio</p>
-            <p class="mt-2 text-lg font-extrabold text-foreground">{{#if land.municipality}}{{land.municipality}}{{else}}Sin municipio{{/if}}</p>
+        <article class="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-xs">
+            <div class="flex items-center justify-between">
+                <p class="font-['Geist_Mono'] text-[11px] font-bold uppercase tracking-wider text-slate-500">Municipio</p>
+                <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-slate-700">
+                    <i data-lucide="building-2" class="h-4 w-4"></i>
+                </span>
+            </div>
+            <p class="mt-2 text-lg font-extrabold text-slate-900 truncate">{{#if land.municipality}}{{land.municipality}}{{else}}Sin municipio{{/if}}</p>
         </article>
     </section>
 
+    <!-- Georreferenciación + Resumen de actividad -->
     <div class="grid gap-6 lg:grid-cols-5">
-        <section class="rounded-2xl border border-border bg-card p-6 shadow-sm lg:col-span-2">
-            <h2 class="text-lg font-extrabold text-foreground">Ubicación registrada</h2>
-            {{#if land.location_lat}}
-            <dl class="mt-5 grid grid-cols-2 gap-4">
-                <div class="rounded-xl bg-muted p-4">
-                    <dt class="text-xs font-bold uppercase text-muted-foreground">Latitud</dt>
-                    <dd class="mt-1 font-mono text-sm font-semibold text-foreground">{{landLat}}</dd>
+        <section class="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-xs lg:col-span-2 flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between gap-2">
+                    <h2 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                        <i data-lucide="locate-fixed" class="h-4 w-4 text-[#1b4332]"></i>
+                        <span>Ubicación georreferenciada</span>
+                    </h2>
+                    {{#if land.location_lat}}
+                    <span class="rounded-full bg-emerald-50 px-2 py-0.5 font-['Geist_Mono'] text-[10px] font-bold text-[#1b4332]">GPS Activo</span>
+                    {{/if}}
                 </div>
-                <div class="rounded-xl bg-muted p-4">
-                    <dt class="text-xs font-bold uppercase text-muted-foreground">Longitud</dt>
-                    <dd class="mt-1 font-mono text-sm font-semibold text-foreground">{{landLng}}</dd>
+
+                {{#if land.location_lat}}
+                <div
+                    id="land-detail-map"
+                    data-lat="{{land.location_lat}}"
+                    data-lng="{{land.location_lng}}"
+                    data-name="{{land.name}}"
+                    data-municipality="{{land.municipality}}"
+                    class="mt-4 h-52 w-full overflow-hidden rounded-xl border border-slate-200 bg-slate-100 z-0"
+                    aria-label="Mapa satelital/vectorial de ubicación del predio"
+                ></div>
+                <dl class="mt-3.5 grid grid-cols-2 gap-3">
+                    <div class="rounded-xl border border-slate-200/80 bg-slate-50/70 p-3">
+                        <dt class="font-['Geist_Mono'] text-[10px] font-bold uppercase tracking-wider text-slate-500">Latitud</dt>
+                        <dd class="mt-0.5 font-['Geist_Mono'] text-xs font-bold text-slate-900">{{landLat}}</dd>
+                    </div>
+                    <div class="rounded-xl border border-slate-200/80 bg-slate-50/70 p-3">
+                        <dt class="font-['Geist_Mono'] text-[10px] font-bold uppercase tracking-wider text-slate-500">Longitud</dt>
+                        <dd class="mt-0.5 font-['Geist_Mono'] text-xs font-bold text-slate-900">{{landLng}}</dd>
+                    </div>
+                </dl>
+                {{else}}
+                <div class="mt-4 rounded-xl border border-dashed border-slate-200 bg-slate-50/60 p-5 text-center">
+                    <i data-lucide="map-pin-off" class="mx-auto h-7 w-7 text-slate-400"></i>
+                    <p class="mt-2 text-xs font-semibold text-slate-700">Sin coordenadas registradas</p>
+                    <p class="mt-1 text-xs text-slate-500">Registra latitud y longitud para habilitar el mapa táctil de la parcela.</p>
                 </div>
-            </dl>
-            <p class="mt-4 text-xs leading-relaxed text-muted-foreground">Las coordenadas son información privada del expediente y no se muestran en el área pública.</p>
-            {{else}}
-            <p class="mt-4 rounded-xl bg-muted p-4 text-sm text-muted-foreground">Todavía no se ha registrado una ubicación para este terreno.</p>
-            {{/if}}
+                {{/if}}
+            </div>
+            <p class="mt-4 flex items-center gap-1.5 text-[11px] leading-relaxed text-slate-500">
+                <i data-lucide="shield-check" class="h-3.5 w-3.5 shrink-0 text-[#1b4332]"></i>
+                <span>Las coordenadas son confidenciales del expediente privado y están excluidas del portal público.</span>
+            </p>
         </section>
 
-        <section class="rounded-2xl border border-border bg-card p-6 shadow-sm lg:col-span-3">
-            <h2 class="text-lg font-extrabold text-foreground">Seguimiento agrícola</h2>
-            <p class="mt-2 text-sm leading-relaxed text-muted-foreground">Resumen de los registros operativos vinculados con este terreno.</p>
-            <div class="mt-5 grid gap-3 sm:grid-cols-3">
-                <div class="rounded-xl border border-dashed border-border p-4">
-                    <p class="text-sm font-bold text-foreground">Ciclos de cultivo</p>
-                    <p class="mt-1 text-2xl font-extrabold text-primary">{{farmCropsCount}}</p>
-                </div>
-                <div class="rounded-xl border border-dashed border-border p-4">
-                    <p class="text-sm font-bold text-foreground">Hallazgos</p>
-                    <p class="mt-1 text-2xl font-extrabold text-red-700">{{healthReportsCount}}</p>
-                </div>
-                <div class="rounded-xl border border-dashed border-border p-4">
-                    <p class="text-sm font-bold text-foreground">Aplicaciones</p>
-                    <p class="mt-1 text-2xl font-extrabold text-foreground">{{applicationsCount}}</p>
+        <section class="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-xs lg:col-span-3 flex flex-col justify-between">
+            <div>
+                <h2 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                    <i data-lucide="activity" class="h-4 w-4 text-[#1b4332]"></i>
+                    <span>Seguimiento fitosanitario y agronómico</span>
+                </h2>
+                <p class="mt-1 text-xs leading-relaxed text-slate-500">Bitácora consolidada de ciclos fenológicos, alertas de plagas en campo y aplicaciones de insumos autorizados.</p>
+
+                <div class="mt-5 grid gap-3.5 sm:grid-cols-3">
+                    <div class="rounded-xl border border-slate-200/80 bg-emerald-50/30 p-4">
+                        <div class="flex items-center justify-between">
+                            <p class="text-xs font-bold text-slate-700">Ciclos de cultivo</p>
+                            <i data-lucide="sprout" class="h-4 w-4 text-[#1b4332]"></i>
+                        </div>
+                        <p class="mt-2 font-['Geist_Mono'] text-2xl font-extrabold text-[#1b4332]">{{farmCropsCount}}</p>
+                        <p class="mt-0.5 text-[11px] text-slate-500">{{nonArchivedFarmCropsCount}} en seguimiento activo</p>
+                    </div>
+                    <div class="rounded-xl border border-slate-200/80 bg-rose-50/30 p-4">
+                        <div class="flex items-center justify-between">
+                            <p class="text-xs font-bold text-slate-700">Hallazgos</p>
+                            <i data-lucide="bug" class="h-4 w-4 text-rose-700"></i>
+                        </div>
+                        <p class="mt-2 font-['Geist_Mono'] text-2xl font-extrabold text-rose-700">{{healthReportsCount}}</p>
+                        <p class="mt-0.5 text-[11px] text-slate-500">Monitoreos sanitarios</p>
+                    </div>
+                    <div class="rounded-xl border border-slate-200/80 bg-sky-50/30 p-4">
+                        <div class="flex items-center justify-between">
+                            <p class="text-xs font-bold text-slate-700">Aplicaciones</p>
+                            <i data-lucide="flask-conical" class="h-4 w-4 text-sky-700"></i>
+                        </div>
+                        <p class="mt-2 font-['Geist_Mono'] text-2xl font-extrabold text-slate-900">{{applicationsCount}}</p>
+                        <p class="mt-0.5 text-[11px] text-slate-500">Tratamientos dosificados</p>
+                    </div>
                 </div>
             </div>
+
+            {{#if permissions.canEdit}}
+            <div class="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200/80 bg-slate-50/70 px-4 py-3">
+                <span class="text-xs font-semibold text-slate-600">Operaciones rápidas de campo:</span>
+                <div class="flex flex-wrap gap-2">
+                    <button type="button" data-land-modal-open="cycle" class="inline-flex items-center gap-1.5 rounded-lg bg-[#1b4332] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#143325] transition-colors">
+                        <i data-lucide="sprout" class="h-3.5 w-3.5"></i>
+                        <span>Nuevo ciclo</span>
+                    </button>
+                    <button type="button" data-land-modal-open="health" class="inline-flex items-center gap-1.5 rounded-lg border border-rose-200 bg-white px-3 py-1.5 text-xs font-bold text-rose-700 hover:bg-rose-50 transition-colors">
+                        <i data-lucide="bug" class="h-3.5 w-3.5"></i>
+                        <span>Reportar plaga</span>
+                    </button>
+                    <button type="button" data-land-modal-open="application" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors">
+                        <i data-lucide="droplets" class="h-3.5 w-3.5"></i>
+                        <span>Aplicar insumo</span>
+                    </button>
+                </div>
+            </div>
+            {{/if}}
         </section>
     </div>
 
     <!-- SECCIÓN: DIVISIÓN POR LOTES Y BLOQUES -->
-    <section class="rounded-2xl border border-border bg-card p-6 shadow-sm space-y-5" aria-labelledby="lots-section-title">
+    <section id="lotes-predio" class="scroll-mt-32 rounded-2xl border border-slate-200/90 bg-white p-6 shadow-xs space-y-5" aria-labelledby="lots-section-title">
         <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
                 <div class="flex items-center gap-2">
-                    <span class="text-lg">🗺️</span>
-                    <h2 id="lots-section-title" class="text-lg font-extrabold text-foreground">División por lotes y bloques</h2>
+                    <i data-lucide="land-plot" class="h-4 w-4 text-[#1b4332]"></i>
+                    <h2 id="lots-section-title" class="text-lg font-extrabold text-slate-900">División por lotes y bloques</h2>
                 </div>
-                <p class="mt-1 text-sm text-muted-foreground">
+                <p class="mt-1 text-xs text-slate-500">
                     {{#if lotsCount}}
-                    {{lotsCount}} lote(s) o sector(es) delimitados en este predio.
+                    {{lotsCount}} lote(s) o sector(es) delimitados en este predio para trazabilidad por bloque.
                     {{else}}
-                    Divide tu terreno en bloques para organizar ciclos, monitoreo de plagas y dosificación de productos.
+                    Divide tu terreno en bloques o tablones para organizar ciclos, monitoreo de plagas y dosificación de productos.
                     {{/if}}
                 </p>
             </div>
             {{#if permissions.canEdit}}
-            <button type="button" data-land-modal-open="lot" class="rounded-xl border border-primary/40 bg-primary/10 px-4 py-2 text-sm font-bold text-primary hover:bg-primary hover:text-white transition-colors shadow-sm flex items-center gap-1.5">
-                <span>➕</span>
+            <button type="button" data-land-modal-open="lot" class="inline-flex items-center gap-1.5 rounded-xl border border-[#1b4332]/30 bg-emerald-50/70 px-3.5 py-2 text-xs font-bold text-[#1b4332] hover:bg-[#1b4332] hover:text-white transition-colors shadow-xs">
+                <i data-lucide="plus" class="h-3.5 w-3.5"></i>
                 <span>Dividir / Agregar lote</span>
             </button>
             {{/if}}
         </div>
 
         {{#if lots.length}}
-        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div class="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
             {{#each lots}}
-            <div class="rounded-xl border border-border bg-muted/20 p-4 flex flex-col justify-between transition-all hover:border-primary/40">
+            <div class="rounded-xl border border-slate-200/90 bg-slate-50/50 p-4 flex flex-col justify-between transition-all hover:border-[#1b4332]/40 hover:bg-white">
                 <div>
                     <div class="flex items-start justify-between gap-2">
                         <div>
-                            <p class="font-extrabold text-foreground text-sm flex items-center gap-1.5">
-                                <span>📍</span>
+                            <p class="font-extrabold text-slate-900 text-sm flex items-center gap-1.5">
+                                <i data-lucide="map-pin" class="h-3.5 w-3.5 text-[#1b4332]"></i>
                                 <span>{{this.name}}</span>
                             </p>
                             {{#if this.size_hectares}}
-                            <p class="text-xs font-semibold text-primary mt-0.5">{{this.size_hectares}} ha</p>
+                            <p class="font-['Geist_Mono'] text-xs font-bold text-[#1b4332] mt-0.5">{{this.size_hectares}} ha</p>
                             {{/if}}
                         </div>
-                        <span class="rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 text-[10px] font-bold">
-                            {{this.activeCropsCount}} ciclo(s) activo(s)
+                        <span class="rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-0.5 font-['Geist_Mono'] text-[10px] font-bold">
+                            {{this.activeCropsCount}} ciclo(s)
                         </span>
                     </div>
                     {{#if this.description}}
-                    <p class="mt-2 text-xs text-muted-foreground line-clamp-2 leading-relaxed">{{this.description}}</p>
+                    <p class="mt-2 text-xs text-slate-500 line-clamp-2 leading-relaxed">{{this.description}}</p>
                     {{/if}}
                 </div>
                 {{#if @root.permissions.canEdit}}
-                <div class="mt-3 pt-2.5 border-t border-border/60 flex items-center justify-between text-xs">
-                    <button type="button" data-edit-lot-btn data-lot-id="{{this.id}}" data-lot-name="{{this.name}}" data-lot-size="{{this.size_hectares}}" data-lot-desc="{{this.description}}" class="rounded-lg px-2.5 py-1 text-[11px] font-bold text-primary hover:bg-primary/10 transition-colors flex items-center gap-1">
-                        <span>✏️</span> Editar lote
+                <div class="mt-3 pt-2.5 border-t border-slate-200/70 flex items-center justify-between text-xs">
+                    <button
+                        type="button"
+                        data-edit-lot-btn
+                        data-lot-id="{{this.id}}"
+                        data-lot-name="{{this.name}}"
+                        data-lot-size="{{this.size_hectares}}"
+                        data-lot-desc="{{this.description}}"
+                        class="inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-[11px] font-bold text-[#1b4332] hover:bg-emerald-50 transition-colors"
+                    >
+                        <i data-lucide="pencil" class="h-3 w-3"></i>
+                        <span>Editar lote</span>
                     </button>
-                    <form action="/private/lands/{{@root.land.id}}/lots/{{this.id}}/delete" method="POST" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este lote? Los ciclos asociados pasarán al terreno en general.');">
-                        <button type="submit" class="rounded-lg px-2.5 py-1 text-[11px] font-bold text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors flex items-center gap-1">
-                            <span>🗑️</span> Eliminar
+                    <form
+                        action="/private/lands/{{@root.land.id}}/lots/{{this.id}}/delete"
+                        method="POST"
+                        data-confirm-form="lot-delete"
+                        data-confirm-name="{{this.name}}"
+                    >
+                        <button type="submit" class="inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-[11px] font-bold text-rose-700 hover:bg-rose-50 transition-colors">
+                            <i data-lucide="trash-2" class="h-3 w-3"></i>
+                            <span>Eliminar</span>
                         </button>
                     </form>
                 </div>
@@ -169,18 +378,18 @@
         {{/if}}
 
         <!-- Barra de navegación y filtro interactivo por lote -->
-        <div class="border-t border-border pt-4">
-            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
-                <span class="text-xs font-bold uppercase tracking-wider text-muted-foreground">Filtrar vista operativa por lote:</span>
-                <span data-active-lot-indicator class="text-xs font-semibold text-primary">Viendo: Todos los lotes</span>
+        <div class="border-t border-slate-200/80 pt-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2.5">
+                <span class="font-['Geist_Mono'] text-[11px] font-bold uppercase tracking-wider text-slate-500">Filtrar vista operativa por lote:</span>
+                <span data-active-lot-indicator class="text-xs font-bold text-[#1b4332]">Viendo: Todos los lotes</span>
             </div>
-            <div class="flex flex-wrap items-center gap-1.5" role="tablist">
-                <button type="button" data-lot-filter="all" class="rounded-xl bg-primary px-3.5 py-1.5 text-xs font-bold text-white shadow-sm transition-all" aria-selected="true">
-                    🌐 Todos los lotes ({{farmCropsCount}})
+            <div class="flex flex-wrap items-center gap-1.5" role="tablist" aria-label="Filtro por lote del predio">
+                <button type="button" role="tab" data-lot-filter="all" class="rounded-xl bg-primary px-3.5 py-1.5 text-xs font-bold text-white shadow-sm transition-all" aria-selected="true">
+                    Todos los lotes ({{farmCropsCount}})
                 </button>
                 {{#each lots}}
-                <button type="button" data-lot-filter="{{this.name}}" class="rounded-xl border border-border bg-card px-3.5 py-1.5 text-xs font-semibold text-muted-foreground hover:bg-muted hover:text-foreground transition-all" aria-selected="false">
-                    📍 {{this.name}}
+                <button type="button" role="tab" data-lot-filter="{{this.name}}" class="rounded-xl border border-slate-200 bg-card px-3.5 py-1.5 text-xs font-semibold text-muted-foreground hover:bg-slate-100 hover:text-slate-900 transition-all" aria-selected="false">
+                    {{this.name}}
                 </button>
                 {{/each}}
             </div>
@@ -193,30 +402,33 @@
 </div>
 
 {{#if permissions.canEdit}}
-<div id="modal-edit-land" class="hidden fixed inset-0 z-[200] items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="edit-land-title">
-    <button id="modal-edit-land-backdrop" type="button" class="absolute inset-0 bg-black/40 backdrop-blur-sm" aria-label="Cerrar edición"></button>
-    <div class="relative z-10 w-full max-w-2xl overflow-hidden rounded-2xl border border-border bg-card shadow-2xl">
-        <header class="flex items-center justify-between border-b border-border px-6 py-4">
-            <h2 id="edit-land-title" class="text-lg font-extrabold text-foreground">Editar terreno</h2>
-            <button id="btn-close-edit-land" type="button" class="rounded-lg px-3 py-2 text-sm font-bold text-muted-foreground hover:bg-muted">Cerrar</button>
+<div id="modal-edit-land" class="hidden fixed inset-0 z-[200] items-center justify-center p-4 font-['Geist']" role="dialog" aria-modal="true" aria-labelledby="edit-land-title">
+    <button id="modal-edit-land-backdrop" type="button" class="absolute inset-0 bg-slate-950/45 backdrop-blur-xs" aria-label="Cerrar edición"></button>
+    <div class="relative z-10 w-full max-w-2xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
+        <header class="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+            <div>
+                <h2 id="edit-land-title" class="text-lg font-extrabold text-slate-900">Editar expediente del terreno</h2>
+                <p class="text-xs text-slate-500">Actualiza superficie, régimen agrícola o selecciona coordenadas haciendo clic en el mapa.</p>
+            </div>
+            <button id="btn-close-edit-land" type="button" class="rounded-lg px-3 py-1.5 text-xs font-bold text-slate-500 hover:bg-slate-100 hover:text-slate-900">Cerrar</button>
         </header>
         <form action="/private/lands/update/{{land.id}}" method="POST">
-            <div class="grid max-h-[70vh] gap-5 overflow-y-auto p-6 sm:grid-cols-2">
+            <div class="grid max-h-[74vh] gap-4 overflow-y-auto p-6 sm:grid-cols-2">
                 <div class="sm:col-span-2">
-                    <label for="edit-land-name" class="mb-1.5 block text-xs font-bold text-muted-foreground">Nombre del terreno</label>
-                    <input id="edit-land-name" name="name" value="{{land.name}}" required minlength="2" maxlength="120" class="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" />
+                    <label for="edit-land-name" class="mb-1.5 block text-xs font-bold text-slate-700">Nombre del terreno</label>
+                    <input id="edit-land-name" name="name" value="{{land.name}}" required minlength="2" maxlength="120" class="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm outline-none focus:border-[#1b4332] focus:ring-2 focus:ring-[#1b4332]/15" />
                 </div>
                 <div>
-                    <label for="edit-land-size" class="mb-1.5 block text-xs font-bold text-muted-foreground">Superficie en hectáreas</label>
-                    <input id="edit-land-size" name="size_hectares" type="number" value="{{land.size_hectares}}" required min="0.01" max="1000000" step="0.01" class="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" />
+                    <label for="edit-land-size" class="mb-1.5 block text-xs font-bold text-slate-700">Superficie en hectáreas</label>
+                    <input id="edit-land-size" name="size_hectares" type="number" value="{{land.size_hectares}}" required min="0.01" max="1000000" step="0.01" class="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 font-['Geist_Mono'] text-sm outline-none focus:border-[#1b4332] focus:ring-2 focus:ring-[#1b4332]/15" />
                 </div>
                 <div>
-                    <label for="edit-land-municipality" class="mb-1.5 block text-xs font-bold text-muted-foreground">Municipio</label>
-                    <input id="edit-land-municipality" name="municipality" value="{{land.municipality}}" maxlength="100" class="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" />
+                    <label for="edit-land-municipality" class="mb-1.5 block text-xs font-bold text-slate-700">Municipio</label>
+                    <input id="edit-land-municipality" name="municipality" value="{{land.municipality}}" maxlength="100" class="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm outline-none focus:border-[#1b4332] focus:ring-2 focus:ring-[#1b4332]/15" />
                 </div>
                 <div>
-                    <label for="edit-land-type" class="mb-1.5 block text-xs font-bold text-muted-foreground">Tipo de agricultura</label>
-                    <select id="edit-land-type" name="farming_type" class="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                    <label for="edit-land-type" class="mb-1.5 block text-xs font-bold text-slate-700">Tipo de agricultura</label>
+                    <select id="edit-land-type" name="farming_type" class="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm outline-none focus:border-[#1b4332] focus:ring-2 focus:ring-[#1b4332]/15">
                         <option value="">Sin especificar</option>
                         <option value="Temporal" {{#if (eq land.farming_type 'Temporal')}}selected{{/if}}>Temporal</option>
                         <option value="Riego" {{#if (eq land.farming_type 'Riego')}}selected{{/if}}>Riego</option>
@@ -227,8 +439,8 @@
                     </select>
                 </div>
                 <div>
-                    <label for="edit-land-region" class="mb-1.5 block text-xs font-bold text-muted-foreground">Región agrícola</label>
-                    <select id="edit-land-region" name="region_id" class="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                    <label for="edit-land-region" class="mb-1.5 block text-xs font-bold text-slate-700">Región agrícola</label>
+                    <select id="edit-land-region" name="region_id" class="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm outline-none focus:border-[#1b4332] focus:ring-2 focus:ring-[#1b4332]/15">
                         <option value="">Sin especificar</option>
                         {{#each regions}}
                         <option value="{{this.id}}" {{#if (eq this.id @root.land.region_id)}}selected{{/if}}>{{this.name}}</option>
@@ -236,17 +448,24 @@
                     </select>
                 </div>
                 <div>
-                    <label for="edit-land-lat" class="mb-1.5 block text-xs font-bold text-muted-foreground">Latitud</label>
-                    <input id="edit-land-lat" name="location_lat" type="number" value="{{land.location_lat}}" min="-90" max="90" step="0.0000001" class="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" />
+                    <label for="edit-land-lat" class="mb-1.5 block text-xs font-bold text-slate-700">Latitud</label>
+                    <input id="edit-land-lat" name="location_lat" type="number" value="{{land.location_lat}}" min="-90" max="90" step="0.0000001" class="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 font-['Geist_Mono'] text-sm outline-none focus:border-[#1b4332] focus:ring-2 focus:ring-[#1b4332]/15" />
                 </div>
                 <div>
-                    <label for="edit-land-lng" class="mb-1.5 block text-xs font-bold text-muted-foreground">Longitud</label>
-                    <input id="edit-land-lng" name="location_lng" type="number" value="{{land.location_lng}}" min="-180" max="180" step="0.0000001" class="w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" />
+                    <label for="edit-land-lng" class="mb-1.5 block text-xs font-bold text-slate-700">Longitud</label>
+                    <input id="edit-land-lng" name="location_lng" type="number" value="{{land.location_lng}}" min="-180" max="180" step="0.0000001" class="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 font-['Geist_Mono'] text-sm outline-none focus:border-[#1b4332] focus:ring-2 focus:ring-[#1b4332]/15" />
+                </div>
+                <div class="sm:col-span-2">
+                    <div class="mb-1.5 flex items-center justify-between">
+                        <span class="text-xs font-bold text-slate-700">Selector cartográfico táctil</span>
+                        <span class="text-[11px] text-slate-500">Haz clic sobre el mapa para fijar coordenadas</span>
+                    </div>
+                    <div id="edit-land-map" class="h-44 w-full overflow-hidden rounded-xl border border-slate-200 bg-slate-100"></div>
                 </div>
             </div>
-            <footer class="flex justify-end gap-3 border-t border-border bg-muted/50 px-6 py-4">
-                <button id="btn-cancel-edit-land" type="button" class="rounded-xl border border-border bg-card px-5 py-2.5 text-sm font-bold text-muted-foreground hover:bg-muted">Cancelar</button>
-                <button type="submit" class="rounded-xl bg-primary px-6 py-2.5 text-sm font-bold text-white hover:bg-primary/90">Guardar cambios</button>
+            <footer class="flex justify-end gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4">
+                <button id="btn-cancel-edit-land" type="button" class="rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100">Cancelar</button>
+                <button type="submit" class="rounded-xl bg-[#1b4332] px-5 py-2 text-xs font-bold text-white hover:bg-[#143325]">Guardar cambios</button>
             </footer>
         </form>
     </div>

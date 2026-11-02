@@ -2,19 +2,36 @@ import { normalizeProductImagePath } from './productPublicQueryService.js';
 import { resolveProductHazardTheme } from './productValidationService.js';
 
 const PLAGUE_RISK_THEMES = Object.freeze({
-  Alto: {
+  critico: {
     label: 'Crítico',
     badgeClass: 'bg-rose-50 text-rose-800 border-rose-200',
   },
-  Medio: {
+  alto: {
+    label: 'Crítico',
+    badgeClass: 'bg-rose-50 text-rose-800 border-rose-200',
+  },
+  medio: {
     label: 'Moderado',
     badgeClass: 'bg-amber-50 text-amber-800 border-amber-200',
   },
-  Bajo: {
+  moderado: {
+    label: 'Moderado',
+    badgeClass: 'bg-amber-50 text-amber-800 border-amber-200',
+  },
+  bajo: {
     label: 'Bajo',
     badgeClass: 'bg-emerald-50 text-emerald-800 border-emerald-200',
   },
 });
+
+const resolvePlagueRiskTheme = (riskLevel) => {
+  const key = String(riskLevel || '')
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+  return PLAGUE_RISK_THEMES[key] || PLAGUE_RISK_THEMES.bajo;
+};
 
 const WORKFLOW_LABELS = Object.freeze({
   draft: 'Borrador en edición',
@@ -159,7 +176,7 @@ const normalizeRelatedPlague = (plague) => ({
     ? plague.description.trim()
     : 'Organismo fitófago o patógeno registrado para manejo con este insumo.',
   risk_level: plague.risk_level || null,
-  riskTheme: PLAGUE_RISK_THEMES[plague.risk_level] || PLAGUE_RISK_THEMES.Bajo,
+  riskTheme: resolvePlagueRiskTheme(plague.risk_level),
   image_url: resolvePrimaryRelatedImage(
     plague,
     '/images/plagas/pulgon-verde.webp',

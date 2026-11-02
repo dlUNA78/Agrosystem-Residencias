@@ -1,57 +1,66 @@
-<section class="rounded-2xl border border-border bg-card p-6 shadow-sm">
+<section id="hallazgos-predio" class="scroll-mt-32 rounded-2xl border border-slate-200/90 bg-white p-6 shadow-xs">
     <div class="flex flex-wrap items-center justify-between gap-3">
         <div>
-            <h2 class="text-lg font-extrabold text-foreground">Hallazgos fitosanitarios</h2>
-            <p class="mt-1 text-sm text-muted-foreground">{{healthReportsCount}} observación(es) registradas.</p>
+            <h2 class="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+                <i data-lucide="bug" class="h-4 w-4 text-rose-700"></i>
+                <span>Hallazgos fitosanitarios</span>
+            </h2>
+            <p class="mt-1 text-xs text-slate-500">{{healthReportsCount}} observación(es) sanitarias registradas en campo.</p>
         </div>
         {{#if permissions.canEdit}}
-        <button type="button" data-land-modal-open="health" class="rounded-xl border border-red-200 px-4 py-2.5 text-sm font-bold text-red-700 hover:bg-red-50">Registrar hallazgo</button>
+        <button type="button" data-land-modal-open="health" class="inline-flex items-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50/70 px-3.5 py-2 text-xs font-bold text-rose-800 hover:bg-rose-100 transition-colors">
+            <i data-lucide="alert-triangle" class="h-3.5 w-3.5"></i>
+            <span>Registrar hallazgo</span>
+        </button>
         {{/if}}
     </div>
 
     {{#if healthReports}}
-    <div class="mt-5 overflow-x-auto">
+    <div class="mt-5 overflow-x-auto rounded-xl border border-slate-200/80">
         <table class="w-full min-w-[640px] text-left text-sm">
-            <thead class="border-b border-border text-xs uppercase text-muted-foreground">
+            <thead class="border-b border-slate-200 bg-slate-50/80 font-['Geist_Mono'] text-[11px] font-bold uppercase tracking-wider text-slate-500">
                 <tr>
-                    <th class="px-3 py-3">Fecha</th>
-                    <th class="px-3 py-3">Lote / Sección</th>
-                    <th class="px-3 py-3">Plaga u Organismo</th>
-                    <th class="px-3 py-3">Severidad</th>
-                    <th class="px-3 py-3">Descripción</th>
+                    <th class="px-4 py-3">Fecha</th>
+                    <th class="px-4 py-3">Lote / Sección</th>
+                    <th class="px-4 py-3">Plaga u Organismo</th>
+                    <th class="px-4 py-3">Severidad</th>
+                    <th class="px-4 py-3">Descripción</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-border">
+            <tbody class="divide-y divide-slate-100 bg-white">
                 {{#each healthReports}}
-                <tr data-health-lot="{{this.lotName}}">
-                    <td class="px-3 py-3 text-muted-foreground whitespace-nowrap">{{this.observedDate}}</td>
-                    <td class="px-3 py-3 whitespace-nowrap">
-                        <span class="inline-flex items-center gap-1 rounded bg-muted px-2 py-0.5 text-xs font-semibold text-foreground">
-                            📍 {{this.lotName}}{{#if this.cropName}} · {{this.cropName}}{{/if}}
+                <tr data-health-lot="{{this.lotName}}" class="hover:bg-slate-50/70 transition-colors">
+                    <td class="px-4 py-3 font-['Geist_Mono'] text-xs text-slate-600 whitespace-nowrap">{{this.observedDate}}</td>
+                    <td class="px-4 py-3 whitespace-nowrap">
+                        <span class="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 text-xs font-semibold text-slate-700">
+                            <i data-lucide="map-pin" class="h-3 w-3 text-[#1b4332]"></i>
+                            <span>{{this.lotName}}{{#if this.cropName}} · {{this.cropName}}{{/if}}</span>
                         </span>
                     </td>
-                    <td class="px-3 py-3">
-                        <div class="flex items-center gap-1.5 flex-wrap">
-                            <span class="font-bold text-foreground">{{this.plague_name}}</span>
+                    <td class="px-4 py-3">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="font-bold text-slate-900">{{this.plague_name}}</span>
                             {{#if this.plague_id}}
-                            <a href="/private/plagues/{{this.plague_id}}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 rounded bg-red-100/70 px-1.5 py-0.5 text-[10px] font-bold text-red-700 hover:bg-red-200 transition-colors" title="Ver ficha fitosanitaria oficial">
-                                🔬 Ficha ↗
+                            <a href="/private/plagues/{{this.plague_id}}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 rounded-md border border-rose-200 bg-rose-50 px-1.5 py-0.5 text-[10px] font-bold text-rose-800 hover:bg-rose-100 transition-colors" title="Ver ficha fitosanitaria oficial">
+                                <span>Ficha</span>
+                                <i data-lucide="external-link" class="h-2.5 w-2.5"></i>
                             </a>
                             {{/if}}
                         </div>
                     </td>
-                    <td class="px-3 py-3 whitespace-nowrap">
-                        <span class="rounded-full px-2 py-0.5 text-xs font-bold {{#if (eq this.severity 'high')}}bg-red-50 text-red-700 border border-red-200{{else if (eq this.severity 'medium')}}bg-amber-50 text-amber-700 border border-amber-200{{else}}bg-slate-100 text-slate-700{{/if}}">
+                    <td class="px-4 py-3 whitespace-nowrap">
+                        <span class="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-bold {{#if (eq this.severity 'high')}}border-rose-200 bg-rose-50 text-rose-800{{else if (eq this.severity 'medium')}}border-amber-200 bg-amber-50 text-amber-800{{else}}border-slate-200 bg-slate-100 text-slate-700{{/if}}">
+                            <span class="h-1.5 w-1.5 rounded-full {{#if (eq this.severity 'high')}}bg-rose-500{{else if (eq this.severity 'medium')}}bg-amber-500{{else}}bg-slate-400{{/if}}"></span>
                             {{this.severityLabel}}
                         </span>
                     </td>
-                    <td class="max-w-sm px-3 py-3 text-muted-foreground">{{#if this.description}}{{this.description}}{{else}}Sin descripción{{/if}}</td>
+                    <td class="max-w-sm px-4 py-3 text-xs text-slate-600">{{#if this.description}}{{this.description}}{{else}}Sin descripción{{/if}}</td>
                 </tr>
                 {{/each}}
             </tbody>
         </table>
     </div>
     {{else}}
-    <p class="mt-5 rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">No hay hallazgos fitosanitarios registrados.</p>
+    <p class="mt-5 rounded-xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500">No hay hallazgos fitosanitarios registrados en este predio.</p>
     {{/if}}
 </section>

@@ -2,9 +2,11 @@ import { describe, expect, it } from '@jest/globals';
 import { Op } from 'sequelize';
 
 import {
+  buildNationalRegionCoverageMap,
   buildPublicRegionCard,
   buildPublicRegionWhere,
   normalizePublicLandQuery,
+  parsePublicCoverageFilter,
 } from '../../src/services/landPublicQueryService.js';
 
 describe('consulta pública segura de regiones', () => {
@@ -54,5 +56,21 @@ describe('consulta pública segura de regiones', () => {
     expect(card).not.toHaveProperty('lng');
     expect(card).not.toHaveProperty('farms');
     expect(card).not.toHaveProperty('user');
+  });
+
+  it('valida el filtro de cobertura sanitaria y construye el mapa vectorial nacional', () => {
+    expect(parsePublicCoverageFilter({ coverage: 'active' })).toBe('active');
+    expect(parsePublicCoverageFilter({ coverage: 'invalid' })).toBe('');
+
+    const mapData = buildNationalRegionCoverageMap([
+      { id: 1, name: 'El Bajío', plagueCount: 2, featuredPlagues: [] },
+      { id: 2, name: 'Noreste', plagueCount: 0, featuredPlagues: [] },
+    ]);
+
+    expect(mapData.viewBox).toMatch(/^0 0 \d+ \d+$/);
+    expect(mapData.states.length).toBeGreaterThanOrEqual(32);
+    expect(mapData.coveredStatesCount).toBeGreaterThanOrEqual(8);
+    expect(mapData.activeRegionsCount).toBe(1);
+    expect(mapData.totalPlagueRefs).toBe(2);
   });
 });
