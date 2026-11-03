@@ -142,7 +142,8 @@ const drawHeaderBanner = (doc, data, user) => {
   doc.y = bannerY + 78;
 };
 
-const drawKpiCards = (doc, kpis = {}) => {
+const drawKpiCards = (doc, rawKpis) => {
+  const kpis = rawKpis || {};
   const { startX, contentWidth } = getPageBox(doc);
   const gap = 8;
   const cardWidth = (contentWidth - gap * 3) / 4;

@@ -330,7 +330,8 @@ const getInitials = (fullName) => {
 const toPlainLog = (logInstance) =>
   typeof logInstance.toJSON === 'function' ? logInstance.toJSON() : logInstance;
 
-const buildSerializedUser = (user = {}) => {
+const buildSerializedUser = (rawUser) => {
+  const user = rawUser || {};
   const userName = user.full_name || 'Sistema';
   return {
     id: user.id || null,
@@ -393,11 +394,11 @@ export const generateAuditCsv = (logs = []) => {
 
   const rows = logs.map((log) => [
     sanitizeCsvValue(log.id),
-    sanitizeCsvValue(log.dates.dateText),
-    sanitizeCsvValue(log.dates.timeText),
-    sanitizeCsvValue(log.user.name),
-    sanitizeCsvValue(log.user.email),
-    sanitizeCsvValue(log.user.role),
+    sanitizeCsvValue(log.dates?.dateText),
+    sanitizeCsvValue(log.dates?.timeText),
+    sanitizeCsvValue(log.user?.name || 'Sistema'),
+    sanitizeCsvValue(log.user?.email || 'N/A'),
+    sanitizeCsvValue(log.user?.role || 'SISTEMA'),
     sanitizeCsvValue(log.moduleLabel),
     sanitizeCsvValue(log.actionText),
     sanitizeCsvValue(log.recordId),

@@ -38,8 +38,11 @@ export const buildSupplierWhereClause = (
     where.supply_type = supply_type;
   }
 
-  if (status) {
-    where.status = status;
+  const normalizedStatus = String(status || '')
+    .trim()
+    .toLowerCase();
+  if (['activo', 'pendiente', 'inactivo'].includes(normalizedStatus)) {
+    where.status = normalizedStatus;
   }
 
   return where;

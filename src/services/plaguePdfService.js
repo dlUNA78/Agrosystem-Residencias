@@ -282,7 +282,7 @@ const drawSymptomsSection = (doc, detail) => {
   const items =
     detail.symptomItems?.length > 0
       ? detail.symptomItems
-      : detail.plague.symptoms
+      : detail.plague?.symptoms
         ? [detail.plague.symptoms]
         : [];
   drawBulletList(
@@ -396,7 +396,7 @@ const drawManagementSection = (doc, detail) => {
   const methodItems =
     detail.controlMethodItems?.length > 0
       ? detail.controlMethodItems
-      : detail.plague.controlMethods
+      : detail.plague?.controlMethods
         ? [detail.plague.controlMethods]
         : [];
   drawBulletList(doc, methodItems, 'Sin métodos de control registrados.');
@@ -415,7 +415,7 @@ const drawManagementSection = (doc, detail) => {
   const bioItems =
     detail.biologicalAgents?.length > 0
       ? detail.biologicalAgents
-      : detail.plague.biologicalControl
+      : detail.plague?.biologicalControl
         ? [detail.plague.biologicalControl]
         : [];
   drawBulletList(
@@ -506,11 +506,11 @@ const drawDistributionAndValidationSection = (doc, detail) => {
     .roundedRect(startX, boxY, contentWidth, 52, 5)
     .fillAndStroke(COLORS.surface, COLORS.border);
 
-  const validator = detail.plague.isVerified
+  const validator = detail.plague?.isVerified
     ? sanitizePdfText(detail.plague.verifiedBy, 'Especialista INIFAP')
     : 'Pendiente de asignación';
-  const verifiedDate = sanitizePdfText(detail.plague.verifiedAt, 'Sin fecha');
-  const updatedDate = sanitizePdfText(detail.plague.updatedAt, 'Sin fecha');
+  const verifiedDate = sanitizePdfText(detail.plague?.verifiedAt, 'Sin fecha');
+  const updatedDate = sanitizePdfText(detail.plague?.updatedAt, 'Sin fecha');
 
   doc
     .fillColor(COLORS.brand)

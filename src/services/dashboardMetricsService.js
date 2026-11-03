@@ -119,8 +119,16 @@ const countSafely = async (model, where) => {
   if (typeof model?.count !== 'function') {
     return 0;
   }
-  const value = where ? await model.count({ where }) : await model.count();
-  return Number(value) || 0;
+  try {
+    const value = where ? await model.count({ where }) : await model.count();
+    return Number(value) || 0;
+  } catch (err) {
+    console.warn(
+      `[dashboardMetricsService] countSafely advertencia en modelo ${model?.name || 'anónimo'}:`,
+      err?.message,
+    );
+    return 0;
+  }
 };
 
 /**
@@ -154,6 +162,34 @@ export const getPendingValidationsMetrics = async () => {
   };
 };
 
+const isScopedToUser = (user) => user?.role !== 'admin' && Boolean(user?.id);
+
+const buildAlertIncludes = (user) => {
+  if (!isScopedToUser(user)) {
+    return {
+      countInclude: undefined,
+      latestInclude: [
+        {
+          model: Farm,
+          as: 'farm',
+          attributes: ['id', 'name'],
+          required: false,
+        },
+      ],
+    };
+  }
+  const scopedFarm = {
+    model: Farm,
+    as: 'farm',
+    where: { user_id: user.id },
+    required: true,
+  };
+  return {
+    countInclude: [scopedFarm],
+    latestInclude: [{ ...scopedFarm, attributes: ['id', 'name'] }],
+  };
+};
+
 /**
  * Conteo de alertas fitosanitarias críticas abiertas
  */
@@ -167,31 +203,16 @@ export const getCriticalAlertsMetrics = async (user) => {
     createdAt: { [Op.gte]: thirtyDaysAgo },
   };
 
-  const include = [];
-  if (user?.role !== 'admin' && user?.id) {
-    include.push({
-      model: Farm,
-      as: 'farm',
-      where: { user_id: user.id },
-      required: true,
-    });
-  }
+  const { countInclude, latestInclude } = buildAlertIncludes(user);
 
   const criticalCount = await FarmHealthReport.count({
     where,
-    include: include.length > 0 ? include : undefined,
+    include: countInclude,
   });
 
   const latestAlert = await FarmHealthReport.findOne({
     where,
-    include: [
-      {
-        model: Farm,
-        as: 'farm',
-        attributes: ['id', 'name'],
-        required: false,
-      },
-    ],
+    include: latestInclude,
     order: [['createdAt', 'DESC']],
   });
 
@@ -396,7 +417,6 @@ export const getActiveCropDistribution = async (user) => {
 export const getCatalogEcosystemMetrics = async () => {
   const [
     totalIngredients,
-    activeIngredients,
     totalSuppliers,
     activeSuppliers,
     publishedPlagues,
@@ -404,9 +424,8 @@ export const getCatalogEcosystemMetrics = async () => {
     publishedProducts,
   ] = await Promise.all([
     countSafely(ActiveIngredient),
-    countSafely(ActiveIngredient, { status: 'active' }),
     countSafely(Supplier),
-    countSafely(Supplier, { status: 'active' }),
+    countSafely(Supplier, { status: 'activo' }),
     countSafely(Plague, { workflow_status: 'published' }),
     countSafely(Crop, { workflow_status: 'published' }),
     countSafely(Product, { workflow_status: 'published' }),
@@ -414,7 +433,7 @@ export const getCatalogEcosystemMetrics = async () => {
 
   return {
     totalIngredients,
-    activeIngredients,
+    activeIngredients: totalIngredients,
     totalSuppliers,
     activeSuppliers,
     publishedPlagues,

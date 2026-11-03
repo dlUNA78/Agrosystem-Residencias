@@ -180,6 +180,25 @@ describe('módulo privado de auditoría', () => {
       expect(csv).toContain('"Cultivos"');
       expect(csv).toContain('"\'=CMD|calc"');
     });
+
+    it('serializa logs sin usuario (user = null) sin lanzar TypeError', () => {
+      const nullUserLog = {
+        id: 99,
+        action: 'delete',
+        table_name: 'Farms',
+        record_id: 12,
+        createdAt: new Date(),
+        user: null,
+      };
+
+      const serialized = serializeAuditLog(nullUserLog);
+      expect(serialized.user.name).toBe('Sistema');
+      expect(serialized.user.role).toBe('SISTEMA');
+      expect(serialized.user.email).toBe('N/A');
+
+      const csv = generateAuditCsv([serialized]);
+      expect(csv).toContain('"Sistema"');
+    });
   });
 
   describe('controlador auditPrivate', () => {

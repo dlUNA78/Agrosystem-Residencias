@@ -310,6 +310,15 @@ const buildMexicoIncidenceMap = (incidenceRegions) => {
   };
 };
 
+const resolvePlagueVerification = (plagueData) => {
+  const verifiedBy =
+    plagueData.verifiedByUser?.full_name || plagueData.verified_by || null;
+  const isVerified = Boolean(
+    verifiedBy || plagueData.verified_by_user_id || plagueData.verified_at,
+  );
+  return { verifiedBy, isVerified };
+};
+
 export const buildPlagueDetailView = (plagueData) => {
   const riskKey = String(plagueData.risk_level || '')
     .toLowerCase()
@@ -322,7 +331,7 @@ export const buildPlagueDetailView = (plagueData) => {
     plagueData.risk_level,
   );
   const relatedCrops = buildCrops(plagueData.crops);
-  const verifiedBy = plagueData.verified_by || null;
+  const { verifiedBy, isVerified } = resolvePlagueVerification(plagueData);
   const verifiedAt = formatDate(plagueData.verified_at);
   const legacyImageUrl = normalizeUrl(plagueData.image_url);
   const mainImageUrl = carouselImages[0]?.url || legacyImageUrl;
@@ -358,7 +367,7 @@ export const buildPlagueDetailView = (plagueData) => {
       riskTheme,
       verifiedBy,
       verifiedAt,
-      isVerified: Boolean(verifiedBy),
+      isVerified,
       updatedAt: formatDate(plagueData.updatedAt),
       workflowStatus: plagueData.workflow_status || null,
       reviewNotes: plagueData.review_notes || null,

@@ -10,7 +10,7 @@ import { buildPlaguePublicationReadiness } from '../../../services/plagueReadine
 import { isPlagueEditable } from '../../../services/plagueWorkflowService.js';
 import { privateLayout } from './plagueControllerUtils.js';
 
-const { Crop, Plague, PlagueImage, Product, ProductImage, Region } = db;
+const { Crop, Plague, PlagueImage, Product, ProductImage, Region, User } = db;
 
 const plagueDetailIncludes = [
   {
@@ -37,6 +37,12 @@ const plagueDetailIncludes = [
     as: 'crops',
     required: false,
     through: { attributes: [] },
+  },
+  {
+    model: User,
+    as: 'verifiedByUser',
+    required: false,
+    attributes: ['id', 'full_name'],
   },
 ];
 

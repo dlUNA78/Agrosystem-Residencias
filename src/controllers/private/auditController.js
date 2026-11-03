@@ -103,6 +103,8 @@ const fetchAuditRecords = async (where, query) => {
       order: [['createdAt', 'DESC']],
       limit: isCsv ? 1000 : query.limit,
       offset: isCsv ? 0 : (query.page - 1) * query.limit,
+      subQuery: false,
+      distinct: true,
     }),
   ]);
 };

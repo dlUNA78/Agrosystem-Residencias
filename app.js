@@ -116,7 +116,9 @@ hbs.registerHelper('gte', (a, b) => Number(a) >= Number(b));
 hbs.registerHelper('lte', (a, b) => Number(a) <= Number(b));
 hbs.registerHelper('add', (a, b) => Number(a) + Number(b));
 hbs.registerHelper('sub', (a, b) => Number(a) - Number(b));
-hbs.registerHelper('urlEncode', (str) => encodeURIComponent(str));
+hbs.registerHelper('urlEncode', (str) =>
+  str !== null && str !== undefined ? encodeURIComponent(String(str)) : '',
+);
 hbs.registerHelper('getMesBg', (mesNum, siembra, cosecha, mesActual) => {
   const num = Number(mesNum);
   const cur = Number(mesActual);
