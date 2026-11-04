@@ -5,7 +5,12 @@ import { fileURLToPath } from 'node:url';
 
 const currentDirectory = path.dirname(fileURLToPath(import.meta.url));
 const defaultPublicDirectory = path.resolve(currentDirectory, '../../public');
-const allowedImageDirectories = new Set(['products', 'plagues', 'crops']);
+const allowedImageDirectories = new Set([
+  'products',
+  'plagues',
+  'crops',
+  'avatars',
+]);
 
 export const IMAGE_UPLOAD_LIMITS = Object.freeze({
   fileSize: 5 * 1024 * 1024,
@@ -119,6 +124,9 @@ const plagueStorage = createImageStorage('plagues');
 
 // CONFIGURACIÓN PARA CULTIVOS
 const cropStorage = createImageStorage('crops');
+
+// CONFIGURACIÓN PARA AVATARES
+const avatarStorage = createImageStorage('avatars');
 
 // Upload para productos
 export const upload = multer({
@@ -243,5 +251,37 @@ export const uploadProductImages = (req, res, next) => {
     }
 
     return next();
+  });
+};
+
+export const uploadAvatar = multer({
+  storage: avatarStorage,
+  limits: {
+    fileSize: IMAGE_UPLOAD_LIMITS.fileSize,
+    files: 1,
+  },
+  fileFilter: imageFileFilter,
+});
+
+export const uploadAvatarImage = (req, res, next) => {
+  uploadAvatar.single('avatar')(req, res, async (error) => {
+    if (error) {
+      if (req.file?.path) await cleanupRejectedFiles([req.file]);
+      return res.status(400).send(imageUploadErrorMessage(error));
+    }
+    if (!req.file) {
+      return next();
+    }
+    try {
+      await validateImageSignature(req.file.path, req.file.mimetype);
+      return next();
+    } catch (signatureError) {
+      if (req.file?.path) await cleanupRejectedFiles([req.file]);
+      console.error('Se rechazó un avatar por firma inválida:', {
+        name: signatureError.name,
+        code: signatureError.code,
+      });
+      return res.status(400).send(invalidImageContentMessage);
+    }
   });
 };

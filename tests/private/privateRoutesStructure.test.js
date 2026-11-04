@@ -15,7 +15,7 @@ const PRIVATE_ROUTES_DIR = path.resolve('src/routes/private');
 // Cada endpoint define: método, ruta, dominio, controlador final, middlewares y argumentos de permisos
 // ══════════════════════════════════════════════════════════════════════════════
 export const EXPECTED_CONTRACT = [
-  // ─── AGREGADOR / RAÍZ (5) ──────────────────────────────────────────────────
+  // ─── AGREGADOR / RAÍZ (11) ──────────────────────────────────────────────────
   {
     method: 'GET',
     path: '/profile',
@@ -33,6 +33,30 @@ export const EXPECTED_CONTRACT = [
     permissionArg: null,
   },
   {
+    method: 'POST',
+    path: '/profile/avatar',
+    domain: 'root',
+    controller: 'updateAvatar',
+    middlewares: ['uploadAvatarImage'],
+    permissionArg: null,
+  },
+  {
+    method: 'POST',
+    path: '/profile/password',
+    domain: 'root',
+    controller: 'changePassword',
+    middlewares: [],
+    permissionArg: null,
+  },
+  {
+    method: 'POST',
+    path: '/profile/sessions/revoke-others',
+    domain: 'root',
+    controller: 'revokeOtherSessionsHandler',
+    middlewares: [],
+    permissionArg: null,
+  },
+  {
     method: 'GET',
     path: '/private/profile',
     domain: 'root',
@@ -45,6 +69,30 @@ export const EXPECTED_CONTRACT = [
     path: '/private/profile',
     domain: 'root',
     controller: 'updateProfile',
+    middlewares: [],
+    permissionArg: null,
+  },
+  {
+    method: 'POST',
+    path: '/private/profile/avatar',
+    domain: 'root',
+    controller: 'updateAvatar',
+    middlewares: ['uploadAvatarImage'],
+    permissionArg: null,
+  },
+  {
+    method: 'POST',
+    path: '/private/profile/password',
+    domain: 'root',
+    controller: 'changePassword',
+    middlewares: [],
+    permissionArg: null,
+  },
+  {
+    method: 'POST',
+    path: '/private/profile/sessions/revoke-others',
+    domain: 'root',
+    controller: 'revokeOtherSessionsHandler',
     middlewares: [],
     permissionArg: null,
   },
@@ -652,12 +700,12 @@ describe('pruebas estructurales y de inventario de rutas privadas por dominio', 
     });
   });
 
-  describe('equivalencia del inventario de rutas (67 endpoints)', () => {
+  describe('equivalencia del inventario de rutas (73 endpoints)', () => {
     const registeredRoutes = extractDetailedRoutes(privateRouter);
 
-    it('el total de registros explícitos coincide exactamente con los 67 del contrato base', () => {
-      expect(registeredRoutes).toHaveLength(67);
-      expect(EXPECTED_CONTRACT).toHaveLength(67);
+    it('el total de registros explícitos coincide exactamente con los 73 del contrato base', () => {
+      expect(registeredRoutes).toHaveLength(73);
+      expect(EXPECTED_CONTRACT).toHaveLength(73);
     });
 
     it('cada endpoint esperado existe con el método, path, controlador final y middlewares exactos', () => {
@@ -684,7 +732,10 @@ describe('pruebas estructurales y de inventario de rutas privadas por dominio', 
             mwName.endsWith('WorkflowPermission')
           ) {
             expect(registeredMwName).toBe(mwName);
-          } else if (mwName === 'uploadProductImages') {
+          } else if (
+            mwName === 'uploadProductImages' ||
+            mwName === 'uploadAvatarImage'
+          ) {
             expect(registeredMwName).toBe(mwName);
           }
         });
@@ -694,7 +745,7 @@ describe('pruebas estructurales y de inventario de rutas privadas por dominio', 
     it('no existen rutas adicionales, huérfanas ni duplicadas en el router compuesto', () => {
       const routeKeys = registeredRoutes.map((r) => `${r.method} ${r.path}`);
       const uniqueKeys = new Set(routeKeys);
-      expect(uniqueKeys.size).toBe(67);
+      expect(uniqueKeys.size).toBe(73);
 
       registeredRoutes.forEach((route) => {
         const expected = EXPECTED_CONTRACT.find(
@@ -713,10 +764,10 @@ describe('pruebas estructurales y de inventario de rutas privadas por dominio', 
       expect(landRoutes).toHaveLength(17);
       expect(adminRoutes).toHaveLength(17);
 
-      // 28 catálogo + 17 parcelas + 17 admin + 5 agregador raíz = 67
+      // 28 catálogo + 17 parcelas + 17 admin + 11 agregador raíz = 73
       const totalModularRoutes =
-        catalogRoutes.length + landRoutes.length + adminRoutes.length + 5;
-      expect(totalModularRoutes).toBe(67);
+        catalogRoutes.length + landRoutes.length + adminRoutes.length + 11;
+      expect(totalModularRoutes).toBe(73);
     });
 
     it('las 17 rutas de parcelas apuntan a sus controladores correspondientes (incluyendo archive/restore/revert/lots)', () => {
@@ -820,7 +871,7 @@ describe('pruebas estructurales y de inventario de rutas privadas por dominio', 
           !layer.route &&
           typeof layer.handle === 'function' &&
           index > 0 &&
-          index < 5
+          index < 12
         ) {
           requirePanelAccessIndex = index;
         }

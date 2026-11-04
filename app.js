@@ -22,6 +22,7 @@ import {
   resolveEffectivePermissions,
   getUserRoleSummary,
 } from './src/services/rbacService.js';
+import { enrichSessionActivity } from './src/services/sessionManagementService.js';
 
 const { sequelize } = db;
 
@@ -123,6 +124,20 @@ hbs.registerHelper('sub', (a, b) => Number(a) - Number(b));
 hbs.registerHelper('urlEncode', (str) =>
   str !== null && str !== undefined ? encodeURIComponent(String(str)) : '',
 );
+hbs.registerHelper('formatDate', (dateVal) => {
+  if (!dateVal) return '—';
+  try {
+    const d = new Date(dateVal);
+    if (Number.isNaN(d.getTime())) return String(dateVal);
+    return d.toLocaleDateString('es-MX', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  } catch (_e) {
+    return String(dateVal);
+  }
+});
 hbs.registerHelper('json', (context) => JSON.stringify(context || []));
 hbs.registerHelper('getMesBg', (mesNum, siembra, cosecha, mesActual) => {
   const num = Number(mesNum);
@@ -315,6 +330,7 @@ app.use(passport.session());
 app.use((req, res, next) => {
   // Convierte la instancia del modelo a objeto plano y sanitiza campos sensibles
   if (req.user) {
+    enrichSessionActivity(req);
     const safeUser =
       typeof req.user.toJSON === 'function'
         ? req.user.toJSON()

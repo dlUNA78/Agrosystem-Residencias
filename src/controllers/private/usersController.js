@@ -19,7 +19,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const privateLayout = path.join(__dirname, '../../views/layouts/private');
-const publicLayout = path.join(__dirname, '../../views/layouts/public');
 
 const { User, RbacRole } = db;
 
@@ -378,55 +377,10 @@ export const deleteUser = async (req, res) => {
   }
 };
 
-const resolveProfileRedirectBase = (req) =>
-  req.path.startsWith('/private') ? '/private/profile' : '/profile';
-
-export const renderProfile = async (req, res) => {
-  try {
-    const safeUser = req.user ? sanitizeUserRecord(req.user) : null;
-    const canAccessPanelRole =
-      safeUser && (safeUser.role === 'admin' || safeUser.role === 'inifap');
-    const isPrivatePath = req.path.startsWith('/private') && canAccessPanelRole;
-
-    return res.render('shared/profile', {
-      layout: isPrivatePath ? privateLayout : publicLayout,
-      pageTitle: 'Mi Perfil',
-      activePage: 'profile',
-      user: safeUser,
-      isPrivatePath,
-      success: req.query.success,
-      error: req.query.error,
-    });
-  } catch (err) {
-    console.error('Error al cargar perfil:', err);
-    return res.redirect('/');
-  }
-};
-
-export const updateProfile = async (req, res) => {
-  const redirectBasePath = resolveProfileRedirectBase(req);
-  try {
-    const { full_name } = req.body;
-    if (!full_name || !full_name.trim()) {
-      return res.redirect(`${redirectBasePath}?error=campos_requeridos`);
-    }
-
-    const user = await User.findByPk(req.user.id);
-    if (!user) {
-      return res.redirect('/auth/login');
-    }
-
-    applyUserUpdates(user, {
-      full_name: req.body.full_name,
-      phone: req.body.phone,
-      job_title: req.body.job_title,
-      address: req.body.address,
-    });
-    await user.save();
-
-    return res.redirect(`${redirectBasePath}?success=perfil_actualizado`);
-  } catch (err) {
-    console.error('Error al actualizar perfil:', err);
-    return res.redirect(`${redirectBasePath}?error=actualizacion_fallida`);
-  }
-};
+export {
+  renderProfile,
+  updateProfile,
+  updateAvatar,
+  changePassword,
+  revokeOtherSessionsHandler,
+} from './profileController.js';
