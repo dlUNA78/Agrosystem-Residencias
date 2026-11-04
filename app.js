@@ -18,6 +18,10 @@ import publicRoutes from './src/routes/publicRoutes.js';
 import privateRoutes from './src/routes/privateRoutes.js';
 import authRoutes from './src/routes/auth.js';
 import { seedDefaultUsers } from './src/scripts/seedDefaultUsers.js';
+import {
+  resolveEffectivePermissions,
+  getUserRoleSummary,
+} from './src/services/rbacService.js';
 
 const { sequelize } = db;
 
@@ -119,6 +123,7 @@ hbs.registerHelper('sub', (a, b) => Number(a) - Number(b));
 hbs.registerHelper('urlEncode', (str) =>
   str !== null && str !== undefined ? encodeURIComponent(String(str)) : '',
 );
+hbs.registerHelper('json', (context) => JSON.stringify(context || []));
 hbs.registerHelper('getMesBg', (mesNum, siembra, cosecha, mesActual) => {
   const num = Number(mesNum);
   const cur = Number(mesActual);
@@ -197,6 +202,14 @@ hbs.registerHelper('userInitial', function (user, options) {
   if (!targetUser) return 'U';
   const name = targetUser.full_name || targetUser.email || 'U';
   return name.trim().charAt(0).toUpperCase();
+});
+
+hbs.registerHelper('hasPermission', function (perm, options) {
+  const user = options?.data?.root?.user;
+  if (!user) return false;
+  if (user.role === 'admin') return true;
+  const perms = options?.data?.root?.effectivePermissions || [];
+  return perms.includes(perm);
 });
 
 // Resolución resiliente de imágenes estáticas (compatibilidad de extensiones .webp/.jpg y fallbacks locales)
@@ -309,8 +322,13 @@ app.use((req, res, next) => {
     delete safeUser.password_hash;
     delete safeUser.password;
     res.locals.user = safeUser;
+    const effectiveSet = resolveEffectivePermissions(req.user);
+    res.locals.effectivePermissions = Array.from(effectiveSet);
+    res.locals.userRoleSummary = getUserRoleSummary(req.user);
   } else {
     res.locals.user = null;
+    res.locals.effectivePermissions = [];
+    res.locals.userRoleSummary = null;
   }
 
   const _render = res.render.bind(res);

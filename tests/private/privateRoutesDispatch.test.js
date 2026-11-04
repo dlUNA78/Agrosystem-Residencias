@@ -98,7 +98,27 @@ const mockControllers = {
   // Reports & Audit
   reportsPrivate: createMockController('reportsPrivate'),
   auditPrivate: createMockController('auditPrivate'),
+
+  // RBAC & Codes
+  createRbacRole: createMockController('createRbacRole'),
+  updateRbacRole: createMockController('updateRbacRole'),
+  deleteRbacRole: createMockController('deleteRbacRole'),
+  updateUserPermissions: createMockController('updateUserPermissions'),
+  generateCodes: createMockController('generateCodes'),
+  revokeCode: createMockController('revokeCode'),
 };
+
+jest.unstable_mockModule(
+  '../../src/controllers/private/rbacController.js',
+  () => ({
+    createRbacRole: mockControllers.createRbacRole,
+    updateRbacRole: mockControllers.updateRbacRole,
+    deleteRbacRole: mockControllers.deleteRbacRole,
+    updateUserPermissions: mockControllers.updateUserPermissions,
+    generateCodes: mockControllers.generateCodes,
+    revokeCode: mockControllers.revokeCode,
+  }),
+);
 
 jest.unstable_mockModule(
   '../../src/controllers/private/dashboardController.js',

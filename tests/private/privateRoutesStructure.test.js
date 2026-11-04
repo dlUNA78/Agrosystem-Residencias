@@ -520,6 +520,56 @@ export const EXPECTED_CONTRACT = [
     middlewares: ['requireRole'],
     permissionArg: 'admin',
   },
+
+  // ─── ADMINISTRACIÓN: RBAC Y CÓDIGOS INIFAP (6) ───────────────────────────
+  {
+    method: 'POST',
+    path: '/private/rbac/roles/create',
+    domain: 'admin',
+    controller: 'createRbacRole',
+    middlewares: ['requireRole'],
+    permissionArg: 'admin',
+  },
+  {
+    method: 'POST',
+    path: '/private/rbac/roles/edit/:id',
+    domain: 'admin',
+    controller: 'updateRbacRole',
+    middlewares: ['requireRole'],
+    permissionArg: 'admin',
+  },
+  {
+    method: 'POST',
+    path: '/private/rbac/roles/delete/:id',
+    domain: 'admin',
+    controller: 'deleteRbacRole',
+    middlewares: ['requireRole'],
+    permissionArg: 'admin',
+  },
+  {
+    method: 'POST',
+    path: '/private/rbac/users/:id/permissions',
+    domain: 'admin',
+    controller: 'updateUserPermissions',
+    middlewares: ['requireRole'],
+    permissionArg: 'admin',
+  },
+  {
+    method: 'POST',
+    path: '/private/codes/generate',
+    domain: 'admin',
+    controller: 'generateCodes',
+    middlewares: ['requireRole'],
+    permissionArg: 'admin',
+  },
+  {
+    method: 'POST',
+    path: '/private/codes/revoke/:id',
+    domain: 'admin',
+    controller: 'revokeCode',
+    middlewares: ['requireRole'],
+    permissionArg: 'admin',
+  },
 ];
 
 /**
@@ -602,12 +652,12 @@ describe('pruebas estructurales y de inventario de rutas privadas por dominio', 
     });
   });
 
-  describe('equivalencia del inventario de rutas (61 endpoints)', () => {
+  describe('equivalencia del inventario de rutas (67 endpoints)', () => {
     const registeredRoutes = extractDetailedRoutes(privateRouter);
 
-    it('el total de registros explícitos coincide exactamente con los 61 del contrato base', () => {
-      expect(registeredRoutes).toHaveLength(61);
-      expect(EXPECTED_CONTRACT).toHaveLength(61);
+    it('el total de registros explícitos coincide exactamente con los 67 del contrato base', () => {
+      expect(registeredRoutes).toHaveLength(67);
+      expect(EXPECTED_CONTRACT).toHaveLength(67);
     });
 
     it('cada endpoint esperado existe con el método, path, controlador final y middlewares exactos', () => {
@@ -644,7 +694,7 @@ describe('pruebas estructurales y de inventario de rutas privadas por dominio', 
     it('no existen rutas adicionales, huérfanas ni duplicadas en el router compuesto', () => {
       const routeKeys = registeredRoutes.map((r) => `${r.method} ${r.path}`);
       const uniqueKeys = new Set(routeKeys);
-      expect(uniqueKeys.size).toBe(61);
+      expect(uniqueKeys.size).toBe(67);
 
       registeredRoutes.forEach((route) => {
         const expected = EXPECTED_CONTRACT.find(
@@ -661,12 +711,12 @@ describe('pruebas estructurales y de inventario de rutas privadas por dominio', 
 
       expect(catalogRoutes).toHaveLength(28);
       expect(landRoutes).toHaveLength(17);
-      expect(adminRoutes).toHaveLength(11);
+      expect(adminRoutes).toHaveLength(17);
 
-      // 28 catálogo + 17 parcelas + 11 admin + 5 agregador raíz = 61
+      // 28 catálogo + 17 parcelas + 17 admin + 5 agregador raíz = 67
       const totalModularRoutes =
         catalogRoutes.length + landRoutes.length + adminRoutes.length + 5;
-      expect(totalModularRoutes).toBe(61);
+      expect(totalModularRoutes).toBe(67);
     });
 
     it('las 17 rutas de parcelas apuntan a sus controladores correspondientes (incluyendo archive/restore/revert/lots)', () => {

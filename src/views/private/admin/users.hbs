@@ -1,21 +1,22 @@
-<div id="users-page-root" class="mx-auto max-w-7xl space-y-5 font-['Geist'] text-slate-900">
+<div id="users-page-root" class="mx-auto max-w-7xl space-y-6 font-['Geist'] text-slate-900">
+  <!-- Cabecera Institucional y Ruta -->
   <header class="flex flex-col gap-3 rounded-2xl border border-slate-200/90 bg-white p-5 shadow-2xs sm:flex-row sm:items-center sm:justify-between">
     <div>
       <nav aria-label="Ruta de navegación" class="mb-1.5 flex items-center gap-1.5 text-[11px] font-medium text-slate-500">
         <a href="/dashboard" class="transition-colors hover:text-[#1b4332]">Panel</a>
         <span aria-hidden="true">/</span>
-        <span class="font-semibold text-slate-800">Usuarios</span>
+        <span class="font-semibold text-slate-800">Gobernanza y Usuarios</span>
       </nav>
       <div class="flex flex-wrap items-center gap-2.5">
         <h1 class="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
-          Gestión de Usuarios y Credenciales
+          Control de Acceso y Credenciales
         </h1>
         <span class="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider text-[#1b4332]">
-          Control RBAC
+          IAM & RBAC Híbrido
         </span>
       </div>
       <p class="mt-1 text-xs text-slate-500">
-        Administra cuentas institucionales, roles operativos y niveles de acceso del personal de INIFAP y productores.
+        Administra cuentas de personal, define sub-roles operativos y emite códigos de ascenso institucional INIFAP.
       </p>
     </div>
   </header>
@@ -34,6 +35,40 @@
   </div>
   {{/if}}
 
+  <!-- Navegación por Pestañas del Hub de Gestión -->
+  <nav aria-label="Secciones de administración" class="flex flex-wrap items-center gap-2 border-b border-slate-200/90 pb-3">
+    <a
+      href="/private/users?tab=users"
+      class="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold transition-all {{#if (eq activeTab 'users')}}bg-[#1b4332] text-white shadow-2xs{{else}}border border-slate-200/80 bg-white text-slate-600 hover:bg-slate-100 hover:text-slate-900{{/if}}"
+    >
+      <i data-lucide="users" class="h-4 w-4"></i>
+      <span>Usuarios Institucionales</span>
+      <span class="ml-1 rounded-full px-2 py-0.5 font-['Geist_Mono'] text-[10px] font-semibold {{#if (eq activeTab 'users')}}bg-white/20 text-white{{else}}bg-slate-100 text-slate-700{{/if}}">{{users.length}}</span>
+    </a>
+
+    <a
+      href="/private/users?tab=rbac"
+      class="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold transition-all {{#if (eq activeTab 'rbac')}}bg-[#1b4332] text-white shadow-2xs{{else}}border border-slate-200/80 bg-white text-slate-600 hover:bg-slate-100 hover:text-slate-900{{/if}}"
+    >
+      <i data-lucide="shield-check" class="h-4 w-4"></i>
+      <span>Sub-roles y Matriz RBAC</span>
+      <span class="ml-1 rounded-full px-2 py-0.5 font-['Geist_Mono'] text-[10px] font-semibold {{#if (eq activeTab 'rbac')}}bg-white/20 text-white{{else}}bg-slate-100 text-slate-700{{/if}}">{{rbacRoles.length}}</span>
+    </a>
+
+    <a
+      href="/private/users?tab=codes"
+      class="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold transition-all {{#if (eq activeTab 'codes')}}bg-[#1b4332] text-white shadow-2xs{{else}}border border-slate-200/80 bg-white text-slate-600 hover:bg-slate-100 hover:text-slate-900{{/if}}"
+    >
+      <i data-lucide="key" class="h-4 w-4"></i>
+      <span>Códigos INIFAP</span>
+      <span class="ml-1 rounded-full px-2 py-0.5 font-['Geist_Mono'] text-[10px] font-semibold {{#if (eq activeTab 'codes')}}bg-white/20 text-white{{else}}bg-slate-100 text-slate-700{{/if}}">{{codes.length}}</span>
+    </a>
+  </nav>
+
+  {{#if (eq activeTab 'users')}}
+  <!-- ════════════════════════════════════════════════════════════════════════ -->
+  <!-- PESTAÑA 1: GESTIÓN DE USUARIOS INSTITUCIONALES                           -->
+  <!-- ════════════════════════════════════════════════════════════════════════ -->
   <section aria-label="Resumen de cuentas" class="grid grid-cols-2 gap-3 lg:grid-cols-4">
     <article class="flex items-center justify-between rounded-2xl border border-slate-200/90 bg-white p-4 shadow-2xs">
       <div>
@@ -106,17 +141,19 @@
   </div>
 
   <div id="users-views-container" class="space-y-4">
+    <!-- Tabla de Usuarios -->
     <div
       id="users-table-view"
       class="hidden overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-2xs"
     >
       <div class="overflow-x-auto">
-        <table class="w-full min-w-[840px] border-collapse text-left">
+        <table class="w-full min-w-[900px] border-collapse text-left">
           <thead>
             <tr class="border-b border-slate-200 bg-slate-50/80 font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider text-slate-500">
               <th class="px-5 py-3.5">Usuario</th>
-              <th class="px-4 py-3.5">Puesto / Cargo</th>
-              <th class="px-4 py-3.5">Rol</th>
+              <th class="px-4 py-3.5">Cargo / Puesto</th>
+              <th class="px-4 py-3.5">Nivel Base</th>
+              <th class="px-4 py-3.5">Sub-rol RBAC</th>
               <th class="px-4 py-3.5">Estatus</th>
               <th class="px-4 py-3.5">Contacto</th>
               <th class="px-5 py-3.5 text-right">Acciones</th>
@@ -157,6 +194,16 @@
                 </span>
               </td>
               <td class="px-4 py-3.5">
+                {{#if rbacRole}}
+                <span class="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 font-['Geist_Mono'] text-[10px] font-semibold text-slate-800">
+                  <i data-lucide="shield" class="h-3 w-3 text-[#1b4332]"></i>
+                  <span>{{rbacRole.name}}</span>
+                </span>
+                {{else}}
+                <span class="text-[11px] italic text-slate-400">Predeterminado</span>
+                {{/if}}
+              </td>
+              <td class="px-4 py-3.5">
                 <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-semibold capitalize
                   {{#if (eq status 'activo')}}bg-emerald-50 text-emerald-700 border border-emerald-200{{/if}}
                   {{#if (eq status 'suspendido')}}bg-rose-50 text-rose-700 border border-rose-200{{/if}}
@@ -171,13 +218,31 @@
                 <div class="inline-flex items-center justify-end gap-1">
                   <button
                     type="button"
+                    class="btn-user-rbac rounded-lg p-1.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-[#1b4332] cursor-pointer"
+                    title="Configurar Sub-rol y Excepciones RBAC"
+                    aria-label="Permisos RBAC de {{full_name}}"
+                    data-id="{{id}}"
+                    data-name="{{full_name}}"
+                    data-email="{{email}}"
+                    data-role="{{role}}"
+                    data-status="{{status}}"
+                    data-subrole="{{rbac_role_id}}"
+                    data-allow="{{json custom_permissions.allow}}"
+                    data-deny="{{json custom_permissions.deny}}"
+                  >
+                    <i data-lucide="shield-alert" class="h-4 w-4"></i>
+                  </button>
+
+                  <button
+                    type="button"
                     class="btn-view-user rounded-lg p-1.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-[#1b4332] cursor-pointer"
-                    title="Ver ficha de usuario"
+                    title="Ver ficha"
                     aria-label="Ver ficha de {{full_name}}"
                     data-id="{{id}}"
                     data-name="{{full_name}}"
                     data-email="{{email}}"
                     data-role="{{role}}"
+                    data-subrole-name="{{#if rbacRole}}{{rbacRole.name}}{{else}}Sin sub-rol{{/if}}"
                     data-job="{{job_title}}"
                     data-phone="{{phone}}"
                     data-address="{{address}}"
@@ -189,12 +254,13 @@
                   <button
                     type="button"
                     class="btn-edit-user rounded-lg p-1.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-[#1b4332] cursor-pointer"
-                    title="Editar usuario"
+                    title="Editar datos de usuario"
                     aria-label="Editar usuario {{full_name}}"
                     data-id="{{id}}"
                     data-name="{{full_name}}"
                     data-email="{{email}}"
                     data-role="{{role}}"
+                    data-subrole="{{rbac_role_id}}"
                     data-job="{{job_title}}"
                     data-phone="{{phone}}"
                     data-address="{{address}}"
@@ -223,7 +289,7 @@
             </tr>
             {{else}}
             <tr>
-              <td colspan="6" class="px-6 py-14 text-center text-xs font-medium text-slate-500">
+              <td colspan="7" class="px-6 py-14 text-center text-xs font-medium text-slate-500">
                 No se encontraron usuarios registrados con los criterios solicitados.
               </td>
             </tr>
@@ -233,6 +299,7 @@
       </div>
     </div>
 
+    <!-- Cuadrícula de Tarjetas de Usuarios -->
     <div
       id="users-grid-view"
       class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
@@ -265,14 +332,22 @@
             </span>
           </div>
 
-          <span class="inline-flex rounded-md border px-2 py-0.5 font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider
-            {{#if (eq role 'admin')}}border-purple-200 bg-purple-50 text-purple-700{{/if}}
-            {{#if (eq role 'inifap')}}border-emerald-200 bg-emerald-50 text-[#1b4332]{{/if}}
-            {{#if (eq role 'agricultor')}}border-sky-200 bg-sky-50 text-sky-700{{/if}}">
-            {{role}}
-          </span>
+          <div class="flex flex-wrap items-center gap-1.5">
+            <span class="inline-flex rounded-md border px-2 py-0.5 font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider
+              {{#if (eq role 'admin')}}border-purple-200 bg-purple-50 text-purple-700{{/if}}
+              {{#if (eq role 'inifap')}}border-emerald-200 bg-emerald-50 text-[#1b4332]{{/if}}
+              {{#if (eq role 'agricultor')}}border-sky-200 bg-sky-50 text-sky-700{{/if}}">
+              {{role}}
+            </span>
+            {{#if rbacRole}}
+            <span class="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 font-['Geist_Mono'] text-[9px] font-semibold text-slate-700">
+              <i data-lucide="shield" class="h-2.5 w-2.5 text-[#1b4332]"></i>
+              <span>{{rbacRole.name}}</span>
+            </span>
+            {{/if}}
+          </div>
 
-          <h3 class="mt-2 truncate text-sm font-bold text-slate-900" title="{{full_name}}">
+          <h3 class="mt-2.5 truncate text-sm font-bold text-slate-900" title="{{full_name}}">
             {{full_name}}
           </h3>
           <p class="truncate text-xs text-slate-500" title="{{email}}">{{email}}</p>
@@ -286,6 +361,23 @@
           <div class="flex items-center gap-1">
             <button
               type="button"
+              class="btn-user-rbac rounded-lg p-1.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-[#1b4332] cursor-pointer"
+              title="Permisos RBAC"
+              aria-label="Permisos RBAC de {{full_name}}"
+              data-id="{{id}}"
+              data-name="{{full_name}}"
+              data-email="{{email}}"
+              data-role="{{role}}"
+              data-status="{{status}}"
+              data-subrole="{{rbac_role_id}}"
+              data-allow="{{json custom_permissions.allow}}"
+              data-deny="{{json custom_permissions.deny}}"
+            >
+              <i data-lucide="shield-alert" class="h-4 w-4"></i>
+            </button>
+
+            <button
+              type="button"
               class="btn-view-user rounded-lg p-1.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-[#1b4332] cursor-pointer"
               title="Ver ficha"
               aria-label="Ver ficha de {{full_name}}"
@@ -293,6 +385,7 @@
               data-name="{{full_name}}"
               data-email="{{email}}"
               data-role="{{role}}"
+              data-subrole-name="{{#if rbacRole}}{{rbacRole.name}}{{else}}Sin sub-rol{{/if}}"
               data-job="{{job_title}}"
               data-phone="{{phone}}"
               data-address="{{address}}"
@@ -310,6 +403,7 @@
               data-name="{{full_name}}"
               data-email="{{email}}"
               data-role="{{role}}"
+              data-subrole="{{rbac_role_id}}"
               data-job="{{job_title}}"
               data-phone="{{phone}}"
               data-address="{{address}}"
@@ -354,13 +448,372 @@
           Añadir usuario
         </span>
         <span class="mt-0.5 text-[11px] text-slate-400">
-          Crear nueva credencial RBAC
+          Crear nueva credencial institucional
         </span>
       </button>
     </div>
   </div>
+  {{/if}}
+
+  {{#if (eq activeTab 'rbac')}}
+  <!-- ════════════════════════════════════════════════════════════════════════ -->
+  <!-- PESTAÑA 2: CATÁLOGO DE SUB-ROLES Y MATRIZ RBAC                          -->
+  <!-- ════════════════════════════════════════════════════════════════════════ -->
+  <section class="space-y-6">
+    <div class="flex flex-col gap-3 rounded-2xl border border-slate-200/90 bg-white p-5 shadow-2xs sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <h2 class="text-base font-bold text-slate-900">Perfiles y Sub-roles Dinámicos</h2>
+        <p class="mt-0.5 text-xs text-slate-500">
+          Define plantillas de permisos granulares para el personal técnico sin requerir privilegios de superadministrador.
+        </p>
+      </div>
+      <button
+        id="btn-add-role"
+        type="button"
+        class="inline-flex items-center gap-2 rounded-xl bg-[#1b4332] px-4 py-2.5 text-xs font-bold text-white shadow-xs transition-colors hover:bg-[#143326] cursor-pointer"
+      >
+        <i data-lucide="plus-circle" class="h-4 w-4"></i>
+        <span>Nuevo Sub-rol</span>
+      </button>
+    </div>
+
+    <!-- Lista de Sub-roles -->
+    <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+      {{#each rbacRoles}}
+      <article class="flex flex-col justify-between rounded-2xl border border-slate-200/90 bg-white p-5 shadow-2xs transition-all hover:border-slate-300 hover:shadow-md">
+        <div>
+          <div class="flex items-start justify-between gap-2">
+            <span class="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 font-['Geist_Mono'] text-[10px] font-semibold uppercase text-slate-700">
+              <span class="h-2 w-2 rounded-full bg-emerald-600"></span>
+              <span>{{base_role}}</span>
+            </span>
+
+            {{#if is_system}}
+            <span class="inline-flex items-center gap-1 rounded-full border border-purple-200 bg-purple-50 px-2 py-0.5 font-['Geist_Mono'] text-[10px] font-semibold text-purple-700">
+              <i data-lucide="lock" class="h-3 w-3"></i>
+              <span>Sistema</span>
+            </span>
+            {{/if}}
+          </div>
+
+          <h3 class="mt-3 text-base font-bold text-slate-900">{{name}}</h3>
+          <p class="font-['Geist_Mono'] text-[11px] text-slate-400">slug: {{slug}}</p>
+          <p class="mt-2 text-xs text-slate-600 leading-relaxed">{{description}}</p>
+
+          <div class="mt-4 border-t border-slate-100 pt-3">
+            <p class="font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+              Permisos Concedidos ({{permissions.length}})
+            </p>
+            <div class="mt-2 flex flex-wrap gap-1">
+              {{#each permissions}}
+              <span class="rounded bg-slate-100 px-1.5 py-0.5 font-['Geist_Mono'] text-[9px] font-medium text-slate-700">
+                {{this}}
+              </span>
+              {{else}}
+              <span class="text-[11px] italic text-slate-400">Sin permisos adicionales asignados</span>
+              {{/each}}
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-5 flex items-center justify-end gap-2 border-t border-slate-100 pt-3">
+          <button
+            type="button"
+            class="btn-edit-role inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 cursor-pointer"
+            data-id="{{id}}"
+            data-name="{{name}}"
+            data-slug="{{slug}}"
+            data-description="{{description}}"
+            data-badge-color="{{badge_color}}"
+            data-base-role="{{base_role}}"
+            data-permissions="{{json permissions}}"
+          >
+            <i data-lucide="edit-3" class="h-3.5 w-3.5"></i>
+            <span>Editar</span>
+          </button>
+
+          {{#unless is_system}}
+          <form
+            action="/private/rbac/roles/delete/{{id}}"
+            method="POST"
+            class="delete-role-form inline"
+            data-role-name="{{name}}"
+          >
+            <button
+              type="submit"
+              class="inline-flex items-center gap-1 rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-700 transition-colors hover:bg-rose-100 cursor-pointer"
+            >
+              <i data-lucide="trash-2" class="h-3.5 w-3.5"></i>
+              <span>Eliminar</span>
+            </button>
+          </form>
+          {{/unless}}
+        </div>
+      </article>
+      {{/each}}
+    </div>
+
+    <!-- Matriz de Cobertura General -->
+    <div class="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-2xs">
+      <div class="mb-4">
+        <h3 class="text-sm font-bold text-slate-900">Matriz de Permisos del Panel Operativo</h3>
+        <p class="text-xs text-slate-500">
+          Esquema de capacidades granulares soportadas en la plataforma de investigación y control fitosanitario.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {{#each permissionDefinitions}}
+        <div class="rounded-xl border border-slate-100 bg-slate-50/70 p-4">
+          <h4 class="mb-2 font-['Geist_Mono'] text-[11px] font-bold uppercase tracking-wider text-[#1b4332]">
+            {{category}}
+          </h4>
+          <ul class="space-y-1.5">
+            {{#each items}}
+            <li class="flex items-start gap-2 text-xs text-slate-700">
+              <i data-lucide="check" class="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-600"></i>
+              <span class="flex-1 font-medium">{{label}}</span>
+              <span class="font-['Geist_Mono'] text-[10px] text-slate-400">({{id}})</span>
+            </li>
+            {{/each}}
+          </ul>
+        </div>
+        {{/each}}
+      </div>
+    </div>
+  </section>
+  {{/if}}
+
+  {{#if (eq activeTab 'codes')}}
+  <!-- ════════════════════════════════════════════════════════════════════════ -->
+  <!-- PESTAÑA 3: GESTOR DE CÓDIGOS DE ASCENSO INIFAP                           -->
+  <!-- ════════════════════════════════════════════════════════════════════════ -->
+  <section class="space-y-6">
+    <!-- Panel Generador de Códigos -->
+    <div class="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-2xs">
+      <div class="mb-4 flex items-center gap-2.5 border-b border-slate-100 pb-3.5">
+        <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-[#1b4332]">
+          <i data-lucide="key-round" class="h-5 w-5"></i>
+        </span>
+        <div>
+          <h2 class="text-sm font-bold text-slate-900">Emisión de Códigos de Acceso Institucional</h2>
+          <p class="text-[11px] text-slate-500">
+            Genera tokens seguros para permitir que investigadores y técnicos asciendan su cuenta desde el portal público.
+          </p>
+        </div>
+      </div>
+
+      <form action="/private/codes/generate" method="POST" class="space-y-4">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div>
+            <label for="code-count" class="mb-1 block font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider text-slate-600">
+              Cantidad a Generar
+            </label>
+            <select
+              id="code-count"
+              name="count"
+              class="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 py-2.5 text-xs text-slate-900 focus:border-[#1b4332] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1b4332]/15"
+            >
+              <option value="1">1 código</option>
+              <option value="3">3 códigos</option>
+              <option value="5" selected>5 códigos</option>
+              <option value="10">10 códigos</option>
+              <option value="20">20 códigos (Lote)</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="code-expires" class="mb-1 block font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider text-slate-600">
+              Vigencia / Expiración
+            </label>
+            <select
+              id="code-expires"
+              name="expiresInDays"
+              class="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 py-2.5 text-xs text-slate-900 focus:border-[#1b4332] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1b4332]/15"
+            >
+              <option value="">Sin fecha límite (Permanente)</option>
+              <option value="1">24 Horas</option>
+              <option value="7" selected>7 Días</option>
+              <option value="30">30 Días</option>
+              <option value="90">90 Días</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="code-subrole" class="mb-1 block font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider text-slate-600">
+              Preasignar Sub-rol RBAC
+            </label>
+            <select
+              id="code-subrole"
+              name="rbacRoleId"
+              class="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 py-2.5 text-xs text-slate-900 focus:border-[#1b4332] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1b4332]/15"
+            >
+              <option value="">Estándar (Investigador General)</option>
+              {{#each rbacRoles}}
+              <option value="{{id}}">{{name}}</option>
+              {{/each}}
+            </select>
+          </div>
+
+          <div>
+            <label for="code-note" class="mb-1 block font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider text-slate-600">
+              Nota Interna / Destinatario
+            </label>
+            <input
+              type="text"
+              id="code-note"
+              name="note"
+              placeholder="Ej. Personal Campo Celaya"
+              class="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 py-2.5 text-xs text-slate-900 focus:border-[#1b4332] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1b4332]/15"
+            />
+          </div>
+        </div>
+
+        <div class="flex justify-end pt-1">
+          <button
+            type="submit"
+            class="inline-flex items-center gap-2 rounded-xl bg-[#1b4332] px-5 py-2.5 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-[#143326] cursor-pointer"
+          >
+            <i data-lucide="sparkles" class="h-3.5 w-3.5"></i>
+            <span>Generar Códigos</span>
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Listado de Códigos -->
+    <div class="rounded-2xl border border-slate-200/90 bg-white shadow-2xs">
+      <div class="flex flex-col gap-3 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h3 class="text-sm font-bold text-slate-900">Historial de Códigos Emitidos</h3>
+          <p class="text-xs text-slate-500">Supervisa canjes, vigencias y revoca tokens que ya no deban ser utilizados.</p>
+        </div>
+
+        <form action="/private/users" method="GET" class="m-0 flex items-center gap-2">
+          <input type="hidden" name="tab" value="codes" />
+          <select
+            name="codeStatus"
+            class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 font-['Geist_Mono'] text-xs text-slate-700"
+          >
+            <option value="all" {{#if (eq codeFilters.status 'all')}}selected{{/if}}>Todos los estatus</option>
+            <option value="available" {{#if (eq codeFilters.status 'available')}}selected{{/if}}>Disponibles</option>
+            <option value="used" {{#if (eq codeFilters.status 'used')}}selected{{/if}}>Canjeados</option>
+            <option value="revoked" {{#if (eq codeFilters.status 'revoked')}}selected{{/if}}>Revocados</option>
+            <option value="expired" {{#if (eq codeFilters.status 'expired')}}selected{{/if}}>Expirados</option>
+          </select>
+          <input
+            type="text"
+            name="codeSearch"
+            value="{{codeFilters.search}}"
+            placeholder="Buscar código o nota..."
+            class="w-48 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs text-slate-900"
+          />
+          <button
+            type="submit"
+            class="rounded-xl bg-slate-900 px-3.5 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-slate-800 cursor-pointer"
+          >
+            Filtrar
+          </button>
+        </form>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full min-w-[850px] border-collapse text-left">
+          <thead>
+            <tr class="border-b border-slate-200 bg-slate-50/80 font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+              <th class="px-5 py-3.5">Código Institucional</th>
+              <th class="px-4 py-3.5">Estatus</th>
+              <th class="px-4 py-3.5">Sub-rol Preasignado</th>
+              <th class="px-4 py-3.5">Nota Interna</th>
+              <th class="px-4 py-3.5">Expiración</th>
+              <th class="px-4 py-3.5">Canjeado Por</th>
+              <th class="px-5 py-3.5 text-right">Acción</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 text-xs">
+            {{#each codes}}
+            <tr class="transition-colors hover:bg-slate-50/70">
+              <td class="px-5 py-3.5">
+                <div class="flex items-center gap-2">
+                  <span class="font-['Geist_Mono'] text-xs font-bold text-slate-900">{{code}}</span>
+                  <button
+                    type="button"
+                    class="btn-copy-code rounded-lg p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 cursor-pointer"
+                    title="Copiar código"
+                    data-code="{{code}}"
+                    aria-label="Copiar código {{code}}"
+                  >
+                    <i data-lucide="copy" class="h-3.5 w-3.5"></i>
+                  </button>
+                </div>
+              </td>
+              <td class="px-4 py-3.5">
+                <span class="inline-flex rounded-full px-2.5 py-0.5 text-[10px] font-semibold capitalize
+                  {{#if (eq statusKey 'available')}}bg-sky-50 text-sky-700 border border-sky-200{{/if}}
+                  {{#if (eq statusKey 'used')}}bg-emerald-50 text-emerald-700 border border-emerald-200{{/if}}
+                  {{#if (eq statusKey 'revoked')}}bg-rose-50 text-rose-700 border border-rose-200{{/if}}
+                  {{#if (eq statusKey 'expired')}}bg-amber-50 text-amber-700 border border-amber-200{{/if}}">
+                  {{statusLabel}}
+                </span>
+              </td>
+              <td class="px-4 py-3.5">
+                {{#if targetRole}}
+                <span class="font-semibold text-slate-800">{{targetRole.name}}</span>
+                {{else}}
+                <span class="italic text-slate-400">Estándar INIFAP</span>
+                {{/if}}
+              </td>
+              <td class="px-4 py-3.5 text-slate-600">
+                {{#if note}}{{note}}{{else}}<span class="italic text-slate-400">Sin nota</span>{{/if}}
+              </td>
+              <td class="px-4 py-3.5 font-['Geist_Mono'] text-[11px] text-slate-500">
+                {{#if expires_at}}{{expires_at}}{{else}}Sin expiración{{/if}}
+              </td>
+              <td class="px-4 py-3.5">
+                {{#if usedBy}}
+                <div>
+                  <p class="font-semibold text-slate-900">{{usedBy.full_name}}</p>
+                  <p class="font-['Geist_Mono'] text-[10px] text-slate-400">{{usedBy.email}}</p>
+                </div>
+                {{else}}
+                <span class="italic text-slate-400">No canjeado</span>
+                {{/if}}
+              </td>
+              <td class="px-5 py-3.5 text-right">
+                {{#if isAvailable}}
+                <form action="/private/codes/revoke/{{id}}" method="POST" class="revoke-code-form inline">
+                  <button
+                    type="submit"
+                    class="rounded-lg border border-rose-200 bg-rose-50 px-2.5 py-1 text-[11px] font-semibold text-rose-700 transition-colors hover:bg-rose-100 cursor-pointer"
+                  >
+                    Revocar
+                  </button>
+                </form>
+                {{else}}
+                <span class="text-[11px] text-slate-400">—</span>
+                {{/if}}
+              </td>
+            </tr>
+            {{else}}
+            <tr>
+              <td colspan="7" class="px-6 py-12 text-center text-xs font-medium text-slate-500">
+                No hay códigos de acceso emitidos con los filtros actuales.
+              </td>
+            </tr>
+            {{/each}}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+  {{/if}}
 </div>
 
+<!-- ════════════════════════════════════════════════════════════════════════════ -->
+<!-- MODALES DEL HUB ADMINISTRATIVO                                               -->
+<!-- ════════════════════════════════════════════════════════════════════════════ -->
+
+<!-- Modal Crear / Editar Usuario -->
 <div
   id="modal-user"
   role="dialog"
@@ -458,10 +911,10 @@
         </div>
       </div>
 
-      <div class="grid grid-cols-2 gap-3.5">
+      <div class="grid grid-cols-1 gap-3.5 sm:grid-cols-3">
         <div>
           <label for="user-rol" class="mb-1 block font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider text-slate-600">
-            Rol de Acceso *
+            Nivel Base *
           </label>
           <select
             id="user-rol"
@@ -472,6 +925,22 @@
             <option value="inifap">INIFAP</option>
             <option value="admin">Administrador</option>
             <option value="agricultor">Agricultor</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="user-subrole" class="mb-1 block font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider text-slate-600">
+            Sub-rol RBAC
+          </label>
+          <select
+            id="user-subrole"
+            name="rbac_role_id"
+            class="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 py-2 text-xs text-slate-900 focus:border-[#1b4332] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1b4332]/15"
+          >
+            <option value="">Ninguno (Predeterminado)</option>
+            {{#each rbacRoles}}
+            <option value="{{id}}">{{name}}</option>
+            {{/each}}
           </select>
         </div>
 
@@ -527,6 +996,283 @@
   </div>
 </div>
 
+<!-- Modal Configurar Permisos RBAC de Usuario -->
+<div
+  id="modal-user-permissions"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="modal-permissions-title"
+  class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/50 p-4 backdrop-blur-xs font-['Geist']"
+>
+  <div class="w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
+    <div class="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+      <div class="flex items-center gap-3">
+        <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-purple-50 text-purple-700">
+          <i data-lucide="shield-alert" class="h-4 w-4"></i>
+        </div>
+        <div>
+          <h3 id="modal-permissions-title" class="text-sm font-bold text-slate-900">
+            Gobernanza RBAC de Usuario
+          </h3>
+          <p id="permissions-user-subtitle" class="text-[11px] text-slate-500">---</p>
+        </div>
+      </div>
+      <button
+        id="btn-close-modal-permissions"
+        type="button"
+        aria-label="Cerrar modal de permisos"
+        class="rounded-xl p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 cursor-pointer"
+      >
+        <i data-lucide="x" class="h-4 w-4"></i>
+      </button>
+    </div>
+
+    <form id="form-user-permissions" action="" method="POST" class="overflow-y-auto p-6 space-y-5">
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div>
+          <label for="perm-user-role" class="mb-1 block font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider text-slate-600">
+            Nivel Base
+          </label>
+          <select
+            id="perm-user-role"
+            name="role"
+            class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-900"
+          >
+            <option value="inifap">INIFAP</option>
+            <option value="admin">Administrador</option>
+            <option value="agricultor">Agricultor</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="perm-user-status" class="mb-1 block font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider text-slate-600">
+            Estatus Operativo
+          </label>
+          <select
+            id="perm-user-status"
+            name="status"
+            class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-900"
+          >
+            <option value="activo">Activo</option>
+            <option value="pendiente">Pendiente</option>
+            <option value="suspendido">Suspendido (Sin acceso)</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="perm-user-subrole" class="mb-1 block font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider text-slate-600">
+            Sub-rol RBAC Asignado
+          </label>
+          <select
+            id="perm-user-subrole"
+            name="rbac_role_id"
+            class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-900"
+          >
+            <option value="">Sin sub-rol (Base estándar)</option>
+            {{#each rbacRoles}}
+            <option value="{{id}}">{{name}}</option>
+            {{/each}}
+          </select>
+        </div>
+      </div>
+
+      <!-- Excepciones individuales (Allow / Deny) -->
+      <div class="rounded-xl border border-slate-200 bg-slate-50/70 p-4 space-y-3">
+        <div>
+          <h4 class="text-xs font-bold text-slate-900">Excepciones Granulares Individuales (Overrides)</h4>
+          <p class="text-[11px] text-slate-500">
+            Concede permisos específicos adicionales (<span class="font-bold text-emerald-700">Allow</span>) o retira permisos específicos (<span class="font-bold text-rose-700">Deny</span>) exclusivamente para esta cuenta.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <label class="mb-1.5 block font-['Geist_Mono'] text-[10px] font-bold uppercase tracking-wider text-emerald-800">
+              Conceder Permisos (Allow)
+            </label>
+            <div id="allow-permissions-container" class="max-h-48 overflow-y-auto rounded-lg border border-slate-200 bg-white p-2.5 space-y-1.5 text-xs">
+              {{#each permissionDefinitions}}
+                <div class="font-bold text-[10px] text-slate-400 uppercase tracking-wider pt-1">{{category}}</div>
+                {{#each items}}
+                <label class="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-0.5 rounded">
+                  <input type="checkbox" name="allow" value="{{id}}" class="perm-allow-checkbox rounded text-emerald-600" />
+                  <span>{{label}}</span>
+                </label>
+                {{/each}}
+              {{/each}}
+            </div>
+          </div>
+
+          <div>
+            <label class="mb-1.5 block font-['Geist_Mono'] text-[10px] font-bold uppercase tracking-wider text-rose-800">
+              Restringir Permisos (Deny)
+            </label>
+            <div id="deny-permissions-container" class="max-h-48 overflow-y-auto rounded-lg border border-slate-200 bg-white p-2.5 space-y-1.5 text-xs">
+              {{#each permissionDefinitions}}
+                <div class="font-bold text-[10px] text-slate-400 uppercase tracking-wider pt-1">{{category}}</div>
+                {{#each items}}
+                <label class="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-0.5 rounded">
+                  <input type="checkbox" name="deny" value="{{id}}" class="perm-deny-checkbox rounded text-rose-600" />
+                  <span>{{label}}</span>
+                </label>
+                {{/each}}
+              {{/each}}
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+
+    <div class="flex items-center justify-end gap-2.5 border-t border-slate-200 bg-slate-50/80 px-6 py-3.5">
+      <button
+        id="btn-cancel-permissions"
+        type="button"
+        class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 cursor-pointer"
+      >
+        Cancelar
+      </button>
+      <button
+        type="submit"
+        form="form-user-permissions"
+        class="inline-flex items-center gap-1.5 rounded-xl bg-[#1b4332] px-5 py-2 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-[#143326] cursor-pointer"
+      >
+        <i data-lucide="check-shield" class="h-3.5 w-3.5"></i>
+        <span>Guardar Permisos</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Crear / Editar Sub-rol RBAC -->
+<div
+  id="modal-role"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="modal-role-title"
+  class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/50 p-4 backdrop-blur-xs font-['Geist']"
+>
+  <div class="w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
+    <div class="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+      <div class="flex items-center gap-3">
+        <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-purple-50 text-purple-700">
+          <i data-lucide="shield" class="h-4 w-4"></i>
+        </div>
+        <h3 id="modal-role-title" class="text-sm font-bold text-slate-900">
+          Nuevo Sub-rol RBAC
+        </h3>
+      </div>
+      <button
+        id="btn-close-modal-role"
+        type="button"
+        aria-label="Cerrar modal de sub-rol"
+        class="rounded-xl p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 cursor-pointer"
+      >
+        <i data-lucide="x" class="h-4 w-4"></i>
+      </button>
+    </div>
+
+    <form id="form-role" action="/private/rbac/roles/create" method="POST" class="overflow-y-auto p-6 space-y-4">
+      <div>
+        <label for="role-nombre" class="mb-1 block font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider text-slate-600">
+          Nombre del Sub-rol *
+        </label>
+        <input
+          type="text"
+          id="role-nombre"
+          name="name"
+          required
+          placeholder="Ej. Coordinador de Vigilancia Fitosanitaria"
+          class="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 py-2 text-xs text-slate-900 focus:border-[#1b4332] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1b4332]/15"
+        />
+      </div>
+
+      <div>
+        <label for="role-descripcion" class="mb-1 block font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider text-slate-600">
+          Descripción del Alcance
+        </label>
+        <textarea
+          id="role-descripcion"
+          name="description"
+          rows="2"
+          placeholder="Responsabilidades y atribuciones técnicas..."
+          class="w-full resize-none rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 py-2 text-xs text-slate-900 focus:border-[#1b4332] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1b4332]/15"
+        ></textarea>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3.5">
+        <div>
+          <label for="role-base" class="mb-1 block font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider text-slate-600">
+            Nivel Base Aplicable
+          </label>
+          <select
+            id="role-base"
+            name="base_role"
+            class="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 py-2 text-xs text-slate-900"
+          >
+            <option value="inifap" selected>Personal INIFAP</option>
+            <option value="agricultor">Agricultor</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="role-badge-color" class="mb-1 block font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider text-slate-600">
+            Color de Distintivo
+          </label>
+          <select
+            id="role-badge-color"
+            name="badge_color"
+            class="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 py-2 text-xs text-slate-900"
+          >
+            <option value="purple">Morado</option>
+            <option value="emerald">Esmeralda</option>
+            <option value="sky">Azul Celeste</option>
+            <option value="amber">Ámbar</option>
+            <option value="rose">Rosa / Rojo</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label class="mb-1.5 block font-['Geist_Mono'] text-[10px] font-bold uppercase tracking-wider text-slate-700">
+          Permisos Asignados a la Plantilla
+        </label>
+        <div id="role-permissions-list" class="max-h-56 overflow-y-auto rounded-xl border border-slate-200 bg-slate-50/50 p-3 space-y-2 text-xs">
+          {{#each permissionDefinitions}}
+            <div class="font-bold text-[10px] text-slate-500 uppercase tracking-wider pt-1">{{category}}</div>
+            {{#each items}}
+            <label class="flex items-center gap-2 cursor-pointer hover:bg-slate-100/70 p-1 rounded">
+              <input type="checkbox" name="permissions" value="{{id}}" class="role-perm-checkbox rounded text-[#1b4332]" />
+              <span class="flex-1 text-slate-800">{{label}}</span>
+              <span class="font-['Geist_Mono'] text-[9px] text-slate-400">{{id}}</span>
+            </label>
+            {{/each}}
+          {{/each}}
+        </div>
+      </div>
+    </form>
+
+    <div class="flex items-center justify-end gap-2.5 border-t border-slate-200 bg-slate-50/80 px-6 py-3.5">
+      <button
+        id="btn-cancel-role"
+        type="button"
+        class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 cursor-pointer"
+      >
+        Cancelar
+      </button>
+      <button
+        id="btn-submit-role"
+        type="submit"
+        form="form-role"
+        class="inline-flex items-center gap-1.5 rounded-xl bg-[#1b4332] px-5 py-2 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-[#143326] cursor-pointer"
+      >
+        <i data-lucide="save" class="h-3.5 w-3.5"></i>
+        <span>Guardar Sub-rol</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Ver Ficha de Usuario -->
 <div
   id="modal-view-user"
   role="dialog"
@@ -562,10 +1308,16 @@
         <p id="view-user-email" class="text-xs text-slate-500">---</p>
       </div>
 
-      <div class="flex items-center justify-center gap-2">
+      <div class="flex flex-wrap items-center justify-center gap-2">
         <span
           id="view-user-role"
           class="rounded-md border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider text-[#1b4332]"
+        >
+          ---
+        </span>
+        <span
+          id="view-user-subrole"
+          class="rounded-md border border-slate-200 bg-slate-100 px-2.5 py-0.5 font-['Geist_Mono'] text-[10px] font-semibold text-slate-800"
         >
           ---
         </span>

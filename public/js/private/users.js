@@ -15,6 +15,14 @@ const setText = (id, value) => {
   if (el) el.textContent = value;
 };
 
+const safeJsonParse = (str) => {
+  try {
+    return JSON.parse(str || '[]');
+  } catch {
+    return [];
+  }
+};
+
 const readSavedView = () => {
   try {
     return window.localStorage.getItem(VIEW_STORAGE_KEY) || 'grid';
@@ -69,6 +77,17 @@ const initializeUsersViewToggle = () => {
   applyView();
 };
 
+const populateUserEditFields = (data) => {
+  setFieldValue('user-nombre', data.name || '');
+  setFieldValue('user-email', data.email || '');
+  setFieldValue('user-puesto', data.job || '');
+  setFieldValue('user-rol', data.role || 'inifap');
+  setFieldValue('user-subrole', data.subrole || '');
+  setFieldValue('user-estatus', data.status || 'activo');
+  setFieldValue('user-telefono', data.phone || '');
+  setFieldValue('user-direccion', data.address || '');
+};
+
 const initializeUserFormModal = () => {
   const modalUser = document.getElementById('modal-user');
   const formUser = document.getElementById('form-user');
@@ -96,14 +115,7 @@ const initializeUserFormModal = () => {
     const data = btn.dataset;
     formUser.action = `/private/users/edit/${data.id}`;
     setText('modal-user-title', 'Editar Usuario');
-    setFieldValue('user-nombre', data.name || '');
-    setFieldValue('user-email', data.email || '');
-    setFieldValue('user-puesto', data.job || '');
-    setFieldValue('user-rol', data.role || 'inifap');
-    setFieldValue('user-estatus', data.status || 'activo');
-    setFieldValue('user-telefono', data.phone || '');
-    setFieldValue('user-direccion', data.address || '');
-
+    populateUserEditFields(data);
     passwordGroup?.classList.add('hidden');
     if (userPassword) userPassword.required = false;
 
@@ -132,12 +144,6 @@ const initializeUserFormModal = () => {
   modalUser.addEventListener('click', (event) => {
     if (event.target === modalUser) closeModal();
   });
-
-  document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape' && !modalUser.classList.contains('hidden')) {
-      closeModal();
-    }
-  });
 };
 
 const initializeUserDetailModal = () => {
@@ -157,6 +163,7 @@ const initializeUserDetailModal = () => {
     setText('view-user-name', name);
     setText('view-user-email', data.email || 'Sin correo');
     setText('view-user-role', (data.role || 'inifap').toUpperCase());
+    setText('view-user-subrole', data.subroleName || 'Sin sub-rol');
     setText('view-user-status', data.status || 'activo');
     setText('view-user-job', data.job || 'No especificado');
     setText('view-user-phone', data.phone || 'No registrado');
@@ -177,10 +184,172 @@ const initializeUserDetailModal = () => {
   modalViewUser.addEventListener('click', (event) => {
     if (event.target === modalViewUser) closeViewModal();
   });
+};
 
-  document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape' && !modalViewUser.classList.contains('hidden')) {
-      closeViewModal();
+const initializeUserPermissionsModal = () => {
+  const modal = document.getElementById('modal-user-permissions');
+  const form = document.getElementById('form-user-permissions');
+  if (!modal || !form) return;
+
+  const closeModal = () => {
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+  };
+
+  const syncCheckboxes = (containerSelector, activeList) => {
+    const checkboxes = modal.querySelectorAll(containerSelector);
+    checkboxes.forEach((cb) => {
+      cb.checked = activeList.includes(cb.value);
+    });
+  };
+
+  document.addEventListener('click', (event) => {
+    const btn = event.target.closest('.btn-user-rbac');
+    if (!btn) return;
+    const data = btn.dataset;
+
+    form.action = `/private/rbac/users/${data.id}/permissions`;
+    setText('permissions-user-subtitle', `${data.name} · ${data.email}`);
+    setFieldValue('perm-user-role', data.role || 'inifap');
+    setFieldValue('perm-user-status', data.status || 'activo');
+    setFieldValue('perm-user-subrole', data.subrole || '');
+
+    const allowList = safeJsonParse(data.allow);
+    const denyList = safeJsonParse(data.deny);
+
+    syncCheckboxes('.perm-allow-checkbox', allowList);
+    syncCheckboxes('.perm-deny-checkbox', denyList);
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+  });
+
+  document
+    .getElementById('btn-close-modal-permissions')
+    ?.addEventListener('click', closeModal);
+  document
+    .getElementById('btn-cancel-permissions')
+    ?.addEventListener('click', closeModal);
+
+  modal.addEventListener('click', (event) => {
+    if (event.target === modal) closeModal();
+  });
+};
+
+const initializeRoleModals = () => {
+  const modal = document.getElementById('modal-role');
+  const form = document.getElementById('form-role');
+  if (!modal || !form) return;
+
+  const closeModal = () => {
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+  };
+
+  const openCreateRole = () => {
+    form.reset();
+    form.action = '/private/rbac/roles/create';
+    setText('modal-role-title', 'Nuevo Sub-rol RBAC');
+    modal.querySelectorAll('.role-perm-checkbox').forEach((cb) => {
+      cb.checked = false;
+    });
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+  };
+
+  const openEditRole = (btn) => {
+    const data = btn.dataset;
+    form.action = `/private/rbac/roles/edit/${data.id}`;
+    setText('modal-role-title', `Editar Sub-rol: ${data.name}`);
+    setFieldValue('role-nombre', data.name || '');
+    setFieldValue('role-descripcion', data.description || '');
+    setFieldValue('role-base', data.baseRole || 'inifap');
+    setFieldValue('role-badge-color', data.badgeColor || 'purple');
+
+    const perms = safeJsonParse(data.permissions);
+    modal.querySelectorAll('.role-perm-checkbox').forEach((cb) => {
+      cb.checked = perms.includes(cb.value);
+    });
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+  };
+
+  document
+    .getElementById('btn-add-role')
+    ?.addEventListener('click', openCreateRole);
+
+  document.addEventListener('click', (event) => {
+    const editBtn = event.target.closest('.btn-edit-role');
+    if (editBtn) openEditRole(editBtn);
+  });
+
+  document
+    .getElementById('btn-close-modal-role')
+    ?.addEventListener('click', closeModal);
+  document
+    .getElementById('btn-cancel-role')
+    ?.addEventListener('click', closeModal);
+
+  modal.addEventListener('click', (event) => {
+    if (event.target === modal) closeModal();
+  });
+
+  document.addEventListener('submit', async (event) => {
+    const deleteForm = event.target.closest('.delete-role-form');
+    if (!deleteForm || deleteForm.dataset.confirmed === 'true') return;
+    event.preventDefault();
+    const roleName = deleteForm.dataset.roleName || 'este sub-rol';
+    const accepted = await confirmAsyncAction({
+      title: '¿Eliminar sub-rol RBAC?',
+      description: `Se eliminará la plantilla ${roleName}. Los usuarios asignados volverán a su perfil base.`,
+      confirmLabel: 'Sí, eliminar sub-rol',
+      variant: 'danger',
+    });
+    if (accepted) {
+      deleteForm.dataset.confirmed = 'true';
+      deleteForm.submit();
+    }
+  });
+};
+
+const initializeCodesTab = () => {
+  document.addEventListener('click', async (event) => {
+    const copyBtn = event.target.closest('.btn-copy-code');
+    if (!copyBtn) return;
+    const code = copyBtn.dataset.code;
+    if (!code) return;
+
+    try {
+      await navigator.clipboard.writeText(code);
+      const icon = copyBtn.querySelector('i');
+      if (icon) {
+        icon.setAttribute('data-lucide', 'check');
+        refreshLucideIcons();
+        setTimeout(() => {
+          icon.setAttribute('data-lucide', 'copy');
+          refreshLucideIcons();
+        }, 1500);
+      }
+    } catch {
+      // fallback silent
+    }
+  });
+
+  document.addEventListener('submit', async (event) => {
+    const revokeForm = event.target.closest('.revoke-code-form');
+    if (!revokeForm || revokeForm.dataset.confirmed === 'true') return;
+    event.preventDefault();
+    const accepted = await confirmAsyncAction({
+      title: '¿Revocar código de acceso?',
+      description:
+        'El token quedará invalidado y ningún usuario podrá canjearlo.',
+      confirmLabel: 'Sí, revocar código',
+      variant: 'danger',
+    });
+    if (accepted) {
+      revokeForm.dataset.confirmed = 'true';
+      revokeForm.submit();
     }
   });
 };
@@ -212,6 +381,9 @@ document.addEventListener('DOMContentLoaded', () => {
   initializeUsersViewToggle();
   initializeUserFormModal();
   initializeUserDetailModal();
+  initializeUserPermissionsModal();
+  initializeRoleModals();
+  initializeCodesTab();
   initializeUserDeleteConfirmation();
   refreshLucideIcons();
 });

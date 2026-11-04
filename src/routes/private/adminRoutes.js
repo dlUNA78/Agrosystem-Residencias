@@ -16,6 +16,14 @@ import {
 } from '../../controllers/private/usersController.js';
 import { reportsPrivate } from '../../controllers/private/reportsController.js';
 import { auditPrivate } from '../../controllers/private/auditController.js';
+import {
+  createRbacRole,
+  updateRbacRole,
+  deleteRbacRole,
+  updateUserPermissions,
+  generateCodes,
+  revokeCode,
+} from '../../controllers/private/rbacController.js';
 
 const adminRouter = Router();
 
@@ -49,5 +57,39 @@ adminRouter.get('/private/reports', reportsPrivate);
 // MÓDULO: AUDITORÍA (Admin Only)
 // ══════════════════════════════════════════════════════════════════════════════
 adminRouter.get('/private/audit', requireRole('admin'), auditPrivate);
+
+// ══════════════════════════════════════════════════════════════════════════════
+// MÓDULO: RBAC Y ROLES (Admin Only)
+// ══════════════════════════════════════════════════════════════════════════════
+adminRouter.post(
+  '/private/rbac/roles/create',
+  requireRole('admin'),
+  createRbacRole,
+);
+adminRouter.post(
+  '/private/rbac/roles/edit/:id',
+  requireRole('admin'),
+  updateRbacRole,
+);
+adminRouter.post(
+  '/private/rbac/roles/delete/:id',
+  requireRole('admin'),
+  deleteRbacRole,
+);
+adminRouter.post(
+  '/private/rbac/users/:id/permissions',
+  requireRole('admin'),
+  updateUserPermissions,
+);
+
+// ══════════════════════════════════════════════════════════════════════════════
+// MÓDULO: CÓDIGOS INIFAP (Admin Only)
+// ══════════════════════════════════════════════════════════════════════════════
+adminRouter.post(
+  '/private/codes/generate',
+  requireRole('admin'),
+  generateCodes,
+);
+adminRouter.post('/private/codes/revoke/:id', requireRole('admin'), revokeCode);
 
 export default adminRouter;

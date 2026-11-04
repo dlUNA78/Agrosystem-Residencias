@@ -12,6 +12,22 @@ export default (sequelize, DataTypes) => {
         foreignKey: 'user_id',
         as: 'auditLogs',
       });
+      User.belongsTo(models.RbacRole, {
+        foreignKey: 'rbac_role_id',
+        as: 'rbacRole',
+      });
+      User.hasMany(models.Notification, {
+        foreignKey: 'user_id',
+        as: 'notifications',
+      });
+      User.hasMany(models.InifapCode, {
+        foreignKey: 'created_by_user_id',
+        as: 'createdCodes',
+      });
+      User.hasMany(models.Farm, {
+        foreignKey: 'user_id',
+        as: 'farms',
+      });
     }
   }
   User.init(
@@ -27,6 +43,11 @@ export default (sequelize, DataTypes) => {
       shift: DataTypes.STRING,
       photo_url: DataTypes.TEXT,
       status: DataTypes.STRING,
+      rbac_role_id: DataTypes.INTEGER,
+      custom_permissions: {
+        type: DataTypes.JSONB,
+        defaultValue: { allow: [], deny: [] },
+      },
     },
     {
       sequelize,

@@ -124,6 +124,9 @@ export const authController = {
 
         // Paso 2: Escalar privilegios del usuario en PostgreSQL
         req.user.role = 'inifap';
+        if (inifapCode.rbac_role_id) {
+          req.user.rbac_role_id = inifapCode.rbac_role_id;
+        }
         req.user.job_title = job_title?.trim() || 'Investigador';
         await req.user.save({ transaction: t });
       });

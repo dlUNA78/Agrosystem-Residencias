@@ -7,10 +7,11 @@ export default (sequelize, DataTypes) => {
 
     /**
      * Verifica si el código está disponible para ser canjeado.
-     * Comprueba que no esté marcado como usado y que no haya expirado.
+     * Comprueba que no esté marcado como usado, no haya sido revocado y no haya expirado.
      */
     isAvailable() {
       if (this.is_used) return false;
+      if (this.revoked_at) return false;
       if (this.expires_at && new Date() > this.expires_at) return false;
       return true;
     }
@@ -87,6 +88,24 @@ export default (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: true,
       },
+
+      // Sub-rol opcional preasignado al canjear
+      rbac_role_id: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
+
+      // Admin que generó el código
+      created_by_user_id: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
+
+      // Fecha de revocación manual
+      revoked_at: {
+        type: DataTypes.DATE,
+        allowNull: true,
+      },
     },
     {
       sequelize,
@@ -100,6 +119,16 @@ export default (sequelize, DataTypes) => {
     InifapCode.belongsTo(models.User, {
       foreignKey: 'used_by_user_id',
       as: 'usedBy',
+    });
+    // Un código pertenece al usuario administrador que lo generó
+    InifapCode.belongsTo(models.User, {
+      foreignKey: 'created_by_user_id',
+      as: 'createdBy',
+    });
+    // Un código puede tener un sub-rol asociado
+    InifapCode.belongsTo(models.RbacRole, {
+      foreignKey: 'rbac_role_id',
+      as: 'targetRole',
     });
   };
 

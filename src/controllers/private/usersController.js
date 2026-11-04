@@ -6,6 +6,14 @@ import {
   buildUserListWhere,
   normalizeUserListQuery,
 } from '../../services/userListService.js';
+import {
+  listInifapCodes,
+  serializeInifapCode,
+} from '../../services/inifapCodeService.js';
+import {
+  PERMISSION_DEFINITIONS,
+  resolveEffectivePermissions,
+} from '../../services/rbacService.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -13,13 +21,19 @@ const __dirname = path.dirname(__filename);
 const privateLayout = path.join(__dirname, '../../views/layouts/private');
 const publicLayout = path.join(__dirname, '../../views/layouts/public');
 
-const { User } = db;
+const { User, RbacRole } = db;
 
 const SUCCESS_MESSAGES = {
   usuario_creado: 'Usuario institucional registrado correctamente.',
   usuario_actualizado: 'Datos y permisos del usuario actualizados.',
   estatus_actualizado: 'Estatus operativo del usuario actualizado.',
   usuario_eliminado: 'Cuenta de usuario eliminada permanentemente.',
+  rol_creado: 'Sub-rol RBAC creado exitosamente.',
+  rol_actualizado: 'Sub-rol y permisos actualizados.',
+  rol_eliminado: 'Sub-rol RBAC eliminado.',
+  permisos_actualizados: 'Permisos y perfil del usuario actualizados.',
+  codigos_generados: 'Lote de códigos de acceso INIFAP generado exitosamente.',
+  codigo_revocado: 'Código INIFAP revocado correctamente.',
 };
 
 const ERROR_MESSAGES = {
@@ -33,6 +47,19 @@ const ERROR_MESSAGES = {
   auto_eliminacion_prohibida:
     'Por seguridad no puedes eliminar tu propia cuenta activa.',
   eliminacion_fallida: 'No fue posible eliminar la cuenta de usuario.',
+  nombre_rol_requerido: 'El nombre del sub-rol es obligatorio.',
+  rol_sistema_protegido:
+    'Los roles base del sistema están protegidos contra eliminación.',
+  auto_bloqueo_restringido:
+    'Por seguridad no puedes auto-suspenderte ni retirar tu rol de Administrador.',
+  rol_no_encontrado: 'El sub-rol solicitado no existe.',
+  creacion_rol_fallida: 'No fue posible crear el sub-rol.',
+  actualizacion_rol_fallida: 'No fue posible actualizar el sub-rol.',
+  eliminacion_rol_fallida: 'No fue posible eliminar el sub-rol.',
+  actualizacion_permisos_fallida:
+    'No fue posible actualizar los permisos del usuario.',
+  generacion_codigos_fallida: 'No fue posible generar los códigos de acceso.',
+  revocacion_fallida: 'No fue posible revocar el código solicitado.',
 };
 
 const recordUserAudit = async ({
@@ -99,6 +126,8 @@ const sanitizeUserRecord = (userInstance) => {
       ? userInstance.toJSON()
       : { ...userInstance };
   delete plain.password_hash;
+  const effective = resolveEffectivePermissions(userInstance);
+  plain.effectivePermissions = Array.from(effective);
   return plain;
 };
 
@@ -112,6 +141,9 @@ const applyUserUpdates = (user, body = {}) => {
   if (body.job_title !== undefined) user.job_title = trimOrNull(body.job_title);
   if (body.phone !== undefined) user.phone = trimOrNull(body.phone);
   if (body.address !== undefined) user.address = trimOrNull(body.address);
+  if (body.rbac_role_id !== undefined) {
+    user.rbac_role_id = body.rbac_role_id ? Number(body.rbac_role_id) : null;
+  }
 };
 
 export const usersPrivate = async (req, res) => {
@@ -119,18 +151,47 @@ export const usersPrivate = async (req, res) => {
     const filters = normalizeUserListQuery(req.query);
     const users = await User.findAll({
       where: buildUserListWhere(db.Sequelize, filters),
+      include: [{ model: RbacRole, as: 'rbacRole' }],
       order: [['createdAt', 'DESC']],
     });
 
+    const [rbacRoles, rawCodes] = await Promise.all([
+      RbacRole.findAll({
+        order: [
+          ['is_system', 'DESC'],
+          ['name', 'ASC'],
+        ],
+      }),
+      listInifapCodes({
+        status: req.query.codeStatus,
+        search: req.query.codeSearch,
+      }),
+    ]);
+
     const safeUsers = users.map(sanitizeUserRecord);
+    const plainRoles = rbacRoles.map((r) =>
+      typeof r.toJSON === 'function' ? r.toJSON() : r,
+    );
+    const safeCodes = rawCodes.map(serializeInifapCode);
     const successCode = req.query?.success || '';
     const errorCode = req.query?.error || '';
+    const activeTab = ['users', 'rbac', 'codes'].includes(req.query.tab)
+      ? req.query.tab
+      : 'users';
 
     return res.render('private/admin/users', {
       layout: privateLayout,
-      pageTitle: 'Usuarios',
+      pageTitle: 'Usuarios y Control RBAC',
       activePage: 'users',
+      activeTab,
       users: safeUsers,
+      rbacRoles: plainRoles,
+      permissionDefinitions: PERMISSION_DEFINITIONS,
+      codes: safeCodes,
+      codeFilters: {
+        status: req.query.codeStatus || 'all',
+        search: req.query.codeSearch || '',
+      },
       stats: calculateUserStats(safeUsers),
       filters,
       success: SUCCESS_MESSAGES[successCode] || successCode,
@@ -152,9 +213,13 @@ export const usersPrivate = async (req, res) => {
     console.error('Error al listar usuarios:', error);
     return res.status(500).render('private/admin/users', {
       layout: privateLayout,
-      pageTitle: 'Usuarios',
+      pageTitle: 'Usuarios y Control RBAC',
       activePage: 'users',
+      activeTab: 'users',
       users: [],
+      rbacRoles: [],
+      permissionDefinitions: PERMISSION_DEFINITIONS,
+      codes: [],
       stats: { total: 0, activos: 0, inifap: 0, admins: 0 },
       error: 'Ocurrió un error al cargar la lista de usuarios.',
     });
