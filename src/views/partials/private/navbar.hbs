@@ -45,6 +45,66 @@
       <i data-lucide="bar-chart-2" class="h-4.5 w-4.5" aria-hidden="true"></i>
     </a>
 
+    <!-- Centro de Notificaciones Híbrido -->
+    <div id="notifications-menu-container" class="relative">
+      <button
+        id="notifications-trigger-btn"
+        type="button"
+        aria-haspopup="true"
+        aria-expanded="false"
+        aria-controls="notifications-dropdown-panel"
+        aria-label="Centro de notificaciones"
+        title="Centro de notificaciones"
+        class="relative flex h-9 w-9 cursor-pointer items-center justify-center rounded-full text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-[#1b4332] focus:outline-2 focus:outline-[#1b4332]"
+      >
+        <i data-lucide="bell" class="h-4.5 w-4.5" aria-hidden="true"></i>
+        <span
+          id="notifications-badge"
+          class="hidden absolute -top-0.5 -right-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-rose-600 px-1 font-['Geist_Mono'] text-[9px] font-bold text-white shadow-xs"
+        >
+          0
+        </span>
+      </button>
+
+      <!-- Panel Desplegable de Notificaciones -->
+      <div
+        id="notifications-dropdown-panel"
+        role="region"
+        aria-label="Buzón de notificaciones"
+        class="hidden absolute top-12 right-0 z-50 w-80 sm:w-96 rounded-2xl border border-neutral-200 bg-white shadow-xl overflow-hidden font-['Geist'] text-slate-900"
+      >
+        <div class="flex items-center justify-between border-b border-neutral-100 bg-neutral-50/70 px-4 py-3">
+          <div class="flex items-center gap-2">
+            <h4 class="text-xs font-bold text-slate-900">Notificaciones</h4>
+            <span
+              id="notifications-unread-counter"
+              class="rounded-full bg-emerald-100 px-2 py-0.2 font-['Geist_Mono'] text-[10px] font-bold text-[#1b4332]"
+            >
+              0 nuevas
+            </span>
+          </div>
+          <button
+            id="notifications-mark-all-btn"
+            type="button"
+            class="text-[11px] font-medium text-slate-500 hover:text-[#1b4332] cursor-pointer transition-colors"
+          >
+            Marcar todas como leídas
+          </button>
+        </div>
+
+        <div id="notifications-operational-summary" class="hidden border-b border-neutral-100 bg-emerald-50/40 p-2.5"></div>
+
+        <div
+          id="notifications-list-container"
+          class="max-h-80 overflow-y-auto divide-y divide-neutral-100"
+        >
+          <div class="py-8 text-center text-xs text-slate-400">
+            Cargando notificaciones...
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Menú de Cuenta Accesible (Click, Teclado y Hover) -->
     <div id="user-menu-container" class="group relative py-1">
       <button

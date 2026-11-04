@@ -8,6 +8,7 @@ import {
   ProductWorkflowError,
   transitionProductWorkflow,
 } from '../../../services/productWorkflowService.js';
+import { notifyAuthorOnWorkflowChange } from '../../../services/notificationService.js';
 
 const { Product, ProductImage, AuditLog } = db;
 const parseId = (value) => {
@@ -81,6 +82,16 @@ export const updateProductWorkflow = async (req, res) => {
       { transaction },
     );
     await transaction.commit();
+
+    await notifyAuthorOnWorkflowChange({
+      authorId: product.created_by_user_id,
+      actorId: req.user.id,
+      entityName: product.name,
+      moduleTitle: 'Insumo',
+      workflowStatus: changes.workflow_status || req.body.action,
+      actionUrl: `/private/products/${product.id}`,
+    });
+
     return res.redirect(`/private/products/${product.id}`);
   } catch (error) {
     await transaction.rollback();

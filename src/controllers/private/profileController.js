@@ -8,6 +8,7 @@ import {
 } from '../../services/profileService.js';
 import { revokeOtherSessions } from '../../services/sessionManagementService.js';
 import { resolveEffectivePermissions } from '../../services/rbacService.js';
+import { createNotification } from '../../services/notificationService.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -117,6 +118,16 @@ export const changePassword = async (req, res) => {
       confirmPassword: req.body.confirm_password,
     });
 
+    await createNotification({
+      userId: req.user.id,
+      category: 'seguridad',
+      severity: 'info',
+      title: 'Contraseña Actualizada',
+      message:
+        'Tu contraseña de acceso institucional ha sido modificada con éxito.',
+      actionUrl: `${redirectBase}#tab-security`,
+    });
+
     return res.redirect(`${redirectBase}?success=password_actualizado`);
   } catch (err) {
     console.warn('Error al cambiar contraseña:', err.message);
@@ -138,6 +149,17 @@ export const revokeOtherSessionsHandler = async (req, res) => {
   const redirectBase = resolveProfileRedirectBase(req);
   try {
     await revokeOtherSessions(req.user.id, req.sessionID);
+
+    await createNotification({
+      userId: req.user.id,
+      category: 'seguridad',
+      severity: 'info',
+      title: 'Sesiones Remotas Cerradas',
+      message:
+        'Se han revocado todas las otras sesiones activas en diferentes navegadores.',
+      actionUrl: `${redirectBase}#tab-security`,
+    });
+
     return res.redirect(`${redirectBase}?success=sesiones_cerradas`);
   } catch (err) {
     console.error('Error al revocar sesiones:', err);

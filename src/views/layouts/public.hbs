@@ -72,6 +72,9 @@
   <script src="/vendor/lucide/lucide.min.js"></script>
   <script src="/js/public/navbar.js?v=2.2"></script>
   <script src="/js/main.js?v=2.2"></script>
+  {{#if user}}
+  <script src="/js/shared/notifications-hub.js"></script>
+  {{/if}}
   {{#if (eq activePage 'home')}}
   <script src="/js/public/home-map.js?v=2.2"></script>
   {{/if}}

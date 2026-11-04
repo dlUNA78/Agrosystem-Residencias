@@ -5,6 +5,7 @@ import {
   revokeInifapCode,
 } from '../../services/inifapCodeService.js';
 import { canModifyUserRoleOrStatus } from '../../services/rbacService.js';
+import { createNotification } from '../../services/notificationService.js';
 
 const { RbacRole, User, AuditLog } = db;
 
@@ -202,6 +203,17 @@ export const updateUserPermissions = async (req, res) => {
         rbac_role_id: user.rbac_role_id,
         custom_permissions: user.custom_permissions,
       },
+    });
+
+    await createNotification({
+      userId: user.id,
+      actorId: req.user?.id,
+      category: 'rbac',
+      severity: 'info',
+      title: 'Permisos Actualizados',
+      message:
+        'Tu perfil institucional o capacidades delegadas han sido actualizadas por la administración.',
+      actionUrl: '/private/profile',
     });
 
     return res.redirect(

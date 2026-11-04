@@ -1,5 +1,9 @@
 import bcrypt from 'bcrypt';
 import db from '../models/index.js';
+import {
+  createNotification,
+  notifyAdmins,
+} from '../services/notificationService.js';
 
 const { User, InifapCode, sequelize } = db;
 
@@ -129,6 +133,24 @@ export const authController = {
         }
         req.user.job_title = job_title?.trim() || 'Investigador';
         await req.user.save({ transaction: t });
+      });
+
+      await createNotification({
+        userId: req.user.id,
+        category: 'sistema',
+        severity: 'success',
+        title: 'Ascenso Institucional Exitoso',
+        message: 'Has sido promovido exitosamente a Personal Técnico INIFAP.',
+        actionUrl: '/dashboard',
+      });
+
+      await notifyAdmins({
+        actorId: req.user.id,
+        category: 'rbac',
+        severity: 'info',
+        title: 'Canje de Código INIFAP',
+        message: `El usuario ${req.user.full_name || req.user.email} canjeó el código institucional ${inifapCode.code}.`,
+        actionUrl: '/private/users',
       });
 
       // 🛡️ Regeneración de ID de sesión al elevar privilegios (Anti-Session Fixation)

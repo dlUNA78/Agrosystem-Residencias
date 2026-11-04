@@ -1,9 +1,11 @@
 export const publicReadOnlyGuard = (req, res, next) => {
-  // Ignorar rutas privadas, de autenticación o de perfil de usuario
+  // Ignorar rutas privadas, de autenticación, de perfil de usuario o de notificaciones
   if (
     req.path.startsWith('/private') ||
     req.path.startsWith('/auth') ||
-    req.path.startsWith('/profile')
+    req.path.startsWith('/profile') ||
+    req.path.startsWith('/notifications') ||
+    req.path.startsWith('/api/notifications')
   ) {
     return next();
   }

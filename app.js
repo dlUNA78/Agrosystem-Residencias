@@ -17,6 +17,7 @@ import db from './src/models/index.js';
 import publicRoutes from './src/routes/publicRoutes.js';
 import privateRoutes from './src/routes/privateRoutes.js';
 import authRoutes from './src/routes/auth.js';
+import notificationRoutes from './src/routes/notificationRoutes.js';
 import { seedDefaultUsers } from './src/scripts/seedDefaultUsers.js';
 import {
   resolveEffectivePermissions,
@@ -363,6 +364,7 @@ app.use((req, res, next) => {
 app.use('/auth', authRoutes);
 app.use('/', publicRoutes);
 app.use('/', privateRoutes);
+app.use('/', notificationRoutes);
 
 // Arrancar el servidor solo si no estamos en entorno de prueba
 if (process.env.NODE_ENV !== 'test') {
