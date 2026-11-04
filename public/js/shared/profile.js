@@ -46,7 +46,7 @@
       }
 
       const reader = new FileReader();
-      reader.onload = (e) => {
+      reader.addEventListener('load', (e) => {
         if (previewImg) {
           previewImg.src = e.target.result;
           previewImg.classList.remove('hidden');
@@ -57,7 +57,7 @@
         if (actionsBar) {
           actionsBar.classList.remove('hidden');
         }
-      };
+      });
       reader.readAsDataURL(file);
     });
 

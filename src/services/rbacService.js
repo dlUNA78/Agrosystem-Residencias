@@ -261,6 +261,13 @@ const BASE_INIFAP_PERMISSIONS = Object.freeze(
   ]),
 );
 
+const BASE_AGRICULTOR_PERMISSIONS = Object.freeze(
+  new Set([
+    PANEL_PERMISSIONS.LANDS_VIEW_PRIVATE,
+    PANEL_PERMISSIONS.LANDS_MANAGE,
+  ]),
+);
+
 const parsePermissionsList = (val) => {
   if (!val) return [];
   if (Array.isArray(val)) return val;
@@ -289,6 +296,9 @@ const extractCustomOverrides = (user) => {
 const getBasePermissionsForRole = (role) => {
   if (role === 'inifap') {
     return new Set(BASE_INIFAP_PERMISSIONS);
+  }
+  if (role === 'agricultor') {
+    return new Set(BASE_AGRICULTOR_PERMISSIONS);
   }
   return new Set();
 };

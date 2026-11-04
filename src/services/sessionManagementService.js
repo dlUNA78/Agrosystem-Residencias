@@ -13,7 +13,12 @@ const parseBrowserName = (ua) => {
   if (/edg/i.test(ua)) return 'Microsoft Edge';
   if (/chrome|crios/i.test(ua)) return 'Google Chrome';
   if (/firefox|fxios/i.test(ua)) return 'Mozilla Firefox';
-  if (/safari/i.test(ua) && !/chrome/i.test(ua)) return 'Apple Safari';
+  if (
+    (/safari/i.test(ua) || /iphone|ipad|ipod/i.test(ua)) &&
+    !/chrome/i.test(ua)
+  ) {
+    return 'Apple Safari';
+  }
   if (/curl|postman|supertest/i.test(ua)) return 'Cliente API / Prueba';
   return 'Navegador Web';
 };
