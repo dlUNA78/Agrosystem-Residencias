@@ -8,16 +8,37 @@ const { Op } = Sequelize;
 const CODE_CHARS = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
 
 export const generateSingleCodeString = () => {
-  const randomBytes = crypto.randomBytes(8);
-  let segmentA = '';
-  let segmentB = '';
+  const randomBytes = crypto.randomBytes(16);
+  let partA = '';
+  let partB = '';
+  let partC = '';
+  let partD = '';
 
   for (let i = 0; i < 4; i += 1) {
-    segmentA += CODE_CHARS[randomBytes[i] % CODE_CHARS.length];
-    segmentB += CODE_CHARS[randomBytes[i + 4] % CODE_CHARS.length];
+    partA += CODE_CHARS[randomBytes[i] % CODE_CHARS.length];
+    partB += CODE_CHARS[randomBytes[i + 4] % CODE_CHARS.length];
+    partC += CODE_CHARS[randomBytes[i + 8] % CODE_CHARS.length];
+    partD += CODE_CHARS[randomBytes[i + 12] % CODE_CHARS.length];
   }
 
-  return `INIFAP-${segmentA}-${segmentB}`;
+  return `AGS-${partA}-${partB}-${partC}-${partD}`;
+};
+
+export const computeCodeHash = (rawCode) => {
+  if (!rawCode || typeof rawCode !== 'string') return null;
+  return crypto
+    .createHash('sha256')
+    .update(rawCode.trim().toUpperCase())
+    .digest('hex');
+};
+
+export const maskCodeString = (rawCode) => {
+  if (!rawCode || typeof rawCode !== 'string') return '****';
+  const clean = rawCode.trim().toUpperCase();
+  if (clean.length < 10) return '****';
+  const prefix = clean.slice(0, 8);
+  const suffix = clean.slice(-4);
+  return `${prefix}-****-****-${suffix}`;
 };
 
 const calculateExpirationDate = (days) => {
@@ -38,14 +59,23 @@ const createSingleCodeRecord = async ({
   let attempts = 0;
   while (!created && attempts < 5) {
     try {
-      const codeString = generateSingleCodeString();
+      const rawToken = generateSingleCodeString();
+      const codeHash = computeCodeHash(rawToken);
+      const codeMasked = maskCodeString(rawToken);
+
       created = await InifapCode.create({
-        code: codeString,
+        code: rawToken,
+        code_hash: codeHash,
+        code_masked: codeMasked,
         expires_at: expiresAt,
         note,
         rbac_role_id: rbacRoleId,
         created_by_user_id: createdByUserId,
       });
+
+      if (created) {
+        created.rawCode = rawToken;
+      }
     } catch (err) {
       attempts += 1;
       if (attempts >= 5) throw err;
@@ -190,8 +220,12 @@ export const serializeInifapCode = (codeInstance) => {
       : { ...codeInstance };
 
   const statusState = formatSingleCodeState(plain);
+  const masked = plain.code_masked || maskCodeString(plain.code);
   return {
     ...plain,
+    code: masked,
+    code_masked: masked,
+    rawCode: codeInstance.rawCode || null,
     statusLabel: statusState.label,
     statusColor: statusState.color,
     statusKey: statusState.key,

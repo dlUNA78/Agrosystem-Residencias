@@ -121,8 +121,16 @@ export const buildAuditWhere = (Sequelize, query) => {
     where.table_name = { [Op.in]: MODULE_TABLES[query.module] };
   }
 
+  const excludedLowImpactActions = [
+    'AVATAR_UPDATE',
+    'AVATAR_REMOVE',
+    'PROFILE_UPDATE',
+  ];
+
   if (query.action && ACTION_GROUPS[query.action]) {
     where.action = { [Op.in]: ACTION_GROUPS[query.action] };
+  } else {
+    where.action = { [Op.notIn]: excludedLowImpactActions };
   }
 
   const dateRange = buildCreatedAtRange(Op, query.dateFrom, query.dateTo);

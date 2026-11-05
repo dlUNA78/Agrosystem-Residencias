@@ -2,15 +2,15 @@ import PDFDocument from 'pdfkit';
 
 const COLORS = Object.freeze({
   brand: '#1b4332',
-  brandSoft: '#ecfdf5',
-  accent: '#047857',
+  brandMuted: '#2d6a4f',
   ink: '#0f172a',
-  muted: '#475569',
+  muted: '#334155',
   subtle: '#64748b',
   border: '#cbd5e1',
-  surface: '#f8fafc',
-  dangerSoft: '#fff1f2',
-  dangerInk: '#be123c',
+  borderLight: '#e2e8f0',
+  surface: '#ffffff',
+  headerBg: '#f8fafc',
+  alertInk: '#991b1b',
 });
 
 const PAGE_MARGIN = 42;
@@ -51,25 +51,31 @@ const ensureVerticalSpace = (doc, neededHeight = 72) => {
 };
 
 const drawSectionTitle = (doc, indexLabel, title) => {
-  ensureVerticalSpace(doc, 52);
-  doc.moveDown(0.5);
+  ensureVerticalSpace(doc, 48);
+  doc.moveDown(0.6);
   const { startX, contentWidth } = getPageBox(doc);
   const topY = doc.y;
 
   doc.save();
-  doc.roundedRect(startX, topY, contentWidth, 21, 4).fill(COLORS.brandSoft);
   doc
     .fillColor(COLORS.brand)
     .font('Helvetica-Bold')
-    .fontSize(9)
+    .fontSize(10)
     .text(
       `${indexLabel}. ${sanitizePdfText(title).toUpperCase()}`,
-      startX + 10,
-      topY + 6,
-      { width: contentWidth - 20 },
+      startX,
+      topY,
+      { width: contentWidth },
     );
+
+  doc
+    .moveTo(startX, topY + 15)
+    .lineTo(startX + contentWidth, topY + 15)
+    .strokeColor(COLORS.border)
+    .lineWidth(0.75)
+    .stroke();
   doc.restore();
-  doc.y = topY + 28;
+  doc.y = topY + 24;
 };
 
 const drawHeaderBanner = (doc, data, user) => {
@@ -81,7 +87,7 @@ const drawHeaderBanner = (doc, data, user) => {
   ).toUpperCase();
   const operatorName = sanitizePdfText(
     user?.full_name || user?.email,
-    'Unidad Fitosanitaria INIFAP',
+    'Personal Técnico INIFAP',
   );
   const emittedAt = new Date().toLocaleDateString('es-MX', {
     day: '2-digit',
@@ -90,56 +96,93 @@ const drawHeaderBanner = (doc, data, user) => {
   });
 
   doc.save();
-  doc.roundedRect(startX, bannerY, contentWidth, 66, 6).fill(COLORS.brand);
+  // Regla superior institucional
+  doc.rect(startX, bannerY, contentWidth, 3).fill(COLORS.brand);
+
+  // Títulos institucionales
   doc
-    .fillColor('#a7f3d0')
-    .font('Courier-Bold')
+    .fillColor(COLORS.brand)
+    .font('Helvetica-Bold')
     .fontSize(8)
     .text(
-      'INIFAP - SISTEMA NACIONAL DE VIGILANCIA Y REPORTES OPERATIVOS',
-      startX + 14,
-      bannerY + 11,
-      { width: contentWidth - 150 },
+      'INSTITUTO NACIONAL DE INVESTIGACIONES FORESTALES, AGRICOLAS Y PECUARIAS',
+      startX,
+      bannerY + 10,
+      { width: contentWidth - 170 },
     );
   doc
-    .fillColor('#ffffff')
+    .fillColor(COLORS.ink)
     .font('Helvetica-Bold')
     .fontSize(14)
     .text(
       'Resumen Ejecutivo de Operacion Fitosanitaria',
-      startX + 14,
-      bannerY + 25,
-      { width: contentWidth - 160 },
+      startX,
+      bannerY + 24,
+      { width: contentWidth - 170 },
     );
   doc
-    .fillColor('#d1fae5')
-    .font('Courier')
+    .fillColor(COLORS.muted)
+    .font('Helvetica')
     .fontSize(8)
     .text(
-      `Emitido por: ${operatorName} | Fecha: ${sanitizePdfText(emittedAt)}`,
-      startX + 14,
-      bannerY + 46,
-      { width: contentWidth - 160 },
+      'Sistema Nacional de Informacion y Trazabilidad Fitosanitaria - INIFAP Agrosystem',
+      startX,
+      bannerY + 44,
+      { width: contentWidth - 170 },
     );
 
+  // Cuadro formal de metadatos a la derecha
+  const metaBoxWidth = 160;
+  const metaBoxX = startX + contentWidth - metaBoxWidth;
   doc
-    .roundedRect(startX + contentWidth - 134, bannerY + 18, 120, 28, 4)
-    .fill('#133326');
+    .roundedRect(metaBoxX, bannerY + 10, metaBoxWidth, 48, 4)
+    .fillAndStroke(COLORS.headerBg, COLORS.border);
+
   doc
-    .fillColor('#6ee7b7')
-    .font('Courier-Bold')
+    .fillColor(COLORS.subtle)
+    .font('Helvetica-Bold')
+    .fontSize(7)
+    .text('PERIODO OPERATIVO:', metaBoxX + 8, bannerY + 16);
+  doc
+    .fillColor(COLORS.ink)
+    .font('Helvetica-Bold')
+    .fontSize(8.5)
+    .text(periodLabel, metaBoxX + 90, bannerY + 15, {
+      width: 62,
+      align: 'right',
+    });
+
+  doc
+    .fillColor(COLORS.subtle)
+    .font('Helvetica-Bold')
+    .fontSize(7)
+    .text('FECHA DE EMISION:', metaBoxX + 8, bannerY + 28);
+  doc
+    .fillColor(COLORS.ink)
+    .font('Helvetica')
     .fontSize(8)
-    .text(
-      `PERIODO: ${periodLabel}`,
-      startX + contentWidth - 128,
-      bannerY + 28,
-      {
-        width: 108,
-        align: 'center',
-      },
-    );
+    .text(sanitizePdfText(emittedAt), metaBoxX + 80, bannerY + 28, {
+      width: 72,
+      align: 'right',
+    });
+
+  doc
+    .fillColor(COLORS.subtle)
+    .font('Helvetica-Bold')
+    .fontSize(7)
+    .text('RESPONSABLE:', metaBoxX + 8, bannerY + 40);
+  doc
+    .fillColor(COLORS.ink)
+    .font('Helvetica')
+    .fontSize(7.5)
+    .text(operatorName, metaBoxX + 68, bannerY + 40, {
+      width: 84,
+      align: 'right',
+      ellipsis: true,
+    });
+
   doc.restore();
-  doc.y = bannerY + 78;
+  doc.y = bannerY + 68;
 };
 
 const drawKpiCards = (doc, rawKpis) => {
@@ -150,14 +193,18 @@ const drawKpiCards = (doc, rawKpis) => {
   const topY = doc.y;
 
   const items = [
-    ['PLAGAS REPORTADAS', String(kpis.reportedPlagues ?? 0), 'Incidencias'],
     [
-      'APLICACIONES QUIMICAS',
-      String(kpis.chemicalApplications ?? 0),
-      sanitizePdfText(kpis.formattedHectares, '0 ha'),
+      'PLAGAS REPORTADAS',
+      String(kpis.reportedPlagues ?? 0),
+      'Incidencias fitosanitarias',
     ],
-    ['PREDIOS MONITOREADOS', String(kpis.monitoredFarms ?? 0), 'Activos'],
-    ['ALERTAS CRITICAS', String(kpis.criticalAlerts ?? 0), 'Severidad alta'],
+    [
+      'APLICACIONES',
+      String(kpis.chemicalApplications ?? 0),
+      sanitizePdfText(kpis.formattedHectares, '0 ha tratadas'),
+    ],
+    ['PREDIOS ACTIVOS', String(kpis.monitoredFarms ?? 0), 'Bajo monitoreo'],
+    ['ALERTAS CRITICAS', String(kpis.criticalAlerts ?? 0), 'Prioridad alta'],
   ];
 
   items.forEach(([label, value, sub], index) => {
@@ -165,30 +212,28 @@ const drawKpiCards = (doc, rawKpis) => {
     const isAlert = index === 3 && Number(kpis.criticalAlerts) > 0;
     doc.save();
     doc
-      .roundedRect(x, topY, cardWidth, 56, 5)
-      .fillAndStroke(
-        isAlert ? COLORS.dangerSoft : COLORS.surface,
-        COLORS.border,
-      );
+      .roundedRect(x, topY, cardWidth, 54, 4)
+      .fillAndStroke(COLORS.surface, COLORS.border);
+
     doc
       .fillColor(COLORS.subtle)
-      .font('Courier-Bold')
+      .font('Helvetica-Bold')
       .fontSize(7)
       .text(label, x + 8, topY + 8, { width: cardWidth - 16 });
     doc
-      .fillColor(isAlert ? COLORS.dangerInk : COLORS.ink)
+      .fillColor(isAlert ? COLORS.alertInk : COLORS.ink)
       .font('Helvetica-Bold')
       .fontSize(15)
-      .text(value, x + 8, topY + 21, { width: cardWidth - 16 });
+      .text(value, x + 8, topY + 20, { width: cardWidth - 16 });
     doc
       .fillColor(COLORS.muted)
       .font('Helvetica')
-      .fontSize(7.5)
-      .text(sub, x + 8, topY + 41, { width: cardWidth - 16 });
+      .fontSize(7)
+      .text(sub, x + 8, topY + 39, { width: cardWidth - 16 });
     doc.restore();
   });
 
-  doc.y = topY + 66;
+  doc.y = topY + 64;
 };
 
 const drawDistributionsSection = (doc, data) => {
@@ -328,22 +373,24 @@ const drawApplicationsTable = (doc, applications = []) => {
   }
 
   const cols = [72, 115, 115, 78, contentWidth - 380];
-  const headers = ['FECHA', 'PREDIO', 'INSUMO', 'DOSIS', 'TECNICO'];
+  const headers = ['FECHA', 'PREDIO', 'INSUMO', 'DOSIS', 'TÉCNICO RESPONSABLE'];
   const headerY = doc.y;
 
   doc.save();
-  doc.rect(startX, headerY, contentWidth, 18).fill(COLORS.surface);
+  doc
+    .rect(startX, headerY, contentWidth, 20)
+    .fillAndStroke(COLORS.headerBg, COLORS.borderLight);
   let cursorX = startX + 6;
   headers.forEach((h, idx) => {
     doc
       .fillColor(COLORS.subtle)
-      .font('Courier-Bold')
+      .font('Helvetica-Bold')
       .fontSize(7.5)
-      .text(h, cursorX, headerY + 5, { width: cols[idx] - 8 });
+      .text(h, cursorX, headerY + 6, { width: cols[idx] - 8 });
     cursorX += cols[idx];
   });
   doc.restore();
-  doc.y = headerY + 20;
+  doc.y = headerY + 22;
 
   applications.slice(0, 12).forEach((app) => {
     ensureVerticalSpace(doc, 22);
@@ -360,7 +407,7 @@ const drawApplicationsTable = (doc, applications = []) => {
     values.forEach((val, idx) => {
       doc
         .fillColor(COLORS.ink)
-        .font(idx === 0 || idx === 3 ? 'Courier' : 'Helvetica')
+        .font('Helvetica')
         .fontSize(8)
         .text(val, colX, rowY + 3, {
           width: cols[idx] - 8,
@@ -373,7 +420,7 @@ const drawApplicationsTable = (doc, applications = []) => {
     doc
       .moveTo(startX, rowY + 16)
       .lineTo(startX + contentWidth, rowY + 16)
-      .strokeColor('#e2e8f0')
+      .strokeColor(COLORS.borderLight)
       .lineWidth(0.5)
       .stroke();
     doc.y = rowY + 18;
@@ -388,10 +435,10 @@ const drawFooters = (doc) => {
     const footerY = doc.page.height - 28;
     doc
       .fillColor(COLORS.subtle)
-      .font('Courier')
+      .font('Helvetica')
       .fontSize(7.5)
       .text(
-        `INIFAP Agrosystem - Documento tecnico de trazabilidad fitosanitaria | Pagina ${i + 1} de ${range.count}`,
+        `INIFAP · Documento Técnico Oficial emitido por Agrosystem · Página ${i + 1} de ${range.count}`,
         startX,
         footerY,
         { width: contentWidth, align: 'center', lineBreak: false },

@@ -266,13 +266,6 @@ export const updateUserAvatar = async (
     await removeAvatarDiskFile(oldPhotoUrl);
     user.photo_url = null;
     await user.save();
-    await recordSafeAuditLog({
-      recordId: user.id,
-      userId: user.id,
-      action: 'AVATAR_REMOVE',
-      oldValues: { photo_url: oldPhotoUrl },
-      newValues: { photo_url: null },
-    });
     return null;
   }
 
@@ -281,13 +274,6 @@ export const updateUserAvatar = async (
     const newPhotoUrl = `/images/avatars/${filename}`;
     user.photo_url = newPhotoUrl;
     await user.save();
-    await recordSafeAuditLog({
-      recordId: user.id,
-      userId: user.id,
-      action: 'AVATAR_UPDATE',
-      oldValues: { photo_url: oldPhotoUrl },
-      newValues: { photo_url: newPhotoUrl },
-    });
     return newPhotoUrl;
   }
 

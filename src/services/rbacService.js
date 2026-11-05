@@ -357,6 +357,14 @@ export const canModifyUserRoleOrStatus = ({
     };
   }
 
+  if (!isSelf && newRole === 'admin') {
+    return {
+      allowed: false,
+      reason:
+        'Por gobernanza institucional, el rol de Administrador General es único y no transferible.',
+    };
+  }
+
   if (isSelf && newStatus === 'suspendido') {
     return {
       allowed: false,

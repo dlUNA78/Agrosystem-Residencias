@@ -243,12 +243,20 @@
     };
 
     const saved = readSavedSidebarState();
-    isOpen = saved === null ? isLargeScreen() : saved === '1';
+    isOpen = isLargeScreen() ? (saved === null ? true : saved === '1') : false;
     applyState(false);
 
     toggleBtn?.addEventListener('click', () => setSidebarOpen(!isOpen));
     closeBtn?.addEventListener('click', () => setSidebarOpen(false));
     backdrop?.addEventListener('click', () => setSidebarOpen(false));
+
+    sidebar.querySelectorAll('a[href]').forEach((navLink) => {
+      navLink.addEventListener('click', () => {
+        if (!isLargeScreen()) {
+          setSidebarOpen(false);
+        }
+      });
+    });
     document.addEventListener('touchstart', onTouchStart, { passive: true });
     document.addEventListener('touchend', onTouchEnd, { passive: true });
 

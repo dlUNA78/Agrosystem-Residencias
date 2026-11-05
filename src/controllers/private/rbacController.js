@@ -1,4 +1,5 @@
 // src/controllers/private/rbacController.js
+import bcrypt from 'bcrypt';
 import db from '../../models/index.js';
 import {
   createInifapCodesBatch,
@@ -227,9 +228,64 @@ export const updateUserPermissions = async (req, res) => {
   }
 };
 
+const verifyAdminSudoPassword = async (userId, sudoPassword) => {
+  if (!userId || !sudoPassword) return false;
+  const adminUser = await User.findByPk(userId);
+  if (!adminUser || !adminUser.password_hash) return false;
+  return bcrypt.compare(sudoPassword, adminUser.password_hash);
+};
+
+const respondCodeGenerationError = (req, res, errorType) => {
+  const isJson = req.xhr || req.headers?.accept?.includes('application/json');
+  if (errorType === 'auth') {
+    if (isJson) {
+      return res.status(403).json({
+        error: 'Forbidden',
+        message: 'Contraseña de administrador incorrecta o ausente.',
+      });
+    }
+    return res.redirect('/private/users?tab=codes&error=contrasena_incorrecta');
+  }
+
+  if (isJson) {
+    return res.status(500).json({ error: 'Error al generar códigos INIFAP.' });
+  }
+  return res.redirect(
+    '/private/users?tab=codes&error=generacion_codigos_fallida',
+  );
+};
+
+const respondCodeGenerationSuccess = (req, res, generated, rawCodes) => {
+  const isJson = req.xhr || req.headers?.accept?.includes('application/json');
+  if (isJson) {
+    return res.json({
+      success: true,
+      count: generated.length,
+      rawCodes,
+    });
+  }
+
+  if (req.session) {
+    req.session.revealedCodes = rawCodes;
+  }
+
+  return res.redirect(
+    '/private/users?tab=codes&success=codigos_generados&reveal=1',
+  );
+};
+
 export const generateCodes = async (req, res) => {
   try {
-    const { count, expiresInDays, note, rbacRoleId } = req.body;
+    const { count, expiresInDays, note, rbacRoleId, sudo_password } = req.body;
+
+    const isPasswordValid = await verifyAdminSudoPassword(
+      req.user?.id,
+      sudo_password,
+    );
+    if (!isPasswordValid) {
+      return respondCodeGenerationError(req, res, 'auth');
+    }
+
     const generated = await createInifapCodesBatch({
       count,
       expiresInDays,
@@ -245,12 +301,11 @@ export const generateCodes = async (req, res) => {
       details: { count: generated.length, expiresInDays, note },
     });
 
-    return res.redirect('/private/users?tab=codes&success=codigos_generados');
+    const rawCodes = generated.map((g) => g.rawCode || g.code).filter(Boolean);
+    return respondCodeGenerationSuccess(req, res, generated, rawCodes);
   } catch (error) {
     console.error('Error al generar códigos INIFAP:', error);
-    return res.redirect(
-      '/private/users?tab=codes&error=generacion_codigos_fallida',
-    );
+    return respondCodeGenerationError(req, res, 'server');
   }
 };
 

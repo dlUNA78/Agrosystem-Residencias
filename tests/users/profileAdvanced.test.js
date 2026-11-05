@@ -317,7 +317,8 @@ describe('👤 Módulo de Perfil Avanzado y Control de Sesiones', () => {
       const avatarLog = await AuditLog.findOne({
         where: { user_id: testUser.id, action: 'AVATAR_UPDATE' },
       });
-      expect(avatarLog).not.toBeNull();
+      // Las acciones de bajo impacto como avatar se omiten de la auditoría de alto impacto
+      expect(avatarLog).toBeNull();
     });
 
     it('elimina foto de perfil y restaura a null', async () => {
@@ -332,7 +333,8 @@ describe('👤 Módulo de Perfil Avanzado y Control de Sesiones', () => {
       const removeLog = await AuditLog.findOne({
         where: { user_id: testUser.id, action: 'AVATAR_REMOVE' },
       });
-      expect(removeLog).not.toBeNull();
+      // Las acciones de bajo impacto como avatar se omiten de la auditoría de alto impacto
+      expect(removeLog).toBeNull();
     });
   });
 

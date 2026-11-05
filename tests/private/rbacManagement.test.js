@@ -38,6 +38,12 @@ describe('🛡️ Módulo de Gobernanza RBAC y Códigos INIFAP', () => {
         role: 'admin',
         status: 'activo',
       });
+    } else {
+      await adminUser.update({
+        role: 'admin',
+        password_hash: adminHash,
+        status: 'activo',
+      });
     }
 
     // 2. Asegurar Agricultor (no-admin)
@@ -51,6 +57,12 @@ describe('🛡️ Módulo de Gobernanza RBAC y Códigos INIFAP', () => {
         email: 'agricultor@agrosystem.com',
         password_hash: farmerHash,
         role: 'agricultor',
+        status: 'activo',
+      });
+    } else {
+      await farmerUser.update({
+        role: 'agricultor',
+        password_hash: farmerHash,
         status: 'activo',
       });
     }
@@ -184,7 +196,7 @@ describe('🛡️ Módulo de Gobernanza RBAC y Códigos INIFAP', () => {
   });
 
   describe('2. Servicio de Gestión y Emisión de Códigos INIFAP', () => {
-    it('genera un lote de códigos con formato INIFAP-XXXX-XXXX y vigencia', async () => {
+    it('genera un lote de códigos con formato AGS-XXXX-XXXX-XXXX-XXXX y vigencia', async () => {
       const batch = await createInifapCodesBatch({
         count: 2,
         expiresInDays: 7,
@@ -193,7 +205,9 @@ describe('🛡️ Módulo de Gobernanza RBAC y Códigos INIFAP', () => {
       });
 
       expect(batch).toHaveLength(2);
-      expect(batch[0].code).toMatch(/^INIFAP-[A-Z0-9]{4}-[A-Z0-9]{4}$/);
+      expect(batch[0].code).toMatch(
+        /^AGS-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/,
+      );
       expect(batch[0].isAvailable()).toBe(true);
 
       createdCodeId = batch[0].id;
@@ -297,13 +311,28 @@ describe('🛡️ Módulo de Gobernanza RBAC y Códigos INIFAP', () => {
       );
     });
 
-    it('un administrador puede generar códigos desde la interfaz vía POST /private/codes/generate', async () => {
+    it('un administrador requiere contraseña en modo Sudo para generar códigos vía POST /private/codes/generate', async () => {
       const adminAgent = await getAdminAgent();
+
+      // Sin contraseña sudo debe fallar y redirigir con error
+      const failRes = await adminAgent.post('/private/codes/generate').send({
+        count: 1,
+        expiresInDays: 30,
+        note: 'Intento sin Sudo',
+        rbacRoleId: createdRoleId,
+      });
+      expect([302, 403]).toContain(failRes.status);
+      expect(failRes.headers.location || '').toContain(
+        'error=contrasena_incorrecta',
+      );
+
+      // Con contraseña sudo correcta genera el código con éxito
       const res = await adminAgent.post('/private/codes/generate').send({
         count: 1,
         expiresInDays: 30,
         note: 'Token generado desde prueba HTTP',
         rbacRoleId: createdRoleId,
+        sudo_password: 'Admin@1234',
       });
 
       expect([200, 302]).toContain(res.status);

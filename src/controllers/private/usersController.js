@@ -59,6 +59,12 @@ const ERROR_MESSAGES = {
     'No fue posible actualizar los permisos del usuario.',
   generacion_codigos_fallida: 'No fue posible generar los códigos de acceso.',
   revocacion_fallida: 'No fue posible revocar el código solicitado.',
+  contrasena_incorrecta:
+    'Contraseña de administrador incorrecta. Operación cancelada por seguridad.',
+  sudo_password_requerida:
+    'Debes confirmar tu contraseña de administrador para generar códigos.',
+  admin_unico_inmutable:
+    'Por gobernanza institucional, el rol de Administrador General es único y no transferible.',
 };
 
 const recordUserAudit = async ({
@@ -145,6 +151,58 @@ const applyUserUpdates = (user, body = {}) => {
   }
 };
 
+const popRevealedCodes = (req) => {
+  const revealed = req.session?.revealedCodes || null;
+  if (req.session?.revealedCodes) {
+    delete req.session.revealedCodes;
+  }
+  return revealed;
+};
+
+const buildUsersViewContext = ({
+  req,
+  safeUsers,
+  plainRoles,
+  safeCodes,
+  filters,
+}) => {
+  const activeTab = ['users', 'rbac', 'codes'].includes(req.query.tab)
+    ? req.query.tab
+    : 'users';
+  const successKey = req.query?.success;
+  const errorKey = req.query?.error;
+
+  return {
+    layout: privateLayout,
+    pageTitle: 'Usuarios y Control RBAC',
+    activePage: 'users',
+    activeTab,
+    users: safeUsers,
+    rbacRoles: plainRoles,
+    permissionDefinitions: PERMISSION_DEFINITIONS,
+    codes: safeCodes,
+    revealedCodes: popRevealedCodes(req),
+    codeFilters: {
+      status: req.query.codeStatus || 'all',
+      search: req.query.codeSearch || '',
+    },
+    stats: calculateUserStats(safeUsers),
+    filters,
+    success: SUCCESS_MESSAGES[successKey] || successKey || '',
+    error: ERROR_MESSAGES[errorKey] || errorKey || '',
+    hasActiveFilters: Boolean(filters.search || filters.role || filters.status),
+    clearUrl: '/private/users',
+    searchId: 'user-search',
+    searchValue: filters.search,
+    searchPlaceholder: 'Buscar por nombre, correo, cargo o código...',
+    searchFilters: buildUserSearchFilters(filters),
+    ctaLabel: 'Nuevo Usuario',
+    ctaLucideIcon: 'user-plus',
+    ctaBtnId: 'btn-add-user',
+    showViewToggle: true,
+  };
+};
+
 export const usersPrivate = async (req, res) => {
   try {
     const filters = normalizeUserListQuery(req.query);
@@ -172,42 +230,15 @@ export const usersPrivate = async (req, res) => {
       typeof r.toJSON === 'function' ? r.toJSON() : r,
     );
     const safeCodes = rawCodes.map(serializeInifapCode);
-    const successCode = req.query?.success || '';
-    const errorCode = req.query?.error || '';
-    const activeTab = ['users', 'rbac', 'codes'].includes(req.query.tab)
-      ? req.query.tab
-      : 'users';
-
-    return res.render('private/admin/users', {
-      layout: privateLayout,
-      pageTitle: 'Usuarios y Control RBAC',
-      activePage: 'users',
-      activeTab,
-      users: safeUsers,
-      rbacRoles: plainRoles,
-      permissionDefinitions: PERMISSION_DEFINITIONS,
-      codes: safeCodes,
-      codeFilters: {
-        status: req.query.codeStatus || 'all',
-        search: req.query.codeSearch || '',
-      },
-      stats: calculateUserStats(safeUsers),
+    const viewContext = buildUsersViewContext({
+      req,
+      safeUsers,
+      plainRoles,
+      safeCodes,
       filters,
-      success: SUCCESS_MESSAGES[successCode] || successCode,
-      error: ERROR_MESSAGES[errorCode] || errorCode,
-      hasActiveFilters: Boolean(
-        filters.search || filters.role || filters.status,
-      ),
-      clearUrl: '/private/users',
-      searchId: 'user-search',
-      searchValue: filters.search,
-      searchPlaceholder: 'Buscar por nombre, correo, cargo o código...',
-      searchFilters: buildUserSearchFilters(filters),
-      ctaLabel: 'Nuevo Usuario',
-      ctaLucideIcon: 'user-plus',
-      ctaBtnId: 'btn-add-user',
-      showViewToggle: true,
     });
+
+    return res.render('private/admin/users', viewContext);
   } catch (error) {
     console.error('Error al listar usuarios:', error);
     return res.status(500).render('private/admin/users', {
@@ -240,6 +271,10 @@ export const createUser = async (req, res) => {
 
     if (!full_name || !email || !password) {
       return res.redirect('/private/users?error=campos_requeridos');
+    }
+
+    if (role === 'admin') {
+      return res.redirect('/private/users?error=admin_unico_inmutable');
     }
 
     const normalizedEmail = email.trim().toLowerCase();
@@ -285,6 +320,10 @@ export const updateUser = async (req, res) => {
     const user = await User.findByPk(id);
     if (!user) {
       return res.redirect('/private/users?error=usuario_no_encontrado');
+    }
+
+    if (req.body?.role === 'admin' && user.role !== 'admin') {
+      return res.redirect('/private/users?error=admin_unico_inmutable');
     }
 
     const oldSnapshot = {

@@ -69,7 +69,7 @@ describe('controladores privados de terrenos', () => {
     farm.status = true;
   });
 
-  it('limita a INIFAP a sus terrenos y permite al administrador listar todos', async () => {
+  it('limita a cualquier usuario, incluido administrador, a sus propios terrenos', async () => {
     const inifapResponse = buildResponse();
     await renderLandsPrivate(
       { user: { id: 12, role: 'inifap' } },
@@ -82,7 +82,7 @@ describe('controladores privados de terrenos', () => {
     const adminResponse = buildResponse();
     await renderLandsPrivate({ user: { id: 1, role: 'admin' } }, adminResponse);
     expect(mockDb.Farm.findAll).toHaveBeenLastCalledWith(
-      expect.objectContaining({ where: { status: true } }),
+      expect.objectContaining({ where: { user_id: 1, status: true } }),
     );
   });
 

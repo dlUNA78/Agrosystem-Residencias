@@ -28,6 +28,17 @@ const sanitizeUserRecord = (userInstance) => {
   delete plain.password_hash;
   const effective = resolveEffectivePermissions(userInstance);
   plain.effectivePermissions = Array.from(effective);
+
+  if (plain.code) {
+    const clean = String(plain.code).trim();
+    plain.code_masked =
+      clean.length > 6
+        ? `${clean.slice(0, 3)}-***-${clean.slice(-3)}`
+        : `${clean.slice(0, 1)}***`;
+  } else {
+    plain.code_masked = 'No asignada';
+  }
+
   return plain;
 };
 

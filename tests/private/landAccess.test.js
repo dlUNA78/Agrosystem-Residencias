@@ -7,29 +7,31 @@ import {
 } from '../../src/services/landAuthorizationService.js';
 
 describe('acceso al módulo privado de terrenos', () => {
-  it('limita el listado INIFAP a sus terrenos activos', () => {
+  it('limita el listado a los terrenos del usuario autenticado (incluido admin)', () => {
     expect(getLandListWhere({ id: 12, role: 'inifap' })).toEqual({
       user_id: 12,
       status: true,
     });
-  });
-
-  it('permite al administrador consultar todos los terrenos activos', () => {
     expect(getLandListWhere({ id: 1, role: 'admin' })).toEqual({
+      user_id: 1,
+      status: true,
+    });
+    expect(getLandListWhere({ id: 99, role: 'agricultor' })).toEqual({
+      user_id: 99,
       status: true,
     });
   });
 
-  it('permite consultar archivados sin perder el aislamiento por responsable', () => {
+  it('permite consultar archivados manteniendo siempre el aislamiento por usuario', () => {
     expect(
       getLandListWhere({ id: 12, role: 'inifap' }, { status: 'archived' }),
     ).toEqual({ user_id: 12, status: false });
     expect(
       getLandListWhere({ id: 1, role: 'admin' }, { status: 'all' }),
-    ).toEqual({});
+    ).toEqual({ user_id: 1 });
   });
 
-  it('permite gestionar al propietario y rechaza a otro INIFAP', () => {
+  it('permite gestionar al propietario y rechaza a otro usuario', () => {
     const owner = getContextualLandPermissions({
       role: 'inifap',
       userId: 12,
@@ -43,13 +45,14 @@ describe('acceso al módulo privado de terrenos', () => {
       isActive: true,
     });
 
+    expect(owner.canView).toBe(true);
     expect(owner.canEdit).toBe(true);
     expect(owner.canArchive).toBe(true);
     expect(other.canView).toBe(false);
     expect(other.canEdit).toBe(false);
   });
 
-  it('da al administrador gestión excepcional sobre cualquier terreno', () => {
+  it('mantiene aislamiento estricto incluso para rol admin si no es propietario', () => {
     const permissions = getContextualLandPermissions({
       role: 'admin',
       userId: 1,
@@ -57,13 +60,13 @@ describe('acceso al módulo privado de terrenos', () => {
       isActive: false,
     });
 
-    expect(permissions.canView).toBe(true);
+    expect(permissions.canView).toBe(false);
     expect(permissions.canEdit).toBe(false);
-    expect(permissions.canRestore).toBe(true);
+    expect(permissions.canRestore).toBe(false);
   });
 
-  it.each([['agricultor'], ['unknown'], [undefined]])(
-    'no concede acceso privado al rol %s',
+  it.each([['unknown'], [undefined]])(
+    'no concede acceso privado al rol inválido %s',
     (role) => {
       expect(Object.values(getLandPermissions(role)).some(Boolean)).toBe(false);
     },

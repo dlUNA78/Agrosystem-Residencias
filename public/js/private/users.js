@@ -210,7 +210,18 @@ const initializeUserPermissionsModal = () => {
 
     form.action = `/private/rbac/users/${data.id}/permissions`;
     setText('permissions-user-subtitle', `${data.name} · ${data.email}`);
-    setFieldValue('perm-user-role', data.role || 'inifap');
+
+    const roleSelect = document.getElementById('perm-user-role');
+    if (roleSelect) {
+      if (data.role === 'admin') {
+        roleSelect.value = 'admin';
+        roleSelect.disabled = true;
+      } else {
+        roleSelect.disabled = false;
+        roleSelect.value = data.role || 'inifap';
+      }
+    }
+
     setFieldValue('perm-user-status', data.status || 'activo');
     setFieldValue('perm-user-subrole', data.subrole || '');
 
@@ -354,6 +365,51 @@ const initializeCodesTab = () => {
   });
 };
 
+const initializeRevealedCodesModal = () => {
+  const modal = document.getElementById('modal-revealed-codes');
+  const closeBtn = document.getElementById('btn-close-revealed-modal');
+  if (!modal) return;
+
+  const closeModal = () => {
+    modal.classList.add('hidden');
+    document.body.classList.remove('overflow-hidden');
+  };
+
+  document.body.classList.add('overflow-hidden');
+
+  closeBtn?.addEventListener('click', closeModal);
+
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeModal();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+      closeModal();
+    }
+  });
+
+  modal.querySelectorAll('.btn-copy-code').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const code = btn.dataset.copyCode;
+      if (!code) return;
+      try {
+        await navigator.clipboard.writeText(code);
+        const span = btn.querySelector('span');
+        if (span) {
+          const original = span.textContent;
+          span.textContent = '¡Copiado!';
+          setTimeout(() => {
+            span.textContent = original;
+          }, 1500);
+        }
+      } catch {
+        // fallback silent
+      }
+    });
+  });
+};
+
 const initializeUserDeleteConfirmation = () => {
   document.addEventListener('submit', async (event) => {
     const form = event.target.closest('.delete-user-form');
@@ -384,6 +440,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initializeUserPermissionsModal();
   initializeRoleModals();
   initializeCodesTab();
+  initializeRevealedCodesModal();
   initializeUserDeleteConfirmation();
   refreshLucideIcons();
 });

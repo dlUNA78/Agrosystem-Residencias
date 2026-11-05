@@ -22,12 +22,6 @@ const hasSpecificDelegatedPermission = (req) => {
   if (!req.user) return false;
   const path = req.path || '';
   if (
-    path.includes('/audit') &&
-    hasEffectivePermission(req.user, PANEL_PERMISSIONS.AUDIT_VIEW)
-  ) {
-    return true;
-  }
-  if (
     path.includes('/ingredients') &&
     hasEffectivePermission(req.user, PANEL_PERMISSIONS.INGREDIENTS_MANAGE)
   ) {
