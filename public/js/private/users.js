@@ -424,23 +424,27 @@ const initializeRevealedCodesModal = () => {
 
 const initializeSudoModeModal = () => {
   const modal = document.getElementById('modal-sudo-challenge');
-  const triggerBtn = document.getElementById('btn-open-sudo-codes-modal');
-  const formCodes = document.getElementById('form-generate-codes');
   const passInput = document.getElementById('sudo-challenge-password');
-  const hiddenPassInput = document.getElementById('form-codes-sudo-password');
+  if (!modal) return;
 
-  if (!modal || !triggerBtn || !formCodes) return;
+  const getForm = () =>
+    document.getElementById('form-generate-codes') ||
+    document.querySelector('form[action="/private/codes/generate"]');
 
   const closeModal = () => {
     modal.classList.add('hidden');
     modal.classList.remove('flex');
-    if (passInput) passInput.value = '';
+    if (passInput) {
+      passInput.value = '';
+      passInput.setCustomValidity('');
+    }
     window.modalScrollLock?.unlock();
   };
 
   const openModal = () => {
-    if (!formCodes.checkValidity()) {
-      formCodes.reportValidity();
+    const form = getForm();
+    if (form && !form.checkValidity()) {
+      form.reportValidity();
       return;
     }
     modal.classList.remove('hidden');
@@ -452,17 +456,30 @@ const initializeSudoModeModal = () => {
   const submitFormWithSudo = () => {
     const password = passInput?.value?.trim() || '';
     if (!password) {
-      passInput?.focus();
-      passInput?.reportValidity();
+      if (passInput) {
+        passInput.setCustomValidity(
+          'Por favor ingresa tu contraseña de administrador.',
+        );
+        passInput.reportValidity();
+        passInput.focus();
+      }
       return;
     }
-    if (hiddenPassInput) {
-      hiddenPassInput.value = password;
-    }
-    formCodes.submit();
+    const form = getForm();
+    const hiddenPass =
+      document.getElementById('form-codes-sudo-password') ||
+      form?.querySelector('input[name="sudo_password"]');
+    if (hiddenPass) hiddenPass.value = password;
+    if (form) form.submit();
   };
 
-  triggerBtn.addEventListener('click', openModal);
+  document.addEventListener('click', (event) => {
+    if (event.target.closest('#btn-open-sudo-codes-modal')) {
+      event.preventDefault();
+      openModal();
+    }
+  });
+
   document
     .getElementById('btn-close-modal-sudo')
     ?.addEventListener('click', closeModal);
@@ -472,6 +489,10 @@ const initializeSudoModeModal = () => {
   document
     .getElementById('btn-confirm-sudo-submit')
     ?.addEventListener('click', submitFormWithSudo);
+
+  passInput?.addEventListener('input', () => {
+    passInput.setCustomValidity('');
+  });
 
   passInput?.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {

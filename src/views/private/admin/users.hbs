@@ -603,7 +603,12 @@
         </div>
       </div>
 
-      <form action="/private/codes/generate" method="POST" class="space-y-4">
+      <form
+        id="form-generate-codes"
+        action="/private/codes/generate"
+        method="POST"
+        class="space-y-4"
+      >
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div>
             <label for="code-count" class="mb-1 block font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider text-slate-600">
@@ -1412,6 +1417,7 @@
           <input
             type="password"
             id="sudo-challenge-password"
+            required
             placeholder="Introduce tu contraseña actual"
             autocomplete="current-password"
             class="w-full rounded-xl border border-slate-200 bg-slate-50/70 py-2.5 pr-10 pl-3.5 text-xs text-slate-900 placeholder:text-slate-400 focus:border-[#1b4332] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1b4332]/15"
