@@ -99,6 +99,7 @@ const initializeUserFormModal = () => {
   const closeModal = () => {
     modalUser.classList.add('hidden');
     modalUser.classList.remove('flex');
+    window.modalScrollLock?.unlock();
   };
 
   const openCreateModal = () => {
@@ -109,6 +110,7 @@ const initializeUserFormModal = () => {
     if (userPassword) userPassword.required = true;
     modalUser.classList.remove('hidden');
     modalUser.classList.add('flex');
+    window.modalScrollLock?.lock();
   };
 
   const openEditModal = (btn) => {
@@ -121,6 +123,7 @@ const initializeUserFormModal = () => {
 
     modalUser.classList.remove('hidden');
     modalUser.classList.add('flex');
+    window.modalScrollLock?.lock();
   };
 
   document.addEventListener('click', (event) => {
@@ -146,6 +149,19 @@ const initializeUserFormModal = () => {
   });
 };
 
+const populateUserDetailCard = (data = {}) => {
+  const name = data.name || 'Sin nombre';
+  setText('view-user-name', name);
+  setText('view-user-email', data.email || 'Sin correo');
+  setText('view-user-role', (data.role || 'inifap').toUpperCase());
+  setText('view-user-subrole', data.subroleName || 'Sin sub-rol');
+  setText('view-user-status', data.status || 'activo');
+  setText('view-user-job', data.job || 'No especificado');
+  setText('view-user-phone', data.phone || 'No registrado');
+  setText('view-user-address', data.address || 'No registrada');
+  setText('view-user-initial', name.charAt(0).toUpperCase());
+};
+
 const initializeUserDetailModal = () => {
   const modalViewUser = document.getElementById('modal-view-user');
   if (!modalViewUser) return;
@@ -153,25 +169,16 @@ const initializeUserDetailModal = () => {
   const closeViewModal = () => {
     modalViewUser.classList.add('hidden');
     modalViewUser.classList.remove('flex');
+    window.modalScrollLock?.unlock();
   };
 
   document.addEventListener('click', (event) => {
     const btn = event.target.closest('.btn-view-user');
     if (!btn) return;
-    const data = btn.dataset;
-    const name = data.name || 'Sin nombre';
-    setText('view-user-name', name);
-    setText('view-user-email', data.email || 'Sin correo');
-    setText('view-user-role', (data.role || 'inifap').toUpperCase());
-    setText('view-user-subrole', data.subroleName || 'Sin sub-rol');
-    setText('view-user-status', data.status || 'activo');
-    setText('view-user-job', data.job || 'No especificado');
-    setText('view-user-phone', data.phone || 'No registrado');
-    setText('view-user-address', data.address || 'No registrada');
-    setText('view-user-initial', name.charAt(0).toUpperCase());
-
+    populateUserDetailCard(btn.dataset);
     modalViewUser.classList.remove('hidden');
     modalViewUser.classList.add('flex');
+    window.modalScrollLock?.lock();
   });
 
   document
@@ -194,6 +201,7 @@ const initializeUserPermissionsModal = () => {
   const closeModal = () => {
     modal.classList.add('hidden');
     modal.classList.remove('flex');
+    window.modalScrollLock?.unlock();
   };
 
   const syncCheckboxes = (containerSelector, activeList) => {
@@ -233,6 +241,7 @@ const initializeUserPermissionsModal = () => {
 
     modal.classList.remove('hidden');
     modal.classList.add('flex');
+    window.modalScrollLock?.lock();
   });
 
   document
@@ -255,6 +264,7 @@ const initializeRoleModals = () => {
   const closeModal = () => {
     modal.classList.add('hidden');
     modal.classList.remove('flex');
+    window.modalScrollLock?.unlock();
   };
 
   const openCreateRole = () => {
@@ -266,6 +276,7 @@ const initializeRoleModals = () => {
     });
     modal.classList.remove('hidden');
     modal.classList.add('flex');
+    window.modalScrollLock?.lock();
   };
 
   const openEditRole = (btn) => {
@@ -284,6 +295,7 @@ const initializeRoleModals = () => {
 
     modal.classList.remove('hidden');
     modal.classList.add('flex');
+    window.modalScrollLock?.lock();
   };
 
   document

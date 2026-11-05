@@ -2,58 +2,78 @@
  * modal-scroll-lock.js — Controlador Centralizado de Bloqueo de Scroll para Modales
  * Agrosystem INIFAP
  *
- * Utiliza MutationObserver para sincronizar automáticamente la clase `overflow-hidden`
- * en `document.body` cada vez que cualquier modal (`[role="dialog"]`, `[aria-modal="true"]`)
- * se abre o se cierra en cualquier pantalla del sistema.
+ * Previene el desplazamiento no deseado del fondo (scroll leaking) cuando un modal está activo.
+ * - Cero MutationObservers recursivos en el body (elimina bloqueos de hilo principal).
+ * - Bloquea la propagación de rueda táctil / scroll en backdrops de modales.
+ * - Sincroniza overflow-hidden de forma puntual sin interferir con la navegación móvil.
  */
 
 (function () {
   'use strict';
 
   const MODAL_SELECTOR =
-    '[role="dialog"], [aria-modal="true"], .modal-overlay, #modal-user, #modal-view-user, #modal-user-permissions, #modal-revealed-codes';
+    '[role="dialog"]:not(#mobile-drawer), [aria-modal="true"]:not(#mobile-drawer), #modal-user, #modal-role, #modal-user-permissions, #modal-revealed-codes';
 
-  function syncBodyScrollLock() {
+  function isModalOpen(modal) {
+    if (!modal) return false;
+    if (modal.classList.contains('hidden')) return false;
+    if (modal.getAttribute('aria-hidden') === 'true') return false;
+    return modal.offsetParent !== null || modal.classList.contains('flex');
+  }
+
+  function getActiveModal() {
     const modals = document.querySelectorAll(MODAL_SELECTOR);
-    let isAnyModalOpen = false;
-
     for (let i = 0; i < modals.length; i += 1) {
-      const modal = modals[i];
-      const isHidden =
-        modal.classList.contains('hidden') ||
-        modal.getAttribute('aria-hidden') === 'true' ||
-        window.getComputedStyle(modal).display === 'none';
-
-      if (!isHidden) {
-        isAnyModalOpen = true;
-        break;
+      if (isModalOpen(modals[i])) {
+        return modals[i];
       }
     }
+    return null;
+  }
 
-    if (isAnyModalOpen) {
+  function syncBodyScrollLock() {
+    if (getActiveModal()) {
       document.body.classList.add('overflow-hidden');
     } else {
       document.body.classList.remove('overflow-hidden');
     }
   }
 
-  // Inicializar observador de mutaciones en el DOM para cambios de clases o atributos
-  const observer = new MutationObserver(() => {
-    syncBodyScrollLock();
-  });
+  document.addEventListener(
+    'wheel',
+    (event) => {
+      const activeModal = getActiveModal();
+      if (!activeModal) return;
 
-  document.addEventListener('DOMContentLoaded', () => {
-    syncBodyScrollLock();
+      const scrollable = event.target.closest(
+        '.overflow-y-auto, .overflow-auto, textarea',
+      );
+      if (!scrollable) {
+        event.preventDefault();
+      }
+    },
+    { passive: false },
+  );
 
-    observer.observe(document.body, {
-      attributes: true,
-      attributeFilter: ['class', 'style', 'aria-hidden'],
-      subtree: true,
-    });
-  });
+  document.addEventListener(
+    'touchmove',
+    (event) => {
+      const activeModal = getActiveModal();
+      if (!activeModal) return;
 
-  // Exportar helper al ámbito global para llamadas manuales si se requiere
+      const scrollable = event.target.closest(
+        '.overflow-y-auto, .overflow-auto, textarea',
+      );
+      if (!scrollable) {
+        event.preventDefault();
+      }
+    },
+    { passive: false },
+  );
+
   window.modalScrollLock = {
     sync: syncBodyScrollLock,
+    lock: () => document.body.classList.add('overflow-hidden'),
+    unlock: () => document.body.classList.remove('overflow-hidden'),
   };
 })();

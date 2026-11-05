@@ -21,7 +21,10 @@ export const authController = {
     if (req.isAuthenticated && req.isAuthenticated()) {
       return res.redirect('/');
     }
-    res.render('auth/login', { title: 'Iniciar Sesión' });
+    res.render('auth/login', {
+      title: 'Iniciar Sesión',
+      extraScripts: '<script src="/js/public/login.js"></script>',
+    });
   },
 
   // ─── LÓGICA DE NEGOCIO ─────────────────────────────────────────────────────
