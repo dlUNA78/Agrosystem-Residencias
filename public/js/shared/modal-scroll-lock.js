@@ -12,7 +12,7 @@
   'use strict';
 
   const MODAL_SELECTOR =
-    '[role="dialog"]:not(#mobile-drawer), [aria-modal="true"]:not(#mobile-drawer), #modal-user, #modal-role, #modal-user-permissions, #modal-revealed-codes';
+    '[role="dialog"]:not(#mobile-drawer), [aria-modal="true"]:not(#mobile-drawer), #modal-user, #modal-role, #modal-user-permissions, #modal-revealed-codes, #modal-sudo-challenge';
 
   function isModalOpen(modal) {
     if (!modal) return false;

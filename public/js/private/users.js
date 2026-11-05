@@ -422,6 +422,88 @@ const initializeRevealedCodesModal = () => {
   });
 };
 
+const initializeSudoModeModal = () => {
+  const modal = document.getElementById('modal-sudo-challenge');
+  const triggerBtn = document.getElementById('btn-open-sudo-codes-modal');
+  const formCodes = document.getElementById('form-generate-codes');
+  const passInput = document.getElementById('sudo-challenge-password');
+  const hiddenPassInput = document.getElementById('form-codes-sudo-password');
+
+  if (!modal || !triggerBtn || !formCodes) return;
+
+  const closeModal = () => {
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    if (passInput) passInput.value = '';
+    window.modalScrollLock?.unlock();
+  };
+
+  const openModal = () => {
+    if (!formCodes.checkValidity()) {
+      formCodes.reportValidity();
+      return;
+    }
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    window.modalScrollLock?.lock();
+    setTimeout(() => passInput?.focus(), 50);
+  };
+
+  const submitFormWithSudo = () => {
+    const password = passInput?.value?.trim() || '';
+    if (!password) {
+      passInput?.focus();
+      passInput?.reportValidity();
+      return;
+    }
+    if (hiddenPassInput) {
+      hiddenPassInput.value = password;
+    }
+    formCodes.submit();
+  };
+
+  triggerBtn.addEventListener('click', openModal);
+  document
+    .getElementById('btn-close-modal-sudo')
+    ?.addEventListener('click', closeModal);
+  document
+    .getElementById('btn-cancel-sudo-modal')
+    ?.addEventListener('click', closeModal);
+  document
+    .getElementById('btn-confirm-sudo-submit')
+    ?.addEventListener('click', submitFormWithSudo);
+
+  passInput?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      submitFormWithSudo();
+    }
+  });
+
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeModal();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+      closeModal();
+    }
+  });
+
+  const togglePassBtn = document.getElementById('btn-toggle-sudo-password');
+  if (togglePassBtn && passInput) {
+    togglePassBtn.addEventListener('click', () => {
+      const isPassword = passInput.getAttribute('type') === 'password';
+      passInput.setAttribute('type', isPassword ? 'text' : 'password');
+      const icon = togglePassBtn.querySelector('i');
+      if (icon) {
+        icon.setAttribute('data-lucide', isPassword ? 'eye-off' : 'eye');
+        refreshLucideIcons();
+      }
+    });
+  }
+};
+
 const initializeUserDeleteConfirmation = () => {
   document.addEventListener('submit', async (event) => {
     const form = event.target.closest('.delete-user-form');
@@ -453,6 +535,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initializeRoleModals();
   initializeCodesTab();
   initializeRevealedCodesModal();
+  initializeSudoModeModal();
   initializeUserDeleteConfirmation();
   refreshLucideIcons();
 });
