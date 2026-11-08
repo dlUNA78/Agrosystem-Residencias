@@ -22,7 +22,29 @@ const privateLayout = path.join(
   currentDirectory,
   '../../../views/layouts/private',
 );
-const { Crop, CropImage, User } = db;
+const { Crop, CropImage, Plague, Product, User } = db;
+
+const loadCropFormRelationOptions = async () => {
+  const [plagues, products] = await Promise.all([
+    Plague?.findAll
+      ? Plague.findAll({
+          where: { status: true, workflow_status: 'published' },
+          attributes: ['id', 'name', 'scientific_name', 'category'],
+          order: [['name', 'ASC']],
+          raw: true,
+        })
+      : [],
+    Product?.findAll
+      ? Product.findAll({
+          where: { status: true, workflow_status: 'published' },
+          attributes: ['id', 'name', 'active_ingredient', 'category'],
+          order: [['name', 'ASC']],
+          raw: true,
+        })
+      : [],
+  ]);
+  return { plagues, products };
+};
 
 const normalizeImageUrl = (value) =>
   value ? `/${String(value).replace(/^\/+/, '')}` : null;
@@ -123,17 +145,19 @@ export const cropsPrivate = async (req, res) => {
       include: buildCropListIncludes(),
       order: [['createdAt', 'DESC']],
     });
-    const [published, inReview, changesRequested] = await Promise.all([
-      Crop.count({
-        where: { workflow_status: CROP_WORKFLOW_STATUSES.PUBLISHED },
-      }),
-      Crop.count({
-        where: { workflow_status: CROP_WORKFLOW_STATUSES.IN_REVIEW },
-      }),
-      Crop.count({
-        where: { workflow_status: CROP_WORKFLOW_STATUSES.CHANGES_REQUESTED },
-      }),
-    ]);
+    const [published, inReview, changesRequested, relationOptions] =
+      await Promise.all([
+        Crop.count({
+          where: { workflow_status: CROP_WORKFLOW_STATUSES.PUBLISHED },
+        }),
+        Crop.count({
+          where: { workflow_status: CROP_WORKFLOW_STATUSES.IN_REVIEW },
+        }),
+        Crop.count({
+          where: { workflow_status: CROP_WORKFLOW_STATUSES.CHANGES_REQUESTED },
+        }),
+        loadCropFormRelationOptions(),
+      ]);
 
     return res.render('private/catalog/crops', {
       layout: privateLayout,
@@ -142,6 +166,7 @@ export const cropsPrivate = async (req, res) => {
       isAdmin: req.user?.role === 'admin',
       isInifap: req.user?.role === 'inifap',
       crops: records.map((record) => buildListItem(record, req.user)),
+      relationOptions,
       filters: query,
       pagination,
       permissions,

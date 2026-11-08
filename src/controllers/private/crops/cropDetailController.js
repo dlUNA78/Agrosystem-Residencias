@@ -116,6 +116,28 @@ const loadRelationEditor = async (cropData) => {
   });
 };
 
+const loadCropFormRelationOptions = async () => {
+  const [plagues, products] = await Promise.all([
+    Plague?.findAll
+      ? Plague.findAll({
+          where: { status: true, workflow_status: 'published' },
+          attributes: ['id', 'name', 'scientific_name', 'category'],
+          order: [['name', 'ASC']],
+          raw: true,
+        })
+      : [],
+    Product?.findAll
+      ? Product.findAll({
+          where: { status: true, workflow_status: 'published' },
+          attributes: ['id', 'name', 'active_ingredient', 'category'],
+          order: [['name', 'ASC']],
+          raw: true,
+        })
+      : [],
+  ]);
+  return { plagues, products };
+};
+
 const isControlledCropStage = (status) =>
   status === CROP_WORKFLOW_STATUSES.VERIFIED ||
   status === CROP_WORKFLOW_STATUSES.PUBLISHED;
@@ -176,9 +198,10 @@ const sendHtmlDetail = async (req, res, options) => {
     });
   }
 
-  const relationEditor = editState.canEditRelations
-    ? await loadRelationEditor(cropData)
-    : null;
+  const [relationEditor, relationOptions] = await Promise.all([
+    editState.canEditRelations ? loadRelationEditor(cropData) : null,
+    loadCropFormRelationOptions(),
+  ]);
 
   const editableCrop = buildEditableCropPayload(cropData, images);
 
@@ -191,6 +214,7 @@ const sendHtmlDetail = async (req, res, options) => {
     ...editState,
     editableCrop,
     relationEditor,
+    relationOptions,
     ...detail,
     crop: { ...cropData, ...detail.crop },
     primaryImage: primaryImage?.image_url || null,

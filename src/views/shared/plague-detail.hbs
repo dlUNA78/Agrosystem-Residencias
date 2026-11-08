@@ -188,8 +188,8 @@
             {{#if canEditRecord}}
               <button
                 type="button"
-                class="btn-edit-plague inline-flex items-center gap-1.5 rounded-xl border border-[#1b4332]/30 bg-emerald-50/70 px-3.5 py-2.5 text-xs font-bold text-[#1b4332] transition-colors hover:bg-[#1b4332] hover:text-white cursor-pointer"
-                title="Editar datos técnicos, ciclo biológico y galería"
+                class="btn-edit-plague inline-flex items-center gap-1.5 rounded-xl border border-[#1b4332]/30 bg-[#e6f0e6]/50 px-3.5 py-2 text-xs font-bold text-[#1b4332] transition-colors hover:bg-[#e6f0e6] cursor-pointer"
+                title="Editar ficha técnica, relaciones y galería"
                 data-id="{{editablePlague.id}}"
                 data-name="{{editablePlague.name}}"
                 data-scientific-name="{{editablePlague.scientific_name}}"
@@ -203,9 +203,13 @@
                 data-biological-cycle="{{editablePlague.biological_cycle_json}}"
                 data-images="{{editablePlague.images_json}}"
                 data-image-url="{{editablePlague.image_url}}"
+                data-crop-ids="{{editablePlague.crop_ids_json}}"
+                data-product-ids="{{editablePlague.product_ids_json}}"
+                data-workflow-status="{{editablePlague.workflow_status}}"
+                data-controlled-edit="{{#if isControlledEdit}}1{{else}}0{{/if}}"
               >
-                <span class="material-symbols-outlined text-base">edit_square</span>
-                Editar datos técnicos
+                <span class="material-symbols-outlined text-sm">edit</span>
+                <span>Editar ficha</span>
               </button>
             {{else}}
               <span class="inline-flex items-center gap-1.5 rounded-xl border border-border bg-muted/50 px-3 py-2 text-xs font-semibold text-muted-foreground" title="Para editar la información técnica, el expediente debe estar en borrador o con solicitud de cambios y pertenecer a tu autoría o administración">

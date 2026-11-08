@@ -9,6 +9,7 @@ import {
   parsePrimaryCropImageId,
   parseRemovedCropImageIds,
 } from '../../../services/cropImageService.js';
+import { validateCropRelationsInput } from '../../../services/cropRelationService.js';
 import { validateCropInput } from '../../../services/cropValidationService.js';
 import {
   CROP_WORKFLOW_STATUSES,
@@ -180,7 +181,23 @@ const prepareCropUpdateContext = async ({
     return { errorStatus: 400, errorMessage: imagePlan.error };
   }
 
+  if (body?.relations_submitted === '1') {
+    const relations = validateCropRelationsInput(body);
+    if (!relations.isValid) {
+      return { errorStatus: 400, errorMessage: relations.errors.join(' ') };
+    }
+  }
+
   return { crop, imagePlan };
+};
+
+const syncCropModalRelations = async (crop, body, transaction) => {
+  if (body?.relations_submitted !== '1') return null;
+  const parsed = validateCropRelationsInput(body);
+  if (!parsed.isValid) return parsed.errors.join(' ');
+  await crop.setPlagues?.(parsed.value.plagueIds, { transaction });
+  await crop.setProducts?.(parsed.value.productIds, { transaction });
+  return null;
 };
 
 const applyCropImageUpdates = async ({
@@ -260,6 +277,16 @@ export const createCrop = async (req, res) => {
       },
       { transaction },
     );
+
+    const relationError = await syncCropModalRelations(
+      crop,
+      req.body,
+      transaction,
+    );
+    if (relationError) {
+      await rollbackWithUploads(transaction, files);
+      return respondMutationError(req, res, 400, relationError);
+    }
 
     if (files.length > 0) {
       await CropImage.bulkCreate(
@@ -351,6 +378,8 @@ export const updateCrop = async (req, res) => {
       buildCropUpdatePayload(crop, validation.value, req.user, req.body),
       { transaction },
     );
+
+    await syncCropModalRelations(crop, req.body, transaction);
 
     await applyCropImageUpdates({
       cropId: crop.id,

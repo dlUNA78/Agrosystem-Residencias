@@ -14,7 +14,29 @@ import {
 } from '../../../services/plagueWorkflowService.js';
 import { privateLayout } from './plagueControllerUtils.js';
 
-const { Plague, PlagueImage, User } = db;
+const { Crop, Plague, PlagueImage, Product, User } = db;
+
+const loadPlagueFormRelationOptions = async () => {
+  const [crops, products] = await Promise.all([
+    Crop?.findAll
+      ? Crop.findAll({
+          where: { status: 'aprobado', workflow_status: 'published' },
+          attributes: ['id', 'name', 'scientific_name', 'category'],
+          order: [['name', 'ASC']],
+          raw: true,
+        })
+      : [],
+    Product?.findAll
+      ? Product.findAll({
+          where: { status: true, workflow_status: 'published' },
+          attributes: ['id', 'name', 'active_ingredient', 'category'],
+          order: [['name', 'ASC']],
+          raw: true,
+        })
+      : [],
+  ]);
+  return { crops, products };
+};
 
 const categoryOptions = [
   { value: '', text: 'Todas' },
@@ -102,6 +124,9 @@ const resolvePlagueEditFlags = (permissions, status, role) => {
   };
 };
 
+const extractRelationIdsJson = (records) =>
+  JSON.stringify(Array.isArray(records) ? records.map((item) => item.id) : []);
+
 const serializePlague = (plague, currentUser) => {
   const data = plague.toJSON();
   const images = Array.isArray(data.images) ? data.images : [];
@@ -126,6 +151,8 @@ const serializePlague = (plague, currentUser) => {
     hasMip: Boolean(data.control_methods || data.biological_control),
     images_json: JSON.stringify(normalizedImages),
     biological_cycle_json: JSON.stringify(data.biological_cycle || []),
+    crop_ids_json: extractRelationIdsJson(data.crops),
+    product_ids_json: extractRelationIdsJson(data.products),
     authorName: data.createdBy?.full_name || 'Sistema INIFAP',
     authorRole: data.createdBy?.role || 'inifap',
     ...editFlags,
@@ -147,6 +174,24 @@ const buildPlagueListIncludes = () => {
       model: User,
       as: 'createdBy',
       attributes: ['id', 'full_name', 'role'],
+      required: false,
+    });
+  }
+  if (Crop?.findAll) {
+    includes.push({
+      model: Crop,
+      as: 'crops',
+      attributes: ['id'],
+      through: { attributes: [] },
+      required: false,
+    });
+  }
+  if (Product?.findAll) {
+    includes.push({
+      model: Product,
+      as: 'products',
+      attributes: ['id'],
+      through: { attributes: [] },
       required: false,
     });
   }
@@ -179,27 +224,34 @@ export const plaguesPrivate = async (req, res) => {
     const plagues = plagueRecords.map((plague) =>
       serializePlague(plague, currentUser),
     );
-    const [totalPlagues, activePlagues, criticalPlagues, pendingVerification] =
-      await Promise.all([
-        Plague.count(),
-        Plague.count({
-          where: { workflow_status: PLAGUE_WORKFLOW_STATUSES.PUBLISHED },
-        }),
-        Plague.count({
-          where: {
-            risk_level: { [Op.or]: ['Crítico', 'Alto', 'critico', 'alto'] },
-          },
-        }),
-        Plague.count({
-          where: { workflow_status: PLAGUE_WORKFLOW_STATUSES.IN_REVIEW },
-        }),
-      ]);
+    const [
+      totalPlagues,
+      activePlagues,
+      criticalPlagues,
+      pendingVerification,
+      relationOptions,
+    ] = await Promise.all([
+      Plague.count(),
+      Plague.count({
+        where: { workflow_status: PLAGUE_WORKFLOW_STATUSES.PUBLISHED },
+      }),
+      Plague.count({
+        where: {
+          risk_level: { [Op.or]: ['Crítico', 'Alto', 'critico', 'alto'] },
+        },
+      }),
+      Plague.count({
+        where: { workflow_status: PLAGUE_WORKFLOW_STATUSES.IN_REVIEW },
+      }),
+      loadPlagueFormRelationOptions(),
+    ]);
 
     return res.render('private/catalog/plagues', {
       layout: privateLayout,
       pageTitle: 'Gestión Fitosanitaria - Plagas',
       activePage: 'plagues',
       plagues,
+      relationOptions,
       filters: { search, category, workflow },
       hasActiveFilters: Boolean(search || category || workflow),
       pagination,

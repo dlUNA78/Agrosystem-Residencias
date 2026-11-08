@@ -9,6 +9,7 @@
         <form id="plague-form" action="/private/plagues/create" method="POST" enctype="multipart/form-data" class="flex flex-col flex-1 min-h-0">
             <input type="hidden" name="require_min_stages" value="1" />
             <input type="hidden" id="plague-controlled-edit" name="controlled_edit" value="0" />
+            <input type="hidden" name="relations_submitted" value="1" />
 
             <!-- Header Fijo con Navegación Rápida por Bloques -->
             <div class="shrink-0 bg-card border-b border-border/80 px-5 sm:px-6 pt-4 pb-3 space-y-3">
@@ -39,9 +40,13 @@
                         class="px-2.5 py-1 rounded-lg bg-muted/60 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors shrink-0 cursor-pointer">
                         03 · Ciclo Biológico
                     </button>
+                    <button type="button" data-modal-section-target="form-sec-relaciones"
+                        class="px-2.5 py-1 rounded-lg bg-muted/60 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors shrink-0 cursor-pointer">
+                        04 · Vinculación Fitosanitaria
+                    </button>
                     <button type="button" data-modal-section-target="form-sec-galeria"
                         class="px-2.5 py-1 rounded-lg bg-muted/60 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors shrink-0 cursor-pointer">
-                        04 · Evidencia Fotográfica
+                        05 · Evidencia Fotográfica
                     </button>
                 </div>
             </div>
@@ -319,11 +324,78 @@
                     </template>
                 </section>
 
-                <!-- SECCIÓN 04: GALERÍA FOTOGRÁFICA DRAG & DROP -->
-                <section id="form-sec-galeria" class="rounded-2xl border border-border/80 bg-muted/15 p-4 sm:p-5 space-y-4">
+                <!-- SECCIÓN 04: VINCULACIÓN CON CATÁLOGOS PUBLICADOS (MUCHOS A MUCHOS) -->
+                <section id="form-sec-relaciones" class="rounded-2xl border border-border/80 bg-muted/15 p-4 sm:p-5 space-y-4">
                     <div class="flex items-center justify-between gap-2 border-b border-border/60 pb-2.5">
                         <div class="flex items-center gap-2">
                             <span class="flex h-6 w-6 items-center justify-center rounded-lg bg-[#1b4332] font-mono text-[11px] font-bold text-white">04</span>
+                            <div>
+                                <h4 class="text-xs font-headline font-bold text-foreground">Vinculación con Catálogos Publicados</h4>
+                                <p class="text-[11px] text-muted-foreground">Relaciona qué cultivos hospederos afecta esta plaga y qué productos autorizados ayudan a controlarla.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="rounded-xl border border-border bg-card p-3.5 space-y-2.5">
+                            <div class="flex items-center justify-between gap-2">
+                                <label class="text-xs font-bold text-foreground">Cultivos hospederos afectados</label>
+                                <span id="plague-crop-selected-count" class="rounded-full bg-[#e6f0e6] px-2 py-0.5 font-mono text-[10px] font-bold text-[#1b4332]">0 seleccionados</span>
+                            </div>
+                            <input
+                                type="search"
+                                data-plague-relation-search="plague-crop-options"
+                                placeholder="Filtrar cultivos publicados…"
+                                class="w-full rounded-lg border border-input bg-background px-3 py-1.5 text-xs focus:border-[#1b4332] focus:outline-hidden"
+                            />
+                            <div id="plague-crop-options" data-counter-target="plague-crop-selected-count" class="max-h-44 space-y-1 overflow-y-auto pr-1">
+                                {{#each relationOptions.crops}}
+                                    <label class="relation-option flex cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs hover:bg-muted/60" data-search-text="{{this.name}} {{this.scientific_name}} {{this.category}}">
+                                        <input type="checkbox" name="crop_ids" value="{{this.id}}" class="rounded border-input text-[#1b4332] focus:ring-[#1b4332]/20" />
+                                        <span class="font-semibold text-foreground">{{this.name}}</span>
+                                        {{#if this.scientific_name}}
+                                            <span class="text-[11px] italic text-muted-foreground">({{this.scientific_name}})</span>
+                                        {{/if}}
+                                    </label>
+                                {{else}}
+                                    <p class="py-4 text-center text-xs text-muted-foreground">No hay cultivos publicados disponibles.</p>
+                                {{/each}}
+                            </div>
+                        </div>
+
+                        <div class="rounded-xl border border-border bg-card p-3.5 space-y-2.5">
+                            <div class="flex items-center justify-between gap-2">
+                                <label class="text-xs font-bold text-foreground">Productos e insumos de control</label>
+                                <span id="plague-product-selected-count" class="rounded-full bg-[#e6f0e6] px-2 py-0.5 font-mono text-[10px] font-bold text-[#1b4332]">0 seleccionados</span>
+                            </div>
+                            <input
+                                type="search"
+                                data-plague-relation-search="plague-product-options"
+                                placeholder="Filtrar productos publicados…"
+                                class="w-full rounded-lg border border-input bg-background px-3 py-1.5 text-xs focus:border-[#1b4332] focus:outline-hidden"
+                            />
+                            <div id="plague-product-options" data-counter-target="plague-product-selected-count" class="max-h-44 space-y-1 overflow-y-auto pr-1">
+                                {{#each relationOptions.products}}
+                                    <label class="relation-option flex cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs hover:bg-muted/60" data-search-text="{{this.name}} {{this.active_ingredient}} {{this.category}}">
+                                        <input type="checkbox" name="product_ids" value="{{this.id}}" class="rounded border-input text-[#1b4332] focus:ring-[#1b4332]/20" />
+                                        <span class="font-semibold text-foreground">{{this.name}}</span>
+                                        {{#if this.active_ingredient}}
+                                            <span class="text-[11px] text-muted-foreground">({{this.active_ingredient}})</span>
+                                        {{/if}}
+                                    </label>
+                                {{else}}
+                                    <p class="py-4 text-center text-xs text-muted-foreground">No hay productos publicados disponibles.</p>
+                                {{/each}}
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SECCIÓN 05: GALERÍA FOTOGRÁFICA DRAG & DROP -->
+                <section id="form-sec-galeria" class="rounded-2xl border border-border/80 bg-muted/15 p-4 sm:p-5 space-y-4">
+                    <div class="flex items-center justify-between gap-2 border-b border-border/60 pb-2.5">
+                        <div class="flex items-center gap-2">
+                            <span class="flex h-6 w-6 items-center justify-center rounded-lg bg-[#1b4332] font-mono text-[11px] font-bold text-white">05</span>
                             <div>
                                 <h4 class="text-xs font-headline font-bold text-foreground">Galería de Evidencia en Campo</h4>
                                 <p class="text-[11px] text-muted-foreground">Arrastra tus fotografías aquí o selecciónalas desde tu equipo.</p>
@@ -357,7 +429,7 @@
             <!-- Footer Fijo de Guardado -->
             <div class="shrink-0 bg-card border-t border-border/80 px-5 sm:px-6 py-3.5 flex flex-wrap items-center justify-between gap-3">
                 <p class="text-[11px] text-muted-foreground hidden sm:block">
-                    <strong class="text-foreground">Nota:</strong> Cultivos hospederos, productos y regiones se asocian dentro del expediente de la plaga.
+                    <strong class="text-foreground">Nota:</strong> Las regiones de distribución y su nivel de riesgo regional también pueden detallarse dentro del expediente.
                 </p>
                 <div class="flex items-center gap-2 ml-auto">
                     <button type="button" id="modal-plague-cancel"

@@ -8,6 +8,7 @@ import {
   cleanupUploadedPlagueFiles,
   parseRemovedPlagueImageIds,
 } from '../../../services/plagueImageService.js';
+import { validatePlagueRelationsInput } from '../../../services/plagueRelationService.js';
 import { validatePlagueInput } from '../../../services/plagueValidationService.js';
 import {
   PLAGUE_WORKFLOW_STATUSES,
@@ -94,6 +95,40 @@ const rollbackWithUploadedFiles = async (transaction, files) => {
   await cleanupUploadedPlagueFiles(files);
 };
 
+const syncPlagueModalRelations = async (plague, body, transaction) => {
+  if (body?.relations_submitted !== '1') return null;
+  const parsed = validatePlagueRelationsInput(body);
+  if (!parsed.isValid) return parsed.errors.join(' ');
+  await plague.setCrops?.(parsed.value.cropIds, { transaction });
+  await plague.setProducts?.(parsed.value.productIds, { transaction });
+  return null;
+};
+
+const applyPlagueImageChanges = async ({
+  plagueId,
+  removedImageIds,
+  files,
+  nextImageOrder,
+  transaction,
+}) => {
+  if (removedImageIds.length > 0) {
+    await PlagueImage.destroy({
+      where: { id: removedImageIds, plague_id: plagueId },
+      transaction,
+    });
+  }
+  if (files.length > 0) {
+    await PlagueImage.bulkCreate(
+      buildPlagueImageRecords({
+        plagueId,
+        files,
+        startOrder: nextImageOrder,
+      }),
+      { transaction },
+    );
+  }
+};
+
 export const createPlague = async (req, res) => {
   const files = Array.isArray(req.files) ? req.files : [];
 
@@ -123,6 +158,16 @@ export const createPlague = async (req, res) => {
       },
       { transaction },
     );
+
+    const relationError = await syncPlagueModalRelations(
+      plague,
+      req.body,
+      transaction,
+    );
+    if (relationError) {
+      await rollbackWithUploadedFiles(transaction, files);
+      return res.status(400).send(relationError);
+    }
 
     if (files.length > 0) {
       await PlagueImage.bulkCreate(
@@ -220,22 +265,23 @@ export const updatePlague = async (req, res) => {
       { transaction },
     );
 
-    if (removedImageIds.length > 0) {
-      await PlagueImage.destroy({
-        where: { id: removedImageIds, plague_id: plague.id },
-        transaction,
-      });
+    const relationError = await syncPlagueModalRelations(
+      plague,
+      req.body,
+      transaction,
+    );
+    if (relationError) {
+      await rollbackWithUploadedFiles(transaction, files);
+      return res.status(400).send(relationError);
     }
-    if (files.length > 0) {
-      await PlagueImage.bulkCreate(
-        buildPlagueImageRecords({
-          plagueId: plague.id,
-          files,
-          startOrder: imageUpdatePlan.nextImageOrder,
-        }),
-        { transaction },
-      );
-    }
+
+    await applyPlagueImageChanges({
+      plagueId: plague.id,
+      removedImageIds,
+      files,
+      nextImageOrder: imageUpdatePlan.nextImageOrder,
+      transaction,
+    });
 
     await AuditLog.create(
       {
