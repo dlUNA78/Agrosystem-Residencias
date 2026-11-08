@@ -63,7 +63,29 @@ const respondMutationSuccess = (
   return res.redirect(redirect);
 };
 
-const checkCropEditEligibility = (crop, user) => {
+const isControlledCropStage = (status) =>
+  status === CROP_WORKFLOW_STATUSES.VERIFIED ||
+  status === CROP_WORKFLOW_STATUSES.PUBLISHED;
+
+const isControlledCropEditAuthorized = (crop, user, body) =>
+  body?.controlled_edit === '1' &&
+  (user.role === 'admin' || user.role === 'inifap') &&
+  isControlledCropStage(crop.workflow_status);
+
+const checkCropEditEligibility = (crop, user, body) => {
+  const isControlled = body?.controlled_edit === '1';
+  const editReason = String(body?.edit_reason || '').trim();
+  if (isControlled && editReason.length < 10) {
+    return {
+      status: 400,
+      message:
+        'Debes capturar una justificación técnica de al menos 10 caracteres para modificar el cultivo.',
+    };
+  }
+  if (isControlledCropEditAuthorized(crop, user, body)) {
+    return null;
+  }
+
   const permissions = getContextualCropPermissions({
     role: user.role,
     userId: user.id,
@@ -87,6 +109,36 @@ const checkCropEditEligibility = (crop, user) => {
   return null;
 };
 
+const buildCropUpdatePayload = (crop, validatedValue, user, body) => {
+  const isControlled = body?.controlled_edit === '1';
+  if (!isControlled) {
+    return { ...validatedValue, updated_by_user_id: user.id };
+  }
+  const editReason = String(body?.edit_reason || '').trim();
+  const actorLabel = user.full_name || user.email || 'Especialista INIFAP';
+  const lockedIdentity = {
+    name: crop.name,
+    scientific_name: crop.scientific_name,
+    category: crop.category || validatedValue.category,
+  };
+  const stageTransition = isControlledCropStage(crop.workflow_status)
+    ? {
+        workflow_status: CROP_WORKFLOW_STATUSES.IN_REVIEW,
+        status: 'pendiente',
+        verified_by_user_id: null,
+        verified_at: null,
+        created_by_user_id: crop.created_by_user_id || user.id,
+      }
+    : {};
+  return {
+    ...validatedValue,
+    ...lockedIdentity,
+    ...stageTransition,
+    review_notes: `[Edición controlada · ${actorLabel}]: ${editReason}`,
+    updated_by_user_id: user.id,
+  };
+};
+
 const prepareCropUpdateContext = async ({
   cropId,
   body,
@@ -102,7 +154,7 @@ const prepareCropUpdateContext = async ({
     return { errorStatus: 404, errorMessage: 'Cultivo no encontrado.' };
   }
 
-  const eligibility = checkCropEditEligibility(crop, user);
+  const eligibility = checkCropEditEligibility(crop, user, body);
   if (eligibility) {
     return {
       errorStatus: eligibility.status,
@@ -296,7 +348,7 @@ export const updateCrop = async (req, res) => {
     const oldValues = crop.toJSON();
 
     await crop.update(
-      { ...validation.value, updated_by_user_id: req.user.id },
+      buildCropUpdatePayload(crop, validation.value, req.user, req.body),
       { transaction },
     );
 

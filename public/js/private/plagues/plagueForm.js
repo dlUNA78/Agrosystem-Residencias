@@ -8,6 +8,44 @@ import {
 import { createPlagueCycleEditor } from './plagueCycleEditor.js';
 import { createPlagueImageEditor } from './plagueImageEditor.js';
 
+const LOCKED_PLAGUE_IDENTITY_FIELDS = ['name', 'scientific_name', 'category'];
+
+const togglePlagueEditControlMode = (form, isEdit) => {
+  LOCKED_PLAGUE_IDENTITY_FIELDS.forEach((fieldName) => {
+    const field = form.querySelector(`[name="${fieldName}"]`);
+    if (!field) return;
+    if (field.tagName === 'SELECT') {
+      field.classList.toggle('pointer-events-none', isEdit);
+      field.tabIndex = isEdit ? -1 : 0;
+    } else {
+      field.readOnly = isEdit;
+    }
+    field.setAttribute('aria-readonly', String(isEdit));
+    field.classList.toggle('bg-muted/60', isEdit);
+    field.classList.toggle('cursor-not-allowed', isEdit);
+  });
+
+  form
+    .querySelectorAll('[data-plague-identity-lock-badge]')
+    .forEach((badge) => {
+      badge.classList.toggle('hidden', !isEdit);
+      badge.classList.toggle('inline-flex', isEdit);
+    });
+
+  const banner = document.getElementById('plague-edit-control-banner');
+  banner?.classList.toggle('hidden', !isEdit);
+
+  const controlledInput = document.getElementById('plague-controlled-edit');
+  if (controlledInput) controlledInput.value = isEdit ? '1' : '0';
+
+  const reasonField = document.getElementById('plague-edit-reason');
+  if (reasonField) {
+    reasonField.disabled = !isEdit;
+    reasonField.required = isEdit;
+    if (!isEdit) reasonField.value = '';
+  }
+};
+
 const setInputValue = (form, name, value) => {
   const input = form.querySelector(`[name="${name}"]`);
   if (input) input.value = value || '';
@@ -197,6 +235,7 @@ export const initializePlagueForm = ({ onAfterSave } = {}) => {
     form.action = '/private/plagues/create';
     if (title) title.textContent = 'Nueva Plaga';
     setSaveButtonLabel('Guardar borrador');
+    togglePlagueEditControlMode(form, false);
     imageEditor.reset();
     cycleEditor.reset();
     showModal();
@@ -207,6 +246,7 @@ export const initializePlagueForm = ({ onAfterSave } = {}) => {
     const id = data?.id || '';
     if (!id) return;
 
+    togglePlagueEditControlMode(form, true);
     setInputValue(form, 'name', data.name);
     setInputValue(form, 'scientific_name', data.scientificName);
     setInputValue(form, 'category', normalizeCategoryForSelect(data.category));

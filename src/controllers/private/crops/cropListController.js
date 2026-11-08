@@ -51,6 +51,20 @@ const buildCropListIncludes = () => {
   return includes;
 };
 
+const isControlledCropStage = (status) =>
+  status === CROP_WORKFLOW_STATUSES.VERIFIED ||
+  status === CROP_WORKFLOW_STATUSES.PUBLISHED;
+
+const resolveCropEditFlags = (permissions, status, role) => {
+  const isDraftEditable = permissions.canEdit && isCropEditable(status);
+  const canControlledEdit =
+    ['admin', 'inifap'].includes(role) && isControlledCropStage(status);
+  return {
+    canEditRecord: isDraftEditable || canControlledEdit,
+    isControlledEdit: !isDraftEditable && canControlledEdit,
+  };
+};
+
 const buildListItem = (record, user) => {
   const crop = record.toJSON();
   const images = Array.isArray(crop.images) ? crop.images : [];
@@ -61,6 +75,11 @@ const buildListItem = (record, user) => {
     userId: user.id,
     createdByUserId: crop.created_by_user_id,
   });
+  const editFlags = resolveCropEditFlags(
+    permissions,
+    crop.workflow_status,
+    user.role,
+  );
 
   return {
     ...crop,
@@ -68,7 +87,7 @@ const buildListItem = (record, user) => {
     imageCount: images.length,
     authorName: crop.createdBy?.full_name || 'Sistema INIFAP',
     authorRole: crop.createdBy?.role || 'inifap',
-    canEditRecord: permissions.canEdit && isCropEditable(crop.workflow_status),
+    ...editFlags,
     canDeleteRecord: permissions.canDelete,
   };
 };

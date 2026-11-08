@@ -68,6 +68,20 @@ const resolvePrimaryImageUrl = (images) => {
   return primary?.image_url || '/images/products/default.png';
 };
 
+const isControlledProductStage = (status) =>
+  status === PRODUCT_WORKFLOW_STATUSES.VERIFIED ||
+  status === PRODUCT_WORKFLOW_STATUSES.PUBLISHED;
+
+const resolveProductEditFlags = (permissions, status, role) => {
+  const isDraftEditable = permissions.canEdit && isProductEditable(status);
+  const canControlledEdit =
+    ['admin', 'inifap'].includes(role) && isControlledProductStage(status);
+  return {
+    canEditRecord: isDraftEditable || canControlledEdit,
+    isControlledEdit: !isDraftEditable && canControlledEdit,
+  };
+};
+
 const buildProductListItem = (record, user) => {
   const product = record.toJSON();
   const images = normalizeProductImages(product.images);
@@ -76,6 +90,11 @@ const buildProductListItem = (record, user) => {
     userId: user.id,
     createdByUserId: product.created_by_user_id,
   });
+  const editFlags = resolveProductEditFlags(
+    permissions,
+    product.workflow_status,
+    user.role,
+  );
   const expirationDateFormatted = product.expiration_date
     ?.toISOString?.()
     .slice(0, 10);
@@ -94,8 +113,7 @@ const buildProductListItem = (record, user) => {
     expiration_date_formatted: expirationDateFormatted,
     authorName: product.createdBy?.full_name || 'Sistema INIFAP',
     authorRole: product.createdBy?.role || 'inifap',
-    canEditRecord:
-      permissions.canEdit && isProductEditable(product.workflow_status),
+    ...editFlags,
     canDeleteRecord: permissions.canDelete,
     permissions,
   };

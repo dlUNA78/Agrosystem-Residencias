@@ -9,6 +9,46 @@ import { initializeCropFormValidation } from '../crop-form-validation.js';
 import { observeCropDialog } from '../cropDialog.js';
 import { createCropImageEditor } from './cropImageEditor.js';
 
+const LOCKED_CROP_IDENTITY_IDS = [
+  'crop-name',
+  'crop-scientific-name',
+  'crop-category',
+];
+
+const toggleCropEditControlMode = (form, isEdit) => {
+  LOCKED_CROP_IDENTITY_IDS.forEach((fieldId) => {
+    const field = document.getElementById(fieldId);
+    if (!field) return;
+    if (field.tagName === 'SELECT') {
+      field.classList.toggle('pointer-events-none', isEdit);
+      field.tabIndex = isEdit ? -1 : 0;
+    } else {
+      field.readOnly = isEdit;
+    }
+    field.setAttribute('aria-readonly', String(isEdit));
+    field.classList.toggle('bg-muted/60', isEdit);
+    field.classList.toggle('cursor-not-allowed', isEdit);
+  });
+
+  form?.querySelectorAll('[data-crop-identity-lock-badge]').forEach((badge) => {
+    badge.classList.toggle('hidden', !isEdit);
+    badge.classList.toggle('inline-flex', isEdit);
+  });
+
+  const banner = document.getElementById('crop-edit-control-banner');
+  banner?.classList.toggle('hidden', !isEdit);
+
+  const controlledInput = document.getElementById('crop-controlled-edit');
+  if (controlledInput) controlledInput.value = isEdit ? '1' : '0';
+
+  const reasonField = document.getElementById('crop-edit-reason');
+  if (reasonField) {
+    reasonField.disabled = !isEdit;
+    reasonField.required = isEdit;
+    if (!isEdit) reasonField.value = '';
+  }
+};
+
 const setFieldValue = (id, value) => {
   const element = document.getElementById(id);
   if (!element) return;
@@ -200,6 +240,7 @@ export const initializeCropForm = ({ onAfterSave } = {}) => {
 
   const openCreateModal = () => {
     form.reset();
+    toggleCropEditControlMode(form, false);
     validation?.reset();
     imageEditor.reset();
     form.action = '/private/crops/create';
@@ -219,6 +260,7 @@ export const initializeCropForm = ({ onAfterSave } = {}) => {
 
       const crop = data.crop;
       form.reset();
+      toggleCropEditControlMode(form, true);
       validation?.reset();
       form.action = `/private/crops/update/${crop.id}`;
       if (modalTitle)

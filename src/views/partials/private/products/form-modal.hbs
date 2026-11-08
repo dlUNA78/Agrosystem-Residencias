@@ -17,6 +17,7 @@
     </header>
 
     <form id="product-form" action="/private/products/create" method="POST" enctype="multipart/form-data" class="flex-1 overflow-y-auto" novalidate>
+      <input type="hidden" id="product-controlled-edit" name="controlled_edit" value="0" />
       <div class="space-y-6 p-6">
         <div id="product-form-validation-summary" tabindex="-1" class="hidden rounded-xl border border-rose-200 bg-rose-50 p-4 text-xs text-rose-900">
           <div class="flex items-center gap-2 font-bold">
@@ -26,6 +27,33 @@
           <ul class="mt-2 list-disc space-y-1 pl-5"></ul>
         </div>
 
+        <section id="product-edit-control-banner" class="hidden rounded-2xl border border-amber-300 bg-amber-50/90 p-4 text-xs text-amber-950 space-y-3">
+          <div class="flex items-start gap-2.5">
+            <i data-lucide="shield-alert" class="w-4 h-4 text-amber-700 shrink-0 mt-0.5"></i>
+            <div>
+              <p class="font-bold text-amber-950">Modo de Edición Controlada · Protección de Datos Sensibles</p>
+              <p class="mt-0.5 text-[11px] leading-relaxed text-amber-900">
+                Por normatividad COFEPRIS / INIFAP, los datos de identidad regulatoria (<strong class="font-semibold">Nombre comercial, Registro RSCO, Ingrediente activo base y Categoría</strong>) están protegidos contra modificación directa. Cualquier ajuste en dosis, intervalos o parámetros enviará la ficha a <strong class="font-semibold">Revisión Técnica</strong> antes de reflejarse en el catálogo público.
+              </p>
+            </div>
+          </div>
+          <div>
+            <label for="product-edit-reason" class="mb-1.5 block text-xs font-bold text-amber-950">
+              Justificación técnica de la modificación *
+            </label>
+            <textarea
+              id="product-edit-reason"
+              name="edit_reason"
+              rows="2"
+              minlength="10"
+              maxlength="500"
+              disabled
+              placeholder="Describe el sustento técnico o regulatorio del cambio (mínimo 10 caracteres, ej. Actualización de dosis en etiqueta RSCO 2026)…"
+              class="w-full rounded-xl border border-amber-300 bg-white px-3.5 py-2 text-xs text-foreground focus:border-[#1b4332] focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20"
+            ></textarea>
+          </div>
+        </section>
+
         <!-- SECCIÓN 1: IDENTIFICACIÓN Y REGISTRO SANITARIO -->
         <fieldset class="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <legend class="col-span-full mb-1 flex items-center gap-2 text-sm font-headline font-bold text-[#1b4332]">
@@ -34,12 +62,22 @@
           </legend>
 
           <div class="sm:col-span-2">
-            <label for="name" class="mb-1.5 block text-xs font-bold text-foreground">Nombre comercial *</label>
+            <div class="mb-1.5 flex items-center justify-between gap-2">
+              <label for="name" class="block text-xs font-bold text-foreground">Nombre comercial *</label>
+              <span data-identity-lock-badge class="hidden items-center gap-1 rounded-md bg-amber-100 px-2 py-0.5 font-mono text-[10px] font-bold text-amber-900">
+                <i data-lucide="lock" class="w-3 h-3"></i> Protegido en edición
+              </span>
+            </div>
             <input id="name" name="name" type="text" required maxlength="150" placeholder="Ej. Amistar Top, Coragen 20 SC" class="w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-xs focus:border-[#1b4332] focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20" />
           </div>
 
           <div>
-            <label for="category" class="mb-1.5 block text-xs font-bold text-foreground">Categoría fitosanitaria *</label>
+            <div class="mb-1.5 flex items-center justify-between gap-2">
+              <label for="category" class="block text-xs font-bold text-foreground">Categoría fitosanitaria *</label>
+              <span data-identity-lock-badge class="hidden items-center gap-1 rounded-md bg-amber-100 px-2 py-0.5 font-mono text-[10px] font-bold text-amber-900">
+                <i data-lucide="lock" class="w-3 h-3"></i> Inmutable
+              </span>
+            </div>
             <select id="category" name="category" required class="w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-xs focus:border-[#1b4332] focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20">
               <option value="">Seleccionar categoría…</option>
               {{#if productCategories}}
@@ -92,7 +130,12 @@
           </div>
 
           <div>
-            <label for="registration_code" class="mb-1.5 block text-xs font-bold text-foreground">Registro COFEPRIS (RSCO) *</label>
+            <div class="mb-1.5 flex items-center justify-between gap-2">
+              <label for="registration_code" class="block text-xs font-bold text-foreground">Registro COFEPRIS (RSCO) *</label>
+              <span data-identity-lock-badge class="hidden items-center gap-1 rounded-md bg-amber-100 px-2 py-0.5 font-mono text-[10px] font-bold text-amber-900">
+                <i data-lucide="lock" class="w-3 h-3"></i> Registro oficial fijo
+              </span>
+            </div>
             <input id="registration_code" name="registration_code" type="text" required maxlength="100" placeholder="Ej. RSCO-MEZC-1101E-301-064-033" class="w-full rounded-xl border border-input bg-background px-3.5 py-2.5 font-mono text-xs focus:border-[#1b4332] focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20" />
           </div>
 

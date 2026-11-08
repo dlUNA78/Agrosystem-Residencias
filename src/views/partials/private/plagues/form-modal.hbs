@@ -8,6 +8,7 @@
 
         <form id="plague-form" action="/private/plagues/create" method="POST" enctype="multipart/form-data" class="flex flex-col flex-1 min-h-0">
             <input type="hidden" name="require_min_stages" value="1" />
+            <input type="hidden" id="plague-controlled-edit" name="controlled_edit" value="0" />
 
             <!-- Header Fijo con Navegación Rápida por Bloques -->
             <div class="shrink-0 bg-card border-b border-border/80 px-5 sm:px-6 pt-4 pb-3 space-y-3">
@@ -50,6 +51,33 @@
 
                 <div id="plague-form-server-error" role="alert" class="hidden rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-xs font-bold text-rose-800"></div>
 
+                <section id="plague-edit-control-banner" class="hidden rounded-2xl border border-amber-300 bg-amber-50/90 p-4 text-xs text-amber-950 space-y-3">
+                    <div class="flex items-start gap-2.5">
+                        <i data-lucide="shield-alert" class="w-4 h-4 text-amber-700 shrink-0 mt-0.5"></i>
+                        <div>
+                            <p class="font-bold text-amber-950">Modo de Edición Controlada · Protección Taxonómica</p>
+                            <p class="mt-0.5 text-[11px] leading-relaxed text-amber-900">
+                                Los campos de identidad taxonómica (<strong class="font-semibold">Nombre común, Nombre científico y Categoría</strong>) están bloqueados para evitar alteraciones accidentales del catálogo. Cualquier actualización sobre una ficha verificada o publicada la enviará automáticamente a <strong class="font-semibold">Revisión Técnica</strong>.
+                            </p>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="plague-edit-reason" class="mb-1.5 block text-xs font-bold text-amber-950">
+                            Justificación técnica de la modificación <span class="text-rose-600">*</span>
+                        </label>
+                        <textarea
+                            id="plague-edit-reason"
+                            name="edit_reason"
+                            rows="2"
+                            minlength="10"
+                            maxlength="500"
+                            disabled
+                            placeholder="Describe el motivo técnico o fitosanitario del cambio (mínimo 10 caracteres, ej. Actualización de umbrales de acción y agentes de control biológico)…"
+                            class="w-full rounded-xl border border-amber-300 bg-white px-3.5 py-2 text-xs text-foreground focus:border-[#1b4332] focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20"
+                        ></textarea>
+                    </div>
+                </section>
+
                 <!-- SECCIÓN 01: IDENTIDAD Y CLASIFICACIÓN -->
                 <section id="form-sec-identidad" class="rounded-2xl border border-border/80 bg-muted/15 p-4 sm:p-5 space-y-4">
                     <div class="flex items-center justify-between gap-2 border-b border-border/60 pb-2.5">
@@ -60,6 +88,9 @@
                                 <p class="text-[11px] text-muted-foreground">Sólo el nombre común y científico son obligatorios para guardar un borrador inicial.</p>
                             </div>
                         </div>
+                        <span data-plague-identity-lock-badge class="hidden items-center gap-1 rounded-md bg-amber-100 px-2 py-0.5 font-mono text-[10px] font-bold text-amber-900">
+                            <i data-lucide="lock" class="w-3 h-3"></i> Identidad protegida
+                        </span>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">

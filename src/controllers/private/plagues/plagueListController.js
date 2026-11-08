@@ -88,6 +88,20 @@ const countBiologicalStages = (rawCycle) => {
   return 0;
 };
 
+const isControlledPlagueStage = (status) =>
+  status === PLAGUE_WORKFLOW_STATUSES.VERIFIED ||
+  status === PLAGUE_WORKFLOW_STATUSES.PUBLISHED;
+
+const resolvePlagueEditFlags = (permissions, status, role) => {
+  const isDraftEditable = permissions.canEdit && isPlagueEditable(status);
+  const canControlledEdit =
+    ['admin', 'inifap'].includes(role) && isControlledPlagueStage(status);
+  return {
+    canEditRecord: isDraftEditable || canControlledEdit,
+    isControlledEdit: !isDraftEditable && canControlledEdit,
+  };
+};
+
 const serializePlague = (plague, currentUser) => {
   const data = plague.toJSON();
   const images = Array.isArray(data.images) ? data.images : [];
@@ -97,6 +111,11 @@ const serializePlague = (plague, currentUser) => {
     userId: currentUser.id,
     createdByUserId: data.created_by_user_id,
   });
+  const editFlags = resolvePlagueEditFlags(
+    recordPermissions,
+    data.workflow_status,
+    currentUser.role,
+  );
 
   return {
     ...data,
@@ -109,8 +128,7 @@ const serializePlague = (plague, currentUser) => {
     biological_cycle_json: JSON.stringify(data.biological_cycle || []),
     authorName: data.createdBy?.full_name || 'Sistema INIFAP',
     authorRole: data.createdBy?.role || 'inifap',
-    canEditRecord:
-      recordPermissions.canEdit && isPlagueEditable(data.workflow_status),
+    ...editFlags,
   };
 };
 

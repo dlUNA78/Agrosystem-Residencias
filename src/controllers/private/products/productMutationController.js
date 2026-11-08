@@ -48,7 +48,28 @@ const rollbackWithFiles = async (transaction, files) => {
   await cleanupUploadedProductFiles(files);
 };
 
-const getUpdateRestriction = (product, user) => {
+const isControlledProductStage = (status) =>
+  status === PRODUCT_WORKFLOW_STATUSES.VERIFIED ||
+  status === PRODUCT_WORKFLOW_STATUSES.PUBLISHED;
+
+const isControlledEditAuthorized = (product, user, body) =>
+  body?.controlled_edit === '1' &&
+  (user.role === 'admin' || user.role === 'inifap') &&
+  isControlledProductStage(product.workflow_status);
+
+const getUpdateRestriction = (product, user, body) => {
+  const isControlled = body?.controlled_edit === '1';
+  const editReason = String(body?.edit_reason || '').trim();
+  if (isControlled && editReason.length < 10) {
+    return {
+      status: 400,
+      message:
+        'Debes capturar una justificación técnica de al menos 10 caracteres para modificar el registro.',
+    };
+  }
+  if (isControlledEditAuthorized(product, user, body)) {
+    return null;
+  }
   const permissions = getContextualProductPermissions({
     role: user.role,
     userId: user.id,
@@ -67,6 +88,38 @@ const getUpdateRestriction = (product, user) => {
     };
   }
   return null;
+};
+
+const buildProductUpdatePayload = (product, parsedValue, user, body) => {
+  const isControlled = body?.controlled_edit === '1';
+  if (!isControlled) {
+    return { ...parsedValue, updated_by_user_id: user.id };
+  }
+  const editReason = String(body?.edit_reason || '').trim();
+  const actorLabel = user.full_name || user.email || 'Especialista INIFAP';
+  const lockedIdentity = {
+    name: product.name,
+    registration_code: product.registration_code,
+    active_ingredient: product.active_ingredient,
+    category: product.category,
+  };
+  const stageTransition = isControlledProductStage(product.workflow_status)
+    ? {
+        workflow_status: PRODUCT_WORKFLOW_STATUSES.IN_REVIEW,
+        validation_status: 'En revisión',
+        status: false,
+        verified_by_user_id: null,
+        verified_at: null,
+        created_by_user_id: product.created_by_user_id || user.id,
+      }
+    : {};
+  return {
+    ...parsedValue,
+    ...lockedIdentity,
+    ...stageTransition,
+    review_notes: `[Edición controlada · ${actorLabel}]: ${editReason}`,
+    updated_by_user_id: user.id,
+  };
 };
 
 const requireProduct = (product) => {
@@ -280,7 +333,7 @@ export const updateProduct = async (req, res) => {
         lock: transaction.LOCK.UPDATE,
       }),
     );
-    const restriction = getUpdateRestriction(product, req.user);
+    const restriction = getUpdateRestriction(product, req.user, req.body);
     if (restriction) {
       await rollbackWithFiles(transaction, files);
       return failure(req, res, restriction.status, restriction.message);
@@ -297,7 +350,7 @@ export const updateProduct = async (req, res) => {
 
     const oldValues = product.toJSON();
     await product.update(
-      { ...parsed.value, updated_by_user_id: req.user.id },
+      buildProductUpdatePayload(product, parsed.value, req.user, req.body),
       { transaction },
     );
     const imageUpdate = await applyImageUpdates({

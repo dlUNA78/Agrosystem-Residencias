@@ -10,7 +10,10 @@ import { buildCropDetailView } from '../../../services/cropDetailService.js';
 import { sendCropPdfResponse } from '../../../services/cropPdfService.js';
 import { buildCropPublicationReadiness } from '../../../services/cropReadinessService.js';
 import { buildCropRelationEditor } from '../../../services/cropRelationService.js';
-import { isCropEditable } from '../../../services/cropWorkflowService.js';
+import {
+  CROP_WORKFLOW_STATUSES,
+  isCropEditable,
+} from '../../../services/cropWorkflowService.js';
 
 const currentDirectory = path.dirname(fileURLToPath(import.meta.url));
 const privateLayout = path.join(
@@ -113,6 +116,13 @@ const loadRelationEditor = async (cropData) => {
   });
 };
 
+const isControlledCropStage = (status) =>
+  status === CROP_WORKFLOW_STATUSES.VERIFIED ||
+  status === CROP_WORKFLOW_STATUSES.PUBLISHED;
+
+const canRolePerformControlledEdit = (role, status) =>
+  ['admin', 'inifap'].includes(role) && isControlledCropStage(status);
+
 const resolveDetailEditState = (user, cropData) => {
   const permissions = getContextualCropPermissions({
     role: user.role,
@@ -121,10 +131,19 @@ const resolveDetailEditState = (user, cropData) => {
   });
   const rolePermissions = getCropPermissions(user.role);
   const editableStatus = isCropEditable(cropData.workflow_status);
+  const isDraftEditable = permissions.canEdit && editableStatus;
+  const canControlledEdit = canRolePerformControlledEdit(
+    user.role,
+    cropData.workflow_status,
+  );
 
   return {
-    permissions,
-    canEditRecord: permissions.canEdit && editableStatus,
+    permissions: {
+      ...permissions,
+      canEdit: permissions.canEdit || canControlledEdit,
+    },
+    canEditRecord: isDraftEditable || canControlledEdit,
+    isControlledEdit: !isDraftEditable && canControlledEdit,
     canEditRelations: permissions.canManageRelations && editableStatus,
     relationsLocked: rolePermissions.canManageRelations && !editableStatus,
     relationsOwnershipRestricted:
@@ -202,6 +221,8 @@ export const getCropDetail = async (req, res) => {
       ...cropData,
       images,
       image_url: primaryImage?.image_url,
+      canEditRecord: editState.canEditRecord,
+      isControlledEdit: editState.isControlledEdit,
     };
 
     const wantsJson =

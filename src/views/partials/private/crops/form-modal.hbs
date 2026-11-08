@@ -19,12 +19,39 @@
       </button>
     </header>
     <form id="crop-form" method="POST" action="/private/crops/create" enctype="multipart/form-data" novalidate class="flex min-h-0 flex-1 flex-col">
+      <input type="hidden" id="crop-controlled-edit" name="controlled_edit" value="0" />
       <div class="min-h-0 overflow-y-auto overscroll-contain bg-background p-4 sm:p-6">
         <div id="crop-form-validation-summary" role="alert" aria-live="assertive" tabindex="-1" class="hidden rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-destructive mb-5">
           <p class="text-sm font-bold">Revisa la información capturada</p>
           <p class="mt-1 text-xs">Corrige los campos marcados antes de guardar el cultivo.</p>
           <ul id="crop-form-validation-errors" class="mt-2 list-disc space-y-1 pl-5 text-xs"></ul>
         </div>
+        <section id="crop-edit-control-banner" class="hidden rounded-2xl border border-amber-300 bg-amber-50/90 p-4 text-xs text-amber-950 space-y-3 mb-5">
+          <div class="flex items-start gap-2.5">
+            <i data-lucide="shield-alert" class="w-4 h-4 text-amber-700 shrink-0 mt-0.5"></i>
+            <div>
+              <p class="font-bold text-amber-950">Modo de Edición Controlada · Protección Botánica</p>
+              <p class="mt-0.5 text-[11px] leading-relaxed text-amber-900">
+                Los campos de identidad botánica (<strong class="font-semibold">Nombre común, Nombre científico y Categoría</strong>) están protegidos contra edición directa. Al guardar cambios sobre un cultivo verificado o publicado, el expediente pasará automáticamente a <strong class="font-semibold">Revisión Técnica</strong> para dictamen antes de publicarse.
+              </p>
+            </div>
+          </div>
+          <div>
+            <label for="crop-edit-reason" class="mb-1.5 block text-xs font-bold text-amber-950">
+              Justificación técnica de la modificación *
+            </label>
+            <textarea
+              id="crop-edit-reason"
+              name="edit_reason"
+              rows="2"
+              minlength="10"
+              maxlength="500"
+              disabled
+              placeholder="Describe el sustento agronómico del cambio (mínimo 10 caracteres, ej. Ajuste de requerimientos hídricos y fenología regional)…"
+              class="w-full rounded-xl border border-amber-300 bg-white px-3.5 py-2 text-xs text-foreground focus:border-[#1b4332] focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20"
+            ></textarea>
+          </div>
+        </section>
         <div class="space-y-5">
           {{> private/crops/form-identity}}
           {{> private/crops/form-region}}

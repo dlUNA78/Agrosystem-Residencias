@@ -7,7 +7,10 @@ import { buildPlagueDetailView } from '../../../services/plagueDetailService.js'
 import { sendPlaguePdfResponse } from '../../../services/plaguePdfService.js';
 import { buildPlagueRelationEditor } from '../../../services/plagueRelationService.js';
 import { buildPlaguePublicationReadiness } from '../../../services/plagueReadinessService.js';
-import { isPlagueEditable } from '../../../services/plagueWorkflowService.js';
+import {
+  PLAGUE_WORKFLOW_STATUSES,
+  isPlagueEditable,
+} from '../../../services/plagueWorkflowService.js';
 import { privateLayout } from './plagueControllerUtils.js';
 
 const { Crop, Plague, PlagueImage, Product, ProductImage, Region, User } = db;
@@ -118,6 +121,10 @@ const parseValidPlagueId = (rawId) => {
   return Number.isSafeInteger(numericId) && numericId > 0 ? numericId : null;
 };
 
+const isControlledPlagueStage = (status) =>
+  status === PLAGUE_WORKFLOW_STATUSES.VERIFIED ||
+  status === PLAGUE_WORKFLOW_STATUSES.PUBLISHED;
+
 const resolveDetailEditState = (user, plagueData) => {
   const permissions = getContextualPlaguePermissions({
     role: user.role,
@@ -126,9 +133,17 @@ const resolveDetailEditState = (user, plagueData) => {
   });
   const rolePermissions = getPlaguePermissions(user.role);
   const editableStatus = isPlagueEditable(plagueData.workflow_status);
+  const isDraftEditable = permissions.canEdit && editableStatus;
+  const canControlledEdit =
+    (user.role === 'admin' || user.role === 'inifap') &&
+    isControlledPlagueStage(plagueData.workflow_status);
   return {
-    permissions,
-    canEditRecord: permissions.canEdit && editableStatus,
+    permissions: {
+      ...permissions,
+      canCreate: rolePermissions.canCreate,
+    },
+    canEditRecord: isDraftEditable || canControlledEdit,
+    isControlledEdit: !isDraftEditable && canControlledEdit,
     canEditRelations: permissions.canManageRelations && editableStatus,
     relationsLocked: rolePermissions.canManageRelations && !editableStatus,
     relationsOwnershipRestricted:

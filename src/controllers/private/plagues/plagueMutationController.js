@@ -16,6 +16,79 @@ import {
 
 const { AuditLog, Plague, PlagueImage } = db;
 
+const isControlledPlagueStage = (status) =>
+  status === PLAGUE_WORKFLOW_STATUSES.VERIFIED ||
+  status === PLAGUE_WORKFLOW_STATUSES.PUBLISHED;
+
+const isControlledPlagueEditAuthorized = (plague, user, body) =>
+  body?.controlled_edit === '1' &&
+  (user.role === 'admin' || user.role === 'inifap') &&
+  isControlledPlagueStage(plague.workflow_status);
+
+const checkPlagueUpdateRestriction = (plague, user, body) => {
+  const isControlled = body?.controlled_edit === '1';
+  const editReason = String(body?.edit_reason || '').trim();
+  if (isControlled && editReason.length < 10) {
+    return {
+      status: 400,
+      message:
+        'Debes capturar una justificación técnica de al menos 10 caracteres para modificar el expediente.',
+    };
+  }
+  if (isControlledPlagueEditAuthorized(plague, user, body)) {
+    return null;
+  }
+  const recordPermissions = getContextualPlaguePermissions({
+    role: user.role,
+    userId: user.id,
+    createdByUserId: plague.created_by_user_id,
+  });
+  if (!recordPermissions.canEdit) {
+    return {
+      status: 403,
+      message: 'Sólo el autor o un administrador puede editar esta plaga.',
+    };
+  }
+  if (!isPlagueEditable(plague.workflow_status)) {
+    return {
+      status: 409,
+      message: 'La plaga debe estar en borrador para poder editarse.',
+    };
+  }
+  return null;
+};
+
+const buildPlagueUpdatePayload = (plague, validatedValue, user, body) => {
+  const isControlled = body?.controlled_edit === '1';
+  if (!isControlled) {
+    return { ...validatedValue, updated_by_user_id: user.id };
+  }
+  const editReason = String(body?.edit_reason || '').trim();
+  const actorLabel = user.full_name || user.email || 'Especialista INIFAP';
+  const lockedIdentity = {
+    name: plague.name,
+    scientific_name: plague.scientific_name,
+    category: plague.category || validatedValue.category,
+  };
+  const stageTransition = isControlledPlagueStage(plague.workflow_status)
+    ? {
+        workflow_status: PLAGUE_WORKFLOW_STATUSES.IN_REVIEW,
+        status: false,
+        verified_by: null,
+        verified_by_user_id: null,
+        verified_at: null,
+        created_by_user_id: plague.created_by_user_id || user.id,
+      }
+    : {};
+  return {
+    ...validatedValue,
+    ...lockedIdentity,
+    ...stageTransition,
+    review_notes: `[Edición controlada · ${actorLabel}]: ${editReason}`,
+    updated_by_user_id: user.id,
+  };
+};
+
 const rollbackWithUploadedFiles = async (transaction, files) => {
   await transaction.rollback();
   await cleanupUploadedPlagueFiles(files);
@@ -108,22 +181,14 @@ export const updatePlague = async (req, res) => {
       return res.status(404).send('Plaga no encontrada');
     }
 
-    const recordPermissions = getContextualPlaguePermissions({
-      role: req.user.role,
-      userId: req.user.id,
-      createdByUserId: plague.created_by_user_id,
-    });
-    if (!recordPermissions.canEdit) {
+    const restriction = checkPlagueUpdateRestriction(
+      plague,
+      req.user,
+      req.body,
+    );
+    if (restriction) {
       await rollbackWithUploadedFiles(transaction, files);
-      return res
-        .status(403)
-        .send('Sólo el autor o un administrador puede editar esta plaga.');
-    }
-    if (!isPlagueEditable(plague.workflow_status)) {
-      await rollbackWithUploadedFiles(transaction, files);
-      return res
-        .status(409)
-        .send('La plaga debe estar en borrador para poder editarse.');
+      return res.status(restriction.status).send(restriction.message);
     }
 
     const oldValues = plague.toJSON();
@@ -151,7 +216,7 @@ export const updatePlague = async (req, res) => {
     removedImages = imageUpdatePlan.removedImages;
 
     await plague.update(
-      { ...validation.value, updated_by_user_id: req.user.id },
+      buildPlagueUpdatePayload(plague, validation.value, req.user, req.body),
       { transaction },
     );
 
