@@ -1,320 +1,708 @@
-{{!-- ============================================================
-     TERRENOS — Vista Principal: Mis Parcelas
-     NOTA: Esta vista NO contiene lógica JavaScript.
-     Toda la interactividad del mapa Leaflet está en:
-     public/js/private/lands.js
-     ============================================================ --}}
-<div class="space-y-8">
+<!-- Catálogo Operativo Privado de Terrenos y Parcelas (/private/lands) · Geist Design System -->
+<div class="max-w-7xl mx-auto px-2 sm:px-6 pt-4 pb-16 space-y-6 font-['Geist'] antialiased text-foreground">
 
-        {{!-- ── Cabecera ── --}}
-        <div class="flex flex-wrap items-center justify-between gap-4">
-            <div>
-                <h1 class="text-2xl font-extrabold text-[#0F2E2E]">Gestión de Terrenos y Parcelas</h1>
-                <p class="text-sm text-on-surface-variant mt-1">
-                    {{#if permissions.canViewAll}}Consulta y monitorea los predios activos del personal autorizado.{{else}}Registra y monitorea tus predios.{{/if}}
-                    {{#if farmsCount}}
-                        <span class="font-bold text-primary">{{farmsCount}} resultado(s).</span>
-                    {{else}}
-                        <span class="text-slate-400">Aún no tienes terrenos registrados.</span>
-                    {{/if}}
-                </p>
-            </div>
-            {{#if permissions.canCreate}}
-            <button id="btn-open-new-land"
-                class="flex items-center gap-2 px-5 py-2.5 bg-[#0F2E2E] text-white rounded-xl text-sm font-bold hover:bg-[#43655c] transition-colors shadow-sm">
-                <span class="material-symbols-outlined text-base">add_location_alt</span>
-                Registrar Predio
-            </button>
-            {{/if}}
-        </div>
+  <!-- ===================================================== -->
+  <!-- ENCABEZADO ADMINISTRATIVO + ACCIONES SEGÚN ROL (RBAC) -->
+  <!-- ===================================================== -->
+  <header class="flex flex-col lg:flex-row lg:items-end justify-between gap-5 border-b border-border/80 pb-6">
+    <div class="space-y-2">
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="px-3 py-1 rounded-full bg-[#e6f0e6] text-[#1b4332] text-[11px] font-mono font-bold tracking-wider uppercase">
+          TRAZABILIDAD TERRITORIAL · PREDIOS Y PARCELAS
+        </span>
+        {{#if isAdmin}}
+          <span class="px-2.5 py-0.5 rounded-md bg-purple-100 text-purple-800 text-[10px] font-mono font-bold uppercase">
+            ADMINISTRADOR
+          </span>
+        {{else}}{{#if isInifap}}
+          <span class="px-2.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-mono font-bold uppercase">
+            ESPECIALISTA INIFAP
+          </span>
+        {{/if}}{{/if}}
+      </div>
 
-        <nav class="flex flex-wrap gap-2" aria-label="Filtrar terrenos por estado">
-            <a href="/private/lands?status=active"
-                class="rounded-lg border px-4 py-2 text-sm font-bold transition-colors {{#if filters.isActive}}border-primary bg-primary text-white{{else}}border-border bg-card text-muted-foreground hover:text-primary{{/if}}">
-                Activos
-            </a>
-            <a href="/private/lands?status=archived"
-                class="rounded-lg border px-4 py-2 text-sm font-bold transition-colors {{#if filters.isArchived}}border-primary bg-primary text-white{{else}}border-border bg-card text-muted-foreground hover:text-primary{{/if}}">
-                Archivados
-            </a>
-            {{#if permissions.canViewAll}}
-            <a href="/private/lands?status=all"
-                class="rounded-lg border px-4 py-2 text-sm font-bold transition-colors {{#if filters.isAll}}border-primary bg-primary text-white{{else}}border-border bg-card text-muted-foreground hover:text-primary{{/if}}">
-                Todos
-            </a>
-            {{/if}}
-        </nav>
-
-        {{!-- ── Mapa de mis terrenos (visualización) ── --}}
-        {{!-- isolation: isolate crea un stacking context propio que impide
-             que los z-index internos de Leaflet (pane z-400+) se filtren
-             por encima del modal u otros elementos de la página --}}
-        <section class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden" style="isolation: isolate;">
-            <div class="flex items-center justify-between px-6 py-4 border-b border-slate-50">
-                <div class="flex items-center gap-2">
-                    <span class="material-symbols-outlined text-primary">map</span>
-                    <span class="font-bold text-[#0F2E2E] text-sm">Mapa de Mis Predios</span>
-                </div>
-                <button id="map-zoom-fit"
-                    class="text-xs font-bold text-on-surface-variant hover:text-primary transition-colors flex items-center gap-1 px-3 py-1.5 rounded-lg hover:bg-surface-container-low">
-                    <span class="material-symbols-outlined text-base">fit_screen</span> Ajustar vista
-                </button>
-            </div>
-            {{!-- position: relative + z-index: 0 fuerza un stacking context en el div del mapa --}}
-            <div id="lands-map" class="w-full" style="height: 380px; position: relative; z-index: 0;"></div>
-        </section>
-
-        {{!-- ── Grid de Tarjetas de Terrenos ── --}}
-        {{#if farms}}
-        <section id="lands-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {{#each farms}}
-            <article class="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all group overflow-hidden"
-                data-lat="{{this.location_lat}}"
-                data-lng="{{this.location_lng}}">
-                <div class="relative h-36 bg-surface-container flex items-center justify-center overflow-hidden">
-                    <span class="material-symbols-outlined text-6xl text-slate-200">landscape</span>
-                    <div class="absolute top-3 right-3 flex items-center gap-1.5 bg-white/90 backdrop-blur px-2.5 py-1 rounded-full shadow-sm">
-                        <span class="w-2 h-2 rounded-full {{#if this.status}}bg-emerald-500{{else}}bg-slate-400{{/if}}"></span>
-                        <span class="text-[10px] font-black uppercase {{#if this.status}}text-emerald-700{{else}}text-slate-600{{/if}}">{{#if this.status}}Activo{{else}}Archivado{{/if}}</span>
-                    </div>
-                    <div class="absolute top-3 left-3 bg-white/80 backdrop-blur text-[10px] font-bold text-slate-500 px-2 py-0.5 rounded-full">#PRD-{{this.id}}</div>
-                </div>
-                <div class="p-5">
-                    <h2 class="font-extrabold text-[#0F2E2E] text-base leading-tight">{{this.name}}</h2>
-                    <div class="flex items-center gap-1 text-xs text-on-surface-variant mt-1">
-                        <span class="material-symbols-outlined text-sm">location_on</span>
-                        {{#if this.municipality}}{{this.municipality}}{{else}}<em>Sin municipio</em>{{/if}}
-                        {{#if this.region}} — {{this.region.name}}{{/if}}
-                    </div>
-                    {{#if @root.permissions.canViewAll}}
-                    <p class="mt-2 text-xs text-on-surface-variant">
-                        Responsable: <span class="font-semibold text-foreground">{{#if this.user}}{{this.user.full_name}}{{else}}Sin responsable disponible{{/if}}</span>
-                    </p>
-                    {{/if}}
-                    <div class="mt-4 grid grid-cols-2 gap-3">
-                        <div class="bg-surface-container-low rounded-xl p-3">
-                            <p class="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider">Tamaño</p>
-                            <p class="font-extrabold text-[#0F2E2E] text-lg mt-0.5">
-                                {{#if this.size_hectares}}{{this.size_hectares}}{{else}}—{{/if}}
-                                <span class="text-sm font-bold text-slate-400">ha</span>
-                            </p>
-                        </div>
-                        <div class="bg-surface-container-low rounded-xl p-3">
-                            <p class="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider">Tipo Agricultura</p>
-                            <p class="font-bold text-[#0F2E2E] text-sm mt-0.5 truncate">
-                                {{#if this.farming_type}}{{this.farming_type}}{{else}}<em class="text-slate-400">No especificado</em>{{/if}}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-                <div class="grid grid-cols-1 gap-2 px-5 pb-5 sm:grid-cols-2">
-                    <a href="/private/lands/{{this.id}}/expediente"
-                        class="flex items-center justify-center gap-2 rounded-xl bg-[#0F2E2E] py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#43655c] group-hover:shadow-md">
-                        <span class="material-symbols-outlined text-base">folder_open</span>
-                        Abrir Expediente
-                    </a>
-                    {{#if this.permissions.canArchive}}
-                    <form action="/private/lands/archive/{{this.id}}" method="POST">
-                        <button type="submit" class="flex w-full items-center justify-center gap-2 rounded-xl border border-amber-200 py-2.5 text-sm font-bold text-amber-700 transition-colors hover:bg-amber-50">
-                            <span class="material-symbols-outlined text-base">archive</span>
-                            Archivar
-                        </button>
-                    </form>
-                    {{/if}}
-                    {{#if this.permissions.canRestore}}
-                    <form action="/private/lands/restore/{{this.id}}" method="POST">
-                        <button type="submit" class="flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-200 py-2.5 text-sm font-bold text-emerald-700 transition-colors hover:bg-emerald-50">
-                            <span class="material-symbols-outlined text-base">unarchive</span>
-                            Restaurar
-                        </button>
-                    </form>
-                    {{/if}}
-                </div>
-            </article>
-            {{/each}}
-
-            {{#if @root.filters.isActive}}
-            {{#if @root.permissions.canCreate}}
-            <article id="btn-open-new-land-card"
-                class="bg-surface-container-lowest rounded-xl border-2 border-dashed border-primary/20 shadow-sm overflow-hidden group hover:-translate-y-1 transition-all duration-300 flex items-center justify-center min-h-[380px] cursor-pointer">
-                <div class="text-center p-6">
-                    <span class="material-symbols-outlined text-4xl text-primary/30 mb-3 group-hover:text-primary/50 transition-colors">add_location_alt</span>
-                    <p class="text-base font-bold text-on-surface-variant group-hover:text-primary transition-colors">Registrar Nuevo Predio</p>
-                </div>
-            </article>
-            {{/if}}
-            {{/if}}
-        </section>
+      <h1 class="text-2xl sm:text-4xl font-headline font-black tracking-tight text-[#1b4332] leading-tight">
+        Gestión de Terrenos y Parcelas
+      </h1>
+      <p class="max-w-2xl text-xs md:text-sm leading-relaxed text-muted-foreground">
+        {{#if permissions.canViewAll}}
+          Supervisión integral de predios monitoreados, ciclos fenológicos activos, lotes y bitácoras fitosanitarias del personal autorizado.
         {{else}}
-        {{!-- Estado vacío --}}
-        <section class="flex flex-col items-center justify-center py-24 text-center">
-            <span class="material-symbols-outlined text-7xl text-slate-200 mb-4">terrain</span>
-            <h2 class="text-xl font-extrabold text-[#0F2E2E] mb-2">{{#if filters.isArchived}}Sin terrenos archivados{{else}}Sin terrenos registrados{{/if}}</h2>
-            <p class="text-sm text-on-surface-variant max-w-sm">
-                {{#if filters.isArchived}}No hay terrenos archivados dentro de tu alcance.{{else}}Aún no has registrado ninguna parcela. Haz clic en <strong>"Registrar Predio"</strong> para comenzar.{{/if}}
-            </p>
-        </section>
+          Administra tus predios bajo seguimiento técnico, delimitación por lotes, etapas fenológicas y aplicaciones fitosanitarias.
         {{/if}}
-
+      </p>
     </div>
 
+    <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+      {{#if permissions.canCreate}}
+        <button
+          type="button"
+          id="btn-open-new-land"
+          class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#1b4332] text-white text-xs font-bold hover:bg-[#2d6a4f] transition-all shadow-md active:scale-95 cursor-pointer"
+        >
+          <i data-lucide="map-pin-plus" class="w-4 h-4"></i>
+          <span>Registrar Predio</span>
+        </button>
+      {{/if}}
+    </div>
+  </header>
 
-{{!-- ════════════════════════════════════════════
-     MODAL — Registrar Nuevo Predio
-     Contiene el mapa de selección GPS (farm-map)
-     y los inputs ocultos de lat/lng que
-     public/js/private/lands.js gestiona.
-     ════════════════════════════════════════════ --}}
-{{#if permissions.canCreate}}
-<div id="modal-new-land" class="hidden fixed inset-0 z-[200] flex items-center justify-center">
-    {{!-- Backdrop --}}
-    <div id="modal-new-land-backdrop" class="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
+  <!-- ===================================================== -->
+  <!-- TARJETAS KPIS OPERATIVAS                              -->
+  <!-- ===================================================== -->
+  <section id="lands-kpi-region" aria-label="Indicadores operativos de terrenos" class="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
+    <div class="bg-card border border-border/80 rounded-2xl p-4 sm:p-5 shadow-2xs flex items-center justify-between">
+      <div>
+        <p class="text-[10px] sm:text-[11px] font-mono font-bold uppercase tracking-wider text-muted-foreground">Predios en Alcance</p>
+        <h3 class="text-2xl sm:text-3xl font-headline font-black text-[#1b4332] mt-1 tabular-nums">{{stats.total}}</h3>
+        <p class="text-[11px] text-muted-foreground mt-1 flex items-center gap-1">
+          <i data-lucide="layers" class="w-3.5 h-3.5 text-[#2d6a4f]"></i>
+          <span>{{#if filters.isArchived}}Bandeja archivados{{else if filters.isAll}}Padrón completo{{else}}Predios activos{{/if}}</span>
+        </p>
+      </div>
+      <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-[#e6f0e6] text-[#1b4332] flex items-center justify-center shrink-0">
+        <i data-lucide="land-plot" class="w-5 h-5 sm:w-6 sm:h-6"></i>
+      </div>
+    </div>
 
-    {{!-- Panel --}}
-    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 overflow-hidden">
-        {{!-- Header --}}
-        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-            <div class="flex items-center gap-2">
-                <span class="material-symbols-outlined text-primary">add_location_alt</span>
-                <h3 class="font-extrabold text-[#0F2E2E] text-base">Registrar Nuevo Predio</h3>
-            </div>
-            <button id="btn-close-new-land" class="text-slate-400 hover:text-slate-600 transition-colors">
-                <span class="material-symbols-outlined">close</span>
-            </button>
+    <div class="bg-card border border-border/80 rounded-2xl p-4 sm:p-5 shadow-2xs flex items-center justify-between">
+      <div>
+        <p class="text-[10px] sm:text-[11px] font-mono font-bold uppercase tracking-wider text-muted-foreground">Superficie Total</p>
+        <h3 class="text-2xl sm:text-3xl font-headline font-black text-emerald-700 mt-1 tabular-nums">
+          {{stats.totalHectares}} <span class="text-xs font-mono font-bold text-muted-foreground">ha</span>
+        </h3>
+        <p class="text-[11px] text-emerald-700 mt-1 flex items-center gap-1 font-medium">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+          <span>Área registrada</span>
+        </p>
+      </div>
+      <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0">
+        <i data-lucide="maximize-2" class="w-5 h-5 sm:w-6 sm:h-6"></i>
+      </div>
+    </div>
+
+    <div class="bg-card border border-border/80 rounded-2xl p-4 sm:p-5 shadow-2xs flex items-center justify-between">
+      <div>
+        <p class="text-[10px] sm:text-[11px] font-mono font-bold uppercase tracking-wider text-muted-foreground">Georreferenciados</p>
+        <h3 class="text-2xl sm:text-3xl font-headline font-black text-sky-700 mt-1 tabular-nums">{{stats.georeferenced}}</h3>
+        <p class="text-[11px] text-sky-700 mt-1 flex items-center gap-1 font-medium">
+          <i data-lucide="navigation" class="w-3.5 h-3.5"></i>
+          <span>Con coordenadas GPS</span>
+        </p>
+      </div>
+      <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-sky-50 text-sky-700 flex items-center justify-center shrink-0">
+        <i data-lucide="locate-fixed" class="w-5 h-5 sm:w-6 sm:h-6"></i>
+      </div>
+    </div>
+
+    <div class="bg-card border border-border/80 rounded-2xl p-4 sm:p-5 shadow-2xs flex items-center justify-between">
+      <div>
+        <p class="text-[10px] sm:text-[11px] font-mono font-bold uppercase tracking-wider text-muted-foreground">Regiones Cubiertas</p>
+        <h3 class="text-2xl sm:text-3xl font-headline font-black text-amber-700 mt-1 tabular-nums">{{stats.regionsCovered}}</h3>
+        <p class="text-[11px] text-amber-700 mt-1 flex items-center gap-1 font-medium">
+          <i data-lucide="globe-2" class="w-3.5 h-3.5"></i>
+          <span>Zonas agrícolas</span>
+        </p>
+      </div>
+      <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-amber-50 text-amber-700 flex items-center justify-center shrink-0">
+        <i data-lucide="compass" class="w-5 h-5 sm:w-6 sm:h-6"></i>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================== -->
+  <!-- MAPA CARTOGRÁFICO INTERACTIVO (COLAPSABLE EN MÓVIL)   -->
+  <!-- ===================================================== -->
+  <section class="bg-card rounded-2xl shadow-2xs border border-border/80 overflow-hidden isolate" aria-label="Mapa de predios">
+    <div class="flex flex-wrap items-center justify-between gap-2 px-4 sm:px-6 py-3.5 border-b border-border/60 bg-muted/20">
+      <div class="flex items-center gap-2.5">
+        <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-[#e6f0e6] text-[#1b4332]">
+          <i data-lucide="map" class="w-4 h-4"></i>
+        </span>
+        <div>
+          <h2 class="font-headline font-bold text-foreground text-sm">Cartografía de Predios Monitoreados</h2>
+          <p class="text-[11px] text-muted-foreground hidden sm:block">Alterna vista estándar o satelital y selecciona cualquier marcador para abrir su expediente.</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button
+          type="button"
+          id="map-zoom-fit"
+          class="text-xs font-bold text-muted-foreground hover:text-[#1b4332] transition-colors inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border bg-card hover:bg-muted cursor-pointer"
+        >
+          <i data-lucide="scan" class="w-3.5 h-3.5"></i>
+          <span>Ajustar vista</span>
+        </button>
+        <button
+          type="button"
+          id="btn-toggle-lands-map"
+          aria-expanded="true"
+          aria-controls="lands-map-wrapper"
+          class="text-xs font-bold text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-border bg-card hover:bg-muted cursor-pointer"
+        >
+          <span data-map-toggle-label>Ocultar mapa</span>
+        </button>
+      </div>
+    </div>
+    <div id="lands-map-wrapper">
+      <div id="lands-map" class="w-full h-64 sm:h-88 relative z-0"></div>
+    </div>
+  </section>
+
+  <!-- ===================================================== -->
+  <!-- BARRA PEGAJOSA COMPACTA DE FILTROS + PÍLDORAS         -->
+  <!-- ===================================================== -->
+  <div class="sticky top-16 z-30 -mx-2 sm:-mx-6 px-2 sm:px-6 py-2.5 sm:py-3 bg-background/95 backdrop-blur-md border-b border-border/80 shadow-2xs space-y-2">
+    <form id="lands-filter-form" action="/private/lands" method="GET" class="flex flex-col lg:flex-row lg:items-center justify-between gap-2" aria-label="Filtrar terrenos">
+      <input type="hidden" id="lands-filter-status" name="status" value="{{filters.status}}" />
+
+      <!-- Fila Superior: Buscador + Toggle Móvil + Conmutador Vista -->
+      <div class="flex items-center gap-2 flex-1">
+        <div class="relative flex-1">
+          <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"></i>
+          <input
+            id="lands-search"
+            name="search"
+            type="search"
+            aria-label="Buscar terreno por nombre del predio, código, municipio o región"
+            value="{{filters.search}}"
+            maxlength="100"
+            class="w-full pl-10 pr-10 py-2 bg-card border border-input rounded-xl text-xs text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all"
+            placeholder="Buscar por nombre del predio, código #PRD, municipio, región o responsable…"
+          />
+          <kbd class="hidden sm:inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground bg-muted border border-border rounded-md absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" title="Presiona / para buscar">/</kbd>
         </div>
 
-        {{!-- Body — Formulario con acción al backend --}}
-        <form id="form-new-land" action="/private/lands/create" method="POST">
-            <div class="p-6 space-y-5 overflow-y-auto max-h-[75vh]">
+        <button
+          type="button"
+          id="toggle-private-lands-filters-btn"
+          class="lg:hidden h-9 px-2.5 flex items-center gap-1.5 rounded-xl border border-input bg-card text-foreground font-semibold text-xs hover:bg-secondary transition-colors cursor-pointer shrink-0 shadow-2xs"
+          aria-expanded="false"
+          aria-controls="private-lands-collapsible-filters"
+          title="Mostrar u ocultar filtros avanzados"
+        >
+          <span class="material-symbols-outlined text-base text-[#1b4332]">tune</span>
+          <span>Filtros</span>
+          <span id="private-lands-active-filters-count" class="hidden px-1.5 py-0.2 rounded-full bg-[#1b4332] text-white text-[10px] font-mono font-bold leading-none">0</span>
+        </button>
 
-                {{!-- Fila 1: Nombre y Hectáreas --}}
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div class="sm:col-span-2">
-                        <label for="farm-name" class="block text-xs font-bold text-slate-600 mb-1.5">
-                            Nombre del Predio <span class="text-primary">*</span>
-                        </label>
-                        <input
-                            type="text"
-                            id="farm-name"
-                            name="name"
-                            required
-                            minlength="2"
-                            maxlength="120"
-                            placeholder="Ej. Parcela Norte"
-                            class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" />
-                    </div>
+        <div class="flex items-center bg-card border border-input rounded-xl p-0.5 gap-0.5 shrink-0" role="group" aria-label="Presentación de terrenos">
+          <button
+            type="button"
+            id="lands-view-grid"
+            title="Vista en tarjetas"
+            aria-label="Vista en tarjetas"
+            aria-pressed="true"
+            class="p-1.5 rounded-lg bg-[#1b4332] text-white transition-all cursor-pointer"
+          >
+            <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i>
+          </button>
+          <button
+            type="button"
+            id="lands-view-table"
+            title="Vista en tabla"
+            aria-label="Vista en tabla"
+            aria-pressed="false"
+            class="p-1.5 rounded-lg text-muted-foreground hover:text-foreground transition-all cursor-pointer"
+          >
+            <i data-lucide="table-properties" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+      </div>
 
-                    <div>
-                        <label for="farm-hectares" class="block text-xs font-bold text-slate-600 mb-1.5">
-                            Hectáreas <span class="text-primary">*</span>
-                        </label>
-                        <input
-                            type="number"
-                            id="farm-hectares"
-                            name="size_hectares"
-                            step="0.01"
-                            min="0.01"
-                            max="1000000"
-                            required
-                            placeholder="Ej. 5.25"
-                            class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" />
-                    </div>
+      <!-- Selectores Colapsables en Móvil -->
+      <div id="private-lands-collapsible-filters" class="hidden lg:flex flex-wrap items-center gap-2 pt-2 lg:pt-0 border-t border-border/50 lg:border-t-0 mt-1 lg:mt-0">
+        <div class="relative w-full sm:w-auto min-w-40">
+          <select
+            id="lands-filter-region"
+            name="region"
+            aria-label="Filtrar por región"
+            class="lands-filter-select appearance-none w-full bg-card border border-input rounded-xl px-3 py-2 pr-8 text-xs font-medium text-foreground focus:outline-hidden focus:border-[#1b4332] transition-all cursor-pointer"
+          >
+            <option value="">Región: Todas</option>
+            {{#each regions}}
+              <option value="{{this.id}}" {{#if this.selected}}selected{{/if}}>{{this.name}}</option>
+            {{/each}}
+          </select>
+          <i data-lucide="chevron-down" class="w-3.5 h-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"></i>
+        </div>
 
-                    <div>
-                        <label for="farm-municipality" class="block text-xs font-bold text-slate-600 mb-1.5">
-                            Municipio
-                        </label>
-                        <input
-                            type="text"
-                            id="farm-municipality"
-                            name="municipality"
-                            maxlength="100"
-                            placeholder="Ej. Uruapan"
-                            class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" />
-                    </div>
-                </div>
+        <div class="relative w-full sm:w-auto min-w-40">
+          <select
+            id="lands-filter-type"
+            name="farmingType"
+            aria-label="Filtrar por tipo de agricultura"
+            class="lands-filter-select appearance-none w-full bg-card border border-input rounded-xl px-3 py-2 pr-8 text-xs font-medium text-foreground focus:outline-hidden focus:border-[#1b4332] transition-all cursor-pointer"
+          >
+            <option value="">Agricultura: Todas</option>
+            {{#each farmingTypes}}
+              <option value="{{this.value}}" {{#if this.selected}}selected{{/if}}>{{this.value}}</option>
+            {{/each}}
+          </select>
+          <i data-lucide="chevron-down" class="w-3.5 h-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"></i>
+        </div>
 
-                {{!-- Fila 2: Tipo de Agricultura y Región --}}
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label for="farm-farming-type" class="block text-xs font-bold text-slate-600 mb-1.5">
-                            Tipo de Agricultura
-                        </label>
-                        <select
-                            id="farm-farming-type"
-                            name="farming_type"
-                            class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-on-surface-variant bg-white">
-                            <option value="">— Seleccionar —</option>
-                            <option value="Temporal">Temporal</option>
-                            <option value="Riego">Riego</option>
-                            <option value="Mixto">Mixto</option>
-                            <option value="Tecnificado">Tecnificado</option>
-                            <option value="Orgánico">Orgánico</option>
-                            <option value="Hidroponía">Hidroponía</option>
-                        </select>
-                    </div>
+        <button type="submit" class="inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#1b4332] px-4 py-2 text-xs font-bold text-white shadow-2xs transition-colors hover:bg-[#2d6a4f] cursor-pointer">
+          <i data-lucide="search" class="h-3.5 w-3.5"></i>
+          <span>Filtrar</span>
+        </button>
 
-                    <div>
-                        <label for="farm-region" class="block text-xs font-bold text-slate-600 mb-1.5">
-                            Región Agrícola
-                        </label>
-                        <select
-                            id="farm-region"
-                            name="region_id"
-                            class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-on-surface-variant bg-white">
-                            <option value="">— Seleccionar —</option>
-                            {{#each regions}}
-                            <option value="{{this.id}}">{{this.name}}</option>
-                            {{/each}}
-                        </select>
-                    </div>
-                </div>
+        {{#if hasActiveFilters}}
+          <a href="/private/lands?status={{filters.status}}" data-lands-async-link class="inline-flex items-center justify-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-2 text-xs font-bold text-rose-700 transition-colors hover:bg-rose-100">
+            <i data-lucide="rotate-ccw" class="h-3.5 w-3.5"></i>
+            <span>Limpiar</span>
+          </a>
+        {{/if}}
+      </div>
+    </form>
 
-                {{!-- Mapa de selección GPS --}}
-                <div>
-                    <label class="block text-xs font-bold text-slate-600 mb-1.5">
-                        Ubicación GPS
-                        <span class="text-xs font-normal text-slate-400">— Haz clic en el mapa para marcar tu parcela</span>
-                    </label>
+    <!-- Píldoras de Estado del Predio -->
+    <nav id="lands-status-pills" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 pt-1.5 border-t border-border/40 text-xs" aria-label="Filtrar terrenos por estado">
+      <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground mr-1 shrink-0">Estado:</span>
+      <a
+        href="/private/lands?status=active"
+        data-lands-status-pill="active"
+        class="px-3 py-1 rounded-lg border transition-colors shrink-0 {{#if filters.isActive}}bg-[#1b4332] text-white border-[#1b4332] font-bold shadow-2xs{{else}}bg-card text-muted-foreground border-border hover:text-foreground hover:bg-muted{{/if}}"
+      >
+        Activos
+      </a>
+      <a
+        href="/private/lands?status=archived"
+        data-lands-status-pill="archived"
+        class="px-3 py-1 rounded-lg border transition-colors shrink-0 {{#if filters.isArchived}}bg-zinc-700 text-white border-zinc-700 font-bold shadow-2xs{{else}}bg-card text-muted-foreground border-border hover:text-foreground hover:bg-muted{{/if}}"
+      >
+        Archivados
+      </a>
+      {{#if permissions.canViewAll}}
+        <a
+          href="/private/lands?status=all"
+          data-lands-status-pill="all"
+          class="px-3 py-1 rounded-lg border transition-colors shrink-0 {{#if filters.isAll}}bg-emerald-700 text-white border-emerald-700 font-bold shadow-2xs{{else}}bg-card text-muted-foreground border-border hover:text-foreground hover:bg-muted{{/if}}"
+        >
+          Todos
+        </a>
+      {{/if}}
+    </nav>
+  </div>
 
-                    {{!-- Contenedor del mapa Leaflet — interactividad en public/js/private/lands.js --}}
-                    <div id="farm-map" class="w-full rounded-xl overflow-hidden border border-slate-200 z-0" style="height: 260px;"></div>
-
-                    {{!-- Inputs ocultos que reciben las coordenadas del evento click del mapa --}}
-                    <input type="hidden" id="lat" name="location_lat" />
-                    <input type="hidden" id="lng" name="location_lng" />
-
-                    {{!-- Indicadores visuales de las coordenadas seleccionadas --}}
-                    <div class="grid grid-cols-2 gap-3 mt-2">
-                        <div>
-                            <p class="text-[10px] font-bold text-slate-400 uppercase">Latitud</p>
-                            <p id="lat-display" class="mt-1 px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 text-slate-600 min-h-[38px]">—</p>
-                        </div>
-                        <div>
-                            <p class="text-[10px] font-bold text-slate-400 uppercase">Longitud</p>
-                            <p id="lng-display" class="mt-1 px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 text-slate-600 min-h-[38px]">—</p>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-
-            {{!-- Footer del modal --}}
-            <div class="flex justify-end gap-3 px-6 py-4 border-t border-slate-100 bg-slate-50">
-                <button
-                    type="button"
-                    id="btn-cancel-new-land"
-                    class="px-5 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-100 transition-colors">
-                    Cancelar
-                </button>
-                <button
-                    type="submit"
-                    id="btn-submit-farm"
-                    class="px-6 py-2.5 rounded-xl bg-[#43655c] text-white text-sm font-bold hover:bg-[#0F2E2E] transition-colors shadow-sm">
-                    Guardar Predio
-                </button>
-            </div>
-        </form>
+  <!-- ===================================================== -->
+  <!-- REGIÓN ASÍNCRONA DE RESULTADOS (GRILLA + TABLA)       -->
+  <!-- ===================================================== -->
+  <div id="lands-results-region" class="space-y-5">
+    <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground" role="status">
+      <p>
+        Mostrando <strong class="text-foreground font-mono">{{farmsCount}}</strong>
+        {{#if hasActiveFilters}}de <strong class="text-foreground font-mono">{{totalScopeCount}}</strong>{{/if}}
+        predio(s) registrado(s).
+      </p>
+      {{#if hasActiveFilters}}
+        <span class="font-mono text-[10px] uppercase tracking-wider text-[#2d6a4f] font-bold">Filtro activo</span>
+      {{/if}}
     </div>
+
+    {{#if farms.length}}
+      <!-- VISTA GRILLA -->
+      <section id="lands-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+        {{#each farms}}
+          <article
+            class="bg-card rounded-2xl border border-border/80 shadow-2xs hover:border-[#1b4332]/40 hover:shadow-md transition-all group overflow-hidden flex flex-col justify-between"
+            data-lat="{{this.location_lat}}"
+            data-lng="{{this.location_lng}}"
+            data-farm-name="{{this.name}}"
+            data-farm-url="/private/lands/{{this.id}}/expediente"
+          >
+            <div>
+              <div class="relative h-28 bg-gradient-to-br from-[#e6f0e6] via-[#f3f8f4] to-muted flex items-center justify-between px-5 overflow-hidden border-b border-border/60">
+                <div class="space-y-1 z-10">
+                  <span class="inline-block font-mono text-[10px] font-bold text-[#1b4332] bg-white/90 border border-emerald-900/10 px-2.5 py-0.5 rounded-md">
+                    {{this.codeLabel}}
+                  </span>
+                  {{#if this.region}}
+                    <p class="text-xs font-bold text-[#1b4332]/85 flex items-center gap-1">
+                      <i data-lucide="compass" class="w-3 h-3"></i>
+                      <span>{{this.region.name}}</span>
+                    </p>
+                  {{/if}}
+                </div>
+
+                <div class="flex flex-col items-end gap-1.5 z-10">
+                  <span class="inline-flex items-center gap-1.5 bg-white/95 px-2.5 py-1 rounded-full border {{#if this.status}}border-emerald-200 text-emerald-800{{else}}border-zinc-200 text-zinc-600{{/if}} shadow-2xs">
+                    <span class="w-1.5 h-1.5 rounded-full {{#if this.status}}bg-emerald-500{{else}}bg-zinc-400{{/if}}"></span>
+                    <span class="text-[10px] font-mono font-bold uppercase">{{#if this.status}}Activo{{else}}Archivado{{/if}}</span>
+                  </span>
+                  {{#if this.hasCoords}}
+                    <button
+                      type="button"
+                      data-focus-farm-map
+                      data-lat="{{this.location_lat}}"
+                      data-lng="{{this.location_lng}}"
+                      class="inline-flex items-center gap-1 rounded-lg bg-white/90 hover:bg-white px-2 py-0.5 text-[10px] font-bold text-sky-700 border border-sky-200 transition-colors cursor-pointer"
+                      title="Centrar parcela en el mapa"
+                    >
+                      <i data-lucide="locate-fixed" class="w-3 h-3"></i>
+                      <span>GPS</span>
+                    </button>
+                  {{/if}}
+                </div>
+              </div>
+
+              <div class="p-5">
+                <h2 class="font-headline font-extrabold text-foreground text-lg leading-snug group-hover:text-[#1b4332] transition-colors">
+                  {{this.name}}
+                </h2>
+                <p class="flex items-center gap-1.5 text-xs text-muted-foreground mt-1">
+                  <i data-lucide="map-pin" class="w-3.5 h-3.5 text-[#2d6a4f] shrink-0"></i>
+                  <span>{{#if this.municipality}}{{this.municipality}}{{else}}Municipio no especificado{{/if}}{{#if this.region}} · {{this.region.name}}{{/if}}</span>
+                </p>
+
+                {{#if @root.permissions.canViewAll}}
+                  <p class="mt-2 text-xs text-muted-foreground flex items-center gap-1.5">
+                    <i data-lucide="user-check" class="w-3.5 h-3.5 text-muted-foreground shrink-0"></i>
+                    <span>Responsable: <strong class="font-semibold text-foreground">{{#if this.user}}{{this.user.full_name}}{{else}}Sin asignar{{/if}}</strong></span>
+                  </p>
+                {{/if}}
+
+                <div class="mt-4 grid grid-cols-2 gap-2.5">
+                  <div class="bg-muted/40 border border-border/60 rounded-xl p-3">
+                    <p class="text-[10px] font-mono text-muted-foreground font-bold uppercase tracking-wider">Superficie</p>
+                    <p class="font-headline font-black text-foreground text-base mt-0.5 tabular-nums">
+                      {{#if this.formattedHectares}}{{this.formattedHectares}}{{else}}—{{/if}}
+                      <span class="text-xs font-mono font-semibold text-muted-foreground">ha</span>
+                    </p>
+                  </div>
+                  <div class="bg-muted/40 border border-border/60 rounded-xl p-3">
+                    <p class="text-[10px] font-mono text-muted-foreground font-bold uppercase tracking-wider">Manejo</p>
+                    <p class="font-bold text-foreground text-xs mt-1 truncate">
+                      {{#if this.farming_type}}{{this.farming_type}}{{else}}<span class="text-muted-foreground font-normal">No especificado</span>{{/if}}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="px-5 pb-5 pt-0 flex flex-wrap items-center gap-2">
+              <a
+                href="/private/lands/{{this.id}}/expediente"
+                class="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#1b4332] px-4 py-2.5 text-xs font-bold text-white transition-colors hover:bg-[#2d6a4f] shadow-2xs"
+              >
+                <i data-lucide="folder-open" class="w-3.5 h-3.5"></i>
+                <span>Abrir Expediente</span>
+              </a>
+
+              {{#if this.permissions.canArchive}}
+                <form action="/private/lands/archive/{{this.id}}" method="POST" data-land-status-form="archive" data-land-name="{{this.name}}">
+                  <button
+                    type="submit"
+                    class="inline-flex items-center justify-center gap-1.5 rounded-xl border border-amber-200 bg-amber-50/70 px-3.5 py-2.5 text-xs font-bold text-amber-800 transition-colors hover:bg-amber-100 cursor-pointer"
+                    title="Archivar predio"
+                  >
+                    <i data-lucide="archive" class="w-3.5 h-3.5"></i>
+                    <span>Archivar</span>
+                  </button>
+                </form>
+              {{/if}}
+
+              {{#if this.permissions.canRestore}}
+                <form action="/private/lands/restore/{{this.id}}" method="POST" data-land-status-form="restore" data-land-name="{{this.name}}">
+                  <button
+                    type="submit"
+                    class="inline-flex items-center justify-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50/70 px-3.5 py-2.5 text-xs font-bold text-emerald-800 transition-colors hover:bg-emerald-100 cursor-pointer"
+                    title="Restaurar predio"
+                  >
+                    <i data-lucide="archive-restore" class="w-3.5 h-3.5"></i>
+                    <span>Restaurar</span>
+                  </button>
+                </form>
+              {{/if}}
+            </div>
+          </article>
+        {{/each}}
+
+        {{#if filters.isActive}}
+          {{#if permissions.canCreate}}
+            <button
+              type="button"
+              id="btn-open-new-land-card"
+              class="bg-card/60 rounded-2xl border-2 border-dashed border-border hover:border-[#1b4332]/50 hover:bg-[#e6f0e6]/20 transition-all flex flex-col items-center justify-center min-h-72 p-6 text-center cursor-pointer group"
+            >
+              <span class="w-12 h-12 rounded-2xl bg-[#e6f0e6] text-[#1b4332] flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
+                <i data-lucide="map-pin-plus" class="w-6 h-6"></i>
+              </span>
+              <span class="text-sm font-headline font-bold text-foreground group-hover:text-[#1b4332]">Registrar Nuevo Predio</span>
+              <span class="text-xs text-muted-foreground mt-1 max-w-52">Delimita superficie, región agrícola y coordenadas GPS.</span>
+            </button>
+          {{/if}}
+        {{/if}}
+      </section>
+
+      <!-- VISTA TABLA -->
+      <div id="lands-table-view" class="hidden rounded-2xl border border-border/80 bg-card shadow-2xs overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full min-w-[780px] text-left border-collapse text-xs">
+            <thead>
+              <tr class="border-b border-border bg-muted/40 text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground">
+                <th class="px-5 py-3.5">Código / Predio</th>
+                <th class="px-4 py-3.5">Ubicación Regional</th>
+                <th class="px-4 py-3.5">Superficie</th>
+                <th class="px-4 py-3.5">Manejo</th>
+                {{#if permissions.canViewAll}}
+                  <th class="px-4 py-3.5">Responsable</th>
+                {{/if}}
+                <th class="px-4 py-3.5">Estado</th>
+                <th class="px-5 py-3.5 text-right">Acciones</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-border/70">
+              {{#each farms}}
+                <tr class="hover:bg-muted/30 transition-colors">
+                  <td class="px-5 py-3.5">
+                    <span class="font-mono text-[10px] font-bold text-muted-foreground block">{{this.codeLabel}}</span>
+                    <a href="/private/lands/{{this.id}}/expediente" class="font-bold text-foreground hover:text-[#1b4332] text-sm">
+                      {{this.name}}
+                    </a>
+                  </td>
+                  <td class="px-4 py-3.5 text-muted-foreground">
+                    <span class="font-medium text-foreground block">{{#if this.municipality}}{{this.municipality}}{{else}}Sin municipio{{/if}}</span>
+                    <span class="text-[11px]">{{#if this.region}}{{this.region.name}}{{else}}Sin región{{/if}}</span>
+                  </td>
+                  <td class="px-4 py-3.5 font-mono font-bold text-foreground whitespace-nowrap">
+                    {{#if this.formattedHectares}}{{this.formattedHectares}} ha{{else}}—{{/if}}
+                  </td>
+                  <td class="px-4 py-3.5 text-muted-foreground">
+                    {{#if this.farming_type}}
+                      <span class="rounded-lg bg-muted px-2.5 py-1 text-[11px] font-semibold text-foreground">{{this.farming_type}}</span>
+                    {{else}}
+                      <span>—</span>
+                    {{/if}}
+                  </td>
+                  {{#if @root.permissions.canViewAll}}
+                    <td class="px-4 py-3.5 text-foreground font-medium">
+                      {{#if this.user}}{{this.user.full_name}}{{else}}Sin asignar{{/if}}
+                    </td>
+                  {{/if}}
+                  <td class="px-4 py-3.5 whitespace-nowrap">
+                    <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-mono font-bold uppercase border {{#if this.status}}bg-emerald-50 text-emerald-800 border-emerald-200{{else}}bg-zinc-100 text-zinc-700 border-zinc-200{{/if}}">
+                      {{#if this.status}}Activo{{else}}Archivado{{/if}}
+                    </span>
+                  </td>
+                  <td class="px-5 py-3.5 text-right whitespace-nowrap">
+                    <div class="inline-flex items-center justify-end gap-1.5">
+                      <a href="/private/lands/{{this.id}}/expediente" class="inline-flex items-center gap-1 rounded-lg bg-[#1b4332] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#2d6a4f] transition-colors">
+                        <span>Abrir Expediente</span>
+                      </a>
+                      {{#if this.permissions.canArchive}}
+                        <form action="/private/lands/archive/{{this.id}}" method="POST" data-land-status-form="archive" data-land-name="{{this.name}}" class="inline">
+                          <button type="submit" class="rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1.5 text-xs font-bold text-amber-800 hover:bg-amber-100 cursor-pointer">
+                            Archivar
+                          </button>
+                        </form>
+                      {{/if}}
+                      {{#if this.permissions.canRestore}}
+                        <form action="/private/lands/restore/{{this.id}}" method="POST" data-land-status-form="restore" data-land-name="{{this.name}}" class="inline">
+                          <button type="submit" class="rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-xs font-bold text-emerald-800 hover:bg-emerald-100 cursor-pointer">
+                            Restaurar
+                          </button>
+                        </form>
+                      {{/if}}
+                    </div>
+                  </td>
+                </tr>
+              {{/each}}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    {{else}}
+      <section class="rounded-2xl border border-dashed border-border bg-card py-16 px-6 text-center">
+        <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-muted text-muted-foreground mb-4">
+          <i data-lucide="map-pin-off" class="w-7 h-7"></i>
+        </div>
+        <h2 class="text-lg font-headline font-extrabold text-foreground">
+          {{#if hasActiveFilters}}
+            Ningún predio coincide con los filtros aplicados
+          {{else if filters.isArchived}}
+            Sin terrenos archivados
+          {{else}}
+            Sin terrenos registrados
+          {{/if}}
+        </h2>
+        <p class="mt-1.5 text-xs sm:text-sm text-muted-foreground max-w-md mx-auto">
+          {{#if hasActiveFilters}}
+            Prueba con otro término o limpia los filtros activos para visualizar todos tus predios.
+          {{else if filters.isArchived}}
+            No existen expedientes de terrenos archivados dentro de tu alcance actual.
+          {{else}}
+            Registra tu primera parcela para habilitar trazabilidad por lotes, bitácoras fenológicas y control fitosanitario.
+          {{/if}}
+        </p>
+        {{#if hasActiveFilters}}
+          <a href="/private/lands?status={{filters.status}}" data-lands-async-link class="mt-5 inline-flex items-center gap-1.5 rounded-xl bg-[#1b4332] px-4 py-2 text-xs font-bold text-white hover:bg-[#2d6a4f]">
+            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+            <span>Limpiar filtros</span>
+          </a>
+        {{/if}}
+      </section>
+    {{/if}}
+  </div>
+
 </div>
+
+<!-- ===================================================== -->
+<!-- MODAL — REGISTRAR NUEVO PREDIO                        -->
+<!-- ===================================================== -->
+{{#if permissions.canCreate}}
+  <div id="modal-new-land" class="hidden fixed inset-0 z-[200] flex items-center justify-center p-4 font-['Geist']" role="dialog" aria-modal="true" aria-labelledby="modal-new-land-title">
+    <div id="modal-new-land-backdrop" class="absolute inset-0 bg-black/45 backdrop-blur-xs"></div>
+
+    <div class="relative z-10 bg-card rounded-2xl border border-border/80 shadow-2xl w-full max-w-2xl overflow-hidden">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-border/70 bg-muted/20">
+        <div class="flex items-center gap-2.5">
+          <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-[#e6f0e6] text-[#1b4332]">
+            <i data-lucide="map-pin-plus" class="w-4 h-4"></i>
+          </span>
+          <div>
+            <h3 id="modal-new-land-title" class="font-headline font-extrabold text-foreground text-base">Registrar Nuevo Predio</h3>
+            <p class="text-[11px] text-muted-foreground">Captura los datos agronómicos y señala su ubicación en el mapa.</p>
+          </div>
+        </div>
+        <button type="button" id="btn-close-new-land" aria-label="Cerrar modal" class="rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <form id="form-new-land" action="/private/lands/create" method="POST">
+        <div class="p-6 space-y-5 overflow-y-auto max-h-[75vh]">
+          <div id="form-new-land-errors" class="hidden rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-xs font-semibold text-rose-800" role="alert"></div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="sm:col-span-2">
+              <label for="farm-name" class="block text-xs font-bold text-foreground mb-1.5">
+                Nombre del Predio <span class="text-rose-600">*</span>
+              </label>
+              <input
+                type="text"
+                id="farm-name"
+                name="name"
+                required
+                minlength="2"
+                maxlength="120"
+                placeholder="Ej. Parcela Experimental Norte"
+                class="w-full px-3.5 py-2.5 bg-background border border-input rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] outline-none"
+              />
+            </div>
+
+            <div>
+              <label for="farm-hectares" class="block text-xs font-bold text-foreground mb-1.5">
+                Superficie (ha) <span class="text-rose-600">*</span>
+              </label>
+              <input
+                type="number"
+                id="farm-hectares"
+                name="size_hectares"
+                step="0.01"
+                min="0.01"
+                max="1000000"
+                required
+                placeholder="Ej. 5.25"
+                class="w-full px-3.5 py-2.5 bg-background border border-input rounded-xl text-xs sm:text-sm font-mono focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] outline-none"
+              />
+            </div>
+
+            <div>
+              <label for="farm-municipality" class="block text-xs font-bold text-foreground mb-1.5">
+                Municipio
+              </label>
+              <input
+                type="text"
+                id="farm-municipality"
+                name="municipality"
+                maxlength="100"
+                placeholder="Ej. Culiacán, Uruapan, Celaya"
+                class="w-full px-3.5 py-2.5 bg-background border border-input rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] outline-none"
+              />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label for="farm-farming-type" class="block text-xs font-bold text-foreground mb-1.5">
+                Tipo de Agricultura
+              </label>
+              <select
+                id="farm-farming-type"
+                name="farming_type"
+                class="w-full px-3.5 py-2.5 bg-background border border-input rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] outline-none"
+              >
+                <option value="">— Seleccionar modalidad —</option>
+                <option value="Temporal">Temporal</option>
+                <option value="Riego">Riego</option>
+                <option value="Mixto">Mixto</option>
+                <option value="Tecnificado">Tecnificado</option>
+                <option value="Orgánico">Orgánico</option>
+                <option value="Hidroponía">Hidroponía</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="farm-region" class="block text-xs font-bold text-foreground mb-1.5">
+                Región Agrícola INIFAP
+              </label>
+              <select
+                id="farm-region"
+                name="region_id"
+                class="w-full px-3.5 py-2.5 bg-background border border-input rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] outline-none"
+              >
+                <option value="">— Seleccionar región —</option>
+                {{#each regions}}
+                  <option value="{{this.id}}">{{this.name}}</option>
+                {{/each}}
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="block text-xs font-bold text-foreground">
+                Ubicación Geográfica (GPS)
+              </span>
+              <span class="text-[11px] text-muted-foreground">Haz clic en el mapa para fijar el punto</span>
+            </div>
+
+            <div id="farm-map" class="w-full h-60 rounded-xl overflow-hidden border border-border relative z-0"></div>
+
+            <input type="hidden" id="lat" name="location_lat" />
+            <input type="hidden" id="lng" name="location_lng" />
+
+            <div class="grid grid-cols-2 gap-3 mt-2.5">
+              <div class="rounded-xl bg-muted/40 border border-border/70 px-3 py-2">
+                <p class="text-[10px] font-mono font-bold text-muted-foreground uppercase">Latitud</p>
+                <p id="lat-display" class="mt-0.5 font-mono text-xs font-semibold text-foreground">—</p>
+              </div>
+              <div class="rounded-xl bg-muted/40 border border-border/70 px-3 py-2">
+                <p class="text-[10px] font-mono font-bold text-muted-foreground uppercase">Longitud</p>
+                <p id="lng-display" class="mt-0.5 font-mono text-xs font-semibold text-foreground">—</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-2.5 px-6 py-4 border-t border-border/70 bg-muted/30">
+          <button
+            type="button"
+            id="btn-cancel-new-land"
+            class="px-4 py-2 rounded-xl border border-border bg-card text-xs font-bold text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            id="btn-submit-farm"
+            class="px-5 py-2 rounded-xl bg-[#1b4332] text-white text-xs font-bold hover:bg-[#2d6a4f] transition-colors shadow-2xs cursor-pointer"
+          >
+            Guardar Predio
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
 {{/if}}

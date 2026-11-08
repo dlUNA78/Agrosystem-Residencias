@@ -1,5 +1,9 @@
 import bcrypt from 'bcrypt';
 import db from '../models/index.js';
+import {
+  createNotification,
+  notifyAdmins,
+} from '../services/notificationService.js';
 
 const { User, InifapCode, sequelize } = db;
 
@@ -17,7 +21,10 @@ export const authController = {
     if (req.isAuthenticated && req.isAuthenticated()) {
       return res.redirect('/');
     }
-    res.render('auth/login', { title: 'Iniciar Sesión' });
+    res.render('auth/login', {
+      title: 'Iniciar Sesión',
+      extraScripts: '<script src="/js/public/login.js"></script>',
+    });
   },
 
   // ─── LÓGICA DE NEGOCIO ─────────────────────────────────────────────────────
@@ -124,8 +131,29 @@ export const authController = {
 
         // Paso 2: Escalar privilegios del usuario en PostgreSQL
         req.user.role = 'inifap';
+        if (inifapCode.rbac_role_id) {
+          req.user.rbac_role_id = inifapCode.rbac_role_id;
+        }
         req.user.job_title = job_title?.trim() || 'Investigador';
         await req.user.save({ transaction: t });
+      });
+
+      await createNotification({
+        userId: req.user.id,
+        category: 'sistema',
+        severity: 'success',
+        title: 'Ascenso Institucional Exitoso',
+        message: 'Has sido promovido exitosamente a Personal Técnico INIFAP.',
+        actionUrl: '/dashboard',
+      });
+
+      await notifyAdmins({
+        actorId: req.user.id,
+        category: 'rbac',
+        severity: 'info',
+        title: 'Canje de Código INIFAP',
+        message: `El usuario ${req.user.full_name || req.user.email} canjeó el código institucional ${inifapCode.code}.`,
+        actionUrl: '/private/users',
       });
 
       // 🛡️ Regeneración de ID de sesión al elevar privilegios (Anti-Session Fixation)

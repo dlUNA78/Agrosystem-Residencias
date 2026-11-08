@@ -12,6 +12,7 @@ import {
   sendOperationSuccess,
   sendValidationError,
 } from './landControllerUtils.js';
+import { createNotification } from '../../../services/notificationService.js';
 
 const { FarmApplication, FarmHealthReport, Plague, Product, sequelize } = db;
 
@@ -146,6 +147,20 @@ export const createFarmHealthReport = async (req, res) => {
         },
         transaction,
       );
+
+      if (context.farm.user_id && context.farm.user_id !== req.user.id) {
+        await createNotification({
+          userId: context.farm.user_id,
+          actorId: req.user.id,
+          category: 'fitosanitario',
+          severity:
+            validation.value.severity === 'critical' ? 'critical' : 'warning',
+          title: 'Alerta Sanitaria en Predio',
+          message: `Se ha registrado una incidencia (${plagueData.plagueName}) en tu predio "${context.farm.name}".`,
+          actionUrl: '/lands',
+        });
+      }
+
       return { reportId: report.id };
     });
 

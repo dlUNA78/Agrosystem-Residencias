@@ -1,64 +1,79 @@
-<!-- Footer -->
-<footer id="private-footer" class="bg-white dark:bg-zinc-950 border-t border-surface-container px-10 py-12 font-manrope">
-    <div class="grid grid-cols-12 gap-8 mb-12">
-        <div class="col-span-12 md:col-span-4">
-            <div class="flex items-center gap-3 mb-6">
-                <div class="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
-                    <span class="material-symbols-outlined text-on-primary" data-icon="agriculture"
-                        style="">agriculture</span>
-                </div>
-                <h2 class="text-xl font-extrabold text-[#0F2E2E]" style="">Agrosystem</h2>
-            </div>
-            <p class="text-sm text-on-surface-variant leading-relaxed max-w-sm" style="">
-                Plataforma integral de gestión agrícola para el monitoreo de plagas, cultivos y productos. Impulsando la
-                soberanía alimentaria mediante datos precisos.
-            </p>
+<!-- Pie de Página Institucional del Panel Privado (Geist Design System) -->
+<footer
+  id="private-footer"
+  class="mt-12 border-t border-neutral-200/80 bg-white px-6 py-8 font-['Geist',sans-serif] text-neutral-600 sm:px-8"
+>
+  <div class="grid grid-cols-1 gap-8 pb-6 md:grid-cols-12">
+    <div class="md:col-span-5">
+      <div class="mb-3 flex items-center gap-2.5">
+        <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-[#1b4332] text-white">
+          <i data-lucide="sprout" class="h-4 w-4" aria-hidden="true"></i>
+        </span>
+        <div>
+          <span class="block text-sm font-bold tracking-tight text-[#0a0a0a]">INIFAP · Agrosystem</span>
+          <span class="block font-['Geist_Mono',monospace] text-[10px] font-semibold uppercase tracking-widest text-neutral-500">
+            Red Nacional Fitosanitaria
+          </span>
         </div>
-        <div class="col-span-6 md:col-span-2">
-            <h3 class="text-sm font-extrabold text-[#0F2E2E] uppercase tracking-wider mb-6" style="">Plataforma</h3>
-            <p class="text-sm text-on-surface-variant leading-relaxed" style="">Gestión centralizada de recursos
-                agrícolas.</p>
-        </div>
-        <div class="col-span-6 md:col-span-2">
-            <h3 class="text-sm font-extrabold text-[#0F2E2E] uppercase tracking-wider mb-6" style="">Institución</h3>
-            <ul class="space-y-4 text-sm text-on-surface-variant">
-                <li class="" style=""><a class="hover:text-primary transition-colors" href="#" style="">Acerca de</a>
-                </li>
-                <li class="" style=""><a class="hover:text-primary transition-colors" href="#" style="">Alianzas</a>
-                </li>
-                <li class="" style=""><a class="hover:text-primary transition-colors" href="#"
-                        style="">Transparencia</a></li>
-                <li class="" style=""><a class="hover:text-primary transition-colors" href="#" style="">Contacto</a>
-                </li>
-            </ul>
-        </div>
-        <div class="col-span-12 md:col-span-4">
-            <h3 class="text-sm font-extrabold text-[#0F2E2E] uppercase tracking-wider mb-6" style="">Redes Sociales</h3>
-            <p class="text-sm text-on-surface-variant mb-6" style="">Conéctate con nosotros en nuestras plataformas
-                digitales.</p>
-            <div class="flex gap-4">
-                <a class="w-10 h-10 rounded-lg bg-surface-container-low flex items-center justify-center text-[#0F2E2E] hover:bg-primary hover:text-white transition-all shadow-sm"
-                    href="#" style="">
-                    <span class="material-symbols-outlined" data-icon="language" style="">language</span>
-                </a>
-                <a class="w-10 h-10 rounded-lg bg-surface-container-low flex items-center justify-center text-[#0F2E2E] hover:bg-primary hover:text-white transition-all shadow-sm"
-                    href="#" style="">
-                    <span class="material-symbols-outlined" data-icon="share" style="">share</span>
-                </a>
-                <a class="w-10 h-10 rounded-lg bg-surface-container-low flex items-center justify-center text-[#0F2E2E] hover:bg-primary hover:text-white transition-all shadow-sm"
-                    href="mailto:contacto@agrosystem.com" style="">
-                    <span class="material-symbols-outlined" data-icon="alternate_email" style="">alternate_email</span>
-                </a>
-            </div>
-        </div>
+      </div>
+      <p class="max-w-md text-xs leading-relaxed text-neutral-500">
+        Plataforma institucional para la digitalización, trazabilidad y validación científica de plagas, cultivos, predios agrícolas e insumos fitosanitarios en México.
+      </p>
     </div>
-    <div
-        class="pt-8 border-t border-surface-container-low flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-on-surface-variant font-bold">
-        <p class="" style="">© 2024 Agrosystem. Todos los derechos reservados.</p>
-        <div class="flex gap-8">
-            <a class="hover:text-primary transition-colors" href="#" style="">Privacidad</a>
-            <a class="hover:text-primary transition-colors" href="#" style="">Términos</a>
-            <a class="hover:text-primary transition-colors" href="#" style="">Cookies</a>
-        </div>
+
+    <div class="md:col-span-4">
+      <h2 class="mb-3 font-['Geist_Mono',monospace] text-[10px] font-semibold uppercase tracking-widest text-neutral-500">
+        Módulos del Panel
+      </h2>
+      <ul class="grid grid-cols-2 gap-2 text-xs font-medium">
+        <li>
+          <a href="/dashboard" class="transition-colors hover:text-[#1b4332]">Dashboard</a>
+        </li>
+        <li>
+          <a href="/private/lands" class="transition-colors hover:text-[#1b4332]">Terrenos</a>
+        </li>
+        <li>
+          <a href="/private/catalog/plagues" class="transition-colors hover:text-[#1b4332]">Plagas</a>
+        </li>
+        <li>
+          <a href="/private/crops" class="transition-colors hover:text-[#1b4332]">Cultivos</a>
+        </li>
+        <li>
+          <a href="/private/products" class="transition-colors hover:text-[#1b4332]">Productos</a>
+        </li>
+        <li>
+          <a href="/private/reports" class="transition-colors hover:text-[#1b4332]">Reportes PDF</a>
+        </li>
+      </ul>
     </div>
+
+    <div class="md:col-span-3">
+      <h2 class="mb-3 font-['Geist_Mono',monospace] text-[10px] font-semibold uppercase tracking-widest text-neutral-500">
+        Portal y Soporte
+      </h2>
+      <ul class="space-y-2 text-xs font-medium">
+        <li>
+          <a href="/" class="inline-flex items-center gap-1.5 transition-colors hover:text-[#1b4332]">
+            <span>Acervo Público Nacional</span>
+            <i data-lucide="arrow-up-right" class="h-3.5 w-3.5" aria-hidden="true"></i>
+          </a>
+        </li>
+        <li>
+          <a href="/private/profile" class="transition-colors hover:text-[#1b4332]">Mi Perfil Institucional</a>
+        </li>
+        <li>
+          <a href="mailto:contacto@inifap.gob.mx" class="font-['Geist_Mono',monospace] text-[11px] transition-colors hover:text-[#1b4332]">
+            contacto@inifap.gob.mx
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="flex flex-col items-start justify-between gap-2 border-t border-neutral-100 pt-4 text-[11px] text-neutral-500 sm:flex-row sm:items-center">
+    <p>© 2026 INIFAP · Agrosystem. Todos los derechos reservados.</p>
+    <p class="font-['Geist_Mono',monospace] text-[10px] uppercase tracking-wider text-neutral-400">
+      Vigilancia Fitosanitaria · v2.8
+    </p>
+  </div>
 </footer>

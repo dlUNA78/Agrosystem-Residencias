@@ -406,7 +406,7 @@ const queryPublishedCounts = async () => {
         where: { status: true, workflow_status: 'published' },
       }),
       Crop.count({
-        where: { status: true, workflow_status: 'published' },
+        where: { workflow_status: 'published' },
       }),
       Product.count({
         where: { status: true },

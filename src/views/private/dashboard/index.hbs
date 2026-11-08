@@ -1,311 +1,490 @@
-<div class="space-y-6 font-sans text-foreground antialiased pb-12">
+<div class="space-y-6 pb-10 font-['Geist',sans-serif] text-[#0a0a0a] antialiased">
 
-  {{! ── ENCABEZADO DEL DASHBOARD ──────────────────────────────────────────── }}
-  <div class="mb-6">
-    <span class="text-[11px] font-mono font-bold uppercase tracking-widest text-muted-foreground block mb-1">
-      VIGILANCIA FITOSANITARIA NACIONAL
-    </span>
-    <h1 class="text-3xl font-headline font-black text-foreground tracking-tight">
-      Panel de administración
-    </h1>
-  </div>
+  {{#if error}}
+    <div role="alert" class="flex items-center gap-3 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-xs font-medium text-rose-800">
+      <i data-lucide="alert-circle" class="h-4 w-4 shrink-0 text-rose-600" aria-hidden="true"></i>
+      <span>{{error}}</span>
+    </div>
+  {{/if}}
+
+  {{! ── ENCABEZADO EJECUTIVO DEL DASHBOARD ────────────────────────────────── }}
+  <header class="flex flex-col gap-4 border-b border-neutral-200/80 pb-5 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <div class="mb-1.5 flex flex-wrap items-center gap-2">
+        <span class="inline-flex items-center gap-1.5 rounded-md border border-[#1b4332]/20 bg-[#1b4332]/8 px-2.5 py-0.5 font-['Geist_Mono',monospace] text-[10px] font-semibold uppercase tracking-widest text-[#1b4332]">
+          <span class="h-1.5 w-1.5 rounded-full bg-emerald-600" aria-hidden="true"></span>
+          VIGILANCIA FITOSANITARIA NACIONAL
+        </span>
+        <span class="rounded-md border border-neutral-200 bg-neutral-100 px-2 py-0.5 font-['Geist_Mono',monospace] text-[10px] font-semibold uppercase tracking-wider text-neutral-600">
+          {{#if isAdmin}}ROL · ADMINISTRADOR CENTRAL{{else if isInifap}}ROL · ESPECIALISTA INIFAP{{else}}ROL · PANEL OPERATIVO{{/if}}
+        </span>
+      </div>
+      <h1 class="text-2xl font-bold tracking-tight text-[#0a0a0a] sm:text-3xl">
+        Panel de administración operativa
+      </h1>
+      <p class="mt-1 text-xs text-neutral-500 sm:text-sm">
+        Supervisión integral de validaciones técnicas, predios monitoreados, alertas críticas y ecosistema fitosanitario.
+      </p>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-2">
+      <a
+        href="/private/reports"
+        class="inline-flex items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-3.5 py-2 text-xs font-semibold text-neutral-800 shadow-2xs transition-colors hover:bg-neutral-50"
+      >
+        <i data-lucide="bar-chart-3" class="h-3.5 w-3.5 text-[#1b4332]" aria-hidden="true"></i>
+        <span>Reportes y PDF</span>
+      </a>
+      <a
+        href="/private/lands"
+        class="inline-flex items-center gap-1.5 rounded-lg bg-[#1b4332] px-3.5 py-2 text-xs font-semibold text-white shadow-2xs transition-colors hover:bg-[#143326]"
+      >
+        <i data-lucide="map-pin" class="h-3.5 w-3.5" aria-hidden="true"></i>
+        <span>Gestionar predios</span>
+      </a>
+    </div>
+  </header>
 
   {{! ── FILA 1: TARJETAS DE KPIS PRINCIPALES (4 COLUMNAS) ─────────────────── }}
-  <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-    <!-- KPI 1: Validaciones Pendientes -->
-    <div class="bg-card p-5 rounded-xl border border-border shadow-2xs hover:border-[#1b4332]/30 transition-all flex flex-col justify-between">
-      <span class="text-[10px] font-mono font-bold uppercase tracking-widest text-muted-foreground block mb-3">
-        VALIDACIONES PENDIENTES
-      </span>
-      <div class="flex items-baseline justify-between">
-        <span class="text-3xl font-headline font-black text-foreground">{{validations.total}}</span>
+  <section aria-label="Indicadores clave del sistema" class="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
+    {{! KPI 1: Validaciones Pendientes }}
+    <article class="flex flex-col justify-between rounded-xl border border-neutral-200/80 bg-white p-5 shadow-2xs transition-colors hover:border-[#1b4332]/35">
+      <div class="mb-3 flex items-center justify-between">
+        <span class="font-['Geist_Mono',monospace] text-[10px] font-semibold uppercase tracking-widest text-neutral-500">
+          VALIDACIONES PENDIENTES
+        </span>
+        <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 text-[#1b4332]">
+          <i data-lucide="clipboard-check" class="h-4 w-4" aria-hidden="true"></i>
+        </span>
+      </div>
+      <div class="flex items-baseline justify-between gap-2">
+        <span class="font-['Geist_Mono',monospace] text-3xl font-bold tracking-tight text-[#0a0a0a]">{{validations.total}}</span>
         {{#if validations.todayNewCount}}
-          <span class="inline-flex items-center gap-1 text-xs font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
-            <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i> +{{validations.todayNewCount}} hoy
+          <span class="inline-flex items-center gap-1 rounded-md border border-emerald-200 bg-emerald-50 px-2 py-0.5 font-['Geist_Mono',monospace] text-[11px] font-semibold text-emerald-700">
+            <i data-lucide="arrow-up-right" class="h-3 w-3" aria-hidden="true"></i>
+            +{{validations.todayNewCount}} hoy
           </span>
         {{else}}
-          <span class="text-xs font-mono text-muted-foreground font-semibold">Al día</span>
+          <span class="font-['Geist_Mono',monospace] text-[11px] font-medium text-neutral-500">Al día</span>
         {{/if}}
       </div>
-    </div>
+      <p class="mt-2 text-[11px] text-neutral-500">
+        {{validations.plaguesPending}} plagas · {{validations.cropsPending}} cultivos · {{validations.productsPending}} insumos
+      </p>
+    </article>
 
-    <!-- KPI 2: Alertas Críticas Activas -->
-    <div class="bg-card p-5 rounded-xl border border-border shadow-2xs hover:border-[#1b4332]/30 transition-all flex flex-col justify-between">
-      <span class="text-[10px] font-mono font-bold uppercase tracking-widest text-muted-foreground block mb-3">
-        ALERTAS CRÍTICAS ACTIVAS
-      </span>
-      <div>
-        <span class="text-3xl font-headline font-black text-rose-600 block leading-tight">{{alerts.criticalCount}}</span>
-        <span class="text-xs text-muted-foreground font-medium">En terrenos monitoreados</span>
+    {{! KPI 2: Alertas Críticas Activas }}
+    <article class="flex flex-col justify-between rounded-xl border border-neutral-200/80 bg-white p-5 shadow-2xs transition-colors hover:border-rose-300">
+      <div class="mb-3 flex items-center justify-between">
+        <span class="font-['Geist_Mono',monospace] text-[10px] font-semibold uppercase tracking-widest text-neutral-500">
+          ALERTAS CRÍTICAS ACTIVAS
+        </span>
+        <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-rose-50 text-rose-600">
+          <i data-lucide="shield-alert" class="h-4 w-4" aria-hidden="true"></i>
+        </span>
       </div>
-    </div>
+      <div class="flex items-baseline justify-between gap-2">
+        <span class="font-['Geist_Mono',monospace] text-3xl font-bold tracking-tight text-rose-600">{{alerts.criticalCount}}</span>
+        <span class="rounded-md border border-rose-200 bg-rose-50 px-2 py-0.5 font-['Geist_Mono',monospace] text-[10px] font-semibold uppercase text-rose-700">
+          30 días
+        </span>
+      </div>
+      <p class="mt-2 text-[11px] text-neutral-500">
+        Incidencias abiertas de severidad alta en campo
+      </p>
+    </article>
 
-    <!-- KPI 3: Hectáreas Monitoreadas -->
-    <div class="bg-card p-5 rounded-xl border border-border shadow-2xs hover:border-[#1b4332]/30 transition-all flex flex-col justify-between">
-      <span class="text-[10px] font-mono font-bold uppercase tracking-widest text-muted-foreground block mb-3">
-        HECTÁREAS MONITOREADAS
-      </span>
+    {{! KPI 3: Hectáreas Monitoreadas }}
+    <article class="flex flex-col justify-between rounded-xl border border-neutral-200/80 bg-white p-5 shadow-2xs transition-colors hover:border-[#1b4332]/35">
+      <div class="mb-3 flex items-center justify-between">
+        <span class="font-['Geist_Mono',monospace] text-[10px] font-semibold uppercase tracking-widest text-neutral-500">
+          HECTÁREAS MONITOREADAS
+        </span>
+        <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-neutral-100 text-neutral-700">
+          <i data-lucide="land-plot" class="h-4 w-4" aria-hidden="true"></i>
+        </span>
+      </div>
       <div class="flex items-baseline gap-1.5">
-        <span class="text-3xl font-headline font-black text-foreground">{{land.formattedHectares}}</span>
-        <span class="text-xs font-mono font-bold text-muted-foreground uppercase">ha</span>
+        <span class="font-['Geist_Mono',monospace] text-3xl font-bold tracking-tight text-[#0a0a0a]">{{land.formattedHectares}}</span>
+        <span class="font-['Geist_Mono',monospace] text-xs font-semibold uppercase text-neutral-500">ha</span>
       </div>
-    </div>
+      <p class="mt-2 text-[11px] text-neutral-500">
+        Superficie agrícola activa bajo cobertura técnica
+      </p>
+    </article>
 
-    <!-- KPI 4: Predios y Ciclos en Operación (reemplaza foro descartado) -->
-    <div class="bg-card p-5 rounded-xl border border-border shadow-2xs hover:border-[#1b4332]/30 transition-all flex flex-col justify-between">
-      <span class="text-[10px] font-mono font-bold uppercase tracking-widest text-muted-foreground block mb-3">
-        PREDIOS ACTIVOS
-      </span>
-      <div class="flex items-baseline justify-between">
-        <span class="text-3xl font-headline font-black text-foreground">{{land.totalFarms}}</span>
-        <span class="text-xs font-mono font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+    {{! KPI 4: Predios y Ciclos Activos }}
+    <article class="flex flex-col justify-between rounded-xl border border-neutral-200/80 bg-white p-5 shadow-2xs transition-colors hover:border-[#1b4332]/35">
+      <div class="mb-3 flex items-center justify-between">
+        <span class="font-['Geist_Mono',monospace] text-[10px] font-semibold uppercase tracking-widest text-neutral-500">
+          PREDIOS ACTIVOS
+        </span>
+        <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-50 text-[#1b4332]">
+          <i data-lucide="sprout" class="h-4 w-4" aria-hidden="true"></i>
+        </span>
+      </div>
+      <div class="flex items-baseline justify-between gap-2">
+        <span class="font-['Geist_Mono',monospace] text-3xl font-bold tracking-tight text-[#0a0a0a]">{{land.totalFarms}}</span>
+        <span class="rounded-md border border-emerald-200 bg-emerald-50 px-2 py-0.5 font-['Geist_Mono',monospace] text-[11px] font-semibold text-emerald-700">
           {{land.activeCyclesCount}} ciclos
         </span>
       </div>
-    </div>
+      <p class="mt-2 text-[11px] text-neutral-500">
+        Parcelas con seguimiento fenológico vigente
+      </p>
+    </article>
+  </section>
+
+  {{! ── FRANJA DE ECOSISTEMA DE CATÁLOGOS E INSUMOS ───────────────────────── }}
+  <section aria-label="Resumen del ecosistema técnico" class="grid grid-cols-1 gap-3 rounded-xl border border-neutral-200/80 bg-neutral-50/80 p-3.5 sm:grid-cols-3">
+    <a href="/private/catalog/plagues" class="flex items-center justify-between rounded-lg border border-neutral-200/80 bg-white px-4 py-3 transition-colors hover:border-[#1b4332]/40">
+      <div>
+        <span class="block font-['Geist_Mono',monospace] text-[10px] font-semibold uppercase tracking-wider text-neutral-500">ACERVO PUBLICADO</span>
+        <span class="mt-0.5 block text-xs font-semibold text-neutral-800">
+          {{ecosystem.publishedPlagues}} plagas · {{ecosystem.publishedCrops}} cultivos · {{ecosystem.publishedProducts}} insumos
+        </span>
+      </div>
+      <span class="font-['Geist_Mono',monospace] text-lg font-bold text-[#1b4332]">{{ecosystem.publishedTotal}}</span>
+    </a>
+
+    <a href="/private/ingredients" class="flex items-center justify-between rounded-lg border border-neutral-200/80 bg-white px-4 py-3 transition-colors hover:border-[#1b4332]/40">
+      <div>
+        <span class="block font-['Geist_Mono',monospace] text-[10px] font-semibold uppercase tracking-wider text-neutral-500">INGREDIENTES ACTIVOS</span>
+        <span class="mt-0.5 block text-xs font-semibold text-neutral-800">
+          {{ecosystem.activeIngredients}} vigentes de {{ecosystem.totalIngredients}} registrados
+        </span>
+      </div>
+      <span class="font-['Geist_Mono',monospace] text-lg font-bold text-[#1b4332]">{{ecosystem.activeIngredients}}</span>
+    </a>
+
+    <a href="/private/suppliers" class="flex items-center justify-between rounded-lg border border-neutral-200/80 bg-white px-4 py-3 transition-colors hover:border-[#1b4332]/40">
+      <div>
+        <span class="block font-['Geist_Mono',monospace] text-[10px] font-semibold uppercase tracking-wider text-neutral-500">DIRECTORIO DE PROVEEDORES</span>
+        <span class="mt-0.5 block text-xs font-semibold text-neutral-800">
+          {{ecosystem.activeSuppliers}} verificados de {{ecosystem.totalSuppliers}} totales
+        </span>
+      </div>
+      <span class="font-['Geist_Mono',monospace] text-lg font-bold text-[#1b4332]">{{ecosystem.activeSuppliers}}</span>
+    </a>
   </section>
 
   {{! ── FILA 2: GRID PRINCIPAL (8 COLUMNAS IZQUIERDA / 4 COLUMNAS DERECHA) ─── }}
-  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+  <div class="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
 
-    <!-- COLUMNA IZQUIERDA (8 COLUMNAS) -->
-    <div class="col-span-1 lg:col-span-8 space-y-6">
+    {{! COLUMNA IZQUIERDA (8 COLUMNAS) }}
+    <div class="col-span-1 space-y-6 lg:col-span-8">
 
-      <!-- TARJETA: REQUIERE TU ATENCIÓN -->
-      <div class="bg-card rounded-xl border border-border shadow-2xs overflow-hidden">
-        <div class="p-5 border-b border-border flex items-center justify-between">
+      {{! TARJETA: REQUIERE TU ATENCIÓN }}
+      <section aria-labelledby="attention-heading" class="overflow-hidden rounded-xl border border-neutral-200/80 bg-white shadow-2xs">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-200/80 px-5 py-4">
           <div>
-            <h2 class="text-base font-headline font-bold text-foreground">Requiere tu atención</h2>
-            <p class="text-xs text-muted-foreground">Tareas y alertas ordenadas por prioridad</p>
+            <h2 id="attention-heading" class="text-base font-bold text-[#0a0a0a]">Requiere tu atención</h2>
+            <p class="text-xs text-neutral-500">Tareas operativas y alertas fitosanitarias ordenadas por prioridad</p>
           </div>
-          <span class="text-xs font-mono text-muted-foreground font-bold px-2.5 py-0.5 rounded-md bg-muted">
+          <span class="rounded-md border border-neutral-200 bg-neutral-100 px-2.5 py-0.5 font-['Geist_Mono',monospace] text-[11px] font-semibold text-neutral-600">
             Monitoreo en tiempo real
           </span>
         </div>
 
-        <div class="divide-y divide-border">
+        <div class="divide-y divide-neutral-200/70">
           {{#if alerts.latestAlert}}
-            <!-- Item 1: ALERTA FITOSANITARIA -->
-            <div class="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-muted/30 transition-colors">
+            <div class="flex flex-col justify-between gap-4 p-4 transition-colors hover:bg-neutral-50/80 sm:flex-row sm:items-center">
               <div class="flex items-start gap-3.5">
-                <div class="w-9 h-9 rounded-xl bg-rose-100/70 text-rose-600 flex items-center justify-center shrink-0 mt-0.5">
-                  <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+                <div class="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-rose-100/80 text-rose-600">
+                  <i data-lucide="alert-triangle" class="h-4.5 w-4.5" aria-hidden="true"></i>
                 </div>
                 <div>
-                  <div class="flex items-center gap-2 mb-1">
-                    <span class="px-2 py-0.5 text-[9px] font-mono font-bold uppercase rounded bg-rose-100 text-rose-800 tracking-wider">
-                      INCIDENCIA
+                  <div class="mb-1 flex flex-wrap items-center gap-2">
+                    <span class="rounded bg-rose-100 px-2 py-0.5 font-['Geist_Mono',monospace] text-[9px] font-bold uppercase tracking-wider text-rose-800">
+                      INCIDENCIA CRÍTICA
                     </span>
-                    <h3 class="text-sm font-bold text-foreground">Alerta crítica: {{alerts.latestAlert.plague_name}}</h3>
+                    <h3 class="text-sm font-bold text-[#0a0a0a]">Alerta activa: {{alerts.latestAlert.plague_name}}</h3>
                   </div>
-                  <p class="text-xs text-muted-foreground">
+                  <p class="text-xs text-neutral-500">
                     Predio: {{#if alerts.latestAlert.farm}}{{alerts.latestAlert.farm.name}}{{else}}No especificado{{/if}} · Severidad {{alerts.latestAlert.severity}}
                   </p>
                 </div>
               </div>
-              <a href="/private/lands" class="inline-flex items-center justify-center px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-lg transition-colors shrink-0 shadow-2xs">
-                Ver predio
+              <a
+                href="{{#if alerts.latestAlert.farm.id}}/private/lands/{{alerts.latestAlert.farm.id}}/expediente{{else}}/private/lands{{/if}}"
+                class="inline-flex shrink-0 items-center justify-center rounded-lg bg-rose-600 px-4 py-2 text-xs font-semibold text-white shadow-2xs transition-colors hover:bg-rose-700"
+              >
+                Abrir expediente
               </a>
             </div>
           {{/if}}
 
           {{#if validations.total}}
-            <!-- Item 2: VALIDACIÓN -->
-            <div class="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-muted/30 transition-colors">
+            <div class="flex flex-col justify-between gap-4 p-4 transition-colors hover:bg-neutral-50/80 sm:flex-row sm:items-center">
               <div class="flex items-start gap-3.5">
-                <div class="w-9 h-9 rounded-xl bg-emerald-100/70 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5">
-                  <i data-lucide="clipboard-check" class="w-5 h-5"></i>
+                <div class="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-100/80 text-[#1b4332]">
+                  <i data-lucide="clipboard-check" class="h-4.5 w-4.5" aria-hidden="true"></i>
                 </div>
                 <div>
-                  <div class="flex items-center gap-2 mb-1">
-                    <span class="px-2 py-0.5 text-[9px] font-mono font-bold uppercase rounded bg-emerald-100 text-emerald-800 tracking-wider">
-                      VALIDACIÓN
+                  <div class="mb-1 flex flex-wrap items-center gap-2">
+                    <span class="rounded bg-emerald-100 px-2 py-0.5 font-['Geist_Mono',monospace] text-[9px] font-bold uppercase tracking-wider text-emerald-800">
+                      VALIDACIÓN TÉCNICA
                     </span>
-                    <h3 class="text-sm font-bold text-foreground">{{validations.total}} fichas técnicas esperan revisión</h3>
+                    <h3 class="text-sm font-bold text-[#0a0a0a]">{{validations.total}} fichas técnicas esperan revisión</h3>
                   </div>
-                  <p class="text-xs text-muted-foreground">{{validations.plaguesPending}} plagas, {{validations.cropsPending}} cultivos, {{validations.productsPending}} productos</p>
+                  <p class="text-xs text-neutral-500">
+                    {{validations.plaguesPending}} plagas, {{validations.cropsPending}} cultivos y {{validations.productsPending}} insumos en bandeja de dictamen
+                  </p>
                 </div>
               </div>
-              <a href="/private/catalog/plagues" class="inline-flex items-center justify-center px-4 py-2 bg-card border border-border hover:bg-muted text-foreground font-bold text-xs rounded-lg transition-colors shrink-0">
-                Revisar
+              <a
+                href="/private/catalog/plagues"
+                class="inline-flex shrink-0 items-center justify-center rounded-lg border border-neutral-200 bg-white px-4 py-2 text-xs font-semibold text-neutral-800 transition-colors hover:bg-neutral-50"
+              >
+                Revisar fichas
               </a>
             </div>
           {{/if}}
 
-          <!-- Item 3: OPERACIÓN DE PREDIOS -->
-          <div class="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-muted/30 transition-colors">
+          <div class="flex flex-col justify-between gap-4 p-4 transition-colors hover:bg-neutral-50/80 sm:flex-row sm:items-center">
             <div class="flex items-start gap-3.5">
-              <div class="w-9 h-9 rounded-xl bg-amber-100/70 text-amber-700 flex items-center justify-center shrink-0 mt-0.5">
-                <i data-lucide="map-pin" class="w-5 h-5"></i>
+              <div class="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-100/80 text-amber-800">
+                <i data-lucide="map-pin" class="h-4.5 w-4.5" aria-hidden="true"></i>
               </div>
               <div>
-                <div class="flex items-center gap-2 mb-1">
-                  <span class="px-2 py-0.5 text-[9px] font-mono font-bold uppercase rounded bg-amber-100 text-amber-800 tracking-wider">
-                    OPERACIÓN
+                <div class="mb-1 flex flex-wrap items-center gap-2">
+                  <span class="rounded bg-amber-100 px-2 py-0.5 font-['Geist_Mono',monospace] text-[9px] font-bold uppercase tracking-wider text-amber-900">
+                    OPERACIÓN DE CAMPO
                   </span>
-                  <h3 class="text-sm font-bold text-foreground">Registro y bitácora de predios agrícolas</h3>
+                  <h3 class="text-sm font-bold text-[#0a0a0a]">Bitácora geoespacial y expediente de predios</h3>
                 </div>
-                <p class="text-xs text-muted-foreground">Monitoreo fenológico y seguimiento de aplicaciones fitosanitarias</p>
+                <p class="text-xs text-neutral-500">
+                  Seguimiento fenológico de lotes, aplicaciones agroquímicas y reportes sanitarios
+                </p>
               </div>
             </div>
-            <a href="/private/lands" class="inline-flex items-center justify-center px-4 py-2 bg-card border border-border hover:bg-muted text-foreground font-bold text-xs rounded-lg transition-colors shrink-0">
+            <a
+              href="/private/lands"
+              class="inline-flex shrink-0 items-center justify-center rounded-lg border border-neutral-200 bg-white px-4 py-2 text-xs font-semibold text-neutral-800 transition-colors hover:bg-neutral-50"
+            >
               Ir a predios
             </a>
           </div>
 
           {{#if isAdmin}}
-            <!-- Item 4: ACCESO INIFAP -->
-            <div class="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-muted/30 transition-colors">
+            <div class="flex flex-col justify-between gap-4 p-4 transition-colors hover:bg-neutral-50/80 sm:flex-row sm:items-center">
               <div class="flex items-start gap-3.5">
-                <div class="w-9 h-9 rounded-xl bg-slate-200/70 text-slate-700 flex items-center justify-center shrink-0 mt-0.5">
-                  <i data-lucide="key" class="w-5 h-5"></i>
+                <div class="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-neutral-200/80 text-neutral-700">
+                  <i data-lucide="key" class="h-4.5 w-4.5" aria-hidden="true"></i>
                 </div>
                 <div>
-                  <div class="flex items-center gap-2 mb-1">
-                    <span class="px-2 py-0.5 text-[9px] font-mono font-bold uppercase rounded bg-slate-200 text-slate-800 tracking-wider">
-                      ACCESO
+                  <div class="mb-1 flex flex-wrap items-center gap-2">
+                    <span class="rounded bg-neutral-200 px-2 py-0.5 font-['Geist_Mono',monospace] text-[9px] font-bold uppercase tracking-wider text-neutral-800">
+                      CONTROL DE ACCESO
                     </span>
-                    <h3 class="text-sm font-bold text-foreground">Gestión de usuarios y accesos INIFAP</h3>
+                    <h3 class="text-sm font-bold text-[#0a0a0a]">Gestión de especialistas y cuentas institucionales</h3>
                   </div>
-                  <p class="text-xs text-muted-foreground">Administración de roles y generación de códigos de vinculación</p>
+                  <p class="text-xs text-neutral-500">
+                    Administración de roles, estatus de cuentas y trazabilidad de usuarios
+                  </p>
                 </div>
               </div>
-              <a href="/private/users" class="inline-flex items-center justify-center px-4 py-2 bg-card border border-border hover:bg-muted text-foreground font-bold text-xs rounded-lg transition-colors shrink-0">
-                Gestionar
+              <a
+                href="/private/users"
+                class="inline-flex shrink-0 items-center justify-center rounded-lg border border-neutral-200 bg-white px-4 py-2 text-xs font-semibold text-neutral-800 transition-colors hover:bg-neutral-50"
+              >
+                Gestionar usuarios
               </a>
             </div>
           {{/if}}
         </div>
 
-        <!-- Botones de Acción Rápida Inferiores -->
-        <div class="p-4 bg-muted/20 border-t border-border flex items-center gap-2 flex-wrap">
-          <a href="/private/lands" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-card border border-border hover:bg-muted text-foreground font-bold text-xs rounded-md transition-colors shadow-2xs">
-            <i data-lucide="plus" class="w-3.5 h-3.5"></i> Registrar predio
-          </a>
-          <a href="/private/audit" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-card border border-border hover:bg-muted text-foreground font-bold text-xs rounded-md transition-colors shadow-2xs">
-            <i data-lucide="history" class="w-3.5 h-3.5"></i> Auditoría
-          </a>
-          {{#if isAdmin}}
-            <a href="/private/users" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-card border border-border hover:bg-muted text-foreground font-bold text-xs rounded-md transition-colors shadow-2xs">
-              <i data-lucide="key" class="w-3.5 h-3.5"></i> Código INIFAP
-            </a>
-          {{/if}}
-        </div>
-      </div>
+        {{! Accesos Rápidos Contextuales por Rol }}
+        {{#if quickActions.length}}
+          <div class="flex flex-wrap items-center gap-2 border-t border-neutral-200/80 bg-neutral-50/70 px-4 py-3">
+            <span class="mr-1 font-['Geist_Mono',monospace] text-[10px] font-semibold uppercase tracking-wider text-neutral-500">
+              Accesos rápidos:
+            </span>
+            {{#each quickActions}}
+              <a
+                href="{{this.href}}"
+                class="inline-flex items-center gap-1.5 rounded-md border border-neutral-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-neutral-800 shadow-2xs transition-colors hover:border-[#1b4332]/40 hover:bg-neutral-50"
+              >
+                <i data-lucide="{{this.icon}}" class="h-3.5 w-3.5 text-[#1b4332]" aria-hidden="true"></i>
+                <span>{{this.label}}</span>
+              </a>
+            {{/each}}
+          </div>
+        {{/if}}
+      </section>
 
-      <!-- TARJETA: TOP 5 PLAGAS DEL MES -->
-      <div class="bg-card p-6 rounded-xl border border-border shadow-2xs">
-        <div class="flex items-center justify-between mb-6">
-          <h2 class="text-base font-headline font-bold text-foreground">Top 5 plagas del mes</h2>
-          <span class="text-xs font-mono text-muted-foreground font-bold">reportes</span>
+      {{! TARJETA: TOP 5 PLAGAS DEL MES (BARRAS SVG VECTORIALES SIN ESTILOS INLINE) }}
+      <section aria-labelledby="top-plagues-heading" class="rounded-xl border border-neutral-200/80 bg-white p-6 shadow-2xs">
+        <div class="mb-5 flex items-center justify-between">
+          <div>
+            <h2 id="top-plagues-heading" class="text-base font-bold text-[#0a0a0a]">Top 5 plagas del mes</h2>
+            <p class="text-xs text-neutral-500">Frecuencia de reportes sanitarios en los últimos 30 días</p>
+          </div>
+          <span class="font-['Geist_Mono',monospace] text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
+            reportes
+          </span>
         </div>
 
         {{#if topPlagues.length}}
           <div class="space-y-4">
             {{#each topPlagues}}
               <div>
-                <div class="flex justify-between items-center text-xs font-bold mb-1.5">
-                  <span class="text-foreground flex items-center gap-2">
-                    <span class="font-mono text-muted-foreground font-semibold">{{this.index}}</span> {{this.name}}
+                <div class="mb-1.5 flex items-center justify-between text-xs font-semibold">
+                  <span class="flex items-center gap-2 text-[#0a0a0a]">
+                    <span class="font-['Geist_Mono',monospace] text-neutral-400">{{this.index}}</span>
+                    <span>{{this.name}}</span>
                   </span>
-                  <span class="font-mono text-foreground font-bold">{{this.count}}</span>
+                  <span class="font-['Geist_Mono',monospace] font-bold text-[#0a0a0a]">{{this.count}}</span>
                 </div>
-                <div class="w-full bg-muted rounded-full h-2.5 overflow-hidden">
-                  <div class="h-full rounded-full transition-all duration-700" style="width: {{this.percentage}}%; background-color: {{this.color}}"></div>
-                </div>
+                <svg
+                  class="h-2.5 w-full overflow-hidden rounded-full bg-neutral-100"
+                  viewBox="0 0 100 6"
+                  preserveAspectRatio="none"
+                  aria-hidden="true"
+                >
+                  <rect x="0" y="0" width="{{this.percentage}}" height="6" rx="3" fill="{{this.color}}" />
+                </svg>
               </div>
             {{/each}}
           </div>
         {{else}}
           <div class="py-8 text-center">
-            <div class="w-12 h-12 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-3">
-              <i data-lucide="shield-check" class="w-6 h-6"></i>
+            <div class="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-emerald-50 text-emerald-700">
+              <i data-lucide="shield-check" class="h-5 w-5" aria-hidden="true"></i>
             </div>
-            <p class="text-sm font-bold text-foreground">Sin incidencias este mes</p>
-            <p class="text-xs text-muted-foreground mt-1">No se han registrado reportes fitosanitarios en los últimos 30 días.</p>
+            <p class="text-sm font-bold text-[#0a0a0a]">Sin incidencias este mes</p>
+            <p class="mt-1 text-xs text-neutral-500">
+              No se han registrado reportes fitosanitarios en los últimos 30 días.
+            </p>
           </div>
         {{/if}}
-      </div>
+      </section>
 
     </div>
 
-    <!-- COLUMNA DERECHA (4 COLUMNAS) -->
-    <div class="col-span-1 lg:col-span-4 space-y-6">
+    {{! COLUMNA DERECHA (4 COLUMNAS) }}
+    <div class="col-span-1 space-y-6 lg:col-span-4">
 
-      <!-- TARJETA: DISTRIBUCIÓN DE CULTIVOS -->
-      <div class="bg-card p-6 rounded-xl border border-border shadow-2xs">
-        <h2 class="text-base font-headline font-bold text-foreground mb-6">Distribución de cultivos</h2>
+      {{! TARJETA: DISTRIBUCIÓN DE CULTIVOS (DONUT VECTORIAL SVG SIN ESTILOS INLINE) }}
+      <section aria-labelledby="crop-distribution-heading" class="rounded-xl border border-neutral-200/80 bg-white p-6 shadow-2xs">
+        <div class="mb-5 flex items-center justify-between">
+          <h2 id="crop-distribution-heading" class="text-base font-bold text-[#0a0a0a]">Distribución de cultivos</h2>
+          {{#if cropDistribution.hasData}}
+            <span class="font-['Geist_Mono',monospace] text-[11px] font-semibold text-neutral-500">
+              {{cropDistribution.totalCycles}} ciclos
+            </span>
+          {{/if}}
+        </div>
 
         {{#if cropDistribution.hasData}}
           <div class="flex flex-col items-center justify-center gap-6">
-            <!-- Gráfico Donut SVG con CSS Conic Gradient -->
-            <div class="relative w-44 h-44 rounded-full flex items-center justify-center">
-              <div class="absolute inset-0 rounded-full"
-                style="{{cropDistribution.conicGradientStyle}} mask: radial-gradient(transparent 62%, black 64%); -webkit-mask: radial-gradient(transparent 62%, black 64%);">
-              </div>
-              <div class="text-center z-10">
-                <span class="block text-2xl font-headline font-black text-foreground leading-none">{{cropDistribution.totalHectaresText}}</span>
-                <span class="text-[9px] font-mono text-muted-foreground uppercase font-bold tracking-widest">HECTÁREAS</span>
+            <div class="relative flex h-44 w-44 items-center justify-center">
+              <svg
+                viewBox="0 0 120 120"
+                class="h-44 w-44 -rotate-90"
+                role="img"
+                aria-label="Gráfico de proporción de cultivos activos por ciclo"
+              >
+                <circle
+                  cx="60"
+                  cy="60"
+                  r="46"
+                  fill="none"
+                  stroke="#f1f5f9"
+                  stroke-width="14"
+                />
+                {{#each cropDistribution.crops}}
+                  <circle
+                    cx="60"
+                    cy="60"
+                    r="46"
+                    fill="none"
+                    stroke="{{this.color}}"
+                    stroke-width="14"
+                    stroke-dasharray="{{this.dashArray}}"
+                    stroke-dashoffset="{{this.dashOffset}}"
+                  />
+                {{/each}}
+              </svg>
+              <div class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
+                <span class="font-['Geist_Mono',monospace] text-2xl font-bold leading-none text-[#0a0a0a]">
+                  {{cropDistribution.totalHectaresText}}
+                </span>
+                <span class="mt-1 font-['Geist_Mono',monospace] text-[9px] font-bold uppercase tracking-widest text-neutral-500">
+                  HECTÁREAS
+                </span>
               </div>
             </div>
 
-            <!-- Leyenda de cultivos -->
-            <div class="w-full space-y-3">
+            <div class="w-full space-y-2.5">
               {{#each cropDistribution.crops}}
                 <div class="flex items-center justify-between text-xs">
-                  <div class="flex items-center gap-2">
-                    <span class="w-2.5 h-2.5 rounded-full" style="background-color: {{this.color}}"></span>
-                    <span class="font-bold text-foreground">{{this.name}}</span>
+                  <div class="flex items-center gap-2 min-w-0">
+                    <svg class="h-2.5 w-2.5 shrink-0" viewBox="0 0 10 10" aria-hidden="true">
+                      <circle cx="5" cy="5" r="5" fill="{{this.color}}" />
+                    </svg>
+                    <span class="truncate font-semibold text-[#0a0a0a]">{{this.name}}</span>
                   </div>
-                  <span class="text-muted-foreground font-mono text-[11px]">{{this.percentage}}% del total</span>
+                  <span class="shrink-0 font-['Geist_Mono',monospace] text-[11px] text-neutral-500">
+                    {{this.percentage}}% del total
+                  </span>
                 </div>
               {{/each}}
             </div>
           </div>
         {{else}}
           <div class="py-8 text-center">
-            <div class="w-12 h-12 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center mx-auto mb-3">
-              <i data-lucide="sprout" class="w-6 h-6"></i>
+            <div class="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-neutral-100 text-neutral-500">
+              <i data-lucide="sprout" class="h-5 w-5" aria-hidden="true"></i>
             </div>
-            <p class="text-sm font-bold text-foreground">Sin ciclos activos</p>
-            <p class="text-xs text-muted-foreground mt-1">Registra siembras en predios para visualizar la distribución.</p>
+            <p class="text-sm font-bold text-[#0a0a0a]">Sin ciclos activos</p>
+            <p class="mt-1 text-xs text-neutral-500">
+              Registra siembras en predios para visualizar la distribución nacional.
+            </p>
           </div>
         {{/if}}
-      </div>
+      </section>
 
-      <!-- TARJETA: ACTIVIDAD RECIENTE -->
-      <div class="bg-card p-6 rounded-xl border border-border shadow-2xs">
-        <div class="flex items-center justify-between mb-4">
-          <h2 class="text-base font-headline font-bold text-foreground">Actividad reciente</h2>
-          <a href="/private/audit" class="text-xs font-bold text-muted-foreground hover:text-[#1b4332] transition-colors">
-            Ver historial
-          </a>
+      {{! TARJETA: ACTIVIDAD RECIENTE }}
+      <section aria-labelledby="recent-activity-heading" class="rounded-xl border border-neutral-200/80 bg-white p-6 shadow-2xs">
+        <div class="mb-4 flex items-center justify-between">
+          <h2 id="recent-activity-heading" class="text-base font-bold text-[#0a0a0a]">Actividad reciente</h2>
+          {{#if isAdmin}}
+            <a href="/private/audit" class="text-xs font-semibold text-neutral-500 transition-colors hover:text-[#1b4332]">
+              Ver auditoría
+            </a>
+          {{else}}
+            <a href="/private/reports" class="text-xs font-semibold text-neutral-500 transition-colors hover:text-[#1b4332]">
+              Ver reportes
+            </a>
+          {{/if}}
         </div>
 
         {{#if recentActivity.length}}
           <div class="space-y-4">
             {{#each recentActivity}}
               <div class="flex items-start gap-3">
-                <div class="w-8 h-8 rounded-full bg-emerald-100 text-[#1b4332] font-mono font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
+                <div class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#e2f1e8] font-['Geist_Mono',monospace] text-xs font-bold text-[#1b4332]">
                   {{this.initials}}
                 </div>
-                <div class="flex-1 min-w-0">
-                  <p class="text-xs text-foreground leading-snug">
-                    <span class="font-bold">{{this.userName}}</span> {{this.action}} en <span class="font-bold text-[#1b4332]">{{this.tableName}}</span>
-                    {{#if this.entityName}} · {{this.entityName}}{{/if}}
+                <div class="min-w-0 flex-1">
+                  <p class="text-xs leading-snug text-[#0a0a0a]">
+                    <span class="font-semibold">{{this.userName}}</span>
+                    {{this.actionLabel}} en
+                    <span class="font-semibold text-[#1b4332]">{{this.moduleLabel}}</span>{{#if this.entityName}} · {{this.entityName}}{{/if}}
                   </p>
-                  <p class="text-[10px] text-muted-foreground font-mono mt-0.5">{{this.relativeTime}}</p>
+                  <p class="mt-0.5 font-['Geist_Mono',monospace] text-[10px] text-neutral-500">{{this.relativeTime}}</p>
                 </div>
-                <i data-lucide="check" class="w-4 h-4 text-emerald-600 shrink-0 mt-0.5"></i>
+                <i data-lucide="check-circle-2" class="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" aria-hidden="true"></i>
               </div>
             {{/each}}
           </div>
         {{else}}
-          <div class="py-6 text-center text-xs text-muted-foreground">
+          <div class="py-6 text-center text-xs text-neutral-500">
             No se han registrado eventos de auditoría recientes.
           </div>
         {{/if}}
-      </div>
+      </section>
 
     </div>
 

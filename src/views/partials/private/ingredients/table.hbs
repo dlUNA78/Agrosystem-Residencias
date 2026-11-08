@@ -1,314 +1,113 @@
-<div id="ingredients-table-view" class="hidden bg-surface-container-lowest rounded-2xl shadow-sm overflow-hidden border border-outline-variant/10">
-    <table class="w-full text-left border-collapse">
-        <thead>
-            <tr class="bg-surface-container-low/50">
-                <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
-                    Ingrediente Activo</th>
-                <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
-                    Grupo Químico</th>
-                <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
-                    Tipo de Acción</th>
-                <th
-                    class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant text-center">
-                    Toxicidad</th>
-                <th
-                    class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant text-center">
-                    Estatus</th>
-                <th
-                    class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant text-right">
-                    Acciones</th>
-            </tr>
-        </thead>
-        <tbody class="divide-y divide-surface-container">
+<div id="ingredients-table-view" class="hidden overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-xs">
+    {{#if ingredients.length}}
+    <div class="overflow-x-auto">
+        <table class="w-full min-w-[760px] border-collapse text-left text-sm">
+            <thead>
+                <tr class="border-b border-slate-200 bg-slate-50/80 font-['Geist_Mono'] text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                    <th class="px-5 py-3.5">Código</th>
+                    <th class="px-5 py-3.5">Ingrediente Activo</th>
+                    <th class="px-5 py-3.5">Grupo Químico</th>
+                    <th class="px-5 py-3.5">Tipo de Acción</th>
+                    <th class="px-5 py-3.5">Toxicidad OMS</th>
+                    <th class="px-5 py-3.5">Estatus</th>
+                    <th class="px-5 py-3.5 text-right">Acciones</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 bg-white">
+                {{#each ingredients}}
+                <tr class="transition-colors hover:bg-slate-50/70">
+                    <td class="px-5 py-3.5 font-['Geist_Mono'] text-xs font-semibold text-slate-500 whitespace-nowrap">
+                        {{this.code}}
+                    </td>
+                    <td class="px-5 py-3.5">
+                        <div class="flex items-center gap-3">
+                            <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-[#1b4332]">
+                                <i data-lucide="flask-conical" class="h-4 w-4"></i>
+                            </span>
+                            <span class="font-bold text-slate-900">{{this.name}}</span>
+                        </div>
+                    </td>
+                    <td class="px-5 py-3.5 text-xs font-medium text-slate-700">
+                        {{this.chemical_group}}
+                    </td>
+                    <td class="px-5 py-3.5 whitespace-nowrap">
+                        <span class="rounded-md border border-emerald-200 bg-emerald-50/70 px-2.5 py-0.5 text-[11px] font-bold text-[#1b4332]">
+                            {{this.actionLabel}}
+                        </span>
+                    </td>
+                    <td class="px-5 py-3.5 whitespace-nowrap">
+                        <span class="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 font-['Geist_Mono'] text-[11px] font-bold {{this.toxicityBadgeClass}}">
+                            {{this.toxicityShortLabel}}
+                        </span>
+                    </td>
+                    <td class="px-5 py-3.5 whitespace-nowrap">
+                        <span class="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-bold {{this.regulatoryBadgeClass}}">
+                            <span class="h-1.5 w-1.5 rounded-full {{this.toxicityDotClass}}"></span>
+                            {{this.regulatoryLabel}}
+                        </span>
+                    </td>
+                    <td class="px-5 py-3.5 text-right whitespace-nowrap">
+                        <div class="inline-flex items-center justify-end gap-1">
+                            <button
+                                type="button"
+                                data-view-ingredient
+                                data-code="{{this.code}}"
+                                data-name="{{this.name}}"
+                                data-group="{{this.chemical_group}}"
+                                data-action="{{this.actionLabel}}"
+                                data-toxicity="{{this.toxicityLabel}}"
+                                data-regulatory="{{this.regulatoryLabel}}"
+                                class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition-colors"
+                                title="Ver ficha química"
+                                aria-label="Ver ficha de {{this.name}}"
+                            >
+                                <i data-lucide="eye" class="h-4 w-4"></i>
+                            </button>
 
-            <!-- Row 1 — Aprobado -->
-            <tr class="hover:bg-surface/50 transition-colors">
-                <td class="px-8 py-5">
-                    <div class="flex items-center gap-3">
-                        <div
-                            class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                            <span class="material-symbols-outlined text-primary text-lg"
-                                data-icon="science">science</span>
-                        </div>
-                        <div>
-                            <p class="font-bold text-on-surface text-sm">Glifosato</p>
-                            <p class="text-xs italic text-on-surface-variant">N-(phosphonomethyl)glycine</p>
-                        </div>
-                    </div>
-                </td>
-                <td class="px-8 py-5">
-                    <p class="text-sm text-on-surface font-medium">Glicinas</p>
-                    <p class="text-xs text-on-surface-variant">Inhibidor EPSPS</p>
-                </td>
-                <td class="px-8 py-5">
-                    <div class="flex flex-wrap gap-2">
-                        <span
-                            class="px-3 py-1 bg-primary-container text-on-primary-container rounded-full text-[10px] font-bold uppercase tracking-tight">Herbicida</span>
-                        <span
-                            class="px-3 py-1 bg-primary-container text-on-primary-container rounded-full text-[10px] font-bold uppercase tracking-tight">Sistémico</span>
-                    </div>
-                </td>
-                <td class="px-8 py-5 text-center">
-                    <span
-                        class="px-4 py-1.5 bg-amber-400/10 text-amber-700 rounded-full text-[10px] font-black uppercase">Clase
-                        III</span>
-                </td>
-                <td class="px-8 py-5 text-center">
-                    <div
-                        class="flex items-center justify-center gap-1.5 text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100 mx-auto w-fit">
-                        <span class="material-symbols-outlined text-sm [font-variation-settings:'FILL'_1]" data-icon="check_circle"
-                            data-weight="fill">check_circle</span>
-                        <span class="text-[10px] font-black uppercase">Aprobado</span>
-                    </div>
-                </td>
-                <td class="px-8 py-5">
-                    <div class="flex justify-end gap-3 text-on-surface-variant">
-                        <button class="hover:text-primary transition-colors" title="Ver ficha"><span
-                                class="material-symbols-outlined"
-                                data-icon="visibility">visibility</span></button>
-                        <button class="hover:text-primary transition-colors" title="Editar"><span
-                                class="material-symbols-outlined" data-icon="edit">edit</span></button>
-                        <button class="hover:text-error transition-colors" title="Eliminar"><span
-                                class="material-symbols-outlined" data-icon="delete">delete</span></button>
-                    </div>
-                </td>
-            </tr>
+                            {{#if @root.canManage}}
+                            <button
+                                type="button"
+                                data-edit-ingredient
+                                data-id="{{this.id}}"
+                                data-name="{{this.name}}"
+                                data-group="{{this.rawChemicalGroup}}"
+                                data-action="{{this.rawActionType}}"
+                                data-toxicity="{{this.rawToxicity}}"
+                                class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-emerald-50 hover:text-[#1b4332] transition-colors"
+                                title="Editar ingrediente"
+                                aria-label="Editar {{this.name}}"
+                            >
+                                <i data-lucide="pencil" class="h-4 w-4"></i>
+                            </button>
 
-            <!-- Row 2 — Aprobado -->
-            <tr class="hover:bg-surface/50 transition-colors">
-                <td class="px-8 py-5">
-                    <div class="flex items-center gap-3">
-                        <div
-                            class="w-10 h-10 rounded-lg bg-secondary/10 flex items-center justify-center shrink-0">
-                            <span class="material-symbols-outlined text-secondary text-lg"
-                                data-icon="science">science</span>
+                            <form
+                                action="/private/ingredients/delete/{{this.id}}"
+                                method="POST"
+                                data-delete-ingredient-form
+                                data-ingredient-name="{{this.name}}"
+                                class="inline"
+                            >
+                                <button
+                                    type="submit"
+                                    class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-rose-50 hover:text-rose-700 transition-colors"
+                                    title="Eliminar ingrediente"
+                                    aria-label="Eliminar {{this.name}}"
+                                >
+                                    <i data-lucide="trash-2" class="h-4 w-4"></i>
+                                </button>
+                            </form>
+                            {{/if}}
                         </div>
-                        <div>
-                            <p class="font-bold text-on-surface text-sm">Clorpirifós</p>
-                            <p class="text-xs italic text-on-surface-variant">O,O-diethyl
-                                O-3,5,6-trichloro-2-pyridyl phosphorothioate</p>
-                        </div>
-                    </div>
-                </td>
-                <td class="px-8 py-5">
-                    <p class="text-sm text-on-surface font-medium">Organofosforados</p>
-                    <p class="text-xs text-on-surface-variant">Inhibidor de AChE</p>
-                </td>
-                <td class="px-8 py-5">
-                    <div class="flex flex-wrap gap-2">
-                        <span
-                            class="px-3 py-1 bg-primary-container text-on-primary-container rounded-full text-[10px] font-bold uppercase tracking-tight">Insecticida</span>
-                        <span
-                            class="px-3 py-1 bg-primary-container text-on-primary-container rounded-full text-[10px] font-bold uppercase tracking-tight">Acaricida</span>
-                    </div>
-                </td>
-                <td class="px-8 py-5 text-center">
-                    <span
-                        class="px-4 py-1.5 bg-error/10 text-error rounded-full text-[10px] font-black uppercase">Clase
-                        II</span>
-                </td>
-                <td class="px-8 py-5 text-center">
-                    <div
-                        class="flex items-center justify-center gap-1.5 text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100 mx-auto w-fit">
-                        <span class="material-symbols-outlined text-sm [font-variation-settings:'FILL'_1]" data-icon="check_circle"
-                            data-weight="fill">check_circle</span>
-                        <span class="text-[10px] font-black uppercase">Aprobado</span>
-                    </div>
-                </td>
-                <td class="px-8 py-5">
-                    <div class="flex justify-end gap-3 text-on-surface-variant">
-                        <button class="hover:text-primary transition-colors" title="Ver ficha"><span
-                                class="material-symbols-outlined"
-                                data-icon="visibility">visibility</span></button>
-                        <button class="hover:text-primary transition-colors" title="Editar"><span
-                                class="material-symbols-outlined" data-icon="edit">edit</span></button>
-                        <button class="hover:text-error transition-colors" title="Eliminar"><span
-                                class="material-symbols-outlined" data-icon="delete">delete</span></button>
-                    </div>
-                </td>
-            </tr>
-
-            <!-- Row 3 — Pendiente -->
-            <tr class="hover:bg-surface/50 transition-colors bg-surface-container-low/20">
-                <td class="px-8 py-5">
-                    <div class="flex items-center gap-3">
-                        <div
-                            class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center shrink-0">
-                            <span class="material-symbols-outlined text-on-surface-variant text-lg"
-                                data-icon="science">science</span>
-                        </div>
-                        <div>
-                            <p class="font-bold text-on-surface text-sm">Azoxistrobina</p>
-                            <p class="text-xs italic text-on-surface-variant">Methyl
-                                (E)-2-{2-[6-(2-cyanophenoxy)pyrimidin-4-yloxy]phenyl}-3-methoxyacrylate</p>
-                        </div>
-                    </div>
-                </td>
-                <td class="px-8 py-5">
-                    <p class="text-sm text-on-surface font-medium">Estrobilurinas</p>
-                    <p class="text-xs text-on-surface-variant">Inhibidor de la respiración mitocondrial</p>
-                </td>
-                <td class="px-8 py-5">
-                    <div class="flex flex-wrap gap-2">
-                        <span
-                            class="px-3 py-1 bg-primary-container text-on-primary-container rounded-full text-[10px] font-bold uppercase tracking-tight">Fungicida</span>
-                        <span
-                            class="px-3 py-1 bg-primary-container text-on-primary-container rounded-full text-[10px] font-bold uppercase tracking-tight">Preventivo</span>
-                    </div>
-                </td>
-                <td class="px-8 py-5 text-center">
-                    <span
-                        class="px-4 py-1.5 bg-emerald-400/10 text-emerald-700 rounded-full text-[10px] font-black uppercase">Clase
-                        IV</span>
-                </td>
-                <td class="px-8 py-5 text-center">
-                    <div
-                        class="flex items-center justify-center gap-1.5 text-orange-600 bg-orange-50 px-3 py-1.5 rounded-full border border-orange-100 mx-auto w-fit">
-                        <span class="material-symbols-outlined text-sm" data-icon="schedule">schedule</span>
-                        <span class="text-[10px] font-black uppercase">Pendiente</span>
-                    </div>
-                </td>
-                <td class="px-8 py-5">
-                    <div class="flex justify-end gap-3 text-on-surface-variant">
-                        <button class="hover:text-primary transition-colors" title="Ver ficha"><span
-                                class="material-symbols-outlined"
-                                data-icon="visibility">visibility</span></button>
-                        <button class="hover:text-emerald-600 transition-colors" title="Aprobar"><span
-                                class="material-symbols-outlined"
-                                data-icon="check_circle">check_circle</span></button>
-                        <button class="hover:text-error transition-colors" title="Rechazar"><span
-                                class="material-symbols-outlined" data-icon="cancel">cancel</span></button>
-                    </div>
-                </td>
-            </tr>
-
-            <!-- Row 4 — Restringido -->
-            <tr class="hover:bg-surface/50 transition-colors opacity-70">
-                <td class="px-8 py-5">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-lg bg-error/10 flex items-center justify-center shrink-0">
-                            <span class="material-symbols-outlined text-error text-lg"
-                                data-icon="science">science</span>
-                        </div>
-                        <div>
-                            <p class="font-bold text-on-surface text-sm">Paraquat</p>
-                            <p class="text-xs italic text-on-surface-variant">1,1'-dimethyl-4,4'-bipyridinium
-                                dichloride</p>
-                        </div>
-                    </div>
-                </td>
-                <td class="px-8 py-5">
-                    <p class="text-sm text-on-surface font-medium">Bipiridilios</p>
-                    <p class="text-xs text-on-surface-variant">Inhibidor del fotosistema I</p>
-                </td>
-                <td class="px-8 py-5">
-                    <div class="flex flex-wrap gap-2">
-                        <span
-                            class="px-3 py-1 bg-error/10 text-error rounded-full text-[10px] font-bold uppercase tracking-tight">Herbicida</span>
-                        <span
-                            class="px-3 py-1 bg-error/10 text-error rounded-full text-[10px] font-bold uppercase tracking-tight">No
-                            Selectivo</span>
-                    </div>
-                </td>
-                <td class="px-8 py-5 text-center">
-                    <span
-                        class="px-4 py-1.5 bg-error/10 text-error rounded-full text-[10px] font-black uppercase">Clase
-                        I</span>
-                </td>
-                <td class="px-8 py-5 text-center">
-                    <div
-                        class="flex items-center justify-center gap-1.5 text-error bg-error/5 px-3 py-1.5 rounded-full border border-error/20 mx-auto w-fit">
-                        <span class="material-symbols-outlined text-sm" data-icon="dangerous">dangerous</span>
-                        <span class="text-[10px] font-black uppercase">Restringido</span>
-                    </div>
-                </td>
-                <td class="px-8 py-5">
-                    <div class="flex justify-end gap-3 text-on-surface-variant">
-                        <button class="hover:text-primary transition-colors" title="Ver ficha"><span
-                                class="material-symbols-outlined"
-                                data-icon="visibility">visibility</span></button>
-                        <button class="hover:text-primary transition-colors" title="Editar"><span
-                                class="material-symbols-outlined" data-icon="edit">edit</span></button>
-                        <button class="hover:text-error transition-colors" title="Eliminar"><span
-                                class="material-symbols-outlined" data-icon="delete">delete</span></button>
-                    </div>
-                </td>
-            </tr>
-
-            <!-- Row 5 — Aprobado -->
-            <tr class="hover:bg-surface/50 transition-colors">
-                <td class="px-8 py-5">
-                    <div class="flex items-center gap-3">
-                        <div
-                            class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                            <span class="material-symbols-outlined text-primary text-lg"
-                                data-icon="science">science</span>
-                        </div>
-                        <div>
-                            <p class="font-bold text-on-surface text-sm">Imidacloprid</p>
-                            <p class="text-xs italic text-on-surface-variant">
-                                1-[(6-chloro-3-pyridyl)methyl]-N-nitro-2-imidazolidinimine</p>
-                        </div>
-                    </div>
-                </td>
-                <td class="px-8 py-5">
-                    <p class="text-sm text-on-surface font-medium">Neonicotinoides</p>
-                    <p class="text-xs text-on-surface-variant">Agonista de receptores nAChR</p>
-                </td>
-                <td class="px-8 py-5">
-                    <div class="flex flex-wrap gap-2">
-                        <span
-                            class="px-3 py-1 bg-primary-container text-on-primary-container rounded-full text-[10px] font-bold uppercase tracking-tight">Insecticida</span>
-                        <span
-                            class="px-3 py-1 bg-primary-container text-on-primary-container rounded-full text-[10px] font-bold uppercase tracking-tight">Sistémico</span>
-                    </div>
-                </td>
-                <td class="px-8 py-5 text-center">
-                    <span
-                        class="px-4 py-1.5 bg-amber-400/10 text-amber-700 rounded-full text-[10px] font-black uppercase">Clase
-                        II</span>
-                </td>
-                <td class="px-8 py-5 text-center">
-                    <div
-                        class="flex items-center justify-center gap-1.5 text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100 mx-auto w-fit">
-                        <span class="material-symbols-outlined text-sm [font-variation-settings:'FILL'_1]" data-icon="check_circle"
-                            data-weight="fill">check_circle</span>
-                        <span class="text-[10px] font-black uppercase">Aprobado</span>
-                    </div>
-                </td>
-                <td class="px-8 py-5">
-                    <div class="flex justify-end gap-3 text-on-surface-variant">
-                        <button class="hover:text-primary transition-colors" title="Ver ficha"><span
-                                class="material-symbols-outlined"
-                                data-icon="visibility">visibility</span></button>
-                        <button class="hover:text-primary transition-colors" title="Editar"><span
-                                class="material-symbols-outlined" data-icon="edit">edit</span></button>
-                        <button class="hover:text-error transition-colors" title="Eliminar"><span
-                                class="material-symbols-outlined" data-icon="delete">delete</span></button>
-                    </div>
-                </td>
-            </tr>
-
-        </tbody>
-    </table>
-
-    <!-- Pagination -->
-    <div class="px-8 py-6 bg-surface-container-low/30 border-t border-outline-variant/10 flex items-center justify-between">
-        <p class="text-xs font-medium text-on-surface-variant">
-            Mostrando <span class="font-bold text-on-surface">1 a 10</span> de <span
-                class="font-bold text-on-surface">312</span> registros
-        </p>
-        <div class="flex gap-2">
-            <button
-                class="px-5 py-2 rounded-lg bg-surface-container-highest/50 text-on-surface text-xs font-bold hover:bg-surface-container-highest transition-colors flex items-center gap-2">
-                <span class="material-symbols-outlined text-sm" data-icon="chevron_left">chevron_left</span>
-                Anterior
-            </button>
-            <button
-                class="px-5 py-2 rounded-lg bg-[#43655c] text-white text-xs font-bold hover:bg-[#354f47] transition-colors flex items-center gap-2 shadow-sm">
-                Siguiente
-                <span class="material-symbols-outlined text-sm" data-icon="chevron_right">chevron_right</span>
-            </button>
-        </div>
+                    </td>
+                </tr>
+                {{/each}}
+            </tbody>
+        </table>
     </div>
+    {{else}}
+    <div class="p-10 text-center">
+        <p class="text-sm font-bold text-slate-800">Sin registros coincidentes en vista tabular</p>
+        <p class="mt-1 text-xs text-slate-500">Ajusta los criterios de búsqueda en la barra superior.</p>
+    </div>
+    {{/if}}
 </div>

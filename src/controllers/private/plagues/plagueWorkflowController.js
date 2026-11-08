@@ -9,6 +9,7 @@ import {
   PlagueWorkflowError,
   transitionPlagueWorkflow,
 } from '../../../services/plagueWorkflowService.js';
+import { notifyAuthorOnWorkflowChange } from '../../../services/notificationService.js';
 
 const { AuditLog, Plague, PlagueImage } = db;
 
@@ -24,6 +25,29 @@ const getWorkflowReadiness = async (plague, transaction) => {
     cropCount,
     regionCount,
   });
+};
+
+const resolvePlagueVerifiedBy = (action, user) => {
+  if (action === PLAGUE_WORKFLOW_ACTIONS.VERIFY) {
+    return user.full_name || user.email || `Usuario ${user.id}`;
+  }
+  if (action === PLAGUE_WORKFLOW_ACTIONS.RESTORE) {
+    return null;
+  }
+  return undefined;
+};
+
+const handlePlagueWorkflowError = (error, res) => {
+  if (error instanceof PlagueWorkflowError) {
+    const status =
+      error.code === 'REVIEW_NOTES_REQUIRED' || error.code === 'MISSING_ACTOR'
+        ? 400
+        : 409;
+    return res.status(status).send(error.message);
+  }
+
+  console.error('Error al actualizar el workflow de la plaga:', error);
+  return res.status(500).send('Error al actualizar el estado de la plaga');
 };
 
 export const updatePlagueWorkflow = async (req, res) => {
@@ -78,12 +102,9 @@ export const updatePlagueWorkflow = async (req, res) => {
       }
     }
 
-    if (req.body.action === PLAGUE_WORKFLOW_ACTIONS.VERIFY) {
-      changes.verified_by =
-        req.user.full_name || req.user.email || `Usuario ${req.user.id}`;
-    }
-    if (req.body.action === PLAGUE_WORKFLOW_ACTIONS.RESTORE) {
-      changes.verified_by = null;
+    const verifiedBy = resolvePlagueVerifiedBy(req.body.action, req.user);
+    if (verifiedBy !== undefined) {
+      changes.verified_by = verifiedBy;
     }
 
     await plague.update(changes, { transaction });
@@ -100,18 +121,19 @@ export const updatePlagueWorkflow = async (req, res) => {
     );
 
     await transaction.commit();
+
+    await notifyAuthorOnWorkflowChange({
+      authorId: plague.created_by_user_id,
+      actorId: req.user.id,
+      entityName: plague.name,
+      moduleTitle: 'Plaga',
+      workflowStatus: changes.workflow_status || req.body.action,
+      actionUrl: `/private/plagues/${plague.id}`,
+    });
+
     return res.redirect(`/private/plagues/${plague.id}`);
   } catch (error) {
     await transaction.rollback();
-    if (error instanceof PlagueWorkflowError) {
-      const status =
-        error.code === 'REVIEW_NOTES_REQUIRED' || error.code === 'MISSING_ACTOR'
-          ? 400
-          : 409;
-      return res.status(status).send(error.message);
-    }
-
-    console.error('Error al actualizar el workflow de la plaga:', error);
-    return res.status(500).send('Error al actualizar el estado de la plaga');
+    return handlePlagueWorkflowError(error, res);
   }
 };

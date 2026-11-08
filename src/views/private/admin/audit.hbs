@@ -1,172 +1,376 @@
-<main class="min-h-screen flex flex-col">
-    <!-- Content Area -->
-    <div class="mt-20 p-12 space-y-10">
-
-        {{!-- Control Bar & Search --}}
-        {{> private/search-bar}}
-
-        <!-- Alert Panel -->
-        <div class="bg-blue-50 border border-blue-100 p-4 rounded-xl flex items-center justify-between shadow-sm">
-            <div class="flex items-center gap-3">
-                <div class="bg-blue-100 p-2 rounded-full">
-                    <span class="material-symbols-outlined text-blue-700" data-icon="info">info</span>
-                </div>
-                <p class="text-blue-900 font-medium text-sm tracking-tight">Registro de auditoría activo. <span class="font-bold">{{todayActionsCount}} acciones</span> registradas hoy.</p>
-            </div>
-            <a href="/private/audit?format=csv" id="btn-export-daily" class="bg-white text-blue-800 border border-blue-200 px-5 py-2 rounded-lg text-xs font-bold hover:bg-blue-100 transition-colors inline-block">
-                Descargar reporte diario
-            </a>
-        </div>
-
-        <!-- TABLE VIEW -->
-        <div id="audit-table-view" class="hidden bg-surface-container-lowest rounded-2xl shadow-sm overflow-hidden border border-outline-variant/10">
-            <table class="w-full text-left border-collapse">
-                <thead>
-                    <tr class="bg-surface-container-low/50">
-                        <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
-                            Fecha y Hora</th>
-                        <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
-                            Usuario</th>
-                        <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant">
-                            Acción Realizada</th>
-                        <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant text-center">
-                            Módulo</th>
-                        <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-on-surface-variant text-right">
-                            Detalles</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-surface-container">
-                    {{#if auditLogs.length}}
-                        {{#each auditLogs}}
-                        <tr class="hover:bg-surface/50 transition-colors">
-                            <td class="px-8 py-5">
-                                <p class="font-bold text-on-surface text-sm">{{this.dates.dateText}}, {{this.dates.timeText}}</p>
-                                <p class="text-xs text-on-surface-variant">{{this.dates.fullDate}}</p>
-                            </td>
-                            <td class="px-8 py-5">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-extrabold text-xs shrink-0">
-                                        {{this.user.initials}}</div>
-                                    <div>
-                                        <p class="font-bold text-on-surface text-sm">{{this.user.name}}</p>
-                                        <p class="text-[10px] text-on-surface-variant uppercase tracking-wide">{{this.user.role}}</p>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="px-8 py-5">
-                                <div class="flex items-center gap-2">
-                                    <span class="material-symbols-outlined text-sm" data-icon="{{this.actionIcon}}">{{this.actionIcon}}</span>
-                                    <p class="text-sm font-medium text-on-surface">{{this.actionText}}</p>
-                                </div>
-                            </td>
-                            <td class="px-8 py-5 text-center">
-                                <span class="px-3 py-1.5 bg-surface-container text-on-surface-variant rounded-full text-[10px] font-black uppercase">{{this.moduleLabel}}</span>
-                            </td>
-                            <td class="px-8 py-5 text-right">
-                                <p class="text-xs text-on-surface-variant">{{this.detailsText}}</p>
-                            </td>
-                        </tr>
-                        {{/each}}
-                    {{else}}
-                        <tr>
-                            <td colspan="5" class="px-8 py-12 text-center text-sm text-on-surface-variant">
-                                No se encontraron registros de auditoría que coincidan con los criterios.
-                            </td>
-                        </tr>
-                    {{/if}}
-                </tbody>
-            </table>
-
-            {{#if hasMultiplePages}}
-            <!-- Pagination Table -->
-            <div class="px-8 py-6 bg-surface-container-low/30 border-t border-outline-variant/10 flex items-center justify-between">
-                <p class="text-xs font-medium text-on-surface-variant">
-                    Mostrando <span class="font-bold text-on-surface">{{startRecord}} a {{endRecord}}</span> de <span
-                        class="font-bold text-on-surface">{{totalCount}}</span> registros
-                </p>
-                <div class="flex gap-2">
-                    {{#if hasPrevPage}}
-                    <a href="?page={{prevPage}}{{#if searchValue}}&search={{searchValue}}{{/if}}"
-                        class="px-5 py-2 rounded-lg bg-surface-container-highest/50 text-on-surface text-xs font-bold hover:bg-surface-container-highest transition-colors flex items-center gap-2">
-                        <span class="material-symbols-outlined text-sm" data-icon="chevron_left">chevron_left</span>
-                        Anterior
-                    </a>
-                    {{/if}}
-                    {{#if hasNextPage}}
-                    <a href="?page={{nextPage}}{{#if searchValue}}&search={{searchValue}}{{/if}}"
-                        class="px-5 py-2 rounded-lg bg-[#43655c] text-white text-xs font-bold hover:bg-[#354f47] transition-colors flex items-center gap-2 shadow-sm">
-                        Siguiente
-                        <span class="material-symbols-outlined text-sm" data-icon="chevron_right">chevron_right</span>
-                    </a>
-                    {{/if}}
-                </div>
-            </div>
-            {{/if}}
-        </div>
-
-        <!-- GRID VIEW -->
-        <div id="audit-grid-view" class="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 grid">
-            {{#if auditLogs.length}}
-                {{#each auditLogs}}
-                <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm overflow-hidden group hover:-translate-y-1 transition-all duration-300">
-                    <div class="p-5">
-                        <div class="flex justify-between items-start mb-4">
-                            <div class="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-on-primary font-extrabold text-base shrink-0 shadow-md">
-                                {{this.user.initials}}
-                            </div>
-                            <div class="flex items-center justify-center gap-1.5 px-2.5 py-1 rounded-full {{this.actionBadgeClass}}">
-                                <span class="material-symbols-outlined text-xs">{{this.actionIcon}}</span>
-                                <span class="text-[9px] font-black uppercase">{{this.actionLabel}}</span>
-                            </div>
-                        </div>
-                        <span class="text-[9px] font-black uppercase tracking-widest text-primary">{{this.user.name}}</span>
-                        <h3 class="font-bold text-on-surface text-base mt-1">{{this.actionText}}</h3>
-                        <p class="text-xs text-on-surface-variant truncate mt-1">Módulo: {{this.moduleLabel}}</p>
-                        <div class="flex items-center gap-1.5 mt-2">
-                            <span class="px-2 py-0.5 bg-surface-container text-on-surface-variant rounded text-[10px] font-bold tracking-tight">{{this.detailsText}}</span>
-                        </div>
-
-                        <div class="mt-4 pt-4 border-t border-surface-container flex justify-between items-center">
-                            <span class="text-[10px] text-on-surface-variant font-bold">{{this.dates.dateText}} · {{this.dates.timeText}}</span>
-                            <span class="text-[10px] text-on-surface-variant font-mono">#{{this.recordId}}</span>
-                        </div>
-                    </div>
-                </div>
-                {{/each}}
-            {{else}}
-                <div class="col-span-full py-12 text-center text-sm text-on-surface-variant bg-surface-container-lowest rounded-xl border border-outline-variant/10">
-                    No se encontraron registros de auditoría que coincidan con los criterios.
-                </div>
-            {{/if}}
-        </div>
-
-        {{#if hasMultiplePages}}
-        <!-- Pagination Grid -->
-        <div class="px-8 py-6 bg-surface-container-low/30 rounded-xl border border-outline-variant/10 flex items-center justify-between">
-            <p class="text-xs font-medium text-on-surface-variant">
-                Mostrando <span class="font-bold text-on-surface">{{startRecord}} a {{endRecord}}</span> de <span
-                    class="font-bold text-on-surface">{{totalCount}}</span> registros
-            </p>
-            <div class="flex gap-2">
-                {{#if hasPrevPage}}
-                <a href="?page={{prevPage}}{{#if searchValue}}&search={{searchValue}}{{/if}}"
-                    class="px-5 py-2 rounded-lg bg-surface-container-highest/50 text-on-surface text-xs font-bold hover:bg-surface-container-highest transition-colors flex items-center gap-2">
-                    <span class="material-symbols-outlined text-sm" data-icon="chevron_left">chevron_left</span>
-                    Anterior
-                </a>
-                {{/if}}
-                {{#if hasNextPage}}
-                <a href="?page={{nextPage}}{{#if searchValue}}&search={{searchValue}}{{/if}}"
-                    class="px-5 py-2 rounded-lg bg-[#43655c] text-white text-xs font-bold hover:bg-[#354f47] transition-colors flex items-center gap-2 shadow-sm">
-                    Siguiente
-                    <span class="material-symbols-outlined text-sm" data-icon="chevron_right">chevron_right</span>
-                </a>
-                {{/if}}
-            </div>
-        </div>
-        {{/if}}
-
+<div id="audit-page-root" class="mx-auto max-w-7xl space-y-5 font-['Geist'] text-slate-900">
+  <header class="flex flex-col gap-3 rounded-2xl border border-slate-200/90 bg-white p-5 shadow-2xs sm:flex-row sm:items-center sm:justify-between">
+    <div>
+      <nav aria-label="Ruta de navegación" class="mb-1.5 flex items-center gap-1.5 text-[11px] font-medium text-slate-500">
+        <a href="/dashboard" class="transition-colors hover:text-[#1b4332]">Panel</a>
+        <span aria-hidden="true">/</span>
+        <span class="font-semibold text-slate-800">Auditoría</span>
+      </nav>
+      <div class="flex flex-wrap items-center gap-2.5">
+        <h1 class="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
+          Bitácora Institucional de Auditoría
+        </h1>
+        <span class="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider text-[#1b4332]">
+          Trazabilidad Activa
+        </span>
+      </div>
+      <p class="mt-1 text-xs text-slate-500">
+        Registro inmutable de operaciones técnicas, cambios de flujo editorial y mutaciones con inspección de carga JSON.
+      </p>
     </div>
-</main>
+
+    <div class="flex flex-wrap items-center gap-2">
+      <div class="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50/70 px-3.5 py-2 text-xs text-[#1b4332]">
+        <span class="h-2 w-2 rounded-full bg-emerald-600 animate-pulse" aria-hidden="true"></span>
+        <span>Hoy: <strong class="font-['Geist_Mono'] font-bold">{{todayActionsCount}}</strong> eventos</span>
+      </div>
+      <a
+        href="/private/audit?format=csv{{filterSuffix}}"
+        id="btn-export-daily"
+        class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-2xs transition-colors hover:bg-slate-50 hover:text-[#1b4332]"
+      >
+        <i data-lucide="file-spreadsheet" class="h-3.5 w-3.5 text-[#1b4332]"></i>
+        <span>Descargar reporte CSV</span>
+      </a>
+    </div>
+  </header>
+
+  {{#if error}}
+  <div role="alert" class="flex items-center gap-2.5 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-xs font-semibold text-rose-800">
+    <i data-lucide="alert-circle" class="h-4 w-4 shrink-0 text-rose-600"></i>
+    <span>{{error}}</span>
+  </div>
+  {{/if}}
+
+  {{> private/search-bar}}
+
+  <form
+    id="audit-date-filter-form"
+    action="/private/audit"
+    method="GET"
+    class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200/90 bg-white px-4 py-2.5 text-xs shadow-2xs"
+  >
+    <input type="hidden" name="search" value="{{query.search}}" />
+    <input type="hidden" name="module" value="{{query.module}}" />
+    <input type="hidden" name="action" value="{{query.action}}" />
+
+    <div class="flex flex-wrap items-center gap-2.5">
+      <span class="inline-flex items-center gap-1.5 font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+        <i data-lucide="calendar-range" class="h-3.5 w-3.5 text-[#1b4332]"></i>
+        Periodo:
+      </span>
+      <label class="inline-flex items-center gap-1.5 text-slate-600">
+        <span class="text-[11px]">Desde</span>
+        <input
+          type="date"
+          name="dateFrom"
+          value="{{query.dateFrom}}"
+          aria-label="Fecha inicial"
+          class="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 font-['Geist_Mono'] text-[11px] text-slate-800 focus:border-[#1b4332] focus:bg-white focus:outline-none"
+        />
+      </label>
+      <label class="inline-flex items-center gap-1.5 text-slate-600">
+        <span class="text-[11px]">Hasta</span>
+        <input
+          type="date"
+          name="dateTo"
+          value="{{query.dateTo}}"
+          aria-label="Fecha final"
+          class="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 font-['Geist_Mono'] text-[11px] text-slate-800 focus:border-[#1b4332] focus:bg-white focus:outline-none"
+        />
+      </label>
+      <button
+        type="submit"
+        class="rounded-lg bg-slate-900 px-3 py-1.5 text-[11px] font-semibold text-white transition-colors hover:bg-slate-800 cursor-pointer"
+      >
+        Aplicar fechas
+      </button>
+    </div>
+
+    <p class="text-[11px] text-slate-500" role="status">
+      Mostrando <strong class="font-['Geist_Mono'] text-slate-900">{{startRecord}}–{{endRecord}}</strong> de
+      <strong class="font-['Geist_Mono'] text-slate-900">{{totalCount}}</strong> eventos auditados
+    </p>
+  </form>
+
+  <div id="audit-results-region" class="space-y-4">
+    <div
+      id="audit-table-view"
+      class="hidden overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-2xs"
+    >
+      <div class="overflow-x-auto">
+        <table class="w-full min-w-[920px] border-collapse text-left">
+          <thead>
+            <tr class="border-b border-slate-200 bg-slate-50/80 font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+              <th class="px-5 py-3.5">Fecha y Hora</th>
+              <th class="px-4 py-3.5">Actor</th>
+              <th class="px-4 py-3.5">Acción Ejecutada</th>
+              <th class="px-4 py-3.5 text-center">Módulo</th>
+              <th class="px-4 py-3.5">Resumen</th>
+              <th class="px-5 py-3.5 text-right">Payload</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 text-xs">
+            {{#if auditLogs.length}}
+            {{#each auditLogs}}
+            <tr class="transition-colors hover:bg-slate-50/70">
+              <td class="px-5 py-3.5">
+                <p class="font-semibold text-slate-900">{{this.dates.dateText}} · <span class="font-['Geist_Mono']">{{this.dates.timeText}}</span></p>
+                <p class="font-['Geist_Mono'] text-[11px] text-slate-400">{{this.dates.fullDate}}</p>
+              </td>
+              <td class="px-4 py-3.5">
+                <div class="flex items-center gap-2.5">
+                  <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#1b4332] font-['Geist_Mono'] text-[11px] font-bold text-white">
+                    {{this.user.initials}}
+                  </div>
+                  <div class="min-w-0">
+                    <p class="truncate font-semibold text-slate-900">{{this.user.name}}</p>
+                    <p class="font-['Geist_Mono'] text-[10px] uppercase tracking-wider text-slate-500">{{this.user.role}}</p>
+                  </div>
+                </div>
+              </td>
+              <td class="px-4 py-3.5">
+                <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase {{this.actionBadgeClass}}">
+                  <i data-lucide="{{this.actionIcon}}" class="h-3 w-3"></i>
+                  <span>{{this.actionLabel}}</span>
+                </span>
+                <p class="mt-1 text-xs font-medium text-slate-700">{{this.actionText}}</p>
+              </td>
+              <td class="px-4 py-3.5 text-center">
+                <span class="rounded-lg bg-slate-100 px-2.5 py-1 font-['Geist_Mono'] text-[10px] font-semibold uppercase text-slate-700">
+                  {{this.moduleLabel}}
+                </span>
+              </td>
+              <td class="px-4 py-3.5">
+                <p class="max-w-[240px] truncate text-xs text-slate-600" title="{{this.detailsText}}">
+                  {{this.detailsText}}
+                </p>
+              </td>
+              <td class="px-5 py-3.5 text-right">
+                <button
+                  type="button"
+                  data-audit-inspect
+                  data-log-id="{{this.id}}"
+                  data-record-id="{{this.recordId}}"
+                  data-action="{{this.actionText}}"
+                  data-action-label="{{this.actionLabel}}"
+                  data-module="{{this.moduleLabel}}"
+                  data-table="{{this.tableName}}"
+                  data-user="{{this.user.name}}"
+                  data-email="{{this.user.email}}"
+                  data-role="{{this.user.role}}"
+                  data-date="{{this.dates.fullDate}}"
+                  data-details="{{this.detailsText}}"
+                  data-old-json="{{this.oldValuesJson}}"
+                  data-new-json="{{this.newValuesJson}}"
+                  class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 font-['Geist_Mono'] text-[11px] font-semibold text-slate-700 transition-colors hover:border-[#1b4332]/40 hover:bg-emerald-50 hover:text-[#1b4332] cursor-pointer"
+                >
+                  <i data-lucide="braces" class="h-3.5 w-3.5"></i>
+                  <span>Inspeccionar</span>
+                </button>
+              </td>
+            </tr>
+            {{/each}}
+            {{else}}
+            <tr>
+              <td colspan="6" class="px-6 py-14 text-center text-xs text-slate-500">
+                No se encontraron registros de auditoría que coincidan con los criterios seleccionados.
+              </td>
+            </tr>
+            {{/if}}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div
+      id="audit-grid-view"
+      class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+    >
+      {{#if auditLogs.length}}
+      {{#each auditLogs}}
+      <article class="flex flex-col justify-between overflow-hidden rounded-2xl border border-slate-200/90 bg-white p-4 shadow-2xs transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md">
+        <div>
+          <div class="mb-3 flex items-start justify-between gap-2">
+            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#1b4332] font-['Geist_Mono'] text-xs font-bold text-white shadow-2xs">
+              {{this.user.initials}}
+            </div>
+            <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase {{this.actionBadgeClass}}">
+              <i data-lucide="{{this.actionIcon}}" class="h-3 w-3"></i>
+              <span>{{this.actionLabel}}</span>
+            </span>
+          </div>
+
+          <p class="font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider text-[#1b4332]">
+            {{this.user.name}} · {{this.user.role}}
+          </p>
+          <h3 class="mt-1 text-sm font-bold text-slate-900">{{this.actionText}}</h3>
+          <p class="mt-0.5 text-xs text-slate-500">
+            Módulo: <strong class="font-semibold text-slate-700">{{this.moduleLabel}}</strong>
+          </p>
+
+          <div class="mt-2.5 rounded-xl bg-slate-50 p-2.5">
+            <p class="truncate font-['Geist_Mono'] text-[11px] text-slate-600" title="{{this.detailsText}}">
+              {{this.detailsText}}
+            </p>
+          </div>
+        </div>
+
+        <div class="mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
+          <span class="font-['Geist_Mono'] text-[10px] font-semibold text-slate-400">
+            {{this.dates.dateText}} · {{this.dates.timeText}}
+          </span>
+          <button
+            type="button"
+            data-audit-inspect
+            data-log-id="{{this.id}}"
+            data-record-id="{{this.recordId}}"
+            data-action="{{this.actionText}}"
+            data-action-label="{{this.actionLabel}}"
+            data-module="{{this.moduleLabel}}"
+            data-table="{{this.tableName}}"
+            data-user="{{this.user.name}}"
+            data-email="{{this.user.email}}"
+            data-role="{{this.user.role}}"
+            data-date="{{this.dates.fullDate}}"
+            data-details="{{this.detailsText}}"
+            data-old-json="{{this.oldValuesJson}}"
+            data-new-json="{{this.newValuesJson}}"
+            class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 font-['Geist_Mono'] text-[10px] font-semibold text-slate-700 transition-colors hover:border-[#1b4332]/40 hover:bg-emerald-50 hover:text-[#1b4332] cursor-pointer"
+          >
+            <i data-lucide="braces" class="h-3 w-3"></i>
+            <span>Ver JSON</span>
+          </button>
+        </div>
+      </article>
+      {{/each}}
+      {{else}}
+      <div class="col-span-full rounded-2xl border border-slate-200/90 bg-white py-14 text-center text-xs text-slate-500 shadow-2xs">
+        No se encontraron registros de auditoría que coincidan con los criterios seleccionados.
+      </div>
+      {{/if}}
+    </div>
+
+    {{#if hasMultiplePages}}
+    <nav
+      aria-label="Paginación de auditoría"
+      class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200/90 bg-white px-5 py-3.5 text-xs shadow-2xs"
+    >
+      <p class="text-slate-500">
+        Página <strong class="font-['Geist_Mono'] text-slate-900">{{currentPage}}</strong> de
+        <strong class="font-['Geist_Mono'] text-slate-900">{{totalPages}}</strong>
+      </p>
+      <div class="flex items-center gap-2">
+        {{#if hasPrevPage}}
+        <a
+          href="?page={{prevPage}}{{filterSuffix}}"
+          class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-1.5 font-semibold text-slate-700 transition-colors hover:bg-slate-50"
+        >
+          <i data-lucide="chevron-left" class="h-3.5 w-3.5"></i>
+          <span>Anterior</span>
+        </a>
+        {{/if}}
+        {{#if hasNextPage}}
+        <a
+          href="?page={{nextPage}}{{filterSuffix}}"
+          class="inline-flex items-center gap-1.5 rounded-xl bg-[#1b4332] px-3.5 py-1.5 font-semibold text-white shadow-2xs transition-colors hover:bg-[#143326]"
+        >
+          <span>Siguiente</span>
+          <i data-lucide="chevron-right" class="h-3.5 w-3.5"></i>
+        </a>
+        {{/if}}
+      </div>
+    </nav>
+    {{/if}}
+  </div>
+</div>
+
+<div
+  id="modal-audit-detail"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="audit-detail-title"
+  class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/55 p-4 backdrop-blur-xs font-['Geist']"
+>
+  <div class="flex max-h-[88vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
+    <div class="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+      <div class="flex items-center gap-3">
+        <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-[#1b4332]">
+          <i data-lucide="braces" class="h-4 w-4"></i>
+        </span>
+        <div>
+          <h2 id="audit-detail-title" class="text-sm font-bold text-slate-900">
+            Inspección Técnica de Evento Auditado
+          </h2>
+          <p id="audit-detail-subtitle" class="font-['Geist_Mono'] text-[11px] text-slate-500">
+            Evento #---
+          </p>
+        </div>
+      </div>
+
+      <button
+        id="btn-close-audit-detail"
+        type="button"
+        aria-label="Cerrar inspector de auditoría"
+        class="rounded-xl p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 cursor-pointer"
+      >
+        <i data-lucide="x" class="h-4 w-4"></i>
+      </button>
+    </div>
+
+    <div class="flex-1 space-y-4 overflow-y-auto p-6 text-xs">
+      <div class="grid grid-cols-2 gap-3 rounded-xl border border-slate-200 bg-slate-50/70 p-4 sm:grid-cols-4">
+        <div>
+          <p class="font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider text-slate-400">Actor</p>
+          <p id="audit-detail-user" class="mt-0.5 font-semibold text-slate-900">---</p>
+          <p id="audit-detail-email" class="truncate text-[11px] text-slate-500">---</p>
+        </div>
+        <div>
+          <p class="font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider text-slate-400">Módulo / Tabla</p>
+          <p id="audit-detail-module" class="mt-0.5 font-semibold text-slate-900">---</p>
+          <p id="audit-detail-table" class="font-['Geist_Mono'] text-[11px] text-slate-500">---</p>
+        </div>
+        <div>
+          <p class="font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider text-slate-400">Acción</p>
+          <p id="audit-detail-action" class="mt-0.5 font-semibold text-slate-900">---</p>
+        </div>
+        <div>
+          <p class="font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider text-slate-400">Estampa Temporal</p>
+          <p id="audit-detail-date" class="mt-0.5 font-['Geist_Mono'] text-[11px] font-semibold text-slate-900">---</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div class="flex flex-col rounded-xl border border-slate-200 bg-slate-950 p-4 text-slate-100">
+          <div class="mb-2 flex items-center justify-between border-b border-slate-800 pb-2">
+            <span class="font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider text-amber-300">
+              Estado Anterior (old_values)
+            </span>
+          </div>
+          <pre id="audit-detail-old-json" class="max-h-64 overflow-auto font-['Geist_Mono'] text-[11px] leading-relaxed text-slate-300">Sin valores previos registrados</pre>
+        </div>
+
+        <div class="flex flex-col rounded-xl border border-slate-200 bg-slate-950 p-4 text-slate-100">
+          <div class="mb-2 flex items-center justify-between border-b border-slate-800 pb-2">
+            <span class="font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider text-emerald-300">
+              Estado Nuevo (new_values)
+            </span>
+          </div>
+          <pre id="audit-detail-new-json" class="max-h-64 overflow-auto font-['Geist_Mono'] text-[11px] leading-relaxed text-emerald-100">Sin valores nuevos registrados</pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex items-center justify-end border-t border-slate-200 bg-slate-50/80 px-6 py-3">
+      <button
+        id="btn-done-audit-detail"
+        type="button"
+        class="rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-slate-800 cursor-pointer"
+      >
+        Cerrar inspector
+      </button>
+    </div>
+  </div>
+</div>
 
 <script type="module" src="/js/private/audit.js"></script>

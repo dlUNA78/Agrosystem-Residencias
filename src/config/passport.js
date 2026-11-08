@@ -50,10 +50,15 @@ export default function configurePassport(passport) {
   // busca al usuario en la BD y lo inyecta en `req.user` para que lo usemos.
   passport.deserializeUser(async (id, done) => {
     try {
-      const user = await User.findByPk(id);
-      done(null, user);
+      const user = await User.findByPk(id, {
+        include: [{ model: db.RbacRole, as: 'rbacRole' }],
+      });
+      if (!user || user.status === 'suspendido') {
+        return done(null, false);
+      }
+      return done(null, user);
     } catch (error) {
-      done(error);
+      return done(error);
     }
   });
 }

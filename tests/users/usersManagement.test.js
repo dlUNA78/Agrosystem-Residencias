@@ -141,21 +141,35 @@ describe('👥 Módulo de Gestión de Usuarios (CRUD + RBAC Admin + Perfil)', ()
     if (!testCreatedUserId) return;
 
     const adminAgent = await getAdminAgent();
+
+    // Intentar escalar a admin debe ser rechazado por la regla de SuperAdmin único
+    const rejectRes = await adminAgent
+      .post(`/private/users/edit/${testCreatedUserId}`)
+      .send({
+        full_name: 'Intento Admin',
+        role: 'admin',
+        status: 'activo',
+      });
+    expect([200, 302]).toContain(rejectRes.status);
+    const unchanged = await User.findByPk(testCreatedUserId);
+    expect(unchanged.role).not.toBe('admin');
+
+    // Modificación válida permitida
     const res = await adminAgent
       .post(`/private/users/edit/${testCreatedUserId}`)
       .send({
         full_name: 'Usuario Prueba CRUD Modificado',
         email: 'usertest_crud@agrosystem.com',
-        role: 'admin',
+        role: 'agricultor',
         status: 'suspendido',
-        job_title: 'Administrador Auxiliar',
+        job_title: 'Técnico de Campo',
       });
 
     expect([200, 302]).toContain(res.status);
 
     const updatedUser = await User.findByPk(testCreatedUserId);
     expect(updatedUser.full_name).toBe('Usuario Prueba CRUD Modificado');
-    expect(updatedUser.role).toBe('admin');
+    expect(updatedUser.role).toBe('agricultor');
     expect(updatedUser.status).toBe('suspendido');
   });
 

@@ -1,65 +1,249 @@
-<main class="min-h-screen flex flex-col">
-    <!-- Content Area -->
-    <div class="mt-20 p-12 space-y-10">
+<div class="mx-auto max-w-7xl space-y-6 pb-12 pt-2 font-['Geist'] text-slate-900">
+    <!-- Encabezado ejecutivo -->
+    <header class="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-xs">
+        <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+            <div class="space-y-1.5">
+                <div class="flex flex-wrap items-center gap-2">
+                    <span class="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50/70 px-2.5 py-0.5 font-['Geist_Mono'] text-[10px] font-bold uppercase tracking-[0.14em] text-[#1b4332]">
+                        <i data-lucide="flask-conical" class="h-3 w-3"></i>
+                        Catálogo Químico · OMS / COFEPRIS
+                    </span>
+                    {{#unless canManage}}
+                    <span class="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-100 px-2.5 py-0.5 text-[11px] font-semibold text-slate-600">
+                        <i data-lucide="eye" class="h-3 w-3"></i>
+                        Consulta técnica INIFAP
+                    </span>
+                    {{/unless}}
+                </div>
+                <h1 class="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">Ingredientes Activos</h1>
+                <p class="max-w-2xl text-xs leading-relaxed text-slate-500 sm:text-sm">
+                    Registro normativo de moléculas fitosanitarias, familias químicas, tipo de acción biológica y clasificación toxicológica OMS.
+                </p>
+            </div>
 
-        {{!-- Control Bar & Search --}}
-        {{> private/search-bar}}
-
-        {{!-- Stats Bar --}}
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div
-                class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm p-5 flex items-center gap-4">
-                <div class="w-11 h-11 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                    <span class="material-symbols-outlined text-primary" data-icon="science">science</span>
-                </div>
-                <div>
-                    <p class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant">Total</p>
-                    <p class="text-2xl font-extrabold text-on-surface">312</p>
-                </div>
+            {{#if canManage}}
+            <div class="flex shrink-0 items-center gap-2">
+                <button
+                    id="btn-add-ingredient"
+                    type="button"
+                    class="inline-flex items-center gap-2 rounded-xl bg-[#1b4332] px-4 py-2.5 text-xs font-bold text-white shadow-xs transition-colors hover:bg-[#143325]"
+                >
+                    <i data-lucide="plus" class="h-4 w-4"></i>
+                    <span>Añadir Ingrediente</span>
+                </button>
             </div>
-            <div
-                class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm p-5 flex items-center gap-4">
-                <div class="w-11 h-11 rounded-full bg-emerald-500/10 flex items-center justify-center shrink-0">
-                    <span class="material-symbols-outlined text-emerald-600"
-                        data-icon="check_circle">check_circle</span>
-                </div>
-                <div>
-                    <p class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant">Aprobados</p>
-                    <p class="text-2xl font-extrabold text-on-surface">278</p>
-                </div>
-            </div>
-            <div
-                class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm p-5 flex items-center gap-4">
-                <div class="w-11 h-11 rounded-full bg-amber-500/10 flex items-center justify-center shrink-0">
-                    <span class="material-symbols-outlined text-amber-600" data-icon="schedule">schedule</span>
-                </div>
-                <div>
-                    <p class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant">Pendientes</p>
-                    <p class="text-2xl font-extrabold text-on-surface">21</p>
-                </div>
-            </div>
-            <div
-                class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 shadow-sm p-5 flex items-center gap-4">
-                <div class="w-11 h-11 rounded-full bg-error/10 flex items-center justify-center shrink-0">
-                    <span class="material-symbols-outlined text-error" data-icon="dangerous">dangerous</span>
-                </div>
-                <div>
-                    <p class="text-[10px] uppercase tracking-widest font-black text-on-surface-variant">Restringidos</p>
-                    <p class="text-2xl font-extrabold text-on-surface">13</p>
-                </div>
-            </div>
+            {{/if}}
         </div>
+    </header>
 
-        {{!-- Table View --}}
+    {{#if error}}
+    <div role="alert" class="flex items-center gap-3 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-xs font-semibold text-rose-800">
+        <i data-lucide="alert-circle" class="h-4 w-4 shrink-0"></i>
+        <span>{{error}}</span>
+    </div>
+    {{/if}}
+
+    <!-- Indicadores en tiempo real -->
+    <section id="ingredients-kpi-region" aria-label="Indicadores del catálogo químico" class="grid grid-cols-2 gap-3.5 lg:grid-cols-4">
+        <article class="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-xs">
+            <div class="flex items-center justify-between">
+                <p class="font-['Geist_Mono'] text-[11px] font-bold uppercase tracking-wider text-slate-500">Total moléculas</p>
+                <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 text-[#1b4332]">
+                    <i data-lucide="atom" class="h-4 w-4"></i>
+                </span>
+            </div>
+            <p class="mt-2 font-['Geist_Mono'] text-2xl font-extrabold text-slate-900">{{stats.total}}</p>
+            <p class="mt-0.5 text-[11px] text-slate-500">{{stats.distinctGroups}} grupos químicos</p>
+        </article>
+
+        <article class="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-xs">
+            <div class="flex items-center justify-between">
+                <p class="font-['Geist_Mono'] text-[11px] font-bold uppercase tracking-wider text-slate-500">Aprobados OMS</p>
+                <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700">
+                    <i data-lucide="shield-check" class="h-4 w-4"></i>
+                </span>
+            </div>
+            <p class="mt-2 font-['Geist_Mono'] text-2xl font-extrabold text-emerald-700">{{stats.approvedCount}}</p>
+            <p class="mt-0.5 text-[11px] text-slate-500">Clases II, III, IV y U</p>
+        </article>
+
+        <article class="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-xs">
+            <div class="flex items-center justify-between">
+                <p class="font-['Geist_Mono'] text-[11px] font-bold uppercase tracking-wider text-slate-500">Por clasificar</p>
+                <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-50 text-amber-700">
+                    <i data-lucide="clock-3" class="h-4 w-4"></i>
+                </span>
+            </div>
+            <p class="mt-2 font-['Geist_Mono'] text-2xl font-extrabold text-amber-700">{{stats.pendingCount}}</p>
+            <p class="mt-0.5 text-[11px] text-slate-500">Sin banda OMS asignada</p>
+        </article>
+
+        <article class="rounded-2xl border border-slate-200/90 bg-white p-4 shadow-xs">
+            <div class="flex items-center justify-between">
+                <p class="font-['Geist_Mono'] text-[11px] font-bold uppercase tracking-wider text-slate-500">Restringidos</p>
+                <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-rose-50 text-rose-700">
+                    <i data-lucide="triangle-alert" class="h-4 w-4"></i>
+                </span>
+            </div>
+            <p class="mt-2 font-['Geist_Mono'] text-2xl font-extrabold text-rose-700">{{stats.restrictedCount}}</p>
+            <p class="mt-0.5 text-[11px] text-slate-500">Clase I · Riesgo extremo</p>
+        </article>
+    </section>
+
+    <!-- Sticky Bar ultracompacta -->
+    <section
+        id="ingredients-filter-bar"
+        aria-label="Filtros de ingredientes activos"
+        class="sticky top-16 z-30 rounded-2xl border border-slate-200/90 bg-white/95 p-2.5 shadow-xs backdrop-blur-md"
+    >
+        <form id="form-filter-ingredients" action="/private/ingredients" method="GET" class="space-y-2">
+            <div class="flex items-center gap-2">
+                <div class="relative flex-1">
+                    <i data-lucide="search" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"></i>
+                    <input
+                        id="ingredient-search"
+                        name="search"
+                        type="search"
+                        aria-label="Buscar ingrediente activo por nombre, número CAS o grupo químico"
+                        value="{{query.search}}"
+                        placeholder="{{searchPlaceholder}}"
+                        autocomplete="off"
+                        class="h-9 w-full rounded-xl border border-slate-200 bg-slate-50/70 pl-9 pr-3 text-xs font-medium text-slate-900 placeholder:text-slate-400 outline-none transition-all focus:border-[#1b4332] focus:bg-white focus:ring-2 focus:ring-[#1b4332]/15"
+                    />
+                </div>
+
+                <!-- Botón colapsable móvil -->
+                <button
+                    id="btn-toggle-ingredient-filters"
+                    type="button"
+                    aria-expanded="false"
+                    aria-controls="ingredient-advanced-filters"
+                    class="inline-flex h-9 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 text-xs font-bold text-slate-700 hover:bg-slate-50 lg:hidden"
+                >
+                    <i data-lucide="sliders-horizontal" class="h-3.5 w-3.5"></i>
+                    <span>Filtros</span>
+                    {{#if activeFilterCount}}
+                    <span class="rounded-full bg-[#1b4332] px-1.5 py-0.5 font-['Geist_Mono'] text-[10px] text-white">{{activeFilterCount}}</span>
+                    {{/if}}
+                </button>
+
+                <!-- Selectores desktop inline -->
+                <div id="ingredient-advanced-filters" class="hidden w-full flex-col gap-2 pt-2 lg:flex lg:w-auto lg:flex-row lg:items-center lg:pt-0">
+                    {{#each searchFilters}}
+                    <select
+                        id="{{this.id}}"
+                        name="{{this.name}}"
+                        aria-label="{{this.label}}"
+                        class="h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 outline-none transition-colors focus:border-[#1b4332]"
+                    >
+                        <option value="">{{this.label}}</option>
+                        {{#each this.options}}
+                        <option value="{{this.value}}" {{#if this.selected}}selected{{/if}}>{{this.text}}</option>
+                        {{/each}}
+                    </select>
+                    {{/each}}
+                </div>
+
+                <!-- Conmutador de vista Grilla / Tabla -->
+                <div class="inline-flex h-9 shrink-0 items-center rounded-xl border border-slate-200 bg-slate-100/80 p-0.5" role="group" aria-label="Modo de visualización">
+                    <button
+                        id="view-grid"
+                        type="button"
+                        title="Vista en cuadrícula"
+                        aria-label="Vista en cuadrícula"
+                        class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-[#1b4332] text-white transition-colors"
+                    >
+                        <i data-lucide="layout-grid" class="h-3.5 w-3.5"></i>
+                    </button>
+                    <button
+                        id="view-table"
+                        type="button"
+                        title="Vista en tabla"
+                        aria-label="Vista en tabla"
+                        class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-600 hover:text-slate-900 transition-colors"
+                    >
+                        <i data-lucide="table-2" class="h-3.5 w-3.5"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Píldoras rápidas + Contador compacto -->
+            <div class="flex items-center justify-between gap-2 border-t border-slate-100 pt-1.5">
+                <div class="flex items-center gap-1 overflow-x-auto no-scrollbar py-0.5">
+                    <button
+                        type="button"
+                        data-ingredient-type-pill=""
+                        class="shrink-0 rounded-lg px-2.5 py-1 text-[11px] font-bold transition-colors {{#unless query.tipo}}bg-[#1b4332] text-white{{else}}bg-slate-100 text-slate-600 hover:bg-slate-200{{/unless}}"
+                    >
+                        Todos
+                    </button>
+                    {{#each quickTypes}}
+                    <button
+                        type="button"
+                        data-ingredient-type-pill="{{this.value}}"
+                        class="shrink-0 rounded-lg px-2.5 py-1 text-[11px] font-bold transition-colors {{#if this.selected}}bg-[#1b4332] text-white{{else}}bg-slate-100 text-slate-600 hover:bg-slate-200{{/if}}"
+                    >
+                        {{this.text}}
+                    </button>
+                    {{/each}}
+                </div>
+
+                <div class="flex shrink-0 items-center gap-2.5">
+                    <span id="ingredients-results-counter" class="font-['Geist_Mono'] text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                        <strong class="text-slate-900">{{totalCount}}</strong> resultado(s)
+                    </span>
+                    {{#if hasActiveFilters}}
+                    <a
+                        href="/private/ingredients"
+                        data-ingredients-clear
+                        class="inline-flex items-center gap-1 text-[11px] font-bold text-[#1b4332] hover:underline"
+                    >
+                        <i data-lucide="x" class="h-3 w-3"></i>
+                        <span>Limpiar</span>
+                    </a>
+                    {{/if}}
+                </div>
+            </div>
+        </form>
+    </section>
+
+    <!-- Región dinámica de resultados -->
+    <div id="ingredients-results-region" class="space-y-5">
+        {{> private/ingredients/grid}}
         {{> private/ingredients/table}}
 
-        {{!-- Grid View --}}
-        {{> private/ingredients/grid}}
-
+        {{#if totalCount}}
+        <nav aria-label="Paginación de ingredientes activos" class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200/90 bg-white px-5 py-3.5 shadow-xs">
+            <p class="font-['Geist_Mono'] text-xs text-slate-500">
+                Mostrando <strong class="text-slate-900">{{pagination.startItem}}–{{pagination.endItem}}</strong> de <strong class="text-slate-900">{{totalCount}}</strong> moléculas · Página {{currentPage}} de {{totalPages}}
+            </p>
+            <div class="flex items-center gap-2">
+                {{#if pagination.hasPrev}}
+                <a
+                    href="/private/ingredients?page={{pagination.prevPage}}&search={{query.search}}&tipo={{query.tipo}}&toxicidad={{query.toxicidad}}&status={{query.status}}"
+                    data-ingredients-page="{{pagination.prevPage}}"
+                    class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors"
+                >
+                    <i data-lucide="chevron-left" class="h-3.5 w-3.5"></i>
+                    <span>Anterior</span>
+                </a>
+                {{/if}}
+                {{#if pagination.hasNext}}
+                <a
+                    href="/private/ingredients?page={{pagination.nextPage}}&search={{query.search}}&tipo={{query.tipo}}&toxicidad={{query.toxicidad}}&status={{query.status}}"
+                    data-ingredients-page="{{pagination.nextPage}}"
+                    class="inline-flex items-center gap-1.5 rounded-xl bg-[#1b4332] px-3.5 py-1.5 text-xs font-bold text-white hover:bg-[#143325] transition-colors"
+                >
+                    <span>Siguiente</span>
+                    <i data-lucide="chevron-right" class="h-3.5 w-3.5"></i>
+                </a>
+                {{/if}}
+            </div>
+        </nav>
+        {{/if}}
     </div>
-</main>
+</div>
 
-{{!-- Modal: Añadir / Editar Ingrediente Activo --}}
 {{> private/ingredients/form-modal}}
 
 <script type="module" src="/js/private/ingredients.js"></script>

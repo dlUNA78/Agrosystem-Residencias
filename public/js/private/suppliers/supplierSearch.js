@@ -15,7 +15,7 @@ export const initializeSupplierSearch = () => {
     });
 
     const cards = document.querySelectorAll(
-      '#suppliers-grid-view > div:not(#btn-add-supplier-card)',
+      '#suppliers-grid-view > article, #suppliers-grid-view > div:not(#btn-add-supplier-card)',
     );
     cards.forEach((card) => {
       const text = card.textContent.toLowerCase();

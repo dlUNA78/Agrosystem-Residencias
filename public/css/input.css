@@ -45,6 +45,11 @@
 }
 
 @layer components {
+  [role='dialog'],
+  [aria-modal='true'] {
+    overscroll-behavior: contain;
+  }
+
   .product-image-gallery {
     max-height: 18rem;
     overflow-y: auto;

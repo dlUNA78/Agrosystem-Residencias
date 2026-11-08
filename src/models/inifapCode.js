@@ -1,4 +1,5 @@
 // src/models/InifapCode.js
+import crypto from 'node:crypto';
 import { Model } from 'sequelize';
 
 export default (sequelize, DataTypes) => {
@@ -7,10 +8,11 @@ export default (sequelize, DataTypes) => {
 
     /**
      * Verifica si el código está disponible para ser canjeado.
-     * Comprueba que no esté marcado como usado y que no haya expirado.
+     * Comprueba que no esté marcado como usado, no haya sido revocado y no haya expirado.
      */
     isAvailable() {
       if (this.is_used) return false;
+      if (this.revoked_at) return false;
       if (this.expires_at && new Date() > this.expires_at) return false;
       return true;
     }
@@ -32,12 +34,22 @@ export default (sequelize, DataTypes) => {
 
     /**
      * Busca un código disponible (no usado y no expirado).
+     * Soporta búsqueda por hash SHA-256 (seguro) o código en texto claro (retrocompatibilidad).
      * Devuelve null si no existe o no está disponible.
-     * @param {string} code
+     * @param {string} rawCode
      * @returns {Promise<InifapCode|null>}
      */
-    static async findAvailable(code) {
-      const record = await InifapCode.findOne({ where: { code } });
+    static async findAvailable(rawCode) {
+      if (!rawCode || typeof rawCode !== 'string') return null;
+      const clean = rawCode.trim().toUpperCase();
+      const hash = crypto.createHash('sha256').update(clean).digest('hex');
+      const { Op } = sequelize.Sequelize;
+
+      const record = await InifapCode.findOne({
+        where: {
+          [Op.or]: [{ code_hash: hash }, { code: clean }],
+        },
+      });
       if (!record || !record.isAvailable()) return null;
       return record;
     }
@@ -46,14 +58,25 @@ export default (sequelize, DataTypes) => {
   InifapCode.init(
     {
       // El código alfanumérico que se entrega al empleado INIFAP
-      // Ej: "INIFAP-A3K9-7ZP2"
+      // En nuevas creaciones contiene la versión enmascarada para evitar almacenar texto plano
       code: {
         type: DataTypes.STRING,
         allowNull: false,
-        unique: true,
         validate: {
           notEmpty: { msg: 'El código no puede estar vacío.' },
         },
+      },
+
+      // Hash SHA-256 criptográfico para búsquedas seguras sin exponer el secreto
+      code_hash: {
+        type: DataTypes.STRING(64),
+        allowNull: true,
+      },
+
+      // Versión enmascarada para renderizado visual en tablas (ej. "AGS-9F2K-********-W2R9")
+      code_masked: {
+        type: DataTypes.STRING(60),
+        allowNull: true,
       },
 
       // true = ya fue canjeado (quemado), false = disponible
@@ -87,6 +110,24 @@ export default (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: true,
       },
+
+      // Sub-rol opcional preasignado al canjear
+      rbac_role_id: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
+
+      // Admin que generó el código
+      created_by_user_id: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
+
+      // Fecha de revocación manual
+      revoked_at: {
+        type: DataTypes.DATE,
+        allowNull: true,
+      },
     },
     {
       sequelize,
@@ -100,6 +141,16 @@ export default (sequelize, DataTypes) => {
     InifapCode.belongsTo(models.User, {
       foreignKey: 'used_by_user_id',
       as: 'usedBy',
+    });
+    // Un código pertenece al usuario administrador que lo generó
+    InifapCode.belongsTo(models.User, {
+      foreignKey: 'created_by_user_id',
+      as: 'createdBy',
+    });
+    // Un código puede tener un sub-rol asociado
+    InifapCode.belongsTo(models.RbacRole, {
+      foreignKey: 'rbac_role_id',
+      as: 'targetRole',
     });
   };
 

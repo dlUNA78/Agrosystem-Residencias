@@ -1,126 +1,871 @@
-<div class="space-y-6 font-manrope">
-    <!-- Encabezado de Página -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
-        <div>
-            <div class="flex items-center gap-2 text-xs font-semibold text-zinc-400 mb-1">
-                <a href="{{#if isPrivatePath}}/dashboard{{else}}/{{/if}}" class="hover:text-primary transition-colors">Inicio</a>
-                <span>/</span>
-                <span class="text-zinc-600 dark:text-zinc-300">Mi Perfil</span>
-            </div>
-            <h1 class="text-2xl font-extrabold text-zinc-900 dark:text-white tracking-tight">Perfil de Usuario</h1>
-            <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Gestiona tu información personal y preferencias de cuenta en Agrosystem.</p>
+<div class="mx-auto max-w-6xl space-y-6 px-4 py-6 sm:px-6 font-['Geist'] text-slate-900">
+  <!-- Encabezado Principal y Migas de Pan -->
+  <header class="flex flex-col gap-3 rounded-2xl border border-slate-200/90 bg-white p-5 shadow-2xs sm:flex-row sm:items-center sm:justify-between">
+    <div>
+      <nav aria-label="Ruta de navegación" class="mb-1.5 flex items-center gap-1.5 text-[11px] font-medium text-slate-500">
+        <a href="{{#if isPrivatePath}}/dashboard{{else}}/{{/if}}" class="transition-colors hover:text-[#1b4332]">Inicio</a>
+        <span aria-hidden="true">/</span>
+        <span class="font-semibold text-slate-800">Mi Perfil</span>
+      </nav>
+      <div class="flex flex-wrap items-center gap-2.5">
+        <h1 class="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
+          Perfil de Usuario
+        </h1>
+        <span class="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider text-[#1b4332]">
+          Credencial Institucional
+        </span>
+      </div>
+      <p class="mt-1 text-xs text-slate-500">
+        Gestiona tu identidad, credenciales de acceso, sesiones activas y adscripción operativa en Agrosystem INIFAP.
+      </p>
+    </div>
+  </header>
+
+  <!-- Notificaciones de Estado y Errores -->
+  {{#if success}}
+  <div role="status" class="flex items-center gap-2.5 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs font-semibold text-emerald-800">
+    <svg class="h-4 w-4 shrink-0 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+    <span>
+      {{#if (eq success 'perfil_actualizado')}}¡Perfil actualizado correctamente!{{/if}}
+      {{#if (eq success 'avatar_actualizado')}}¡Foto de perfil actualizada exitosamente!{{/if}}
+      {{#if (eq success 'avatar_eliminado')}}Foto de perfil eliminada correctamente.{{/if}}
+      {{#if (eq success 'password_actualizado')}}¡Contraseña actualizada con éxito!{{/if}}
+      {{#if (eq success 'sesiones_cerradas')}}Se han cerrado exitosamente todas las demás sesiones activas.{{/if}}
+      {{#if (eq success 'codigo_canjeado')}}¡Código institucional canjeado exitosamente! Tu rol ha sido actualizado.{{/if}}
+      {{#unless (eq success 'perfil_actualizado')}}
+        {{#unless (eq success 'avatar_actualizado')}}
+          {{#unless (eq success 'avatar_eliminado')}}
+            {{#unless (eq success 'password_actualizado')}}
+              {{#unless (eq success 'sesiones_cerradas')}}
+                {{#unless (eq success 'codigo_canjeado')}}
+                  {{success}}
+                {{/unless}}
+              {{/unless}}
+            {{/unless}}
+          {{/unless}}
+        {{/unless}}
+      {{/unless}}
+    </span>
+  </div>
+  {{/if}}
+
+  {{#if error}}
+  <div role="alert" class="flex items-center gap-2.5 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-xs font-semibold text-rose-800">
+    <svg class="h-4 w-4 shrink-0 text-rose-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+      <circle cx="12" cy="12" r="10" />
+      <line x1="12" y1="8" x2="12" y2="12" />
+      <line x1="12" y1="16" x2="12.01" y2="16" />
+    </svg>
+    <span>
+      {{#if (eq error 'campos_requeridos')}}Por favor completa los campos obligatorios marcados con asterisco (*).{{/if}}
+      {{#if (eq error 'actualizacion_fallida')}}Ocurrió un error al procesar tu solicitud. Por favor intenta de nuevo.{{/if}}
+      {{#if (eq error 'passwords_do_not_match')}}Las nuevas contraseñas no coinciden. Por favor verifícalas.{{/if}}
+      {{#if (eq error 'password_too_short')}}La nueva contraseña debe tener al menos 8 caracteres.{{/if}}
+      {{#if (eq error 'current_password_incorrect')}}La contraseña actual ingresada es incorrecta.{{/if}}
+      {{#if (eq error 'google_user_no_password')}}Tu cuenta utiliza acceso federado con Google y no tiene contraseña local configurada.{{/if}}
+      {{#if (eq error 'sin_archivo_avatar')}}Por favor selecciona un archivo de imagen válido para tu foto de perfil.{{/if}}
+      {{#if (eq error 'avatar_invalido')}}El archivo seleccionado no es válido o supera el límite de 5 MB. Solo se permiten JPG, PNG o WEBP.{{/if}}
+      {{#unless (eq error 'campos_requeridos')}}
+        {{#unless (eq error 'actualizacion_fallida')}}
+          {{#unless (eq error 'passwords_do_not_match')}}
+            {{#unless (eq error 'password_too_short')}}
+              {{#unless (eq error 'current_password_incorrect')}}
+                {{#unless (eq error 'google_user_no_password')}}
+                  {{#unless (eq error 'sin_archivo_avatar')}}
+                    {{#unless (eq error 'avatar_invalido')}}
+                      {{error}}
+                    {{/unless}}
+                  {{/unless}}
+                {{/unless}}
+              {{/unless}}
+            {{/unless}}
+          {{/unless}}
+        {{/unless}}
+      {{/unless}}
+    </span>
+  </div>
+  {{/if}}
+
+  <!-- Cuadrícula Principal del Perfil -->
+  <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+    <!-- Columna Izquierda: Tarjeta de Credencial y Foto de Perfil -->
+    <aside class="flex flex-col items-center rounded-2xl border border-slate-200/90 bg-white p-6 text-center shadow-2xs h-fit">
+      <!-- Contenedor de Avatar con Botón de Carga -->
+      <div class="relative mb-4 group">
+        <div class="relative h-28 w-28 overflow-hidden rounded-2xl ring-4 ring-emerald-900/10 shadow-sm bg-slate-100 flex items-center justify-center">
+          <img
+            id="avatar-preview-img"
+            src="{{#if user.photo_url}}{{user.photo_url}}{{/if}}"
+            alt="{{user.full_name}}"
+            class="h-full w-full object-cover {{#unless user.photo_url}}hidden{{/unless}}"
+          />
+          <div
+            id="avatar-fallback-box"
+            class="flex h-full w-full items-center justify-center bg-[#1b4332] font-['Geist_Mono'] text-4xl font-bold text-white {{#if user.photo_url}}hidden{{/if}}"
+          >
+            {{userInitial user}}
+          </div>
         </div>
-    </div>
 
-    <!-- Mensajes de Notificación -->
-    {{#if success}}
-    <div class="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-sm font-bold flex items-center gap-3">
-        <span class="material-symbols-outlined text-emerald-600">check_circle</span>
-        <span>{{#if (eq success 'perfil_actualizado')}}¡Perfil actualizado correctamente!{{else}}{{success}}{{/if}}</span>
-    </div>
-    {{/if}}
+        <!-- Botón para elegir archivo de avatar -->
+        <button
+          type="button"
+          id="btn-choose-avatar"
+          aria-label="Cambiar foto de perfil"
+          title="Cambiar foto de perfil"
+          class="absolute -bottom-2 -right-2 flex h-9 w-9 items-center justify-center rounded-xl border border-white bg-[#1b4332] text-white shadow-md transition-all hover:bg-[#143326] active:scale-95 cursor-pointer"
+        >
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+            <circle cx="12" cy="13" r="4" />
+          </svg>
+        </button>
+      </div>
 
-    {{#if error}}
-    <div class="p-4 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-300 text-sm font-bold flex items-center gap-3">
-        <span class="material-symbols-outlined text-red-600">error</span>
-        <span>{{#if (eq error 'campos_requeridos')}}Por favor completa los campos obligatorios.{{else}}{{error}}{{/if}}</span>
-    </div>
-    {{/if}}
+      <!-- Formulario Oculto de Carga de Avatar -->
+      <form
+        id="avatar-upload-form"
+        action="{{#if isPrivatePath}}/private/profile/avatar{{else}}/profile/avatar{{/if}}"
+        method="POST"
+        enctype="multipart/form-data"
+        class="w-full"
+      >
+        <input
+          type="file"
+          id="avatar-file-input"
+          name="avatar"
+          accept=".jpg,.jpeg,.png,.webp"
+          class="hidden"
+        />
 
-    <!-- Grid Principal de Perfil -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Columna Izquierda: Tarjeta Resumen -->
-        <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6 flex flex-col items-center text-center shadow-sm">
-            <div class="relative mb-4">
-                {{#if user.photo_url}}
-                <img src="{{user.photo_url}}" alt="{{user.full_name}}" class="w-24 h-24 rounded-full object-cover ring-4 ring-primary/20 shadow-md">
-                {{else}}
-                <div class="w-24 h-24 rounded-full bg-[#43655c] text-white flex items-center justify-center text-3xl font-extrabold shadow-md">
-                    {{userInitial user}}
-                </div>
-                {{/if}}
-            </div>
+        <div id="avatar-actions-bar" class="mb-4 hidden rounded-xl border border-emerald-200 bg-emerald-50/80 p-2.5 text-center">
+          <p class="mb-2 text-[11px] font-medium text-emerald-900">Nueva imagen seleccionada</p>
+          <div class="flex items-center justify-center gap-2">
+            <button
+              type="submit"
+              class="inline-flex items-center gap-1.5 rounded-lg bg-[#1b4332] px-3 py-1.5 text-[11px] font-semibold text-white shadow-xs hover:bg-[#143326] cursor-pointer"
+            >
+              <svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              <span>Subir</span>
+            </button>
+            <button
+              type="button"
+              id="btn-cancel-avatar"
+              class="inline-flex items-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-medium text-slate-700 hover:bg-slate-50 cursor-pointer"
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </form>
 
-            <h2 class="text-lg font-bold text-zinc-900 dark:text-white">{{user.full_name}}</h2>
-            <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 mb-3">{{user.email}}</p>
+      {{#if user.photo_url}}
+      <!-- Formulario para eliminar avatar actual -->
+      <form
+        action="{{#if isPrivatePath}}/private/profile/avatar{{else}}/profile/avatar{{/if}}"
+        method="POST"
+        class="mb-3"
+      >
+        <input type="hidden" name="remove_avatar" value="true" />
+        <button
+          type="submit"
+          class="inline-flex items-center gap-1 text-[11px] font-medium text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
+          title="Eliminar foto actual y usar iniciales"
+        >
+          <svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="3 6 5 6 21 6" />
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+          </svg>
+          <span>Quitar foto actual</span>
+        </button>
+      </form>
+      {{/if}}
 
-            <div class="flex items-center gap-2 mb-6">
-                <!-- Badges de Rol y Estatus -->
-                <span class="px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider
-                    {{#if (eq user.role 'admin')}}bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800{{/if}}
-                    {{#if (eq user.role 'inifap')}}bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800{{/if}}
-                    {{#if (eq user.role 'agricultor')}}bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800{{/if}}">
-                    {{user.role}}
-                </span>
+      <!-- Nombre y Correo -->
+      <h2 class="text-base font-bold text-slate-900">{{user.full_name}}</h2>
+      <p class="mt-0.5 text-xs text-slate-500 font-['Geist_Mono']">{{user.email}}</p>
 
-                <span class="px-3 py-1 rounded-full text-xs font-bold capitalize
-                    {{#if (eq user.status 'activo')}}bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300{{/if}}
-                    {{#if (eq user.status 'suspendido')}}bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300{{/if}}
-                    {{#if (eq user.status 'pendiente')}}bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300{{/if}}">
-                    {{#if user.status}}{{user.status}}{{else}}activo{{/if}}
-                </span>
-            </div>
+      <!-- Insignias de Rol y Estatus -->
+      <div class="mt-3.5 flex flex-wrap items-center justify-center gap-2">
+        <span class="rounded-md border px-2.5 py-0.5 font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider
+          {{#if (eq user.role 'admin')}}border-purple-200 bg-purple-50 text-purple-700{{/if}}
+          {{#if (eq user.role 'inifap')}}border-emerald-200 bg-emerald-50 text-[#1b4332]{{/if}}
+          {{#if (eq user.role 'agricultor')}}border-sky-200 bg-sky-50 text-sky-700{{/if}}">
+          {{user.role}}
+        </span>
 
-            <div class="w-full border-t border-zinc-100 dark:border-zinc-800 pt-4 space-y-3 text-left">
-                <div class="flex items-center justify-between text-xs">
-                    <span class="text-zinc-500 font-medium">Puesto / Cargo:</span>
-                    <span class="font-bold text-zinc-800 dark:text-zinc-200">{{#if user.job_title}}{{user.job_title}}{{else}}Sin especificar{{/if}}</span>
-                </div>
-                <div class="flex items-center justify-between text-xs">
-                    <span class="text-zinc-500 font-medium">Teléfono:</span>
-                    <span class="font-bold text-zinc-800 dark:text-zinc-200">{{#if user.phone}}{{user.phone}}{{else}}No registrado{{/if}}</span>
-                </div>
-            </div>
+        {{#if userRoleSummary.subRole}}
+        <span class="rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 font-['Geist_Mono'] text-[10px] font-semibold text-amber-800">
+          {{userRoleSummary.subRole.name}}
+        </span>
+        {{/if}}
+
+        <span class="rounded-full border px-2.5 py-0.5 text-[10px] font-semibold capitalize
+          {{#if (eq user.status 'activo')}}border-emerald-200 bg-emerald-50 text-emerald-700{{/if}}
+          {{#if (eq user.status 'suspendido')}}border-rose-200 bg-rose-50 text-rose-700{{/if}}
+          {{#if (eq user.status 'pendiente')}}border-amber-200 bg-amber-50 text-amber-700{{/if}}">
+          {{#if user.status}}{{user.status}}{{else}}activo{{/if}}
+        </span>
+      </div>
+
+      <!-- Ficha de Datos Institucionales -->
+      <dl class="mt-6 w-full space-y-2.5 border-t border-slate-100 pt-4 text-left text-xs">
+        <div class="flex items-center justify-between gap-2">
+          <dt class="text-slate-500">Matrícula / Código</dt>
+          <dd class="font-['Geist_Mono'] font-bold text-slate-800">{{#if user.code_masked}}{{user.code_masked}}{{else if user.code}}{{user.code}}{{else}}No asignada{{/if}}</dd>
+        </div>
+        <div class="flex items-center justify-between gap-2">
+          <dt class="text-slate-500">Puesto / Cargo</dt>
+          <dd class="truncate font-semibold text-slate-800">{{#if user.job_title}}{{user.job_title}}{{else}}Sin especificar{{/if}}</dd>
+        </div>
+        <div class="flex items-center justify-between gap-2">
+          <dt class="text-slate-500">Turno Operativo</dt>
+          <dd class="font-semibold text-slate-800 capitalize">{{#if user.shift}}{{user.shift}}{{else}}No asignado{{/if}}</dd>
+        </div>
+        <div class="flex items-center justify-between gap-2">
+          <dt class="text-slate-500">Teléfono</dt>
+          <dd class="font-['Geist_Mono'] font-semibold text-slate-800">{{#if user.phone}}{{user.phone}}{{else}}No registrado{{/if}}</dd>
+        </div>
+        <div class="flex items-center justify-between gap-2">
+          <dt class="text-slate-500">Miembro desde</dt>
+          <dd class="font-['Geist_Mono'] text-slate-600">{{formatDate user.createdAt}}</dd>
+        </div>
+      </dl>
+    </aside>
+
+    <!-- Columna Derecha: Pestañas de Gestión -->
+    <div class="space-y-6 lg:col-span-2">
+      <!-- Barra de Navegación de Pestañas -->
+      <nav role="tablist" aria-label="Secciones del perfil" class="flex items-center gap-1.5 overflow-x-auto rounded-2xl border border-slate-200/90 bg-white p-1.5 shadow-2xs">
+        <button
+          type="button"
+          role="tab"
+          id="tab-btn-info"
+          data-profile-tab="info"
+          aria-selected="true"
+          class="flex items-center gap-2 rounded-xl border border-[#1b4332] bg-emerald-50/60 px-4 py-2.5 text-xs font-bold text-[#1b4332] transition-colors cursor-pointer"
+        >
+          <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+          </svg>
+          <span>Datos Personales</span>
+        </button>
+
+        <button
+          type="button"
+          role="tab"
+          id="tab-btn-security"
+          data-profile-tab="security"
+          aria-selected="false"
+          class="flex items-center gap-2 rounded-xl border border-transparent px-4 py-2.5 text-xs font-semibold text-slate-500 transition-colors hover:text-slate-800 cursor-pointer"
+        >
+          <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+          </svg>
+          <span>Seguridad y Sesiones</span>
+          <span class="rounded-full bg-slate-100 px-1.5 py-0.2 text-[10px] font-['Geist_Mono'] font-bold text-slate-600">
+            {{sessionCount}}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          role="tab"
+          id="tab-btn-context"
+          data-profile-tab="context"
+          aria-selected="false"
+          class="flex items-center gap-2 rounded-xl border border-transparent px-4 py-2.5 text-xs font-semibold text-slate-500 transition-colors hover:text-slate-800 cursor-pointer"
+        >
+          <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <polygon points="12 2 2 7 12 12 22 7 12 2" />
+            <polyline points="2 17 12 22 22 17" />
+            <polyline points="2 12 12 17 22 12" />
+          </svg>
+          <span>
+            {{#if (eq user.role 'agricultor')}}Mis Predios y Ascenso{{/if}}
+            {{#if (eq user.role 'inifap')}}Permisos y Actividad{{/if}}
+            {{#if (eq user.role 'admin')}}Gobernanza RBAC{{/if}}
+          </span>
+        </button>
+      </nav>
+
+      <!-- Panel 1: Datos Personales -->
+      <section
+        id="panel-info"
+        data-profile-panel="info"
+        role="tabpanel"
+        aria-labelledby="tab-btn-info"
+        class="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-2xs space-y-5"
+      >
+        <div class="flex items-center gap-2.5 border-b border-slate-100 pb-3.5">
+          <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-50 text-[#1b4332]">
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+            </svg>
+          </span>
+          <div>
+            <h3 class="text-sm font-bold text-slate-900">Editar Información Personal</h3>
+            <p class="text-[11px] text-slate-500">Actualiza tus datos de contacto y adscripción técnica.</p>
+          </div>
         </div>
 
-        <!-- Columna Derecha: Formulario de Actualización -->
-        <div class="lg:col-span-2 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm">
-            <h3 class="text-base font-extrabold text-zinc-900 dark:text-white mb-4 pb-3 border-b border-zinc-100 dark:border-zinc-800 flex items-center gap-2">
-                <span class="material-symbols-outlined text-primary">edit_square</span>
-                <span>Editar Información Personal</span>
-            </h3>
+        <form action="{{#if isPrivatePath}}/private/profile{{else}}/profile{{/if}}" method="POST" class="space-y-4">
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <label for="profile-full-name" class="mb-1 block font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider text-slate-600">
+                Nombre Completo *
+              </label>
+              <input
+                id="profile-full-name"
+                type="text"
+                name="full_name"
+                value="{{user.full_name}}"
+                required
+                class="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 py-2.5 text-xs font-medium text-slate-900 transition-colors focus:border-[#1b4332] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1b4332]/15"
+              />
+            </div>
 
-            <form action="{{#if isPrivatePath}}/private/profile{{else}}/profile{{/if}}" method="POST" class="space-y-4">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-1">Nombre Completo *</label>
-                        <input type="text" name="full_name" value="{{user.full_name}}" required
-                            class="w-full px-3.5 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-900 dark:text-white text-xs font-medium focus:ring-2 focus:ring-primary focus:outline-none transition-all">
-                    </div>
+            <div>
+              <label for="profile-email" class="mb-1 block font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                Correo Institucional (No editable)
+              </label>
+              <input
+                id="profile-email"
+                type="email"
+                value="{{user.email}}"
+                disabled
+                class="w-full cursor-not-allowed rounded-xl border border-slate-200 bg-slate-100 px-3.5 py-2.5 text-xs font-medium text-slate-400 font-['Geist_Mono']"
+              />
+            </div>
 
-                    <div>
-                        <label class="block text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-1">Correo Electrónico (No editable)</label>
-                        <input type="email" value="{{user.email}}" disabled
-                            class="w-full px-3.5 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-800 text-zinc-400 text-xs font-medium cursor-not-allowed">
-                    </div>
+            <div>
+              <label for="profile-code" class="mb-1 block font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                Matrícula / Código Único (No editable)
+              </label>
+              <input
+                id="profile-code"
+                type="text"
+                value="{{#if user.code_masked}}{{user.code_masked}}{{else if user.code}}{{user.code}}{{else}}No asignada{{/if}}"
+                readonly
+                disabled
+                class="w-full cursor-not-allowed rounded-xl border border-slate-200 bg-slate-100 px-3.5 py-2.5 text-xs font-medium text-slate-500 font-['Geist_Mono']"
+              />
+            </div>
 
-                    <div>
-                        <label class="block text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-1">Teléfono de Contacto</label>
-                        <input type="text" name="phone" value="{{user.phone}}" placeholder="Ej. 5551234567"
-                            class="w-full px-3.5 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-900 dark:text-white text-xs font-medium focus:ring-2 focus:ring-primary focus:outline-none transition-all">
-                    </div>
+            <div>
+              <label for="profile-phone" class="mb-1 block font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider text-slate-600">
+                Teléfono de Contacto
+              </label>
+              <input
+                id="profile-phone"
+                type="text"
+                name="phone"
+                value="{{user.phone}}"
+                placeholder="Ej. 5551234567"
+                class="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 py-2.5 font-['Geist_Mono'] text-xs text-slate-900 transition-colors focus:border-[#1b4332] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1b4332]/15"
+              />
+            </div>
 
-                    <div>
-                        <label class="block text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-1">Puesto o Cargo</label>
-                        <input type="text" name="job_title" value="{{user.job_title}}" placeholder="Ej. Investigador, Productor"
-                            class="w-full px-3.5 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-900 dark:text-white text-xs font-medium focus:ring-2 focus:ring-primary focus:outline-none transition-all">
-                    </div>
-                </div>
+            <div>
+              <label for="profile-job-title" class="mb-1 block font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider text-slate-600">
+                Puesto o Cargo
+              </label>
+              <input
+                id="profile-job-title"
+                type="text"
+                name="job_title"
+                value="{{user.job_title}}"
+                placeholder="Ej. Investigador Fitosanitario, Productor"
+                class="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 py-2.5 text-xs font-medium text-slate-900 transition-colors focus:border-[#1b4332] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1b4332]/15"
+              />
+            </div>
 
+            <div>
+              <label for="profile-shift" class="mb-1 block font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider text-slate-600">
+                Turno Operativo
+              </label>
+              <select
+                id="profile-shift"
+                name="shift"
+                class="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 py-2.5 text-xs font-medium text-slate-900 transition-colors focus:border-[#1b4332] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1b4332]/15"
+              >
+                <option value="" {{#unless user.shift}}selected{{/unless}}>Sin especificar</option>
+                <option value="matutino" {{#if (eq user.shift 'matutino')}}selected{{/if}}>Matutino (07:00 - 15:00)</option>
+                <option value="vespertino" {{#if (eq user.shift 'vespertino')}}selected{{/if}}>Vespertino (14:00 - 22:00)</option>
+                <option value="mixto" {{#if (eq user.shift 'mixto')}}selected{{/if}}>Mixto / Rolado</option>
+                <option value="completo" {{#if (eq user.shift 'completo')}}selected{{/if}}>Tiempo Completo</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label for="profile-address" class="mb-1 block font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider text-slate-600">
+              Dirección / Campo Experimental / Adscripción
+            </label>
+            <textarea
+              id="profile-address"
+              name="address"
+              rows="3"
+              placeholder="Ingresa tu campo experimental, localidad o predio de adscripción..."
+              class="w-full resize-none rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 py-2.5 text-xs font-medium text-slate-900 transition-colors focus:border-[#1b4332] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1b4332]/15"
+            >{{user.address}}</textarea>
+          </div>
+
+          <div class="flex justify-end pt-2">
+            <button
+              type="submit"
+              class="inline-flex items-center gap-2 rounded-xl bg-[#1b4332] px-5 py-2.5 text-xs font-semibold text-white shadow-xs transition-all hover:bg-[#143326] active:scale-[0.99] cursor-pointer"
+            >
+              <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" />
+                <polyline stroke-linecap="round" stroke-linejoin="round" points="17 21 17 13 7 13 7 21" />
+                <polyline stroke-linecap="round" stroke-linejoin="round" points="7 3 7 8 15 8" />
+              </svg>
+              <span>Guardar Cambios</span>
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Panel 2: Seguridad y Sesiones -->
+      <section
+        id="panel-security"
+        data-profile-panel="security"
+        role="tabpanel"
+        aria-labelledby="tab-btn-security"
+        class="hidden space-y-6"
+      >
+        <!-- Tarjeta A: Cambio de Contraseña -->
+        <div class="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-2xs">
+          <div class="mb-4 flex items-center gap-2.5 border-b border-slate-100 pb-3.5">
+            <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-purple-50 text-purple-700">
+              <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
+            </span>
+            <div>
+              <h3 class="text-sm font-bold text-slate-900">Actualizar Contraseña de Acceso</h3>
+              <p class="text-[11px] text-slate-500">Se requiere ingresar tu contraseña actual para autenticar el cambio.</p>
+            </div>
+          </div>
+
+          <div id="password-client-error" class="hidden mb-4 rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-2.5 text-xs font-semibold text-rose-800"></div>
+
+          <form
+            id="profile-password-form"
+            action="{{#if isPrivatePath}}/private/profile/password{{else}}/profile/password{{/if}}"
+            method="POST"
+            class="space-y-4"
+          >
+            <div>
+              <label for="current_password" class="mb-1 block font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider text-slate-600">
+                Contraseña Actual *
+              </label>
+              <input
+                id="current_password"
+                type="password"
+                name="current_password"
+                required
+                autocomplete="current-password"
+                placeholder="Ingresa tu contraseña actual"
+                class="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 py-2.5 text-xs font-medium text-slate-900 transition-colors focus:border-[#1b4332] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1b4332]/15"
+              />
+            </div>
+
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <label for="new_password" class="mb-1 block font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider text-slate-600">
+                  Nueva Contraseña *
+                </label>
+                <input
+                  id="new_password"
+                  type="password"
+                  name="new_password"
+                  required
+                  minlength="8"
+                  autocomplete="new-password"
+                  placeholder="Mínimo 8 caracteres"
+                  class="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 py-2.5 text-xs font-medium text-slate-900 transition-colors focus:border-[#1b4332] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1b4332]/15"
+                />
+              </div>
+
+              <div>
+                <label for="confirm_password" class="mb-1 block font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider text-slate-600">
+                  Confirmar Nueva Contraseña *
+                </label>
+                <input
+                  id="confirm_password"
+                  type="password"
+                  name="confirm_password"
+                  required
+                  minlength="8"
+                  autocomplete="new-password"
+                  placeholder="Repite la nueva contraseña"
+                  class="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 py-2.5 text-xs font-medium text-slate-900 transition-colors focus:border-[#1b4332] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1b4332]/15"
+                />
+              </div>
+            </div>
+
+            <p class="text-[11px] text-slate-500">
+              Recomendación: Utiliza al menos 8 caracteres combinando letras, números y símbolos.
+            </p>
+
+            <div class="flex justify-end pt-1">
+              <button
+                type="submit"
+                class="inline-flex items-center gap-2 rounded-xl bg-purple-700 px-5 py-2.5 text-xs font-semibold text-white shadow-xs transition-all hover:bg-purple-800 active:scale-[0.99] cursor-pointer"
+              >
+                <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                </svg>
+                <span>Actualizar Contraseña</span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Tarjeta B: Sesiones Activas en PostgreSQL -->
+        <div class="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-2xs space-y-4">
+          <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 pb-3.5">
+            <div class="flex items-center gap-2.5">
+              <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-sky-50 text-sky-700">
+                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+                  <line x1="8" y1="21" x2="16" y2="21" />
+                  <line x1="12" y1="17" x2="12" y2="21" />
+                </svg>
+              </span>
+              <div>
+                <h3 class="text-sm font-bold text-slate-900">Dispositivos y Sesiones Activas</h3>
+                <p class="text-[11px] text-slate-500">Monitoreo de sesiones en PostgreSQL respaldadas por conectividad segura.</p>
+              </div>
+            </div>
+
+            <span class="inline-flex items-center rounded-full border border-sky-200 bg-sky-50 px-2.5 py-0.5 font-['Geist_Mono'] text-[10px] font-bold text-sky-700">
+              {{sessionCount}} sesión(es) activa(s)
+            </span>
+          </div>
+
+          <!-- Listado de Sesiones -->
+          <div class="space-y-3">
+            {{#each activeSessions}}
+            <div class="flex flex-col gap-2 rounded-xl border border-slate-200/80 bg-slate-50/50 p-3.5 sm:flex-row sm:items-center sm:justify-between">
+              <div class="flex items-start gap-3">
+                <span class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-600 shadow-2xs">
+                  <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+                    <line x1="8" y1="21" x2="16" y2="21" />
+                    <line x1="12" y1="17" x2="12" y2="21" />
+                  </svg>
+                </span>
                 <div>
-                    <label class="block text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-1">Dirección / Ubicación</label>
-                    <textarea name="address" rows="3" placeholder="Ingresa tu dirección o referencias de ubicación..."
-                        class="w-full px-3.5 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-900 dark:text-white text-xs font-medium focus:ring-2 focus:ring-primary focus:outline-none transition-all">{{user.address}}</textarea>
+                  <div class="flex items-center gap-2">
+                    <span class="text-xs font-bold text-slate-800">{{deviceSummary}}</span>
+                    {{#if isCurrent}}
+                    <span class="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.2 font-['Geist_Mono'] text-[9px] font-bold text-emerald-700">
+                      Este Dispositivo
+                    </span>
+                    {{else}}
+                    <span class="rounded-full border border-slate-200 bg-white px-2 py-0.2 font-['Geist_Mono'] text-[9px] font-medium text-slate-500">
+                      Sesión Remota
+                    </span>
+                    {{/if}}
+                  </div>
+                  <div class="mt-0.5 flex flex-wrap items-center gap-x-3 text-[11px] text-slate-500 font-['Geist_Mono']">
+                    <span>IP: {{clientIp}}</span>
+                    <span>•</span>
+                    <span>Expira: {{formatDate expire}}</span>
+                  </div>
                 </div>
+              </div>
+            </div>
+            {{/each}}
+          </div>
 
-                <div class="pt-3 flex justify-end">
-                    <button type="submit"
-                        class="px-5 py-2.5 rounded-xl bg-[#43655c] hover:bg-[#34514a] text-white font-bold text-xs shadow-md transition-all active:scale-95 flex items-center gap-2">
-                        <span class="material-symbols-outlined text-sm">save</span>
-                        <span>Guardar Cambios</span>
-                    </button>
-                </div>
+          {{#if (gt sessionCount 1)}}
+          <!-- Botón de Revocación Masiva de Otras Sesiones -->
+          <div class="pt-2 border-t border-slate-100 flex justify-end">
+            <form
+              id="revoke-sessions-form"
+              action="{{#if isPrivatePath}}/private/profile/sessions/revoke-others{{else}}/profile/sessions/revoke-others{{/if}}"
+              method="POST"
+            >
+              <button
+                type="submit"
+                class="inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-xs font-semibold text-rose-700 hover:bg-rose-100 transition-colors cursor-pointer"
+              >
+                <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M18.36 6.64a9 9 0 1 1-12.73 0" />
+                  <line x1="12" y1="2" x2="12" y2="12" />
+                </svg>
+                <span>Cerrar sesión en otros dispositivos</span>
+              </button>
             </form>
+          </div>
+          {{/if}}
         </div>
+      </section>
+
+      <!-- Panel 3: Contexto Operativo -->
+      <section
+        id="panel-context"
+        data-profile-panel="context"
+        role="tabpanel"
+        aria-labelledby="tab-btn-context"
+        class="hidden space-y-6"
+      >
+        {{#if (eq user.role 'agricultor')}}
+        <!-- VISTA DE AGRICULTOR: Predios y Canje de Código INIFAP -->
+        <div class="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-2xs space-y-5">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3.5">
+            <div class="flex items-center gap-2.5">
+              <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-sky-50 text-sky-700">
+                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                  <polyline points="9 22 9 12 15 12 15 22" />
+                </svg>
+              </span>
+              <div>
+                <h3 class="text-sm font-bold text-slate-900">Resumen Agronómico de Predios</h3>
+                <p class="text-[11px] text-slate-500">Tus parcelas y superficies registradas en la plataforma.</p>
+              </div>
+            </div>
+            <a
+              href="/lands"
+              class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-[11px] font-semibold text-slate-700 hover:bg-slate-100"
+            >
+              <span>Ver todos los predios</span>
+              <svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </a>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div class="rounded-xl border border-slate-100 bg-slate-50/60 p-4">
+              <p class="text-[11px] font-medium text-slate-500 uppercase tracking-wider font-['Geist_Mono']">Predios Registrados</p>
+              <p class="mt-1 text-2xl font-bold text-slate-900">{{farmerData.totalFarms}}</p>
+            </div>
+            <div class="rounded-xl border border-slate-100 bg-slate-50/60 p-4">
+              <p class="text-[11px] font-medium text-slate-500 uppercase tracking-wider font-['Geist_Mono']">Superficie Total</p>
+              <p class="mt-1 text-2xl font-bold text-[#1b4332] font-['Geist_Mono']">{{farmerData.totalHectares}} <span class="text-xs font-medium text-slate-500">Ha</span></p>
+            </div>
+          </div>
+
+          {{#if farmerData.farms.length}}
+          <div class="space-y-2">
+            <p class="text-xs font-bold text-slate-800">Predios recientes:</p>
+            <div class="divide-y divide-slate-100 rounded-xl border border-slate-100 overflow-hidden">
+              {{#each farmerData.farms}}
+              <div class="flex items-center justify-between p-3 bg-white hover:bg-slate-50/60 transition-colors">
+                <div>
+                  <p class="text-xs font-bold text-slate-800">{{name}}</p>
+                  <p class="text-[11px] text-slate-500 font-['Geist_Mono']">{{#if municipality}}{{municipality}}{{else}}Sin municipio{{/if}} • {{#if farming_type}}{{farming_type}}{{else}}General{{/if}}</p>
+                </div>
+                <span class="font-['Geist_Mono'] text-xs font-semibold text-slate-700">{{size_hectares}} Ha</span>
+              </div>
+              {{/each}}
+            </div>
+          </div>
+          {{/if}}
+        </div>
+
+        <!-- Tarjeta de Ascenso Institucional INIFAP para Agricultores -->
+        <div class="rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50/70 to-emerald-100/40 p-6 shadow-2xs space-y-4">
+          <div class="flex items-center gap-3">
+            <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-[#1b4332] text-white shadow-xs">
+              <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+              </svg>
+            </span>
+            <div>
+              <h3 class="text-sm font-bold text-[#1b4332]">Ascenso a Personal Técnico INIFAP</h3>
+              <p class="text-xs text-slate-600">Canjea tu código de verificación institucional para desbloquear el panel privado de investigación fitosanitaria.</p>
+            </div>
+          </div>
+
+          <form action="/auth/upgrade" method="POST" class="flex flex-col sm:flex-row gap-2.5 pt-1">
+            <input
+              type="text"
+              name="inifap_code"
+              required
+              placeholder="AGS-XXXX-XXXX-XXXX-XXXX"
+              class="flex-1 rounded-xl border border-emerald-300 bg-white px-3.5 py-2.5 font-['Geist_Mono'] text-xs font-bold uppercase tracking-wider text-slate-900 transition-colors focus:border-[#1b4332] focus:outline-none focus:ring-2 focus:ring-[#1b4332]/20"
+            />
+            <button
+              type="submit"
+              class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#1b4332] px-5 py-2.5 text-xs font-semibold text-white shadow-xs hover:bg-[#143326] active:scale-[0.99] cursor-pointer"
+            >
+              <span>Canjear Código</span>
+              <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </button>
+          </form>
+        </div>
+        {{/if}}
+
+        {{#if (eq user.role 'inifap')}}
+        <!-- VISTA DE PERSONAL INIFAP: Permisos y Auditoría -->
+        <div class="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-2xs space-y-5">
+          <div class="flex items-center gap-2.5 border-b border-slate-100 pb-3.5">
+            <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-50 text-[#1b4332]">
+              <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              </svg>
+            </span>
+            <div>
+              <h3 class="text-sm font-bold text-slate-900">Permisos Efectivos Delegados</h3>
+              <p class="text-[11px] text-slate-500">Capacidades operativas autorizadas por la gobernanza RBAC.</p>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap gap-2">
+            {{#each effectivePermissions}}
+            <span class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 font-['Geist_Mono'] text-[11px] font-medium text-slate-700">
+              <svg class="h-3 w-3 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              <span>{{this}}</span>
+            </span>
+            {{/each}}
+          </div>
+        </div>
+
+        <div class="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-2xs space-y-4">
+          <div class="flex items-center gap-2.5 border-b border-slate-100 pb-3.5">
+            <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-purple-50 text-purple-700">
+              <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+              </svg>
+            </span>
+            <div>
+              <h3 class="text-sm font-bold text-slate-900">Actividad Reciente en Expediente</h3>
+              <p class="text-[11px] text-slate-500">Últimas acciones registradas bajo tu firma digital.</p>
+            </div>
+          </div>
+
+          {{#if inifapData.recentLogs.length}}
+          <div class="divide-y divide-slate-100 rounded-xl border border-slate-100 overflow-hidden">
+            {{#each inifapData.recentLogs}}
+            <div class="flex items-center justify-between p-3 bg-white hover:bg-slate-50/60 transition-colors">
+              <div class="flex items-center gap-2.5">
+                <span class="font-['Geist_Mono'] text-[10px] font-bold uppercase rounded-md bg-slate-100 px-2 py-0.5 text-slate-700">
+                  {{action}}
+                </span>
+                <span class="text-xs text-slate-600 font-medium">{{table_name}} #{{record_id}}</span>
+              </div>
+              <span class="font-['Geist_Mono'] text-[11px] text-slate-400">{{formatDate createdAt}}</span>
+            </div>
+            {{/each}}
+          </div>
+          {{else}}
+          <p class="text-center py-6 text-xs text-slate-400">No hay registros de auditoría recientes.</p>
+          {{/if}}
+        </div>
+        {{/if}}
+
+        {{#if (eq user.role 'admin')}}
+        <!-- VISTA DE ADMINISTRADOR: Consola Rápida de Gobernanza RBAC -->
+        <div class="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-2xs space-y-5">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3.5">
+            <div class="flex items-center gap-2.5">
+              <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-purple-50 text-purple-700">
+                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+                </svg>
+              </span>
+              <div>
+                <h3 class="text-sm font-bold text-slate-900">Consola Rápida de Gobernanza RBAC</h3>
+                <p class="text-[11px] text-slate-500">Métricas globales y atajos directos al centro de control institucional.</p>
+              </div>
+            </div>
+            <a
+              href="/private/users"
+              class="inline-flex items-center gap-1.5 rounded-lg bg-[#1b4332] px-3 py-1.5 text-[11px] font-semibold text-white shadow-xs hover:bg-[#143326]"
+            >
+              <span>Abrir Hub de Usuarios</span>
+              <svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </a>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div class="rounded-xl border border-slate-100 bg-slate-50/60 p-3 text-center">
+              <p class="font-['Geist_Mono'] text-[10px] font-semibold uppercase text-slate-500">Total Usuarios</p>
+              <p class="mt-1 text-xl font-bold text-slate-900">{{adminData.quickStats.totalUsers}}</p>
+            </div>
+            <div class="rounded-xl border border-amber-100 bg-amber-50/50 p-3 text-center">
+              <p class="font-['Geist_Mono'] text-[10px] font-semibold uppercase text-amber-700">Pendientes</p>
+              <p class="mt-1 text-xl font-bold text-amber-800">{{adminData.quickStats.pendingUsers}}</p>
+            </div>
+            <div class="rounded-xl border border-emerald-100 bg-emerald-50/50 p-3 text-center">
+              <p class="font-['Geist_Mono'] text-[10px] font-semibold uppercase text-emerald-700">Códigos Activos</p>
+              <p class="mt-1 text-xl font-bold text-[#1b4332] font-['Geist_Mono']">{{adminData.quickStats.activeCodes}}</p>
+            </div>
+            <div class="rounded-xl border border-purple-100 bg-purple-50/50 p-3 text-center">
+              <p class="font-['Geist_Mono'] text-[10px] font-semibold uppercase text-purple-700">Sub-roles RBAC</p>
+              <p class="mt-1 text-xl font-bold text-purple-800 font-['Geist_Mono']">{{adminData.quickStats.totalRoles}}</p>
+            </div>
+          </div>
+
+          <!-- Atajos a las Pestañas del Hub de Usuarios -->
+          <div class="grid grid-cols-1 gap-3 sm:grid-cols-3 pt-2">
+            <a
+              href="/private/users#tab-users"
+              class="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white p-3 text-center transition-all hover:border-[#1b4332] hover:shadow-xs group"
+            >
+              <svg class="h-5 w-5 text-slate-600 group-hover:text-[#1b4332]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+              </svg>
+              <span class="text-xs font-bold text-slate-800 group-hover:text-[#1b4332]">Directorio Usuarios</span>
+              <span class="text-[10px] text-slate-400">Ver y editar credenciales</span>
+            </a>
+
+            <a
+              href="/private/users#tab-rbac"
+              class="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white p-3 text-center transition-all hover:border-purple-600 hover:shadow-xs group"
+            >
+              <svg class="h-5 w-5 text-slate-600 group-hover:text-purple-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
+              <span class="text-xs font-bold text-slate-800 group-hover:text-purple-600">Matriz de Sub-roles</span>
+              <span class="text-[10px] text-slate-400">Administrar catálogo RBAC</span>
+            </a>
+
+            <a
+              href="/private/users#tab-codes"
+              class="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white p-3 text-center transition-all hover:border-emerald-600 hover:shadow-xs group"
+            >
+              <svg class="h-5 w-5 text-slate-600 group-hover:text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
+              </svg>
+              <span class="text-xs font-bold text-slate-800 group-hover:text-emerald-600">Códigos INIFAP</span>
+              <span class="text-[10px] text-slate-400">Emisión individual y por lotes</span>
+            </a>
+          </div>
+        </div>
+        {{/if}}
+      </section>
     </div>
+  </div>
 </div>
+
+<script src="/js/shared/profile.js"></script>

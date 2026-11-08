@@ -15,6 +15,15 @@ const privateLayout = path.join(__dirname, '../../views/layouts/private');
 
 const { AuditLog, Farm, Region, User, sequelize } = db;
 
+const FARMING_TYPES = Object.freeze([
+  'Temporal',
+  'Riego',
+  'Mixto',
+  'Tecnificado',
+  'Orgánico',
+  'Hidroponía',
+]);
+
 const regionInclude = {
   model: Region,
   as: 'region',
@@ -30,7 +39,7 @@ const ownerInclude = {
 };
 
 const wantsJson = (req) =>
-  req.xhr || req.headers?.accept?.includes('application/json');
+  Boolean(req.xhr || req.headers?.accept?.includes('application/json'));
 
 const sendInputError = (req, res, fieldErrors) => {
   const errors = Object.values(fieldErrors).flat();
@@ -43,10 +52,38 @@ const sendInputError = (req, res, fieldErrors) => {
 const getRequestedListStatus = (value) =>
   value === 'archived' || value === 'all' ? value : 'active';
 
+const normalizeFilterQuery = (rawQuery = {}) => ({
+  status: getRequestedListStatus(rawQuery.status),
+  search: String(rawQuery.search || '')
+    .trim()
+    .slice(0, 100),
+  region: String(rawQuery.region || '').trim(),
+  farmingType: String(rawQuery.farmingType || '').trim(),
+});
+
+const hasFarmCoords = (farm) => {
+  const lat = Number(farm.location_lat);
+  const lng = Number(farm.location_lng);
+  return (
+    farm.location_lat !== null &&
+    farm.location_lat !== undefined &&
+    farm.location_lat !== '' &&
+    Number.isFinite(lat) &&
+    Number.isFinite(lng)
+  );
+};
+
 const serializeFarm = (farm, user) => {
   const value = farm.toJSON();
   return {
     ...value,
+    codeLabel: `#PRD-${String(value.id).padStart(4, '0')}`,
+    hasCoords: hasFarmCoords(value),
+    formattedHectares: value.size_hectares
+      ? Number(value.size_hectares).toLocaleString('es-MX', {
+          maximumFractionDigits: 2,
+        })
+      : null,
     permissions: getContextualLandPermissions({
       role: user.role,
       userId: user.id,
@@ -56,10 +93,57 @@ const serializeFarm = (farm, user) => {
   };
 };
 
+const matchesFarmSearch = (farm, normalizedSearch) => {
+  if (!normalizedSearch) return true;
+  const haystack = [
+    farm.name,
+    farm.municipality,
+    farm.farming_type,
+    farm.region?.name,
+    farm.user?.full_name,
+    farm.codeLabel,
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
+  return haystack.includes(normalizedSearch);
+};
+
+const filterFarmsInMemory = (farms, query) => {
+  const searchLower = query.search.toLowerCase();
+  return farms.filter((farm) => {
+    const byRegion =
+      !query.region ||
+      String(farm.region_id || farm.region?.id || '') === query.region;
+    const byType =
+      !query.farmingType ||
+      String(farm.farming_type || '') === query.farmingType;
+    return byRegion && byType && matchesFarmSearch(farm, searchLower);
+  });
+};
+
+const computeLandStats = (farms) => {
+  const totalHectaresRaw = farms.reduce(
+    (acc, farm) => acc + (Number(farm.size_hectares) || 0),
+    0,
+  );
+  const regionIds = new Set(
+    farms.map((f) => f.region_id || f.region?.id).filter(Boolean),
+  );
+  return {
+    total: farms.length,
+    totalHectares: totalHectaresRaw.toLocaleString('es-MX', {
+      maximumFractionDigits: 2,
+    }),
+    georeferenced: farms.filter((f) => f.hasCoords).length,
+    regionsCovered: regionIds.size,
+  };
+};
+
 export const renderLandsPrivate = async (req, res) => {
   try {
     const permissions = getLandPermissions(req.user.role);
-    const listStatus = getRequestedListStatus(req.query?.status);
+    const query = normalizeFilterQuery(req.query);
     const [regions, farms] = await Promise.all([
       Region.findAll({
         attributes: ['id', 'name'],
@@ -67,31 +151,52 @@ export const renderLandsPrivate = async (req, res) => {
         raw: true,
       }),
       Farm.findAll({
-        where: getLandListWhere(req.user, { status: listStatus }),
+        where: getLandListWhere(req.user, { status: query.status }),
         include: [regionInclude, ownerInclude],
         order: [['createdAt', 'DESC']],
       }),
     ]);
-    const farmsData = farms.map((farm) => serializeFarm(farm, req.user));
+
+    const allScopeFarms = farms.map((farm) => serializeFarm(farm, req.user));
+    const filteredFarms = filterFarmsInMemory(allScopeFarms, query);
+    const stats = computeLandStats(allScopeFarms);
+    const role = req.user?.role || '';
 
     return res.render('private/lands/list', {
       layout: privateLayout,
       pageTitle: permissions.canViewAll ? 'Terrenos' : 'Mis Terrenos',
       activePage: 'lands',
-      farms: farmsData,
-      regions,
-      farmsCount: farmsData.length,
+      isAdmin: role === 'admin',
+      isInifap: role === 'inifap',
+      farms: filteredFarms,
+      regions: regions.map((r) => ({
+        ...r,
+        selected: String(r.id) === query.region,
+      })),
+      farmingTypes: FARMING_TYPES.map((value) => ({
+        value,
+        selected: value === query.farmingType,
+      })),
+      farmsCount: filteredFarms.length,
+      totalScopeCount: allScopeFarms.length,
+      stats,
       permissions,
+      hasActiveFilters: Boolean(
+        query.search || query.region || query.farmingType,
+      ),
       filters: {
-        status: listStatus,
-        isActive: listStatus === 'active',
-        isArchived: listStatus === 'archived',
-        isAll: listStatus === 'all',
+        status: query.status,
+        search: query.search,
+        region: query.region,
+        farmingType: query.farmingType,
+        isActive: query.status === 'active',
+        isArchived: query.status === 'archived',
+        isAll: query.status === 'all',
       },
       extraHead: '<link rel="stylesheet" href="/vendor/leaflet/leaflet.css" />',
       extraScripts: `
         <script src="/vendor/leaflet/leaflet.js"></script>
-        <script src="/js/private/lands.js"></script>
+        <script type="module" src="/js/private/lands.js"></script>
       `,
     });
   } catch (error) {

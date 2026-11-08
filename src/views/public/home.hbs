@@ -319,19 +319,19 @@
           <span class="text-mono-label text-muted-foreground font-semibold">AVISOS VIGENTES</span>
           <div class="flex items-center gap-4 font-mono text-xs">
             <div class="flex items-center gap-1.5">
-              <span class="w-3.5 h-3.5 rounded-xs border border-border" style="background-color: var(--level-0)"></span>
+              <span class="w-3.5 h-3.5 rounded-xs border border-border bg-[var(--level-0)]"></span>
               <span class="text-muted-foreground">0</span>
             </div>
             <div class="flex items-center gap-1.5">
-              <span class="w-3.5 h-3.5 rounded-xs" style="background-color: var(--level-1)"></span>
+              <span class="w-3.5 h-3.5 rounded-xs bg-[var(--level-1)]"></span>
               <span class="text-muted-foreground">1-9</span>
             </div>
             <div class="flex items-center gap-1.5">
-              <span class="w-3.5 h-3.5 rounded-xs" style="background-color: var(--level-2)"></span>
+              <span class="w-3.5 h-3.5 rounded-xs bg-[var(--level-2)]"></span>
               <span class="text-muted-foreground">10-24</span>
             </div>
             <div class="flex items-center gap-1.5">
-              <span class="w-3.5 h-3.5 rounded-xs" style="background-color: var(--level-3)"></span>
+              <span class="w-3.5 h-3.5 rounded-xs bg-[var(--level-3)]"></span>
               <span class="text-muted-foreground">25+</span>
             </div>
           </div>
@@ -423,7 +423,15 @@
                   
                   <!-- Barra indicadora verde a la derecha antes del número -->
                   <div class="w-20 h-2 bg-secondary rounded-full overflow-hidden flex justify-end">
-                    <div class="h-full rounded-full transition-all duration-300" style="width: {{this.barWidth}}px; background-color: {{this.fillColor}};"></div>
+                    <svg
+                      width="{{this.barWidth}}"
+                      height="8"
+                      viewBox="0 0 {{this.barWidth}} 8"
+                      class="h-full shrink-0 rounded-full"
+                      aria-hidden="true"
+                    >
+                      <rect x="0" y="0" width="{{this.barWidth}}" height="8" rx="4" fill="{{this.fillColor}}" />
+                    </svg>
                   </div>
                   
                   <span class="font-mono text-xs font-bold text-foreground w-6 text-right">{{this.alertas}}</span>

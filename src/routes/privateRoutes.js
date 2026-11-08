@@ -8,7 +8,11 @@ import { dashboard } from '../controllers/private/dashboardController.js';
 import {
   renderProfile,
   updateProfile,
-} from '../controllers/private/usersController.js';
+  updateAvatar,
+  changePassword,
+  revokeOtherSessionsHandler,
+} from '../controllers/private/profileController.js';
+import { uploadAvatarImage } from '../middlewares/upload.js';
 
 import catalogRoutes from './private/catalogRoutes.js';
 import landRoutes from './private/landRoutes.js';
@@ -24,6 +28,12 @@ privateRouter.use(isAuthenticated);
 // ══════════════════════════════════════════════════════════════════════════════
 privateRouter.get('/profile', renderProfile);
 privateRouter.post('/profile', updateProfile);
+privateRouter.post('/profile/avatar', uploadAvatarImage, updateAvatar);
+privateRouter.post('/profile/password', changePassword);
+privateRouter.post(
+  '/profile/sessions/revoke-others',
+  revokeOtherSessionsHandler,
+);
 
 // Aplica el bloqueo del panel privado (Solo INIFAP y Admin a partir de este punto)
 privateRouter.use(requirePanelAccess);
@@ -31,6 +41,12 @@ privateRouter.use(requirePanelAccess);
 // Perfil dentro del Panel Privado (Solo INIFAP y Admin)
 privateRouter.get('/private/profile', renderProfile);
 privateRouter.post('/private/profile', updateProfile);
+privateRouter.post('/private/profile/avatar', uploadAvatarImage, updateAvatar);
+privateRouter.post('/private/profile/password', changePassword);
+privateRouter.post(
+  '/private/profile/sessions/revoke-others',
+  revokeOtherSessionsHandler,
+);
 
 // ══════════════════════════════════════════════════════════════════════════════
 // DASHBOARD

@@ -2,6 +2,10 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import db from '../../models/index.js';
 import {
+  buildOperationalReportPdfBuffer,
+  buildOperationalReportPdfFilename,
+} from '../../services/reportPdfService.js';
+import {
   getOperationalReportsData,
   generateOperationalReportCsv,
 } from '../../services/reportsService.js';
@@ -11,13 +15,12 @@ const { AuditLog } = db;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Ruta absoluta al layout privado
 const privateLayout = path.join(__dirname, '../../views/layouts/private');
 
 const buildCsvFilename = (reportType, period) =>
   `reporte-operativo-${reportType}-${period}.csv`;
 
-const logExportAudit = async (user, reportType, period) => {
+const logExportAudit = async (user, reportType, period, format = 'csv') => {
   if (!user?.id || !AuditLog?.create) return;
   try {
     await AuditLog.create({
@@ -25,7 +28,7 @@ const logExportAudit = async (user, reportType, period) => {
       action: 'export',
       table_name: 'Reports',
       record_id: 0,
-      new_values: { reportType, period },
+      new_values: { reportType, period, format },
     });
   } catch (_e) {
     // Falla de auditoría no interrumpe la descarga
@@ -52,6 +55,7 @@ const getFallbackReportsPayload = () => ({
   },
   topPlagues: [],
   activeFarms: [],
+  farmOptions: [],
   latestApplications: [],
   hasApplications: false,
   hasPlagues: false,
@@ -63,31 +67,54 @@ const getFallbackReportsPayload = () => ({
   },
 });
 
+const sendCsvExport = async (res, data, user) => {
+  const csv = await generateOperationalReportCsv({
+    reportType: data.query.reportType,
+    data,
+    user,
+  });
+
+  await logExportAudit(user, data.query.reportType, data.query.period, 'csv');
+
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader(
+    'Content-Disposition',
+    `attachment; filename="${buildCsvFilename(
+      data.query.reportType,
+      data.query.period,
+    )}"`,
+  );
+  return res.send(csv);
+};
+
+const sendPdfExport = async (req, res, data, user) => {
+  const pdfBuffer = await buildOperationalReportPdfBuffer(data, user);
+  await logExportAudit(user, data.query.reportType, data.query.period, 'pdf');
+
+  const disposition =
+    req.query?.disposition === 'inline' ? 'inline' : 'attachment';
+  const filename = buildOperationalReportPdfFilename(data.query.period);
+
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader(
+    'Content-Disposition',
+    `${disposition}; filename="${filename}"`,
+  );
+  return res.send(pdfBuffer);
+};
+
 export const reportsPrivate = async (req, res) => {
-  const user = req.session?.user;
+  const user = req.session?.user || req.user;
 
   try {
     const data = await getOperationalReportsData(user, req.query);
 
     if (data.query.format === 'csv') {
-      const csv = await generateOperationalReportCsv({
-        reportType: data.query.reportType,
-        data,
-        user,
-      });
+      return await sendCsvExport(res, data, user);
+    }
 
-      await logExportAudit(user, data.query.reportType, data.query.period);
-
-      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-      res.setHeader(
-        'Content-Disposition',
-        `attachment; filename="${buildCsvFilename(
-          data.query.reportType,
-          data.query.period,
-        )}"`,
-      );
-
-      return res.send(csv);
+    if (data.query.format === 'pdf') {
+      return await sendPdfExport(req, res, data, user);
     }
 
     return res.render('private/admin/reports', {

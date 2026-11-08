@@ -90,7 +90,7 @@ const buildPlagueCardHtml = (plague) => {
       <div class="h-1.5 w-full ${bar}"></div>
 
       <div class="relative aspect-4/3 overflow-hidden bg-muted">
-        <img class="size-full object-cover transition-transform duration-500 group-hover:scale-105" src="${safeImageUrl}" alt="${safeName}" onerror="this.onerror=null; this.src='/images/test/default.png';" loading="lazy" decoding="async" />
+        <img class="size-full object-cover transition-transform duration-500 group-hover:scale-105" src="${safeImageUrl}" alt="${safeName}" data-fallback-src="/images/test/default.png" loading="lazy" decoding="async" />
         <div aria-hidden="true" class="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-black/20 pointer-events-none"></div>
       
         <div class="absolute left-3 top-3 flex items-center gap-1.5 bg-card/90 px-2.5 py-1 backdrop-blur rounded-md border border-border shadow-2xs">
@@ -272,13 +272,31 @@ function initPlaguesCatalog() {
   let debounceTimeout;
   let activeAbortController = null;
 
+  const bindDynamicImageFallbacks = (container) => {
+    if (!container) return;
+    container.querySelectorAll('img[data-fallback-src]').forEach((img) => {
+      img.addEventListener(
+        'error',
+        () => {
+          const fallback = img.dataset.fallbackSrc;
+          if (fallback && !img.src.endsWith(fallback)) {
+            img.src = fallback;
+          }
+        },
+        { once: true },
+      );
+    });
+  };
+
   const updatePaginationUI = (totalPages) => {
     if (!els.paginationContainer) return;
     if (totalPages <= 1) {
-      els.paginationContainer.style.display = 'none';
+      els.paginationContainer.classList.add('hidden');
+      els.paginationContainer.classList.remove('flex');
       return;
     }
-    els.paginationContainer.style.display = 'flex';
+    els.paginationContainer.classList.remove('hidden');
+    els.paginationContainer.classList.add('flex');
     if (els.currentPageDisplay) {
       els.currentPageDisplay.textContent = `Página ${currentPage} de ${totalPages}`;
     }
@@ -301,6 +319,7 @@ function initPlaguesCatalog() {
     } else {
       els.plaguesGrid.innerHTML =
         plagues.map(buildPlagueCardHtml).join('') + getCtaCardHtml();
+      bindDynamicImageFallbacks(els.plaguesGrid);
     }
 
     updatePaginationUI(totalPages);

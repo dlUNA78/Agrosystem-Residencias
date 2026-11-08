@@ -1,5 +1,34 @@
+import { MAP_HEIGHT, MAP_WIDTH, getStatePaths } from './mexicoGeo.js';
+
 const PUBLIC_REGION_LIMIT = 12;
 const MAX_PUBLIC_REGION_PAGE = 100000;
+
+const REGION_TO_STATES = Object.freeze({
+  'el bajio': ['guanajuato', 'queretaro', 'aguascalientes', 'jalisco'],
+  bajio: ['guanajuato', 'queretaro', 'aguascalientes', 'jalisco'],
+  centro: [
+    'ciudad de mexico',
+    'distrito federal',
+    'mexico',
+    'morelos',
+    'hidalgo',
+    'tlaxcala',
+    'puebla',
+  ],
+  'estado de mexico': ['mexico', 'estado de mexico'],
+  noroeste: ['baja california', 'baja california sur', 'sonora', 'sinaloa'],
+  noreste: ['chihuahua', 'coahuila', 'nuevo leon', 'tamaulipas'],
+  occidente: ['jalisco', 'colima', 'michoacan', 'nayarit'],
+  sureste: ['tabasco', 'campeche', 'yucatan', 'quintana roo', 'chiapas'],
+  sur: ['guerrero', 'oaxaca', 'chiapas'],
+});
+
+const normalizeKey = (value) =>
+  String(value || '')
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
 
 const cleanSearch = (value) =>
   typeof value === 'string'
@@ -26,6 +55,9 @@ export const normalizePublicLandQuery = (query = {}) => ({
   limit: PUBLIC_REGION_LIMIT,
 });
 
+export const parsePublicCoverageFilter = (query = {}) =>
+  query?.coverage === 'active' ? 'active' : '';
+
 export const buildPublicRegionWhere = (Op, query) =>
   query.search
     ? {
@@ -48,5 +80,67 @@ export const buildPublicRegionCard = (region) => {
     name: value.name,
     plagueCount: plagues.length,
     featuredPlagues: plagues.slice(0, 3),
+  };
+};
+
+const indexStatesByRegionCards = (cards) => {
+  const stateMap = new Map();
+  cards.forEach((card) => {
+    const key = normalizeKey(card.name);
+    const mappedStates = REGION_TO_STATES[key] || [key];
+    mappedStates.forEach((stateKey) => {
+      const prev = stateMap.get(stateKey);
+      if (!prev || card.plagueCount > prev.plagueCount) {
+        stateMap.set(stateKey, {
+          regionName: card.name,
+          plagueCount: card.plagueCount,
+        });
+      }
+    });
+  });
+  return stateMap;
+};
+
+const resolveStateFillClass = (match) => {
+  if (!match) return 'fill-slate-200/80 stroke-white transition-colors';
+  if (match.plagueCount > 0) {
+    return 'fill-[#1b4332]/85 hover:fill-[#1b4332] stroke-white cursor-pointer transition-colors';
+  }
+  return 'fill-emerald-400/75 hover:fill-emerald-600 stroke-white cursor-pointer transition-colors';
+};
+
+export const buildNationalRegionCoverageMap = (regionCards = []) => {
+  const stateIndex = indexStatesByRegionCards(regionCards);
+  let coveredStatesCount = 0;
+
+  const states = getStatePaths().map((state) => {
+    const match = stateIndex.get(normalizeKey(state.estado)) || null;
+    if (match) coveredStatesCount += 1;
+
+    return {
+      id: state.id,
+      estado: state.estado,
+      d: state.d,
+      isCovered: Boolean(match),
+      regionName: match?.regionName || '',
+      plagueCount: match?.plagueCount || 0,
+      stateClass: resolveStateFillClass(match),
+    };
+  });
+
+  const activeRegionsCount = regionCards.filter(
+    (card) => card.plagueCount > 0,
+  ).length;
+  const totalPlagueRefs = regionCards.reduce(
+    (sum, card) => sum + card.plagueCount,
+    0,
+  );
+
+  return {
+    viewBox: `0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`,
+    states,
+    coveredStatesCount,
+    activeRegionsCount,
+    totalPlagueRefs,
   };
 };

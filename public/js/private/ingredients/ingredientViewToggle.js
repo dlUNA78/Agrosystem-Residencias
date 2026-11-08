@@ -1,35 +1,57 @@
-export const initializeIngredientViewToggle = () => {
+const VIEW_STORAGE_KEY = 'agrosystem:ingredients:view';
+
+const readSavedView = () => {
+  try {
+    return window.localStorage.getItem(VIEW_STORAGE_KEY) === 'table'
+      ? 'table'
+      : 'grid';
+  } catch {
+    return 'grid';
+  }
+};
+
+const writeSavedView = (mode) => {
+  try {
+    window.localStorage.setItem(VIEW_STORAGE_KEY, mode);
+  } catch {
+    // Ignorar si almacenamiento privado está restringido
+  }
+};
+
+const updateViewButtons = (btnGrid, btnTable, isTable) => {
+  if (!btnGrid || !btnTable) return;
+  btnGrid.classList.toggle('bg-[#1b4332]', !isTable);
+  btnGrid.classList.toggle('text-white', !isTable);
+  btnGrid.classList.toggle('text-slate-600', isTable);
+
+  btnTable.classList.toggle('bg-[#1b4332]', isTable);
+  btnTable.classList.toggle('text-white', isTable);
+  btnTable.classList.toggle('text-slate-600', !isTable);
+};
+
+export const applyStoredIngredientView = (explicitMode = null) => {
+  const mode = explicitMode || readSavedView();
+  const isTable = mode === 'table';
   const tableView = document.getElementById('ingredients-table-view');
   const gridView = document.getElementById('ingredients-grid-view');
   const btnTable = document.getElementById('view-table');
   const btnGrid = document.getElementById('view-grid');
 
-  if (!btnTable || !btnGrid || !tableView || !gridView) {
-    return;
+  if (tableView && gridView) {
+    tableView.classList.toggle('hidden', !isTable);
+    gridView.classList.toggle('hidden', isTable);
   }
+  updateViewButtons(btnGrid, btnTable, isTable);
+  if (explicitMode) writeSavedView(explicitMode);
+};
 
-  const activateGridView = () => {
-    tableView.classList.add('hidden');
-    gridView.classList.remove('hidden');
+export const initializeIngredientViewToggle = () => {
+  const btnTable = document.getElementById('view-table');
+  const btnGrid = document.getElementById('view-grid');
+  if (!btnTable || !btnGrid) return;
 
-    btnGrid.classList.add('bg-[#43655c]', 'text-white');
-    btnGrid.classList.remove('text-on-surface-variant');
-    btnTable.classList.remove('bg-[#43655c]', 'text-white');
-    btnTable.classList.add('text-on-surface-variant');
-  };
+  applyStoredIngredientView();
 
-  const activateTableView = () => {
-    gridView.classList.add('hidden');
-    tableView.classList.remove('hidden');
-
-    btnTable.classList.add('bg-[#43655c]', 'text-white');
-    btnTable.classList.remove('text-on-surface-variant');
-    btnGrid.classList.remove('bg-[#43655c]', 'text-white');
-    btnGrid.classList.add('text-on-surface-variant');
-  };
-
-  activateGridView();
-
-  btnTable.addEventListener('click', activateTableView);
-  btnGrid.addEventListener('click', activateGridView);
+  btnTable.addEventListener('click', () => applyStoredIngredientView('table'));
+  btnGrid.addEventListener('click', () => applyStoredIngredientView('grid'));
 };

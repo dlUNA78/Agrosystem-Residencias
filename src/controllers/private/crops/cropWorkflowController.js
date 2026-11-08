@@ -8,6 +8,7 @@ import {
   CropWorkflowError,
   transitionCropWorkflow,
 } from '../../../services/cropWorkflowService.js';
+import { notifyAuthorOnWorkflowChange } from '../../../services/notificationService.js';
 
 const { Crop, CropImage, AuditLog } = db;
 
@@ -89,6 +90,16 @@ export const updateCropWorkflow = async (req, res) => {
     );
 
     await transaction.commit();
+
+    await notifyAuthorOnWorkflowChange({
+      authorId: crop.created_by_user_id,
+      actorId: req.user.id,
+      entityName: crop.name,
+      moduleTitle: 'Cultivo',
+      workflowStatus: changes.workflow_status || req.body.action,
+      actionUrl: `/private/crops/${crop.id}`,
+    });
+
     return res.redirect(`/private/crops/${crop.id}`);
   } catch (error) {
     await transaction.rollback();

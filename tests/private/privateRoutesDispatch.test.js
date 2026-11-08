@@ -31,6 +31,11 @@ const mockControllers = {
   // Users & Profile
   renderProfile: createMockController('renderProfile'),
   updateProfile: createMockController('updateProfile'),
+  updateAvatar: createMockController('updateAvatar'),
+  changePassword: createMockController('changePassword'),
+  revokeOtherSessionsHandler: createMockController(
+    'revokeOtherSessionsHandler',
+  ),
   usersPrivate: createMockController('usersPrivate'),
   createUser: createMockController('createUser'),
   updateUser: createMockController('updateUser'),
@@ -98,7 +103,27 @@ const mockControllers = {
   // Reports & Audit
   reportsPrivate: createMockController('reportsPrivate'),
   auditPrivate: createMockController('auditPrivate'),
+
+  // RBAC & Codes
+  createRbacRole: createMockController('createRbacRole'),
+  updateRbacRole: createMockController('updateRbacRole'),
+  deleteRbacRole: createMockController('deleteRbacRole'),
+  updateUserPermissions: createMockController('updateUserPermissions'),
+  generateCodes: createMockController('generateCodes'),
+  revokeCode: createMockController('revokeCode'),
 };
+
+jest.unstable_mockModule(
+  '../../src/controllers/private/rbacController.js',
+  () => ({
+    createRbacRole: mockControllers.createRbacRole,
+    updateRbacRole: mockControllers.updateRbacRole,
+    deleteRbacRole: mockControllers.deleteRbacRole,
+    updateUserPermissions: mockControllers.updateUserPermissions,
+    generateCodes: mockControllers.generateCodes,
+    revokeCode: mockControllers.revokeCode,
+  }),
+);
 
 jest.unstable_mockModule(
   '../../src/controllers/private/dashboardController.js',
@@ -108,10 +133,24 @@ jest.unstable_mockModule(
 );
 
 jest.unstable_mockModule(
+  '../../src/controllers/private/profileController.js',
+  () => ({
+    renderProfile: mockControllers.renderProfile,
+    updateProfile: mockControllers.updateProfile,
+    updateAvatar: mockControllers.updateAvatar,
+    changePassword: mockControllers.changePassword,
+    revokeOtherSessionsHandler: mockControllers.revokeOtherSessionsHandler,
+  }),
+);
+
+jest.unstable_mockModule(
   '../../src/controllers/private/usersController.js',
   () => ({
     renderProfile: mockControllers.renderProfile,
     updateProfile: mockControllers.updateProfile,
+    updateAvatar: mockControllers.updateAvatar,
+    changePassword: mockControllers.changePassword,
+    revokeOtherSessionsHandler: mockControllers.revokeOtherSessionsHandler,
     usersPrivate: mockControllers.usersPrivate,
     createUser: mockControllers.createUser,
     updateUser: mockControllers.updateUser,
@@ -230,6 +269,10 @@ jest.unstable_mockModule('../../src/middlewares/upload.js', () => ({
     executionLog.push('upload:products');
     next();
   }),
+  uploadAvatarImage: jest.fn((req, res, next) => {
+    executionLog.push('upload:avatars');
+    next();
+  }),
 }));
 
 // ─── MOCKS DE PERMISOS DE CATÁLOGO (REGISTRAN ORDEN DE EJECUCIÓN) ───────────
@@ -328,7 +371,7 @@ const buildTestApp = () => {
 // INVENTARIO COMPLETO DE LOS 50 ENDPOINTS PARA PRUEBAS PARAMETRIZADAS
 // ══════════════════════════════════════════════════════════════════════════════
 const ALL_50_DISPATCH_ENDPOINTS = [
-  // ─── AGREGADOR RAÍZ / PERFIL / DASHBOARD (5) ──────────────────────────────
+  // ─── AGREGADOR RAÍZ / PERFIL / DASHBOARD (11) ─────────────────────────────
   {
     method: 'get',
     routePath: '/profile',
@@ -345,6 +388,29 @@ const ALL_50_DISPATCH_ENDPOINTS = [
     body: { bio: 'test' },
   },
   {
+    method: 'post',
+    routePath: '/profile/avatar',
+    dispatchPath: '/profile/avatar',
+    controller: 'updateAvatar',
+    uploadEvent: 'upload:avatars',
+    params: {},
+  },
+  {
+    method: 'post',
+    routePath: '/profile/password',
+    dispatchPath: '/profile/password',
+    controller: 'changePassword',
+    params: {},
+    body: { current_password: 'old', new_password: 'new' },
+  },
+  {
+    method: 'post',
+    routePath: '/profile/sessions/revoke-others',
+    dispatchPath: '/profile/sessions/revoke-others',
+    controller: 'revokeOtherSessionsHandler',
+    params: {},
+  },
+  {
     method: 'get',
     routePath: '/private/profile',
     dispatchPath: '/private/profile',
@@ -358,6 +424,29 @@ const ALL_50_DISPATCH_ENDPOINTS = [
     controller: 'updateProfile',
     params: {},
     body: { bio: 'test' },
+  },
+  {
+    method: 'post',
+    routePath: '/private/profile/avatar',
+    dispatchPath: '/private/profile/avatar',
+    controller: 'updateAvatar',
+    uploadEvent: 'upload:avatars',
+    params: {},
+  },
+  {
+    method: 'post',
+    routePath: '/private/profile/password',
+    dispatchPath: '/private/profile/password',
+    controller: 'changePassword',
+    params: {},
+    body: { current_password: 'old', new_password: 'new' },
+  },
+  {
+    method: 'post',
+    routePath: '/private/profile/sessions/revoke-others',
+    dispatchPath: '/private/profile/sessions/revoke-others',
+    controller: 'revokeOtherSessionsHandler',
+    params: {},
   },
   {
     method: 'get',
@@ -826,15 +915,15 @@ describe('pruebas de despacho HTTP del router privado', () => {
   });
 
   // ════════════════════════════════════════════════════════════════════════════
-  // 1. COBERTURA PARAMETRIZADA DE LOS 58 ENDPOINTS
+  // 1. COBERTURA PARAMETRIZADA DE LOS 67 ENDPOINTS
   // ════════════════════════════════════════════════════════════════════════════
-  describe('cobertura parametrizada exhaustiva de los 61 endpoints', () => {
-    it('el catálogo de pruebas de despacho cubre exactamente 61 endpoints únicos', () => {
-      expect(ALL_50_DISPATCH_ENDPOINTS).toHaveLength(61);
+  describe('cobertura parametrizada exhaustiva de los 67 endpoints', () => {
+    it('el catálogo de pruebas de despacho cubre exactamente 67 endpoints únicos', () => {
+      expect(ALL_50_DISPATCH_ENDPOINTS).toHaveLength(67);
       const keys = ALL_50_DISPATCH_ENDPOINTS.map(
         (e) => `${e.method.toUpperCase()} ${e.routePath}`,
       );
-      expect(new Set(keys).size).toBe(61);
+      expect(new Set(keys).size).toBe(67);
     });
 
     test.each(ALL_50_DISPATCH_ENDPOINTS)(
@@ -860,11 +949,12 @@ describe('pruebas de despacho HTTP del router privado', () => {
 
         // 3. Verifica la cadena ordenada si involucra subida y/o autorización
         if (ep.uploadEvent) {
-          expect(executionLog).toEqual([
+          const expectedChain = [
             ep.authEvent,
             ep.uploadEvent,
             `controller:${ep.controller}`,
-          ]);
+          ].filter(Boolean);
+          expect(executionLog).toEqual(expectedChain);
         } else if (ep.authEvent) {
           expect(executionLog).toEqual([
             ep.authEvent,

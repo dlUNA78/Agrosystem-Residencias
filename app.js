@@ -17,7 +17,13 @@ import db from './src/models/index.js';
 import publicRoutes from './src/routes/publicRoutes.js';
 import privateRoutes from './src/routes/privateRoutes.js';
 import authRoutes from './src/routes/auth.js';
+import notificationRoutes from './src/routes/notificationRoutes.js';
 import { seedDefaultUsers } from './src/scripts/seedDefaultUsers.js';
+import {
+  resolveEffectivePermissions,
+  getUserRoleSummary,
+} from './src/services/rbacService.js';
+import { enrichSessionActivity } from './src/services/sessionManagementService.js';
 
 const { sequelize } = db;
 
@@ -116,7 +122,24 @@ hbs.registerHelper('gte', (a, b) => Number(a) >= Number(b));
 hbs.registerHelper('lte', (a, b) => Number(a) <= Number(b));
 hbs.registerHelper('add', (a, b) => Number(a) + Number(b));
 hbs.registerHelper('sub', (a, b) => Number(a) - Number(b));
-hbs.registerHelper('urlEncode', (str) => encodeURIComponent(str));
+hbs.registerHelper('urlEncode', (str) =>
+  str !== null && str !== undefined ? encodeURIComponent(String(str)) : '',
+);
+hbs.registerHelper('formatDate', (dateVal) => {
+  if (!dateVal) return '—';
+  try {
+    const d = new Date(dateVal);
+    if (Number.isNaN(d.getTime())) return String(dateVal);
+    return d.toLocaleDateString('es-MX', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  } catch (_e) {
+    return String(dateVal);
+  }
+});
+hbs.registerHelper('json', (context) => JSON.stringify(context || []));
 hbs.registerHelper('getMesBg', (mesNum, siembra, cosecha, mesActual) => {
   const num = Number(mesNum);
   const cur = Number(mesActual);
@@ -195,6 +218,14 @@ hbs.registerHelper('userInitial', function (user, options) {
   if (!targetUser) return 'U';
   const name = targetUser.full_name || targetUser.email || 'U';
   return name.trim().charAt(0).toUpperCase();
+});
+
+hbs.registerHelper('hasPermission', function (perm, options) {
+  const user = options?.data?.root?.user;
+  if (!user) return false;
+  if (user.role === 'admin') return true;
+  const perms = options?.data?.root?.effectivePermissions || [];
+  return perms.includes(perm);
 });
 
 // Resolución resiliente de imágenes estáticas (compatibilidad de extensiones .webp/.jpg y fallbacks locales)
@@ -300,6 +331,7 @@ app.use(passport.session());
 app.use((req, res, next) => {
   // Convierte la instancia del modelo a objeto plano y sanitiza campos sensibles
   if (req.user) {
+    enrichSessionActivity(req);
     const safeUser =
       typeof req.user.toJSON === 'function'
         ? req.user.toJSON()
@@ -307,8 +339,13 @@ app.use((req, res, next) => {
     delete safeUser.password_hash;
     delete safeUser.password;
     res.locals.user = safeUser;
+    const effectiveSet = resolveEffectivePermissions(req.user);
+    res.locals.effectivePermissions = Array.from(effectiveSet);
+    res.locals.userRoleSummary = getUserRoleSummary(req.user);
   } else {
     res.locals.user = null;
+    res.locals.effectivePermissions = [];
+    res.locals.userRoleSummary = null;
   }
 
   const _render = res.render.bind(res);
@@ -327,6 +364,7 @@ app.use((req, res, next) => {
 app.use('/auth', authRoutes);
 app.use('/', publicRoutes);
 app.use('/', privateRoutes);
+app.use('/', notificationRoutes);
 
 // Arrancar el servidor solo si no estamos en entorno de prueba
 if (process.env.NODE_ENV !== 'test') {

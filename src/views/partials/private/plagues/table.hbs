@@ -107,7 +107,7 @@
                                 <span>Ficha</span>
                             </a>
                             {{#if canEditRecord}}
-                            <button type="button" class="btn-edit-plague p-1.5 rounded-lg text-muted-foreground hover:text-[#1b4332] hover:bg-muted transition-colors cursor-pointer"
+                            <button type="button" aria-label="Editar datos de {{name}}" class="btn-edit-plague p-1.5 rounded-lg text-muted-foreground hover:text-[#1b4332] hover:bg-muted transition-colors cursor-pointer"
                                 title="Editar datos de la plaga" data-id="{{id}}" data-name="{{name}}"
                                 data-scientific-name="{{scientific_name}}" data-category="{{category}}"
                                 data-region="{{region}}" data-risk-level="{{risk_level}}"
@@ -119,7 +119,7 @@
                             </button>
                             {{/if}}
                             {{#if ../permissions.canDelete}}
-                            <button type="button" class="btn-delete-plague p-1.5 rounded-lg text-muted-foreground hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                            <button type="button" aria-label="Eliminar plaga {{name}}" class="btn-delete-plague p-1.5 rounded-lg text-muted-foreground hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
                                 title="Eliminar plaga" data-id="{{id}}" data-name="{{name}}">
                                 <i data-lucide="trash-2" class="w-4 h-4"></i>
                             </button>
