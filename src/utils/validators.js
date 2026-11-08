@@ -22,10 +22,7 @@ const stripControlChars = (str) =>
     .filter((ch) => {
       const code = ch.charCodeAt(0);
       return (
-        code === 9 ||
-        code === 10 ||
-        code === 13 ||
-        (code >= 32 && code !== 127)
+        code === 9 || code === 10 || code === 13 || (code >= 32 && code !== 127)
       );
     })
     .join('');
@@ -126,8 +123,7 @@ export const validatePhone = (phone) => {
   return { valid, normalized: valid ? digits : raw };
 };
 
-const isBlankValue = (val) =>
-  val === '' || val === null || val === undefined;
+const isBlankValue = (val) => val === '' || val === null || val === undefined;
 
 const isCoordPairInRange = (numLat, numLng) =>
   Number.isFinite(numLat) &&

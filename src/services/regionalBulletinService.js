@@ -151,8 +151,7 @@ export const serializeBulletinForHome = (record) => {
     ),
     crop: pickFirstText([plain.crop_name, plain.crop], 'Multicultivo'),
     level,
-    levelClass:
-      LEVEL_CLASS_BY_SEVERITY[level] || LEVEL_CLASS_BY_SEVERITY.MEDIA,
+    levelClass: LEVEL_CLASS_BY_SEVERITY[level] || LEVEL_CLASS_BY_SEVERITY.MEDIA,
     workflowStatus: plain.workflow_status || 'published',
     authorName: pickFirstText(
       [plain.createdBy?.full_name],
@@ -252,7 +251,11 @@ export const fetchDynamicSeasonalCrops = async (fallbackList = []) => {
 };
 
 const normalizeCreateArgs = (arg1, arg2) => {
-  if (arg1 && typeof arg1 === 'object' && ('payload' in arg1 || 'user' in arg1)) {
+  if (
+    arg1 &&
+    typeof arg1 === 'object' &&
+    ('payload' in arg1 || 'user' in arg1)
+  ) {
     return { user: arg1.user, body: arg1.payload || {} };
   }
   return { user: arg1, body: arg2 || {} };
@@ -288,7 +291,11 @@ const buildBulletinRecordPayload = ({
     title,
     summary,
     content: sanitizeMultilineText(body.content, 5000) || summary,
-    bulletin_type: sanitizeWithFallback(body.bulletin_type, 50, 'aviso_semanal'),
+    bulletin_type: sanitizeWithFallback(
+      body.bulletin_type,
+      50,
+      'aviso_semanal',
+    ),
     severity: severity.toUpperCase(),
     state,
     region_id: regionId,

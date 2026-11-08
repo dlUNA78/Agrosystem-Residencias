@@ -131,10 +131,15 @@ const drawInstitutionalHeader = (doc, detail, isPrivate) => {
     .fillColor(COLORS.ink)
     .font('Courier-Bold')
     .fontSize(8.5)
-    .text(`EXPEDIENTE #${sanitizePdfText(product?.id, 'S/N')}`, boxX + 8, bannerY + 16, {
-      width: 130,
-      align: 'right',
-    });
+    .text(
+      `EXPEDIENTE #${sanitizePdfText(product?.id, 'S/N')}`,
+      boxX + 8,
+      bannerY + 16,
+      {
+        width: 130,
+        align: 'right',
+      },
+    );
   doc
     .fillColor(COLORS.brand)
     .font('Helvetica-Bold')

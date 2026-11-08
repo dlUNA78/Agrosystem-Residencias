@@ -248,7 +248,8 @@ export const uploadProductImages = (req, res, next) => {
     { name: 'image', maxCount: IMAGE_UPLOAD_LIMITS.files },
     { name: 'safety_sheet', maxCount: 1 },
   ])(req, res, async (error) => {
-    const rawFilesMap = req.files && !Array.isArray(req.files) ? req.files : null;
+    const rawFilesMap =
+      req.files && !Array.isArray(req.files) ? req.files : null;
     const safetyFiles = rawFilesMap?.safety_sheet || [];
     const allUploaded = flattenUploadedFiles(req.files);
     req.safetySheetFile = safetyFiles[0] || null;

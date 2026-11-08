@@ -12,7 +12,6 @@ import {
   changePassword,
   revokeOtherSessionsHandler,
 } from '../controllers/private/profileController.js';
-import { submitCatalogSuggestion } from '../controllers/public/catalogSuggestionController.js';
 import { uploadAvatarImage } from '../middlewares/upload.js';
 
 import catalogRoutes from './private/catalogRoutes.js';
@@ -22,13 +21,7 @@ import adminRoutes from './private/adminRoutes.js';
 const privateRouter = Router();
 
 // Aplica el middleware de verificación de sesión activa únicamente a las rutas protegidas
-privateRouter.use(
-  ['/profile', '/suggestions', '/dashboard', '/private'],
-  isAuthenticated,
-);
-
-// Colaboración Ciudadana / Científica (Cualquier usuario autenticado)
-privateRouter.post('/suggestions/:catalog', submitCatalogSuggestion);
+privateRouter.use(['/profile', '/dashboard', '/private'], isAuthenticated);
 
 // ══════════════════════════════════════════════════════════════════════════════
 // MÓDULO: PERFIL PÚBLICO (Accesible para cualquier usuario autenticado)

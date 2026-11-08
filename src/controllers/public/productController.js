@@ -321,6 +321,8 @@ export const downloadProductHds = async (req, res) => {
     });
   } catch (error) {
     console.error('Error al generar HDS del producto:', error);
-    return res.status(500).send('Error al generar la Hoja de Datos de Seguridad');
+    return res
+      .status(500)
+      .send('Error al generar la Hoja de Datos de Seguridad');
   }
 };

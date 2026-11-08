@@ -53,7 +53,10 @@
   function findScrollableContainerInModal(target, activeModal) {
     let node = target instanceof Element ? target : null;
     while (node && node !== document.body && activeModal.contains(node)) {
-      if (node.tagName === 'TEXTAREA' && node.scrollHeight > node.clientHeight) {
+      if (
+        node.tagName === 'TEXTAREA' &&
+        node.scrollHeight > node.clientHeight
+      ) {
         return node;
       }
       if (isElementScrollableY(node)) {

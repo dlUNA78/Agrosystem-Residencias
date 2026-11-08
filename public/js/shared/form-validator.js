@@ -84,12 +84,9 @@
   }
 
   function isSkippableInput(input) {
-    if (
-      !(
-        input instanceof HTMLInputElement ||
-        input instanceof HTMLTextAreaElement
-      )
-    ) {
+    if (!(
+      input instanceof HTMLInputElement || input instanceof HTMLTextAreaElement
+    )) {
       return true;
     }
     return input.disabled || input.readOnly || input.type === 'hidden';
@@ -160,11 +157,17 @@
 
   document.addEventListener('input', (event) => {
     const target = event.target;
-    if (!(target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement)) {
+    if (!(
+      target instanceof HTMLInputElement ||
+      target instanceof HTMLTextAreaElement
+    )) {
       return;
     }
     stripForbiddenCharactersOnInput(target);
-    if (target.getAttribute('aria-invalid') === 'true' || target.dataset.validateLive === 'true') {
+    if (
+      target.getAttribute('aria-invalid') === 'true' ||
+      target.dataset.validateLive === 'true'
+    ) {
       evaluateInput(target);
     }
   });

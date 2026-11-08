@@ -7,12 +7,7 @@ const { Plague, Crop, Product, User, AuditLog } = db;
 const wantsJson = (req) =>
   Boolean(req.xhr || req.headers?.accept?.includes('application/json'));
 
-const notifyReviewers = async ({
-  actor,
-  title,
-  message,
-  actionUrl,
-}) => {
+const notifyReviewers = async ({ actor, title, message, actionUrl }) => {
   if (typeof User?.findAll !== 'function') return;
   try {
     const reviewers = await User.findAll({
@@ -85,7 +80,8 @@ const createCropSuggestion = async (body, user) => {
     scientific_name: scientificName,
     category: sanitizeText(body.category, 80) || 'Hortalizas',
     botanical_family: sanitizeText(body.botanical_family, 100) || null,
-    planting_season: sanitizeText(body.planting_season, 80) || 'Primavera-Verano',
+    planting_season:
+      sanitizeText(body.planting_season, 80) || 'Primavera-Verano',
     state: sanitizeText(body.state, 120) || null,
     description: sanitizeMultilineText(body.description, 1500),
     status: 'pendiente',
@@ -114,7 +110,8 @@ const createProductSuggestion = async (body, user) => {
     name,
     active_ingredient: activeIngredient,
     category: sanitizeText(body.category, 80) || 'Fungicida',
-    registration_code: sanitizeText(body.registration_code, 80) || 'En trámite RSCO',
+    registration_code:
+      sanitizeText(body.registration_code, 80) || 'En trámite RSCO',
     manufacturer: sanitizeText(body.manufacturer, 120) || 'Por validar',
     hazard_category:
       sanitizeText(body.hazard_category, 80) ||

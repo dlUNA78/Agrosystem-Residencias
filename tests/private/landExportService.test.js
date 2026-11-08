@@ -1,6 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import {
   buildLandExpedienteCsv,
+  buildLandExpedienteGeoJson,
   buildLandExpedientePayload,
 } from '../../src/services/landExportService.js';
 import { buildProductDetailView } from '../../src/services/productDetailService.js';
@@ -95,6 +96,18 @@ describe('exportación del expediente operativo de terrenos y mapeo de riesgo', 
     expect(csv).toContain('Gusano cogollero');
     expect(csv).toContain('Belt 480 SC');
     expect(csv).toContain("'=SUM(1,2) nota con fórmula potencial");
+  });
+
+  it('construye un FeatureCollection GeoJSON RFC 7946 válido con coordenadas [lng, lat]', () => {
+    const geojson = buildLandExpedienteGeoJson(sampleContext);
+
+    expect(geojson.type).toBe('FeatureCollection');
+    expect(geojson.features).toHaveLength(1);
+    expect(geojson.features[0].geometry).toEqual({
+      type: 'Point',
+      coordinates: [-100.8157, 20.5235],
+    });
+    expect(geojson.features[0].properties.expedienteCode).toBe('TR-0018');
   });
 
   it('mapea niveles de riesgo "Crítico" con acento a estilo rose en fichas de producto', () => {

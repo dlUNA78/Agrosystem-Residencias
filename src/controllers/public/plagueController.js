@@ -259,7 +259,11 @@ const classifyMacroRegion = (regionName) => {
   if (/jalisco|michoac|colima|nayarit|occidente/.test(lower)) {
     return 'Macro-región Occidente';
   }
-  if (/guanajuato|quer|aguascalientes|baj|puebla|hidalgo|centro|edomex/.test(lower)) {
+  if (
+    /guanajuato|quer|aguascalientes|baj|puebla|hidalgo|centro|edomex/.test(
+      lower,
+    )
+  ) {
     return 'Macro-región Centro-Bajío';
   }
   return 'Macro-región Sur-Sureste y Otras';

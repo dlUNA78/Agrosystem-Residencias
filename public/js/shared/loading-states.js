@@ -20,8 +20,8 @@
     }
     if (
       form.hasAttribute('data-no-loading') ||
-      form.hasAttribute('data-confirm-form') &&
-        form.dataset.confirmed !== 'true'
+      (form.hasAttribute('data-confirm-form') &&
+        form.dataset.confirmed !== 'true')
     ) {
       return true;
     }

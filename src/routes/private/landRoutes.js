@@ -18,16 +18,14 @@ import {
   createLandLot,
   deleteLandLot,
   updateLandLot,
-  createRegionalBulletinHandler,
 } from '../../controllers/private/landsController.js';
 
 const landRouter = Router();
 
 // ══════════════════════════════════════════════════════════════════════════════
-// MÓDULO: PARCELAS / GRANJAS Y BOLETINES REGIONALES
+// MÓDULO: PARCELAS / GRANJAS
 // ══════════════════════════════════════════════════════════════════════════════
 landRouter.get('/private/lands', renderLandsPrivate);
-landRouter.post('/private/lands/bulletins', createRegionalBulletinHandler);
 landRouter.get('/private/lands/:id/expediente', landDetail);
 landRouter.post('/private/lands/create', createFarmPrivate);
 landRouter.post('/private/lands/update/:id', updateFarmPrivate);

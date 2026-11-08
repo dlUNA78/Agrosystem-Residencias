@@ -9,8 +9,8 @@ const privateLayout = path.join(__dirname, '../views/layouts/private');
 export const isJsonOrApiRequest = (req) =>
   Boolean(
     req.xhr ||
-      req.path?.startsWith('/api/') ||
-      req.headers?.accept?.includes('application/json'),
+    req.path?.startsWith('/api/') ||
+    req.headers?.accept?.includes('application/json'),
   );
 
 export const canRenderHtmlError = (req, res) =>
@@ -60,7 +60,8 @@ export const sendForbiddenResponse = (req, res, message) => {
 
 export const sendNotFoundResponse = (req, res, message) => {
   const safeMessage =
-    message || 'El recurso o la ruta solicitada no existe en Agrosystem INIFAP.';
+    message ||
+    'El recurso o la ruta solicitada no existe en Agrosystem INIFAP.';
 
   if (isJsonOrApiRequest(req)) {
     return res.status(404).json({

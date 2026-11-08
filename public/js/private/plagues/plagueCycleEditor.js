@@ -10,7 +10,8 @@ const DEFAULT_INITIAL_STAGES = Object.freeze([
     plantZone: 'Follaje / Suelo superficial',
     damageLevel: 'Bajo',
     isControlWindow: true,
-    description: 'Aparición inicial de estructuras reproductivas o huevecillos.',
+    description:
+      'Aparición inicial de estructuras reproductivas o huevecillos.',
   },
   {
     title: 'Fase 2 · Desarrollo e Infestación Activa',

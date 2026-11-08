@@ -263,7 +263,8 @@ export const createRegionalBulletinHandler = async (req, res) => {
     if (!result.success) {
       return sendInputError(req, res, { general: [result.message] });
     }
-    const redirectTo = req.body?.redirect_to === 'public' ? '/lands' : '/private/lands';
+    const redirectTo =
+      req.body?.redirect_to === 'public' ? '/lands' : '/private/lands';
     if (wantsJson(req)) return res.status(201).json({ success: true });
     return res.redirect(redirectTo);
   } catch (error) {

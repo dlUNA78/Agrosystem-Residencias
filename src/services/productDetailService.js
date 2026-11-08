@@ -300,11 +300,24 @@ const buildSyngentaRecommendationsMatrix = (
   const crops =
     relatedCrops.length > 0
       ? relatedCrops
-      : [{ name: textOrFallback(rawProduct.target_crops, 'Cultivos autorizados en registro RSCO'), scientific_name: null }];
+      : [
+          {
+            name: textOrFallback(
+              rawProduct.target_crops,
+              'Cultivos autorizados en registro RSCO',
+            ),
+            scientific_name: null,
+          },
+        ];
   const plagues =
     relatedPlagues.length > 0
       ? relatedPlagues
-      : [{ name: 'Complejo de plagas / patógenos de etiqueta', scientific_name: null }];
+      : [
+          {
+            name: 'Complejo de plagas / patógenos de etiqueta',
+            scientific_name: null,
+          },
+        ];
 
   const rows = [];
   crops.slice(0, 6).forEach((crop) => {
