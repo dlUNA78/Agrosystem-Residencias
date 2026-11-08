@@ -278,16 +278,21 @@
             </div>
           </div>
 
-          <div class="no-print grid grid-cols-1 {{#if product.safety_sheet_url}}sm:grid-cols-2{{/if}} gap-3">
+          <div class="no-print grid grid-cols-1 sm:grid-cols-2 gap-3">
             <button type="button" id="btn-open-product-pdf-hero" class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#1b4332] px-4 py-3 text-xs font-bold text-white shadow-sm hover:bg-[#2d6a4f] transition-colors cursor-pointer">
               <span class="material-symbols-outlined text-base">picture_as_pdf</span>
-              <span>Vista previa / Descargar Ficha Técnica PDF</span>
+              <span>Descargar Ficha Técnica (PDF)</span>
             </button>
 
             {{#if product.safety_sheet_url}}
-              <a href="{{product.safety_sheet_url}}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-card px-4 py-3 text-xs font-bold text-[#1b4332] shadow-2xs hover:bg-muted transition-colors">
-                <span class="material-symbols-outlined text-base">open_in_new</span>
-                <span>Consultar Hoja de Seguridad Externa (HDS)</span>
+              <a href="{{product.safety_sheet_url}}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center gap-2 rounded-xl border border-[#1b4332]/40 bg-emerald-50/70 px-4 py-3 text-xs font-bold text-[#1b4332] shadow-2xs hover:bg-emerald-100/70 transition-colors">
+                <span class="material-symbols-outlined text-base">health_and_safety</span>
+                <span>Descargar Hoja de Seguridad (HDS / MSDS)</span>
+              </a>
+            {{else}}
+              <a href="{{product.hdsDownloadUrl}}" class="inline-flex items-center justify-center gap-2 rounded-xl border border-[#1b4332]/40 bg-emerald-50/70 px-4 py-3 text-xs font-bold text-[#1b4332] shadow-2xs hover:bg-emerald-100/70 transition-colors">
+                <span class="material-symbols-outlined text-base">health_and_safety</span>
+                <span>Descargar Hoja de Seguridad (HDS / MSDS)</span>
               </a>
             {{/if}}
           </div>
@@ -329,6 +334,120 @@
             </p>
           </article>
         {{/each}}
+      </div>
+
+      {{! CUADRO TÉCNICO DE RECOMENDACIONES DE USO EN CAMPO (ESTÁNDAR SYNGENTA / COFEPRIS) }}
+      {{#if syngentaRecommendations.length}}
+        <div class="mt-8 rounded-2xl border border-border bg-card shadow-2xs overflow-hidden">
+          <div class="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-muted/30 px-6 py-4">
+            <div>
+              <span class="font-mono text-[10px] font-bold uppercase tracking-widest text-[#1b4332]">
+                Estándar Agroquímico · Recomendaciones de Etiqueta Autorizada
+              </span>
+              <h3 class="mt-0.5 text-base font-headline font-extrabold text-foreground">
+                Cuadro de Recomendaciones de Uso por Cultivo y Plaga Blanco
+              </h3>
+            </div>
+            <span class="rounded-lg border border-border bg-background px-3 py-1 font-mono text-[11px] font-semibold text-muted-foreground">
+              Registro {{product.registration_code}}
+            </span>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="border-b border-border bg-muted/15 font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                  <th class="py-3.5 px-5">Cultivo Autorizado</th>
+                  <th class="py-3.5 px-5">Plaga / Patógeno Blanco</th>
+                  <th class="py-3.5 px-5">Dosis Recomendada</th>
+                  <th class="py-3.5 px-5">Intervalo de Seguridad</th>
+                  <th class="py-3.5 px-5">Época y Observaciones Técnicas</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-border/70 text-xs">
+                {{#each syngentaRecommendations}}
+                  <tr class="hover:bg-muted/20 transition-colors">
+                    <td class="py-3.5 px-5 align-top">
+                      <span class="font-bold text-foreground block">{{this.cropName}}</span>
+                      {{#if this.cropSci}}
+                        <span class="font-mono text-[10px] italic text-muted-foreground">{{this.cropSci}}</span>
+                      {{/if}}
+                    </td>
+                    <td class="py-3.5 px-5 align-top">
+                      <span class="font-bold text-[#1b4332] block">{{this.plagueName}}</span>
+                      {{#if this.plagueSci}}
+                        <span class="font-mono text-[10px] italic text-muted-foreground">{{this.plagueSci}}</span>
+                      {{/if}}
+                    </td>
+                    <td class="py-3.5 px-5 align-top font-mono font-bold text-foreground whitespace-nowrap">
+                      {{this.dosage}}
+                    </td>
+                    <td class="py-3.5 px-5 align-top">
+                      <span class="inline-flex items-center rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 font-mono text-[11px] font-bold text-amber-900">
+                        {{this.intervalLabel}}
+                      </span>
+                    </td>
+                    <td class="py-3.5 px-5 align-top text-muted-foreground leading-relaxed max-w-md">
+                      {{this.observation}}
+                    </td>
+                  </tr>
+                {{/each}}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      {{/if}}
+
+      {{! APARTADO OBLIGATORIO: HOJA DE DATOS DE SEGURIDAD (HDS / MSDS - NOM-018-STPS-2015) }}
+      <div id="hoja-seguridad-hds" class="mt-8 rounded-2xl border border-border bg-card p-6 shadow-2xs">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+          <div class="flex items-start gap-4">
+            <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#e6f0e6] text-[#1b4332]">
+              <span class="material-symbols-outlined text-2xl">health_and_safety</span>
+            </span>
+            <div>
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="font-mono text-[10px] font-bold uppercase tracking-widest text-[#1b4332]">
+                  NOM-018-STPS-2015 · SGA / COFEPRIS
+                </span>
+                <span class="rounded-md border px-2 py-0.5 font-mono text-[10px] font-bold {{product.hazardTheme.badgeClass}}">
+                  {{product.hazardTheme.shortLabel}}
+                </span>
+              </div>
+              <h3 class="mt-1 text-lg font-headline font-extrabold text-foreground">
+                Hoja de Datos de Seguridad (HDS / MSDS) y Manejo de Emergencias
+              </h3>
+              <p class="mt-1 text-xs leading-relaxed text-muted-foreground max-w-3xl">
+                Documento normativo de 16 secciones con especificaciones de Equipo de Protección Personal (EPP), primeros auxilios toxicológicos, manejo de derrames, estabilidad física-química y disposición de envases vacíos mediante Triple Lavado (Programa Campo Limpio).
+              </p>
+              <div class="mt-3 flex flex-wrap items-center gap-4 text-[11px] font-mono text-muted-foreground">
+                <span><strong class="text-foreground">Emergencias SINTOX 24h:</strong> 800-000-2869</span>
+                <span><strong class="text-foreground">EPP Requerido:</strong> Overol impermeable, guantes de nitrilo, mascarilla y gafas</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+            <a
+              href="{{product.hdsDownloadUrl}}"
+              class="inline-flex items-center gap-2 rounded-xl bg-[#1b4332] px-4 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-[#2d6a4f] transition-colors"
+            >
+              <span class="material-symbols-outlined text-base">download</span>
+              <span>Descargar HDS / MSDS (PDF)</span>
+            </a>
+            {{#if product.safety_sheet_url}}
+              <a
+                href="{{product.safety_sheet_url}}"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-flex items-center gap-1.5 rounded-xl border border-border bg-background px-3.5 py-2.5 text-xs font-bold text-foreground hover:bg-muted transition-colors"
+              >
+                <span class="material-symbols-outlined text-base">open_in_new</span>
+                <span>Ver HDS del Fabricante</span>
+              </a>
+            {{/if}}
+          </div>
+        </div>
       </div>
     </section>
 
