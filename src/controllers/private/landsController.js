@@ -8,6 +8,7 @@ import {
   getLandPermissions,
 } from '../../services/landAuthorizationService.js';
 import { validateLandInput } from '../../services/landValidationService.js';
+import { createRegionalBulletinRecord } from '../../services/regionalBulletinService.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -250,6 +251,24 @@ export const createFarmPrivate = async (req, res) => {
   } catch (error) {
     console.error('Error al crear el terreno:', error);
     return res.status(500).send('Error al crear el terreno');
+  }
+};
+
+export const createRegionalBulletinHandler = async (req, res) => {
+  try {
+    const result = await createRegionalBulletinRecord({
+      payload: req.body,
+      user: req.user,
+    });
+    if (!result.success) {
+      return sendInputError(req, res, { general: [result.message] });
+    }
+    const redirectTo = req.body?.redirect_to === 'public' ? '/lands' : '/private/lands';
+    if (wantsJson(req)) return res.status(201).json({ success: true });
+    return res.redirect(redirectTo);
+  } catch (error) {
+    console.error('Error al publicar boletín regional:', error);
+    return res.status(500).send('Error al publicar boletín regional');
   }
 };
 

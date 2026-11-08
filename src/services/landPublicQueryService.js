@@ -1,4 +1,5 @@
 import { MAP_HEIGHT, MAP_WIDTH, getStatePaths } from './mexicoGeo.js';
+import { buildAccentInsensitiveRegex } from '../utils/validators.js';
 
 const PUBLIC_REGION_LIMIT = 12;
 const MAX_PUBLIC_REGION_PAGE = 100000;
@@ -58,14 +59,23 @@ export const normalizePublicLandQuery = (query = {}) => ({
 export const parsePublicCoverageFilter = (query = {}) =>
   query?.coverage === 'active' ? 'active' : '';
 
-export const buildPublicRegionWhere = (Op, query) =>
-  query.search
-    ? {
-        name: {
-          [Op.iLike]: `%${query.search}%`,
-        },
-      }
-    : {};
+export const buildPublicRegionWhere = (Op, query) => {
+  if (!query.search) return {};
+  const accentRegex = buildAccentInsensitiveRegex(query.search);
+  if (Op.or && Op.iRegexp && accentRegex) {
+    return {
+      [Op.or]: [
+        { name: { [Op.iLike]: `%${query.search}%` } },
+        { name: { [Op.iRegexp]: accentRegex } },
+      ],
+    };
+  }
+  return {
+    name: {
+      [Op.iLike]: `%${query.search}%`,
+    },
+  };
+};
 
 export const buildPublicRegionCard = (region) => {
   const value = typeof region.toJSON === 'function' ? region.toJSON() : region;

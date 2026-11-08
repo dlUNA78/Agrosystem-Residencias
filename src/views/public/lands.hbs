@@ -315,8 +315,194 @@
         {{/if}}
       </div>
 
+      <!-- BOLETINES Y AVISOS FITOSANITARIOS POR REGIÓN -->
+      <section aria-labelledby="regional-bulletins-heading" class="mt-14 pt-10 border-t border-border">
+        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
+          <div>
+            <p class="font-mono text-[10px] font-bold uppercase tracking-widest text-emerald-800 flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-xs">campaign</span>
+              <span>Comunicación Oficial INIFAP</span>
+            </p>
+            <h2 id="regional-bulletins-heading" class="mt-1 text-2xl sm:text-3xl font-headline font-extrabold tracking-tight text-foreground">
+              Boletines y avisos fitosanitarios por región
+            </h2>
+            <p class="mt-1 text-xs sm:text-sm text-muted-foreground max-w-2xl">
+              Reportes técnicos, alertas preventivas y avisos operativos emitidos por investigadores y personal acreditado del INIFAP para las zonas agrícolas del país.
+            </p>
+          </div>
+          {{#if (canAccessPanel user)}}
+            <button
+              type="button"
+              id="open-bulletin-modal-btn"
+              class="inline-flex items-center gap-2 rounded-xl bg-[#1b4332] px-4 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-[#2d6a4f] transition-colors cursor-pointer shrink-0"
+            >
+              <span class="material-symbols-outlined text-base">post_add</span>
+              <span>Publicar boletín regional</span>
+            </button>
+          {{/if}}
+        </div>
+
+        {{#if bulletins.length}}
+          <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {{#each bulletins}}
+              <article class="flex flex-col justify-between rounded-2xl border border-border bg-card p-5 shadow-2xs transition-all hover:border-[#1b4332]/40">
+                <div>
+                  <div class="flex items-center justify-between gap-2 text-[11px] font-mono text-muted-foreground">
+                    <span class="font-bold text-foreground">{{this.date}}</span>
+                    <span class="rounded-md bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[10px] font-bold uppercase text-[#1b4332]">
+                      {{this.tag}}
+                    </span>
+                  </div>
+                  <p class="mt-2 inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800">
+                    <span class="material-symbols-outlined text-xs">location_on</span>
+                    <span>{{this.region}}</span>
+                  </p>
+                  <h3 class="mt-1.5 text-base font-headline font-extrabold text-foreground leading-snug">
+                    {{this.title}}
+                  </h3>
+                  <p class="mt-2 text-xs leading-relaxed text-muted-foreground">
+                    {{this.excerpt}}
+                  </p>
+                </div>
+                <div class="mt-4 pt-3 border-t border-border/60 flex items-center justify-between text-[11px]">
+                  <span class="font-mono text-muted-foreground">Emitido por {{this.authorName}}</span>
+                  <a href="{{this.href}}" class="inline-flex items-center gap-1 font-bold text-[#1b4332] hover:underline">
+                    <span>Ver ficha</span>
+                    <span class="material-symbols-outlined text-xs">arrow_outward</span>
+                  </a>
+                </div>
+              </article>
+            {{/each}}
+          </div>
+        {{else}}
+          <div class="rounded-2xl border border-dashed border-border bg-card p-8 text-center text-xs text-muted-foreground">
+            No hay boletines regionales publicados en este momento.
+          </div>
+        {{/if}}
+      </section>
+
     </div>
   </section>
 </div>
+
+{{#if (canAccessPanel user)}}
+  <!-- Modal: Redactar y Publicar Boletín Regional (Personal INIFAP / Admin) -->
+  <div
+    id="modal-create-bulletin"
+    class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-xs"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="modal-create-bulletin-title"
+  >
+    <div class="w-full max-w-lg rounded-2xl border border-border bg-card shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+      <div class="flex items-center justify-between border-b border-border px-6 py-4 bg-muted/30">
+        <div class="flex items-center gap-2.5">
+          <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-[#e6f0e6] text-[#1b4332]">
+            <span class="material-symbols-outlined text-lg">campaign</span>
+          </span>
+          <div>
+            <h3 id="modal-create-bulletin-title" class="text-sm font-headline font-extrabold text-foreground">
+              Publicar Boletín o Aviso Regional
+            </h3>
+            <p class="text-[11px] text-muted-foreground">Comunicado técnico visible en Inicio y Regiones Agrícolas</p>
+          </div>
+        </div>
+        <button
+          type="button"
+          data-close-bulletin-modal
+          class="rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer"
+          aria-label="Cerrar modal"
+        >
+          <span class="material-symbols-outlined text-lg">close</span>
+        </button>
+      </div>
+
+      <form action="/private/lands/bulletins" method="POST" class="p-6 space-y-4 overflow-y-auto">
+        <input type="hidden" name="redirect_to" value="public" />
+
+        <div>
+          <label for="bulletin-title" class="block text-xs font-bold text-foreground mb-1">
+            Título del boletín o aviso <span class="text-red-600">*</span>
+          </label>
+          <input
+            type="text"
+            id="bulletin-title"
+            name="title"
+            required
+            minlength="5"
+            maxlength="180"
+            placeholder="Ej. Alerta preventiva por incremento de roya amarilla en trigo"
+            class="w-full rounded-xl border border-input bg-background px-3.5 py-2 text-xs text-foreground outline-none focus:border-[#1b4332]"
+          />
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label for="bulletin-region" class="block text-xs font-bold text-foreground mb-1">
+              Región agrícola objetivo
+            </label>
+            <select
+              id="bulletin-region"
+              name="region_id"
+              class="w-full rounded-xl border border-input bg-background px-3 py-2 text-xs text-foreground outline-none focus:border-[#1b4332]"
+            >
+              <option value="">Nacional / Multirregional</option>
+              {{#each allRegions}}
+                <option value="{{this.id}}">{{this.name}}</option>
+              {{/each}}
+            </select>
+          </div>
+          <div>
+            <label for="bulletin-severity" class="block text-xs font-bold text-foreground mb-1">
+              Nivel de prioridad
+            </label>
+            <select
+              id="bulletin-severity"
+              name="severity"
+              class="w-full rounded-xl border border-input bg-background px-3 py-2 text-xs text-foreground outline-none focus:border-[#1b4332]"
+            >
+              <option value="Preventivo">Preventivo · Boletín Técnico</option>
+              <option value="Moderado">Moderado · Vigilancia Activa</option>
+              <option value="Crítico">Crítico · Alerta Sanitaria</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label for="bulletin-summary" class="block text-xs font-bold text-foreground mb-1">
+            Resumen técnico y recomendaciones <span class="text-red-600">*</span>
+          </label>
+          <textarea
+            id="bulletin-summary"
+            name="summary"
+            required
+            minlength="12"
+            maxlength="900"
+            rows="4"
+            placeholder="Describe el hallazgo fitosanitario, fenología afectada y medidas recomendadas por INIFAP..."
+            class="w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-xs text-foreground outline-none focus:border-[#1b4332]"
+          ></textarea>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-3 border-t border-border">
+          <button
+            type="button"
+            data-close-bulletin-modal
+            class="rounded-xl border border-border bg-card px-4 py-2 text-xs font-bold text-foreground hover:bg-muted cursor-pointer"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            data-loading-text="Publicando boletín..."
+            class="rounded-xl bg-[#1b4332] px-5 py-2 text-xs font-bold text-white hover:bg-[#2d6a4f] cursor-pointer"
+          >
+            Publicar boletín
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+{{/if}}
 
 <script type="module" src="/js/public/lands.js"></script>

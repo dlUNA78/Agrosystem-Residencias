@@ -168,7 +168,31 @@ const bindSearchShortcuts = (searchInput) => {
   });
 };
 
+const bindBulletinModal = () => {
+  const modal = document.getElementById('modal-create-bulletin');
+  const openBtn = document.getElementById('open-bulletin-modal-btn');
+  if (!modal) return;
+
+  const openModal = () => {
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+  };
+  const closeModal = () => {
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+  };
+
+  openBtn?.addEventListener('click', openModal);
+  modal.querySelectorAll('[data-close-bulletin-modal]').forEach((btn) => {
+    btn.addEventListener('click', closeModal);
+  });
+  modal.addEventListener('click', (event) => {
+    if (event.target === modal) closeModal();
+  });
+};
+
 const initPublicLandsCatalog = () => {
+  bindBulletinModal();
   const form = document.getElementById('form-filtros-lands');
   if (!form) return;
 

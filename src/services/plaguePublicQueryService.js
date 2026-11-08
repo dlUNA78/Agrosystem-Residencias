@@ -1,4 +1,5 @@
 import { PLAGUE_WORKFLOW_STATUSES } from './plagueWorkflowService.js';
+import { buildAccentInsensitiveRegex } from '../utils/validators.js';
 
 export const DEFAULT_PUBLIC_PLAGUE_PAGE_SIZE = 8;
 export const MAX_PUBLIC_PLAGUE_PAGE_SIZE = 24;
@@ -85,11 +86,20 @@ export const buildPublishedPlagueQuery = ({
   };
 
   if (query.search) {
+    const accentRegex = buildAccentInsensitiveRegex(query.search);
     where[Op.or] = [
       { name: { [Op.iLike]: `%${query.search}%` } },
       { scientific_name: { [Op.iLike]: `%${query.search}%` } },
       { description: { [Op.iLike]: `%${query.search}%` } },
       { symptoms: { [Op.iLike]: `%${query.search}%` } },
+      ...(Op.iRegexp && accentRegex
+        ? [
+            { name: { [Op.iRegexp]: accentRegex } },
+            { scientific_name: { [Op.iRegexp]: accentRegex } },
+            { description: { [Op.iRegexp]: accentRegex } },
+            { symptoms: { [Op.iRegexp]: accentRegex } },
+          ]
+        : []),
     ];
   }
   if (query.category) {
