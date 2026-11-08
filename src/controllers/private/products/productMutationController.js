@@ -352,12 +352,42 @@ export const deleteProduct = async (req, res) => {
       await transaction.rollback();
       return failure(req, res, 404, 'Producto no encontrado.');
     }
+    const oldValues = product.toJSON();
+    const shouldArchive =
+      req.body?.mode === 'archive' ||
+      product.workflow_status === PRODUCT_WORKFLOW_STATUSES.PUBLISHED ||
+      product.workflow_status === PRODUCT_WORKFLOW_STATUSES.VERIFIED;
+
+    if (shouldArchive) {
+      await product.update(
+        {
+          workflow_status: PRODUCT_WORKFLOW_STATUSES.ARCHIVED,
+          validation_status: 'Retirado',
+          status: false,
+          updated_by_user_id: req.user.id,
+        },
+        { transaction },
+      );
+      await AuditLog.create(
+        {
+          action: 'product.archive',
+          table_name: 'Products',
+          record_id: product.id,
+          old_values: oldValues,
+          new_values: product.toJSON(),
+          user_id: req.user.id,
+        },
+        { transaction },
+      );
+      await transaction.commit();
+      return success(req, res, 'Producto dado de baja y archivado.');
+    }
+
     const images = await ProductImage.findAll({
       where: { product_id: product.id },
       attributes: ['image_url'],
       transaction,
     });
-    const oldValues = product.toJSON();
     await ProductImage.destroy({
       where: { product_id: product.id },
       transaction,

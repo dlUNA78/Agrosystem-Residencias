@@ -14,7 +14,7 @@ import {
 } from '../../../services/plagueWorkflowService.js';
 import { privateLayout } from './plagueControllerUtils.js';
 
-const { Plague, PlagueImage } = db;
+const { Plague, PlagueImage, User } = db;
 
 const categoryOptions = [
   { value: '', text: 'Todas' },
@@ -107,9 +107,32 @@ const serializePlague = (plague, currentUser) => {
     hasMip: Boolean(data.control_methods || data.biological_control),
     images_json: JSON.stringify(normalizedImages),
     biological_cycle_json: JSON.stringify(data.biological_cycle || []),
+    authorName: data.createdBy?.full_name || 'Sistema INIFAP',
+    authorRole: data.createdBy?.role || 'inifap',
     canEditRecord:
       recordPermissions.canEdit && isPlagueEditable(data.workflow_status),
   };
+};
+
+const buildPlagueListIncludes = () => {
+  const includes = [
+    {
+      model: PlagueImage,
+      as: 'images',
+      required: false,
+      separate: true,
+      order: [['sort_order', 'ASC']],
+    },
+  ];
+  if (User) {
+    includes.push({
+      model: User,
+      as: 'createdBy',
+      attributes: ['id', 'full_name', 'role'],
+      required: false,
+    });
+  }
+  return includes;
 };
 
 export const plaguesPrivate = async (req, res) => {
@@ -129,15 +152,7 @@ export const plaguesPrivate = async (req, res) => {
       where,
       limit: PRIVATE_PLAGUE_PAGE_SIZE,
       offset: (pagination.currentPage - 1) * PRIVATE_PLAGUE_PAGE_SIZE,
-      include: [
-        {
-          model: PlagueImage,
-          as: 'images',
-          required: false,
-          separate: true,
-          order: [['sort_order', 'ASC']],
-        },
-      ],
+      include: buildPlagueListIncludes(),
       order: [['createdAt', 'DESC']],
     });
 

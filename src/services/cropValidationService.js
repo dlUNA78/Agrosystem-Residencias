@@ -354,6 +354,36 @@ const validateQuantityFields = (value, errors, fieldErrors) => {
   }
 };
 
+const validateMinimumLifecycleStages = (input, value, errors, fieldErrors) => {
+  if (normalizeText(input.require_min_stages) !== '1') return;
+
+  const stages = [
+    normalizeText(input.phenological_stage_1),
+    normalizeText(input.phenological_stage_2),
+    normalizeText(input.phenological_stage_3),
+  ].filter(Boolean);
+
+  if (stages.length < 3) {
+    addError(
+      errors,
+      fieldErrors,
+      'phenological_stage_1',
+      'El ciclo de vida del cultivo debe documentar como mínimo 3 etapas fenológicas.',
+    );
+    return;
+  }
+
+  const formattedStages = `Ciclo fenológico documentado: 1) ${stages[0]} · 2) ${stages[1]} · 3) ${stages[2]}`;
+  if (!value.observations) {
+    value.observations = formattedStages;
+  } else if (!value.observations.includes('Ciclo fenológico documentado:')) {
+    value.observations = `${value.observations}\n\n${formattedStages}`.slice(
+      0,
+      CROP_TEXT_LIMITS.observations,
+    );
+  }
+};
+
 const readPhRange = (input, errors, fieldErrors) => {
   const value = normalizeText(input.ph_range);
   if (!value) return null;
@@ -432,6 +462,7 @@ export const validateCropInput = (input = {}) => {
 
   validateScientificName(value.scientific_name, errors, fieldErrors);
   validateQuantityFields(value, errors, fieldErrors);
+  validateMinimumLifecycleStages(input, value, errors, fieldErrors);
   validateRange(
     value,
     errors,

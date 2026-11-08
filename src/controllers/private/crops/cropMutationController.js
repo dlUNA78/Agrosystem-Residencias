@@ -360,12 +360,46 @@ export const deleteCrop = async (req, res) => {
       return respondMutationError(req, res, 404, 'Cultivo no encontrado.');
     }
 
+    const oldValues = crop.toJSON();
+    const shouldArchive =
+      req.body?.mode === 'archive' ||
+      crop.workflow_status === CROP_WORKFLOW_STATUSES.PUBLISHED ||
+      crop.workflow_status === CROP_WORKFLOW_STATUSES.VERIFIED;
+
+    if (shouldArchive) {
+      await crop.update(
+        {
+          workflow_status: CROP_WORKFLOW_STATUSES.ARCHIVED,
+          status: 'pendiente',
+          updated_by_user_id: req.user.id,
+        },
+        { transaction },
+      );
+      await AuditLog.create(
+        {
+          action: 'crop.archive',
+          table_name: 'Crops',
+          record_id: crop.id,
+          old_values: oldValues,
+          new_values: crop.toJSON(),
+          user_id: req.user.id,
+        },
+        { transaction },
+      );
+      await transaction.commit();
+      return respondMutationSuccess(
+        req,
+        res,
+        'Cultivo dado de baja y archivado correctamente.',
+        '/private/crops',
+      );
+    }
+
     const images = await CropImage.findAll({
       where: { crop_id: crop.id },
       attributes: ['image_url'],
       transaction,
     });
-    const oldValues = crop.toJSON();
 
     await CropImage.destroy({ where: { crop_id: crop.id }, transaction });
     await crop.destroy({ transaction });

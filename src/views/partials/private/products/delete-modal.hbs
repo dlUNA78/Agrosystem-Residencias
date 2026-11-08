@@ -6,19 +6,20 @@
       <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-rose-100 text-rose-700">
         <i data-lucide="trash-2" class="w-5 h-5"></i>
       </div>
-      <h2 id="delete-product-title" class="mt-4 text-lg font-headline font-black text-foreground">Eliminar ficha de producto</h2>
+      <h2 id="delete-product-title" class="mt-4 text-lg font-headline font-black text-foreground">Dar de baja / Archivar producto</h2>
       <p class="mt-2 text-xs leading-relaxed text-muted-foreground">
-        Esta operación eliminará permanentemente <strong id="delete-product-name" class="text-foreground"></strong> junto con su galería de envases y vinculaciones fitosanitarias. Si sólo deseas retirarlo del catálogo público, utiliza la acción <strong>Archivar</strong> en su expediente.
+        Política de preservación INIFAP: <strong id="delete-product-name" class="text-foreground"></strong> será retirado del catálogo público y pasará a estado <strong>Archivado</strong> conservando su historial sanitario y vinculaciones fitosanitarias.
       </p>
     </div>
 
     <form id="product-delete-form" method="POST" class="flex items-center justify-end gap-2.5 border-t border-border bg-muted/30 px-6 py-3.5">
+      <input type="hidden" name="mode" value="archive" />
       <button type="button" id="cancel-delete" class="rounded-xl border border-border bg-card px-4 py-2 text-xs font-bold text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer">
         Cancelar
       </button>
-      <button type="submit" id="confirm-delete" class="inline-flex items-center gap-1.5 rounded-xl bg-rose-600 px-4 py-2 text-xs font-bold text-white shadow-2xs hover:bg-rose-700 transition-colors cursor-pointer">
-        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-        <span>Eliminar definitivamente</span>
+      <button type="submit" id="confirm-delete" class="inline-flex items-center gap-1.5 rounded-xl bg-amber-600 px-4 py-2 text-xs font-bold text-white shadow-2xs hover:bg-amber-700 transition-colors cursor-pointer">
+        <i data-lucide="archive" class="w-3.5 h-3.5"></i>
+        <span>Archivar ficha</span>
       </button>
     </form>
   </div>

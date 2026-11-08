@@ -22,10 +22,34 @@ const privateLayout = path.join(
   currentDirectory,
   '../../../views/layouts/private',
 );
-const { Crop, CropImage } = db;
+const { Crop, CropImage, User } = db;
 
 const normalizeImageUrl = (value) =>
   value ? `/${String(value).replace(/^\/+/, '')}` : null;
+
+const buildCropListIncludes = () => {
+  const includes = [
+    {
+      model: CropImage,
+      as: 'images',
+      required: false,
+      separate: true,
+      order: [
+        ['is_primary', 'DESC'],
+        ['display_order', 'ASC'],
+      ],
+    },
+  ];
+  if (User) {
+    includes.push({
+      model: User,
+      as: 'createdBy',
+      attributes: ['id', 'full_name', 'role'],
+      required: false,
+    });
+  }
+  return includes;
+};
 
 const buildListItem = (record, user) => {
   const crop = record.toJSON();
@@ -42,6 +66,8 @@ const buildListItem = (record, user) => {
     ...crop,
     image_url: normalizeImageUrl(primaryImage?.image_url),
     imageCount: images.length,
+    authorName: crop.createdBy?.full_name || 'Sistema INIFAP',
+    authorRole: crop.createdBy?.role || 'inifap',
     canEditRecord: permissions.canEdit && isCropEditable(crop.workflow_status),
     canDeleteRecord: permissions.canDelete,
   };
@@ -75,18 +101,7 @@ export const cropsPrivate = async (req, res) => {
       where,
       limit: PRIVATE_CROP_PAGE_SIZE,
       offset: (pagination.currentPage - 1) * PRIVATE_CROP_PAGE_SIZE,
-      include: [
-        {
-          model: CropImage,
-          as: 'images',
-          required: false,
-          separate: true,
-          order: [
-            ['is_primary', 'DESC'],
-            ['display_order', 'ASC'],
-          ],
-        },
-      ],
+      include: buildCropListIncludes(),
       order: [['createdAt', 'DESC']],
     });
     const [published, inReview, changesRequested] = await Promise.all([

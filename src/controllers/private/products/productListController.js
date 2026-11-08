@@ -24,7 +24,7 @@ import {
   privateLayout,
 } from './productControllerUtils.js';
 
-const { Product, ProductImage } = db;
+const { Product, ProductImage, User } = db;
 
 const productImagesInclude = {
   model: ProductImage,
@@ -37,6 +37,19 @@ const productImagesInclude = {
   ],
 };
 
+const buildProductListIncludes = () => {
+  const includes = [productImagesInclude];
+  if (User) {
+    includes.push({
+      model: User,
+      as: 'createdBy',
+      attributes: ['id', 'full_name', 'role'],
+      required: false,
+    });
+  }
+  return includes;
+};
+
 const formatSafetyShort = (days) => {
   if (days === null || days === undefined || days === '') return null;
   const num = Number(days);
@@ -44,13 +57,20 @@ const formatSafetyShort = (days) => {
   return num === 0 ? '0 días (S/L)' : `${num} días`;
 };
 
-const buildProductListItem = (record, user) => {
-  const product = record.toJSON();
-  const images = (product.images || []).map((image) => ({
+const normalizeProductImages = (rawImages) =>
+  (rawImages || []).map((image) => ({
     ...image,
     image_url: normalizeImageUrl(image.image_url),
   }));
+
+const resolvePrimaryImageUrl = (images) => {
   const primary = images.find((image) => image.is_primary) || images[0];
+  return primary?.image_url || '/images/products/default.png';
+};
+
+const buildProductListItem = (record, user) => {
+  const product = record.toJSON();
+  const images = normalizeProductImages(product.images);
   const permissions = getContextualProductPermissions({
     role: user.role,
     userId: user.id,
@@ -69,9 +89,11 @@ const buildProductListItem = (record, user) => {
     safetyShort: formatSafetyShort(product.safety_interval_days),
     images,
     imageCount: images.length,
-    image_url: primary?.image_url || '/images/products/default.png',
+    image_url: resolvePrimaryImageUrl(images),
     expirationDateFormatted,
     expiration_date_formatted: expirationDateFormatted,
+    authorName: product.createdBy?.full_name || 'Sistema INIFAP',
+    authorRole: product.createdBy?.role || 'inifap',
     canEditRecord:
       permissions.canEdit && isProductEditable(product.workflow_status),
     canDeleteRecord: permissions.canDelete,
@@ -147,7 +169,7 @@ export const productsPrivate = async (req, res) => {
         where,
         limit: PRIVATE_PRODUCT_PAGE_SIZE,
         offset: (pagination.currentPage - 1) * PRIVATE_PRODUCT_PAGE_SIZE,
-        include: [productImagesInclude],
+        include: buildProductListIncludes(),
         order: [['createdAt', 'DESC']],
       }),
       Product.count(),
@@ -202,6 +224,7 @@ export const productsPrivate = async (req, res) => {
         plagues: catalogOptions.plagues,
       },
       activeIngredients: catalogOptions.ingredients,
+      suppliers: catalogOptions.suppliers || [],
       productCategories: PRODUCT_CATEGORIES,
       hazardCategories: PRODUCT_HAZARD_BANDS,
       searchFilters: buildSearchFilters(query),

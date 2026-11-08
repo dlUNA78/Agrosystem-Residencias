@@ -211,6 +211,35 @@ export const deletePlague = async (req, res) => {
     }
 
     const oldValues = plague.toJSON();
+    const shouldArchive =
+      req.body?.mode === 'archive' ||
+      plague.workflow_status === PLAGUE_WORKFLOW_STATUSES.PUBLISHED ||
+      plague.workflow_status === PLAGUE_WORKFLOW_STATUSES.VERIFIED;
+
+    if (shouldArchive) {
+      await plague.update(
+        {
+          workflow_status: PLAGUE_WORKFLOW_STATUSES.ARCHIVED,
+          status: false,
+          updated_by_user_id: req.user.id,
+        },
+        { transaction },
+      );
+      await AuditLog.create(
+        {
+          action: 'plague.archive',
+          table_name: 'Plagues',
+          record_id: plague.id,
+          old_values: oldValues,
+          new_values: plague.toJSON(),
+          user_id: req.user.id,
+        },
+        { transaction },
+      );
+      await transaction.commit();
+      return res.redirect('/private/plagues');
+    }
+
     await PlagueImage.destroy({
       where: { plague_id: plague.id },
       transaction,

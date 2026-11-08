@@ -11,15 +11,15 @@
                     <i data-lucide="alert-triangle" class="w-5 h-5"></i>
                 </div>
                 <div>
-                    <h3 id="modal-delete-plague-title" class="text-base font-bold text-foreground">¿Eliminar plaga?</h3>
+                    <h3 id="modal-delete-plague-title" class="text-base font-bold text-foreground">¿Dar de baja / Archivar plaga?</h3>
                     <p class="mt-0.5 text-xs text-muted-foreground">
-                        Esta acción removerá el registro del catálogo INIFAP permanentemente.
+                        Política de preservación INIFAP: El registro se retirará del portal público y pasará a estado Archivado conservando su trazabilidad histórica.
                     </p>
                 </div>
             </div>
         </div>
         <div class="p-6 text-xs text-muted-foreground">
-            ¿Confirmas la eliminación definitiva de la plaga <strong id="delete-plague-name" class="text-foreground"></strong>?
+            ¿Confirmas la baja lógica y archivado del expediente <strong id="delete-plague-name" class="text-foreground"></strong>?
         </div>
         <div class="px-6 py-4 bg-muted/40 border-t border-border/60 flex justify-end gap-2">
             <button type="button" id="btn-cancel-delete-plague"
@@ -27,9 +27,11 @@
                 Cancelar
             </button>
             <form id="delete-plague-form" method="POST">
+                <input type="hidden" name="mode" value="archive" />
                 <button type="submit" id="btn-confirm-delete-plague"
-                    class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-rose-600 text-white text-xs font-bold hover:bg-rose-700 transition-colors shadow-2xs cursor-pointer">
-                    Eliminar
+                    class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-600 text-white text-xs font-bold hover:bg-amber-700 transition-colors shadow-2xs cursor-pointer">
+                    <i data-lucide="archive" class="w-3.5 h-3.5"></i>
+                    <span>Archivar ficha</span>
                 </button>
             </form>
         </div>

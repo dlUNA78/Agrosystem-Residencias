@@ -11,15 +11,15 @@
           <i data-lucide="alert-triangle" class="w-5 h-5"></i>
         </div>
         <div>
-          <h3 id="delete-crop-title" class="text-base font-bold text-foreground">¿Eliminar cultivo?</h3>
+          <h3 id="delete-crop-title" class="text-base font-bold text-foreground">¿Dar de baja / Archivar cultivo?</h3>
           <p class="mt-0.5 text-xs text-muted-foreground">
-            Esta acción removerá la ficha técnica del catálogo INIFAP permanentemente.
+            Política de preservación INIFAP: La ficha se retirará del portal público y pasará a la bandeja de Archivados sin destruir sus vínculos históricos.
           </p>
         </div>
       </div>
     </div>
     <div class="p-6 text-xs text-muted-foreground">
-      ¿Confirmas la eliminación definitiva del cultivo <strong id="delete-crop-name" class="text-foreground"></strong>? Esta acción no se puede deshacer.
+      ¿Confirmas la baja lógica y archivado del cultivo <strong id="delete-crop-name" class="text-foreground"></strong>?
     </div>
     <div class="px-6 py-4 bg-muted/40 border-t border-border/60 flex justify-end gap-2">
       <button type="button" id="modal-delete-crop-cancel"
@@ -27,10 +27,11 @@
         Cancelar
       </button>
       <form id="delete-crop-form" method="POST">
+        <input type="hidden" name="mode" value="archive" />
         <button type="submit"
-          class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-rose-600 text-white text-xs font-bold hover:bg-rose-700 transition-colors shadow-2xs cursor-pointer">
-          <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-          <span>Eliminar cultivo</span>
+          class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-600 text-white text-xs font-bold hover:bg-amber-700 transition-colors shadow-2xs cursor-pointer">
+          <i data-lucide="archive" class="w-3.5 h-3.5"></i>
+          <span>Archivar cultivo</span>
         </button>
       </form>
     </div>

@@ -35,6 +35,18 @@
       </div>
 
       <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+        <a href="/private/ingredients"
+          class="inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl border border-border bg-card text-foreground text-xs font-bold hover:border-[#1b4332]/40 hover:text-[#1b4332] transition-all shadow-2xs">
+          <i data-lucide="atom" class="w-4 h-4 text-[#2d6a4f]"></i>
+          <span>Ingredientes Activos ({{activeIngredients.length}})</span>
+        </a>
+        {{#if isAdmin}}
+          <a href="/private/suppliers"
+            class="inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl border border-border bg-card text-foreground text-xs font-bold hover:border-[#1b4332]/40 hover:text-[#1b4332] transition-all shadow-2xs">
+            <i data-lucide="building-2" class="w-4 h-4 text-[#2d6a4f]"></i>
+            <span>Proveedores ({{suppliers.length}})</span>
+          </a>
+        {{/if}}
         {{#if permissions.canCreate}}
           <button type="button" id="btn-add-product"
             class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#1b4332] text-white text-xs font-bold hover:bg-[#2d6a4f] transition-all shadow-md active:scale-95 cursor-pointer">

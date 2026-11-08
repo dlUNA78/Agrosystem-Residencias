@@ -61,12 +61,25 @@
           </div>
 
           <div>
-            <label for="manufacturer" class="mb-1.5 block text-xs font-bold text-foreground">Titular / Fabricante *</label>
-            <input id="manufacturer" name="manufacturer" type="text" required maxlength="150" placeholder="Ej. Syngenta Agro, Bayer CropScience" class="w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-xs focus:border-[#1b4332] focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20" />
+            <div class="mb-1.5 flex items-center justify-between gap-2">
+              <label for="manufacturer" class="block text-xs font-bold text-foreground">Titular / Fabricante / Proveedor *</label>
+              {{#if isAdmin}}
+                <a href="/private/suppliers" class="text-[10px] font-bold text-[#1b4332] hover:underline">+ Gestionar proveedores</a>
+              {{/if}}
+            </div>
+            <input id="manufacturer" name="manufacturer" type="text" required maxlength="150" list="suppliers-datalist" placeholder="Ej. Syngenta Agro, Bayer CropScience" class="w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-xs focus:border-[#1b4332] focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20" />
+            <datalist id="suppliers-datalist">
+              {{#each suppliers}}
+                <option value="{{name}}">{{#if commercial_name}}{{commercial_name}}{{/if}}{{#if supply_type}} · {{supply_type}}{{/if}}</option>
+              {{/each}}
+            </datalist>
           </div>
 
           <div>
-            <label for="active_ingredient" class="mb-1.5 block text-xs font-bold text-foreground">Ingrediente activo y concentración *</label>
+            <div class="mb-1.5 flex items-center justify-between gap-2">
+              <label for="active_ingredient" class="block text-xs font-bold text-foreground">Ingrediente activo y concentración *</label>
+              <a href="/private/ingredients" class="text-[10px] font-bold text-[#1b4332] hover:underline">+ Catálogo de ingredientes</a>
+            </div>
             <input id="active_ingredient" name="active_ingredient" type="text" required maxlength="200" list="active-ingredients-datalist" placeholder="Ej. Azoxistrobina 20% + Difenoconazol 12.5%" class="w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-xs focus:border-[#1b4332] focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20" />
             <datalist id="active-ingredients-datalist">
               {{#each activeIngredients}}
