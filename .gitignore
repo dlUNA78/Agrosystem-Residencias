@@ -36,6 +36,8 @@ tmp/
 # Cargas dinámicas de usuarios y temporales de Multer
 public/images/uploads/*
 !public/images/uploads/.gitkeep
+public/images/avatars/*
+!public/images/avatars/.gitkeep
 public/images/products/[0-9]*
 
 # Carpetas de pruebas locales

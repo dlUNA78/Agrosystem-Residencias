@@ -21,7 +21,7 @@ describe('🔔 Centro de Notificaciones Híbrido', () => {
   let testNotif = null;
 
   beforeAll(async () => {
-    const passwordHash = await bcrypt.hash('NotifSecret@123', 10);
+    const passwordHash = await bcrypt.hash('TestUser@1234', 10);
 
     testUser = await User.create({
       full_name: 'Usuario Notif Test',
@@ -164,7 +164,7 @@ describe('🔔 Centro de Notificaciones Híbrido', () => {
       authAgent = request.agent(app);
       await authAgent.post('/auth/login').send({
         email: 'notif_test@inifap.gob.mx',
-        password: 'NotifSecret@123',
+        password: 'TestUser@1234',
       });
     });
 
