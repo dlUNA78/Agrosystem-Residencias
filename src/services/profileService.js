@@ -146,13 +146,7 @@ export const updateUserProfileDetails = async (userId, data) => {
   const user = await User.findByPk(userId);
   if (!user) throw new Error('user_not_found');
 
-  const oldValues = {
-    full_name: user.full_name,
-    phone: user.phone,
-    job_title: user.job_title,
-    shift: user.shift,
-    address: user.address,
-  };
+  const isStaff = user.role === 'inifap' || user.role === 'admin';
 
   if (typeof data.full_name === 'string') {
     user.full_name = data.full_name.trim();
@@ -160,10 +154,10 @@ export const updateUserProfileDetails = async (userId, data) => {
   if (typeof data.phone === 'string') {
     user.phone = data.phone.trim();
   }
-  if (typeof data.job_title === 'string') {
+  if (isStaff && typeof data.job_title === 'string') {
     user.job_title = data.job_title.trim();
   }
-  if (typeof data.shift === 'string') {
+  if (isStaff && typeof data.shift === 'string') {
     user.shift = data.shift.trim();
   }
   if (typeof data.address === 'string') {
@@ -171,20 +165,6 @@ export const updateUserProfileDetails = async (userId, data) => {
   }
 
   await user.save();
-
-  await recordSafeAuditLog({
-    recordId: user.id,
-    userId: user.id,
-    action: 'PROFILE_UPDATE',
-    oldValues,
-    newValues: {
-      full_name: user.full_name,
-      phone: user.phone,
-      job_title: user.job_title,
-      shift: user.shift,
-      address: user.address,
-    },
-  });
 
   return user;
 };

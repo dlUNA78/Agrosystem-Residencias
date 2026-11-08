@@ -4,8 +4,102 @@ import {
   createNotification,
   notifyAdmins,
 } from '../services/notificationService.js';
+import {
+  sanitizeText,
+  isValidEmail,
+  isValidPersonName,
+  validatePasswordPolicy,
+} from '../utils/validators.js';
 
 const { User, InifapCode, sequelize } = db;
+
+const REGISTER_EXTRA_SCRIPTS = '<script src="/js/public/register.js"></script>';
+
+const extractUpgradeParams = (body = {}) => ({
+  rawCode: String(body.secret_code || body.inifap_code || '').trim(),
+  jobTitle: sanitizeText(body.job_title, 100),
+  shift: sanitizeText(body.shift, 40),
+});
+
+const renderUpgradeError = (res, message, status = 401) =>
+  res.status(status).render('auth/upgrade', {
+    title: 'Ascenso a Personal INIFAP',
+    error: message,
+  });
+
+const applyUpgradeTransaction = async (user, inifapCode, jobTitle, shift) => {
+  await sequelize.transaction(async (t) => {
+    await inifapCode.burn(user.id, { transaction: t });
+    user.role = 'inifap';
+    if (inifapCode.rbac_role_id) {
+      user.rbac_role_id = inifapCode.rbac_role_id;
+    }
+    user.job_title = jobTitle || 'Investigador';
+    if (shift) {
+      user.shift = shift;
+    }
+    await user.save({ transaction: t });
+  });
+};
+
+const notifyUpgradeCompleted = async (user, codeStr) => {
+  await createNotification({
+    userId: user.id,
+    category: 'sistema',
+    severity: 'success',
+    title: 'Ascenso Institucional Exitoso',
+    message: 'Has sido promovido exitosamente a Personal Técnico INIFAP.',
+    actionUrl: '/dashboard',
+  });
+
+  await notifyAdmins({
+    actorId: user.id,
+    category: 'rbac',
+    severity: 'info',
+    title: 'Canje de Código INIFAP',
+    message: `El usuario ${user.full_name || user.email} canjeó el código institucional ${codeStr}.`,
+    actionUrl: '/private/users',
+  });
+};
+
+const completeUpgradeSessionAndRedirect = (req, res, next) => {
+  if (req.session && typeof req.session.regenerate === 'function') {
+    req.session.regenerate((err) => {
+      if (err) console.error('Error regenerando sesión en upgrade:', err);
+      req.logIn(req.user, (loginErr) => {
+        if (loginErr) return next(loginErr);
+        return res.redirect('/dashboard');
+      });
+    });
+    return;
+  }
+  res.redirect('/dashboard');
+};
+
+const renderRegisterError = (res, error, formData = {}) =>
+  res.status(400).render('auth/register', {
+    title: 'Registrarse en INIFAP',
+    error,
+    formData,
+    extraScripts: REGISTER_EXTRA_SCRIPTS,
+  });
+
+const validateRegistrationPayload = ({ full_name, email, password }) => {
+  if (!full_name || !email || !password) {
+    return 'Todos los campos son obligatorios.';
+  }
+  if (!isValidPersonName(full_name)) {
+    return 'El nombre completo solo puede contener letras y espacios (mínimo 2 caracteres).';
+  }
+  if (!isValidEmail(email)) {
+    return 'Ingresa un formato de correo electrónico válido.';
+  }
+  const pwdCheck = validatePasswordPolicy(password);
+  if (!pwdCheck.valid) {
+    return `Contraseña insegura: ${pwdCheck.errors.join(' ')}`;
+  }
+  return null;
+};
 
 export const authController = {
   // ─── VISTAS ────────────────────────────────────────────────────────────────
@@ -14,7 +108,10 @@ export const authController = {
     if (req.isAuthenticated && req.isAuthenticated()) {
       return res.redirect('/');
     }
-    res.render('auth/register', { title: 'Registrarse en INIFAP' });
+    res.render('auth/register', {
+      title: 'Registrarse en INIFAP',
+      extraScripts: REGISTER_EXTRA_SCRIPTS,
+    });
   },
 
   showLogin: (req, res) => {
@@ -31,27 +128,35 @@ export const authController = {
 
   register: async (req, res) => {
     try {
-      const { full_name, email, password } = req.body;
+      const cleanName = sanitizeText(req.body?.full_name, 120);
+      const cleanEmail = sanitizeText(req.body?.email, 150).toLowerCase();
+      const rawPassword = req.body?.password || '';
+      const formData = { full_name: cleanName, email: cleanEmail };
 
-      if (!full_name || !email || !password) {
-        return res.status(400).render('auth/register', {
-          error: 'Todos los campos son obligatorios.',
-        });
+      const validationError = validateRegistrationPayload({
+        full_name: cleanName,
+        email: cleanEmail,
+        password: rawPassword,
+      });
+      if (validationError) {
+        return renderRegisterError(res, validationError, formData);
       }
 
-      const existingUser = await User.findOne({ where: { email } });
+      const existingUser = await User.findOne({ where: { email: cleanEmail } });
       if (existingUser) {
-        return res.status(400).render('auth/register', {
-          error: 'Este correo electrónico ya está registrado.',
-        });
+        return renderRegisterError(
+          res,
+          'Este correo electrónico ya está registrado.',
+          formData,
+        );
       }
 
       const saltRounds = 10;
-      const password_hash = await bcrypt.hash(password, saltRounds);
+      const password_hash = await bcrypt.hash(rawPassword, saltRounds);
 
       await User.create({
-        full_name,
-        email,
+        full_name: cleanName,
+        email: cleanEmail,
         password_hash,
         role: 'agricultor',
       });
@@ -60,8 +165,10 @@ export const authController = {
     } catch (error) {
       console.error('CRITICAL ERROR en authController.register:', error);
       res.status(500).render('auth/register', {
+        title: 'Registrarse en INIFAP',
         error:
           'Error interno del servidor. Por favor contacte al administrador.',
+        extraScripts: REGISTER_EXTRA_SCRIPTS,
       });
     }
   },
@@ -94,86 +201,30 @@ export const authController = {
   },
 
   processUpgrade: async (req, res, next) => {
-    // Helper para renderizar errores sin duplicar código
-    const renderError = (message) =>
-      res.status(401).render('auth/upgrade', {
-        title: 'Ascenso a Personal INIFAP',
-        // 🛡️ Mensaje genérico: no revela si el código existe,
-        // está usado o expirado → evita enumeración de códigos válidos
-        error: message,
-      });
-
     try {
-      const { secret_code, job_title } = req.body;
-
-      // ── Validación básica ──────────────────────────────────────────────────
-      if (!secret_code || secret_code.trim() === '') {
-        return renderError('Debes ingresar un código de acceso.');
+      const { rawCode, jobTitle, shift } = extractUpgradeParams(req.body);
+      if (!rawCode) {
+        return renderUpgradeError(res, 'Debes ingresar un código de acceso.');
       }
 
-      // ── Búsqueda del código en BD ──────────────────────────────────────────
-      // findAvailable verifica internamente: existe + !is_used + !expirado
-      const inifapCode = await InifapCode.findAvailable(secret_code.trim());
-
+      const inifapCode = await InifapCode.findAvailable(rawCode);
       if (!inifapCode) {
-        // 🛡️ Respuesta idéntica para código inexistente, ya usado o expirado
-        return renderError(
+        return renderUpgradeError(
+          res,
           'El código de acceso es inválido o ya ha sido utilizado.',
         );
       }
 
-      // ── Transacción atómica: quemar código + escalar privilegios ──────────
-      // Si cualquiera de los dos falla, ambos se revierten (consistencia garantizada).
-      // No quedará jamás un código quemado con un usuario sin ascender, ni viceversa.
-      await sequelize.transaction(async (t) => {
-        // Paso 1: Quemar el código (is_used = true, guarda quién y cuándo)
-        await inifapCode.burn(req.user.id, { transaction: t });
-
-        // Paso 2: Escalar privilegios del usuario en PostgreSQL
-        req.user.role = 'inifap';
-        if (inifapCode.rbac_role_id) {
-          req.user.rbac_role_id = inifapCode.rbac_role_id;
-        }
-        req.user.job_title = job_title?.trim() || 'Investigador';
-        await req.user.save({ transaction: t });
-      });
-
-      await createNotification({
-        userId: req.user.id,
-        category: 'sistema',
-        severity: 'success',
-        title: 'Ascenso Institucional Exitoso',
-        message: 'Has sido promovido exitosamente a Personal Técnico INIFAP.',
-        actionUrl: '/dashboard',
-      });
-
-      await notifyAdmins({
-        actorId: req.user.id,
-        category: 'rbac',
-        severity: 'info',
-        title: 'Canje de Código INIFAP',
-        message: `El usuario ${req.user.full_name || req.user.email} canjeó el código institucional ${inifapCode.code}.`,
-        actionUrl: '/private/users',
-      });
-
-      // 🛡️ Regeneración de ID de sesión al elevar privilegios (Anti-Session Fixation)
-      if (req.session && typeof req.session.regenerate === 'function') {
-        req.session.regenerate((err) => {
-          if (err) console.error('Error regenerando sesión en upgrade:', err);
-          req.logIn(req.user, (err) => {
-            if (err) return next(err);
-            return res.redirect('/dashboard');
-          });
-        });
-      } else {
-        return res.redirect('/dashboard');
-      }
+      await applyUpgradeTransaction(req.user, inifapCode, jobTitle, shift);
+      await notifyUpgradeCompleted(req.user, inifapCode.code);
+      return completeUpgradeSessionAndRedirect(req, res, next);
     } catch (error) {
       console.error('Error en processUpgrade:', error);
-      res.status(500).render('auth/upgrade', {
-        title: 'Ascenso a Personal INIFAP',
-        error: 'Error de servidor al procesar el ascenso. Intenta de nuevo.',
-      });
+      return renderUpgradeError(
+        res,
+        'Error de servidor al procesar el ascenso. Intenta de nuevo.',
+        500,
+      );
     }
   },
 };

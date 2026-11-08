@@ -20,8 +20,8 @@ import adminRoutes from './private/adminRoutes.js';
 
 const privateRouter = Router();
 
-// Aplica el middleware de verificación de sesión activa a TODAS las rutas
-privateRouter.use(isAuthenticated);
+// Aplica el middleware de verificación de sesión activa únicamente a las rutas protegidas
+privateRouter.use(['/profile', '/dashboard', '/private'], isAuthenticated);
 
 // ══════════════════════════════════════════════════════════════════════════════
 // MÓDULO: PERFIL PÚBLICO (Accesible para cualquier usuario autenticado)
@@ -36,7 +36,7 @@ privateRouter.post(
 );
 
 // Aplica el bloqueo del panel privado (Solo INIFAP y Admin a partir de este punto)
-privateRouter.use(requirePanelAccess);
+privateRouter.use(['/dashboard', '/private'], requirePanelAccess);
 
 // Perfil dentro del Panel Privado (Solo INIFAP y Admin)
 privateRouter.get('/private/profile', renderProfile);

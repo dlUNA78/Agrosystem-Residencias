@@ -10,6 +10,7 @@ const allowedImageDirectories = new Set([
   'plagues',
   'crops',
   'avatars',
+  'safety-sheets',
 ]);
 
 export const IMAGE_UPLOAD_LIMITS = Object.freeze({
@@ -26,8 +27,30 @@ const allowedImageTypes = Object.freeze({
 const invalidImageContentMessage =
   'El contenido real del archivo no corresponde a una imagen permitida.';
 
+export const normalizePublicImageUrl = (rawValue, category = 'products') => {
+  if (!rawValue) return null;
+  const trimmed = String(rawValue).trim().replace(/\\/g, '/');
+  if (!trimmed) return null;
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+    return trimmed;
+  }
+  if (trimmed.startsWith('/images/')) {
+    return trimmed;
+  }
+  const baseName = path.posix.basename(trimmed);
+  return `/images/${category}/${baseName}`;
+};
+
 export const validateImageFile = (file) => {
   const extension = path.extname(file.originalname || '').toLowerCase();
+
+  if (
+    file.fieldname === 'safety_sheet' &&
+    extension === '.pdf' &&
+    file.mimetype === 'application/pdf'
+  ) {
+    return true;
+  }
 
   if (allowedImageTypes[extension] !== file.mimetype) {
     throw new Error('Sólo se permiten imágenes JPG, PNG o WEBP.');
@@ -37,6 +60,10 @@ export const validateImageFile = (file) => {
 };
 
 const matchesImageSignature = (buffer, mimetype) => {
+  if (mimetype === 'application/pdf') {
+    return buffer.subarray(0, 5).toString('ascii') === '%PDF-';
+  }
+
   if (mimetype === 'image/jpeg') {
     return buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff;
   }
@@ -219,15 +246,20 @@ export const uploadProductImages = (req, res, next) => {
   upload.fields([
     { name: 'images', maxCount: IMAGE_UPLOAD_LIMITS.files },
     { name: 'image', maxCount: IMAGE_UPLOAD_LIMITS.files },
+    { name: 'safety_sheet', maxCount: 1 },
   ])(req, res, async (error) => {
-    req.files = flattenUploadedFiles(req.files);
+    const rawFilesMap = req.files && !Array.isArray(req.files) ? req.files : null;
+    const safetyFiles = rawFilesMap?.safety_sheet || [];
+    const allUploaded = flattenUploadedFiles(req.files);
+    req.safetySheetFile = safetyFiles[0] || null;
+    req.files = allUploaded.filter((f) => f.fieldname !== 'safety_sheet');
 
     if (error) {
-      await cleanupRejectedFiles(req.files);
+      await cleanupRejectedFiles(allUploaded);
       return res.status(400).send(imageUploadErrorMessage(error));
     }
     if (req.files.length > IMAGE_UPLOAD_LIMITS.files) {
-      await cleanupRejectedFiles(req.files);
+      await cleanupRejectedFiles(allUploaded);
       return res
         .status(400)
         .send(
@@ -237,12 +269,12 @@ export const uploadProductImages = (req, res, next) => {
 
     try {
       await Promise.all(
-        req.files.map((file) =>
+        allUploaded.map((file) =>
           validateImageSignature(file.path, file.mimetype),
         ),
       );
     } catch (signatureError) {
-      await cleanupRejectedFiles(req.files);
+      await cleanupRejectedFiles(allUploaded);
       console.error('Se rechazó una imagen de producto por firma inválida:', {
         name: signatureError.name,
         code: signatureError.code,

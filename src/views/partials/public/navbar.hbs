@@ -13,40 +13,43 @@
         </div>
       </a>
 
-      <!-- Enlaces de Navegación Principal (Rectos con Borde Inferior Activo) -->
-      <nav class="hidden md:flex items-center gap-6">
-        <a class="text-sm font-medium transition-colors py-1.5 border-b-2 {{#if (eq activePage 'home')}}text-[#1b4332] border-[#1b4332] font-semibold{{else}}text-muted-foreground hover:text-foreground border-transparent{{/if}}"
+      <!-- Enlaces de Navegación Principal (Estética Institucional Geist) -->
+      <nav class="hidden md:flex items-center gap-1.5" aria-label="Navegación principal del portal">
+        <a class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all {{#if (eq activePage 'home')}}bg-[#1b4332]/10 text-[#1b4332] font-bold{{else}}text-muted-foreground hover:text-foreground hover:bg-secondary/70{{/if}}"
           href="/">
           Inicio
         </a>
-        <a class="text-sm font-medium transition-colors py-1.5 border-b-2 {{#if (eq activePage 'plagues')}}text-[#1b4332] border-[#1b4332] font-semibold{{else}}text-muted-foreground hover:text-foreground border-transparent{{/if}}"
+        <a class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all {{#if (eq activePage 'plagues')}}bg-[#1b4332]/10 text-[#1b4332] font-bold{{else}}text-muted-foreground hover:text-foreground hover:bg-secondary/70{{/if}}"
           href="/plagues">
           Plagas
         </a>
-        <a class="text-sm font-medium transition-colors py-1.5 border-b-2 {{#if (eq activePage 'crops')}}text-[#1b4332] border-[#1b4332] font-semibold{{else}}text-muted-foreground hover:text-foreground border-transparent{{/if}}"
+        <a class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all {{#if (eq activePage 'crops')}}bg-[#1b4332]/10 text-[#1b4332] font-bold{{else}}text-muted-foreground hover:text-foreground hover:bg-secondary/70{{/if}}"
           href="/crops">
           Cultivos
         </a>
-        <a class="text-sm font-medium transition-colors py-1.5 border-b-2 {{#if (eq activePage 'products')}}text-[#1b4332] border-[#1b4332] font-semibold{{else}}text-muted-foreground hover:text-foreground border-transparent{{/if}}"
+        <a class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all {{#if (eq activePage 'products')}}bg-[#1b4332]/10 text-[#1b4332] font-bold{{else}}text-muted-foreground hover:text-foreground hover:bg-secondary/70{{/if}}"
           href="/products">
           Productos
         </a>
-        <a class="text-sm font-medium transition-colors py-1.5 border-b-2 {{#if (eq activePage 'lands')}}text-[#1b4332] border-[#1b4332] font-semibold{{else}}text-muted-foreground hover:text-foreground border-transparent{{/if}}"
+        <a class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all {{#if (eq activePage 'lands')}}bg-[#1b4332]/10 text-[#1b4332] font-bold{{else}}text-muted-foreground hover:text-foreground hover:bg-secondary/70{{/if}}"
           href="/lands">
           Regiones
         </a>
 
-        {{#if (canAccessPanel user)}}
-        <a class="text-sm font-semibold text-[#1b4332] hover:text-[#133426] transition-colors py-1.5 border-b-2 border-transparent"
-          href="/dashboard">
-          Panel INIFAP
-        </a>
-        {{else}}
-        <a class="text-sm font-semibold text-emerald-700 hover:text-emerald-900 transition-colors py-1.5 border-b-2 border-transparent flex items-center gap-1.5"
-          href="/auth/inifap-upgrade" title="Acceso al Panel Técnico (Validar Código)">
-          <span class="material-symbols-outlined text-base">verified_user</span>
-          Ascenso INIFAP
-        </a>
+        {{#if user}}
+          {{#if (canAccessPanel user)}}
+          <a class="ml-2 inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50/80 px-3 py-1.5 text-xs font-bold text-[#1b4332] hover:bg-emerald-100/80 transition-colors"
+            href="/dashboard" title="Ir al Panel Técnico INIFAP">
+            <span class="material-symbols-outlined text-sm" aria-hidden="true">space_dashboard</span>
+            <span>Panel INIFAP</span>
+          </a>
+          {{else}}
+          <a class="ml-2 inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50/80 px-3 py-1.5 text-xs font-bold text-emerald-800 hover:bg-emerald-100 transition-colors"
+            href="/auth/inifap-upgrade" title="Solicitar validación como personal técnico INIFAP">
+            <span class="material-symbols-outlined text-sm" aria-hidden="true">verified_user</span>
+            <span>Ascenso INIFAP</span>
+          </a>
+          {{/if}}
         {{/if}}
       </nav>
     </div>
@@ -247,6 +250,7 @@
         <span>Regiones y Cobertura</span>
       </a>
 
+      {{#if user}}
       <div class="pt-4 border-t border-border mt-4">
         <div class="text-mono-label text-muted-foreground font-semibold px-2 pb-1">ACCESO INSTITUCIONAL</div>
         {{#if (canAccessPanel user)}}
@@ -261,6 +265,7 @@
         </a>
         {{/if}}
       </div>
+      {{/if}}
     </div>
 
     <!-- Footer del Drawer (Sesión o Ingreso) -->

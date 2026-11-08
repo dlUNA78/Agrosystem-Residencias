@@ -24,6 +24,7 @@ import {
   getUserRoleSummary,
 } from './src/services/rbacService.js';
 import { enrichSessionActivity } from './src/services/sessionManagementService.js';
+import { sendNotFoundResponse } from './src/utils/errorRenderer.js';
 
 const { sequelize } = db;
 
@@ -361,10 +362,16 @@ app.use((req, res, next) => {
   next();
 });
 
+app.get('/login', (_req, res) => res.redirect(302, '/auth/login'));
+app.get('/register', (_req, res) => res.redirect(302, '/auth/register'));
+
 app.use('/auth', authRoutes);
 app.use('/', publicRoutes);
-app.use('/', privateRoutes);
 app.use('/', notificationRoutes);
+app.use('/', privateRoutes);
+
+// Manejador 404 para rutas inexistentes
+app.use((req, res) => sendNotFoundResponse(req, res));
 
 // Arrancar el servidor solo si no estamos en entorno de prueba
 if (process.env.NODE_ENV !== 'test') {
