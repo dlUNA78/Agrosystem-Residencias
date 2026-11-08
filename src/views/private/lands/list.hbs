@@ -323,6 +323,17 @@
                       <span>{{this.region.name}}</span>
                     </p>
                   {{/if}}
+                  {{#if this.hasCoords}}
+                    <p class="font-mono text-[10px] font-semibold text-emerald-900/75 flex items-center gap-1">
+                      <i data-lucide="crosshair" class="w-3 h-3 text-emerald-700"></i>
+                      <span>{{this.location_lat}}, {{this.location_lng}}</span>
+                    </p>
+                  {{else}}
+                    <p class="font-mono text-[10px] text-muted-foreground flex items-center gap-1">
+                      <i data-lucide="map-pin-off" class="w-3 h-3"></i>
+                      <span>Sin coordenadas GPS</span>
+                    </p>
+                  {{/if}}
                 </div>
 
                 <div class="flex flex-col items-end gap-1.5 z-10">
@@ -340,7 +351,7 @@
                       title="Centrar parcela en el mapa"
                     >
                       <i data-lucide="locate-fixed" class="w-3 h-3"></i>
-                      <span>GPS</span>
+                      <span>Ver en mapa</span>
                     </button>
                   {{/if}}
                 </div>

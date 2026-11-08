@@ -56,12 +56,14 @@ export const initializeAuditInspector = () => {
   const closeModal = () => {
     modal.classList.add('hidden');
     modal.classList.remove('flex');
+    window.modalScrollLock?.unlock();
   };
 
   const openModal = (trigger) => {
     populateAuditModalFields(trigger.dataset);
     modal.classList.remove('hidden');
     modal.classList.add('flex');
+    window.modalScrollLock?.lock();
   };
 
   document.addEventListener('click', (event) => {

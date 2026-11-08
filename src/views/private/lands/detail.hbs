@@ -53,12 +53,28 @@
 
             <div class="flex flex-wrap items-center gap-2">
                 <a
+                    href="/private/lands/{{land.id}}/expediente?format=pdf"
+                    class="inline-flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50/70 px-3.5 py-2 text-xs font-bold text-[#1b4332] shadow-xs transition-colors hover:bg-emerald-100"
+                    title="Descargar expediente técnico ejecutivo en formato PDF"
+                >
+                    <i data-lucide="file-text" class="h-3.5 w-3.5"></i>
+                    <span>PDF Ejecutivo</span>
+                </a>
+                <a
                     href="/private/lands/{{land.id}}/expediente?format=csv"
                     class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 shadow-xs transition-colors hover:border-[#1b4332]/40 hover:bg-emerald-50/40 hover:text-[#1b4332]"
                     title="Descargar bitácora integral del predio en formato CSV (UTF-8)"
                 >
                     <i data-lucide="file-spreadsheet" class="h-3.5 w-3.5"></i>
                     <span>Exportar CSV</span>
+                </a>
+                <a
+                    href="/private/lands/{{land.id}}/expediente?format=geojson"
+                    class="inline-flex items-center gap-1.5 rounded-xl border border-sky-200 bg-sky-50/60 px-3 py-2 font-['Geist_Mono'] text-xs font-bold text-sky-800 shadow-xs transition-colors hover:bg-sky-100"
+                    title="Exportar capa cartográfica estándar RFC 7946 GeoJSON"
+                >
+                    <i data-lucide="map-pinned" class="h-3.5 w-3.5"></i>
+                    <span>GeoJSON</span>
                 </a>
                 <a
                     href="/private/lands/{{land.id}}/expediente?format=json"

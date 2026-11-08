@@ -9,7 +9,9 @@ import {
 } from '../../../services/landAuthorizationService.js';
 import {
   buildLandExpedienteCsv,
+  buildLandExpedienteGeoJson,
   buildLandExpedientePayload,
+  sendLandExpedientePdf,
 } from '../../../services/landExportService.js';
 import { summarizeLandCropStages } from '../../../services/landPhenologyService.js';
 import { parseLandId } from '../../../services/landValidationService.js';
@@ -269,25 +271,43 @@ const extractDetectedPlagues = (healthReports = []) => {
   return { detectedPlagues, detectedPlaguesByCrop };
 };
 
+const sendAttachmentJson = (res, filename, contentType, payload) => {
+  res.setHeader?.('Content-Type', contentType);
+  res.setHeader?.('Content-Disposition', `attachment; filename="${filename}"`);
+  return res.status(200).json(payload);
+};
+
 const sendLandExportIfRequested = (req, res, context) => {
   const format = String(req.query?.format || '').toLowerCase();
+  const baseName = `expediente-predio-${context.land.id}`;
+
   if (format === 'csv') {
     const csv = buildLandExpedienteCsv(context);
     res.setHeader?.('Content-Type', 'text/csv; charset=utf-8');
     res.setHeader?.(
       'Content-Disposition',
-      `attachment; filename="expediente-predio-${context.land.id}.csv"`,
+      `attachment; filename="${baseName}.csv"`,
     );
     return res.status(200).send(csv);
   }
   if (format === 'json') {
-    const payload = buildLandExpedientePayload(context);
-    res.setHeader?.('Content-Type', 'application/json; charset=utf-8');
-    res.setHeader?.(
-      'Content-Disposition',
-      `attachment; filename="expediente-predio-${context.land.id}.json"`,
+    return sendAttachmentJson(
+      res,
+      `${baseName}.json`,
+      'application/json; charset=utf-8',
+      buildLandExpedientePayload(context),
     );
-    return res.status(200).json(payload);
+  }
+  if (format === 'geojson') {
+    return sendAttachmentJson(
+      res,
+      `${baseName}.geojson`,
+      'application/geo+json; charset=utf-8',
+      buildLandExpedienteGeoJson(context),
+    );
+  }
+  if (format === 'pdf') {
+    return sendLandExpedientePdf(res, context);
   }
   return null;
 };
