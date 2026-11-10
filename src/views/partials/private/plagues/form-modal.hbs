@@ -421,6 +421,19 @@
                         <p id="plague-existing-images-note" class="hidden text-[11px] text-[#2d6a4f] font-medium">Las fotos marcadas como «Actual» se conservarán; puedes quitar cualquiera antes de guardar.</p>
                     </div>
 
+                    <div class="rounded-xl border border-border/80 bg-card p-3.5">
+                        <div class="flex flex-wrap items-center justify-between gap-1 mb-1.5">
+                            <label for="plague-image-source-default" class="text-xs font-bold text-foreground flex items-center gap-1.5">
+                                <i data-lucide="camera" class="w-3.5 h-3.5 text-[#1b4332]"></i>
+                                Créditos / Fuente de las imágenes (opcional)
+                            </label>
+                            <span class="text-[10px] font-mono text-muted-foreground">Se aplica a las fotos sin crédito individual</span>
+                        </div>
+                        <input id="plague-image-source-default" type="text" name="image_source_default" maxlength="255"
+                            placeholder="Ej. Dr. Roberto Mendoza · INIFAP Campo Experimental Bajío / Acervo SENASICA"
+                            class="w-full bg-background border border-input rounded-xl px-3.5 py-2 text-xs text-foreground focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all" />
+                    </div>
+
                     <div id="plague-image-previews" class="hidden grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5" aria-live="polite"></div>
                 </section>
 

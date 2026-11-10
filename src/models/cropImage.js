@@ -35,6 +35,13 @@ export default (sequelize, DataTypes) => {
         allowNull: true,
       },
 
+      // CRÉDITOS / FUENTE DE LA IMAGEN
+      source: {
+        type: DataTypes.STRING(255),
+
+        allowNull: true,
+      },
+
       // IMAGEN PRINCIPAL
       is_primary: {
         type: DataTypes.BOOLEAN,

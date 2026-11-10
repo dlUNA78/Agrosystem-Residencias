@@ -2,6 +2,7 @@ import db from '../../../models/index.js';
 import { getContextualPlaguePermissions } from '../../../services/plagueAuthorizationService.js';
 import {
   MAX_PLAGUE_IMAGES,
+  buildExistingPlagueImageSourceUpdates,
   buildPlagueImageRecords,
   buildPlagueImageUpdatePlan,
   cleanupStoredPlagueImages,
@@ -106,9 +107,11 @@ const syncPlagueModalRelations = async (plague, body, transaction) => {
 
 const applyPlagueImageChanges = async ({
   plagueId,
+  existingImages = [],
   removedImageIds,
   files,
   nextImageOrder,
+  body,
   transaction,
 }) => {
   if (removedImageIds.length > 0) {
@@ -117,12 +120,31 @@ const applyPlagueImageChanges = async ({
       transaction,
     });
   }
+  const sourceUpdates = buildExistingPlagueImageSourceUpdates({
+    existingImages,
+    removedImageIds,
+    rawIds: body?.existing_image_source_ids,
+    rawSources: body?.existing_image_sources,
+    defaultSource: body?.image_source_default,
+  });
+  if (sourceUpdates.length > 0 && typeof PlagueImage?.update === 'function') {
+    await Promise.all(
+      sourceUpdates.map((item) =>
+        PlagueImage.update(
+          { source: item.source },
+          { where: { id: item.id, plague_id: plagueId }, transaction },
+        ),
+      ),
+    );
+  }
   if (files.length > 0) {
     await PlagueImage.bulkCreate(
       buildPlagueImageRecords({
         plagueId,
         files,
         startOrder: nextImageOrder,
+        sources: body?.new_image_sources,
+        defaultSource: body?.image_source_default,
       }),
       { transaction },
     );
@@ -171,7 +193,12 @@ export const createPlague = async (req, res) => {
 
     if (files.length > 0) {
       await PlagueImage.bulkCreate(
-        buildPlagueImageRecords({ plagueId: plague.id, files }),
+        buildPlagueImageRecords({
+          plagueId: plague.id,
+          files,
+          sources: req.body?.new_image_sources,
+          defaultSource: req.body?.image_source_default,
+        }),
         { transaction },
       );
     }
@@ -277,9 +304,11 @@ export const updatePlague = async (req, res) => {
 
     await applyPlagueImageChanges({
       plagueId: plague.id,
+      existingImages,
       removedImageIds,
       files,
       nextImageOrder: imageUpdatePlan.nextImageOrder,
+      body: req.body,
       transaction,
     });
 

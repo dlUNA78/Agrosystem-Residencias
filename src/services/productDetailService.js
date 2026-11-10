@@ -133,6 +133,7 @@ const buildGalleryImages = (rawProduct) => {
       id: img.id || idx + 1,
       image_url: normalizeProductImagePath(img.image_url),
       original_name: img.original_name || null,
+      source: img.source || null,
       is_primary: Boolean(img.is_primary),
       display_order: Number(img.display_order) || idx,
     }))

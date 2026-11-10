@@ -4,14 +4,18 @@ const MAX_IMAGES = 10;
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
 
+const getFileKey = (file) => `${file.name}:${file.size}:${file.lastModified}`;
+
 const normalizeExistingImages = (rawImages, fallbackUrl = '') => {
-  if (!rawImages) return fallbackUrl ? [{ id: null, url: fallbackUrl }] : [];
+  if (!rawImages) {
+    return fallbackUrl ? [{ id: null, url: fallbackUrl, source: '' }] : [];
+  }
 
   try {
     const parsed =
       typeof rawImages === 'string' ? JSON.parse(rawImages) : rawImages;
     if (!Array.isArray(parsed)) {
-      return fallbackUrl ? [{ id: null, url: fallbackUrl }] : [];
+      return fallbackUrl ? [{ id: null, url: fallbackUrl, source: '' }] : [];
     }
 
     return parsed
@@ -19,17 +23,56 @@ const normalizeExistingImages = (rawImages, fallbackUrl = '') => {
         id: Number.isSafeInteger(Number(image?.id)) ? Number(image.id) : null,
         url: typeof image === 'string' ? image : image?.url,
         caption: typeof image === 'object' ? image?.caption : '',
+        source: typeof image === 'object' ? image?.source || '' : '',
       }))
       .filter((image) => image.url);
   } catch {
-    return fallbackUrl ? [{ id: null, url: fallbackUrl }] : [];
+    return fallbackUrl ? [{ id: null, url: fallbackUrl, source: '' }] : [];
   }
 };
 
-const buildImagePreview = ({ url, label, isNew, onRemove }) => {
+const createCreditFooter = ({ id, source = '', isNew, onSourceChange }) => {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'border-t border-border/60 bg-muted/20 px-2 py-1.5';
+
+  if (!isNew && id !== null) {
+    const idInput = document.createElement('input');
+    idInput.type = 'hidden';
+    idInput.name = 'existing_image_source_ids';
+    idInput.value = String(id);
+    wrapper.appendChild(idInput);
+  }
+
+  if (isNew || id !== null) {
+    const sourceInput = document.createElement('input');
+    sourceInput.type = 'text';
+    sourceInput.name = isNew ? 'new_image_sources' : 'existing_image_sources';
+    sourceInput.value = source || '';
+    sourceInput.maxLength = 255;
+    sourceInput.placeholder = 'Crédito / fuente (opcional)';
+    sourceInput.className =
+      'w-full rounded-lg border border-input bg-card px-2 py-1 text-[10px] text-foreground focus:border-[#1b4332] focus:outline-hidden';
+    sourceInput.addEventListener('input', (event) => {
+      onSourceChange?.(event.target.value);
+    });
+    wrapper.appendChild(sourceInput);
+  }
+
+  return wrapper;
+};
+
+const buildImagePreview = ({
+  id = null,
+  url,
+  label,
+  source = '',
+  isNew,
+  onSourceChange,
+  onRemove,
+}) => {
   const figure = document.createElement('figure');
   figure.className =
-    'overflow-hidden rounded-xl border border-border/80 bg-card shadow-2xs';
+    'overflow-hidden rounded-xl border border-border/80 bg-card shadow-2xs flex flex-col';
 
   const image = document.createElement('img');
   image.src = url;
@@ -60,7 +103,11 @@ const buildImagePreview = ({ url, label, isNew, onRemove }) => {
     caption.append(removeButton);
   }
 
-  figure.append(image, caption);
+  figure.append(
+    image,
+    caption,
+    createCreditFooter({ id, source, isNew, onSourceChange }),
+  );
   return figure;
 };
 
@@ -120,9 +167,13 @@ export const createPlagueImageEditor = () => {
     'plague-existing-images-note',
   );
   const removedIdsInput = document.getElementById('plague-removed-image-ids');
+  const defaultSourceInput = document.getElementById(
+    'plague-image-source-default',
+  );
   const error = document.getElementById('plague-image-error');
   let existingImages = [];
   let selectedFiles = [];
+  const newFileSources = new Map();
   let removedIds = new Set();
   let previewUrls = [];
 
@@ -155,9 +206,14 @@ export const createPlagueImageEditor = () => {
     activeImages.forEach((image, index) => {
       previews.append(
         buildImagePreview({
+          id: image.id,
           url: image.url,
           label: image.caption || `Imagen ${index + 1}`,
+          source: image.source || '',
           isNew: false,
+          onSourceChange: (value) => {
+            image.source = value;
+          },
           onRemove:
             image.id === null
               ? null
@@ -186,13 +242,19 @@ export const createPlagueImageEditor = () => {
 
     selectedFiles.forEach((file, index) => {
       const objectUrl = URL.createObjectURL(file);
+      const fileKey = getFileKey(file);
       previewUrls.push(objectUrl);
       previews.append(
         buildImagePreview({
           url: objectUrl,
           label: file.name,
+          source: newFileSources.get(fileKey) || '',
           isNew: true,
+          onSourceChange: (value) => {
+            newFileSources.set(fileKey, value);
+          },
           onRemove: () => {
+            newFileSources.delete(fileKey);
             selectedFiles.splice(index, 1);
             syncInput();
             input?.dispatchEvent(new Event('input', { bubbles: true }));
@@ -253,8 +315,10 @@ export const createPlagueImageEditor = () => {
   const reset = () => {
     existingImages = [];
     selectedFiles = [];
+    newFileSources.clear();
     removedIds = new Set();
     if (removedIdsInput) removedIdsInput.value = '';
+    if (defaultSourceInput) defaultSourceInput.value = '';
     if (input) input.value = '';
     setError();
     syncInput();
@@ -264,8 +328,12 @@ export const createPlagueImageEditor = () => {
   const load = (data) => {
     existingImages = normalizeExistingImages(data.images, data.imageUrl);
     selectedFiles = [];
+    newFileSources.clear();
     removedIds = new Set();
     if (removedIdsInput) removedIdsInput.value = '';
+    if (defaultSourceInput) {
+      defaultSourceInput.value = existingImages[0]?.source || '';
+    }
     if (input) input.value = '';
     setError();
     render();

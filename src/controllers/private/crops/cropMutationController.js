@@ -3,6 +3,7 @@ import { getContextualCropPermissions } from '../../../services/cropAuthorizatio
 import {
   buildCropImageRecords,
   buildCropImageUpdatePlan,
+  buildExistingCropImageSourceUpdates,
   cleanupStoredCropImages,
   cleanupUploadedCropFiles,
   MAX_CROP_IMAGES,
@@ -200,14 +201,44 @@ const syncCropModalRelations = async (crop, body, transaction) => {
   return null;
 };
 
+const updateExistingCropImageSources = async ({
+  cropId,
+  remainingImages = [],
+  body,
+  transaction,
+}) => {
+  const sourceUpdates = buildExistingCropImageSourceUpdates({
+    existingImages: remainingImages,
+    removedImageIds: [],
+    rawIds: body?.existing_image_source_ids,
+    rawSources: body?.existing_image_sources,
+    defaultSource: body?.image_source_default,
+  });
+  if (!sourceUpdates.length || typeof CropImage?.update !== 'function') return;
+  await Promise.all(
+    sourceUpdates.map((item) =>
+      CropImage.update(
+        { source: item.source },
+        { where: { id: item.id, crop_id: cropId }, transaction },
+      ),
+    ),
+  );
+};
+
 const applyCropImageUpdates = async ({
   cropId,
   files,
   imageUpdatePlan,
+  body,
   transaction,
 }) => {
-  const { removedImages, nextPrimaryId, nextImageOrder, hasRemainingPrimary } =
-    imageUpdatePlan;
+  const {
+    removedImages,
+    remainingImages,
+    nextPrimaryId,
+    nextImageOrder,
+    hasRemainingPrimary,
+  } = imageUpdatePlan;
 
   if (removedImages.length > 0) {
     const removedIds = removedImages.map((img) => img.id);
@@ -228,6 +259,13 @@ const applyCropImageUpdates = async ({
     );
   }
 
+  await updateExistingCropImageSources({
+    cropId,
+    remainingImages,
+    body,
+    transaction,
+  });
+
   if (files.length > 0) {
     await CropImage.bulkCreate(
       buildCropImageRecords({
@@ -235,6 +273,8 @@ const applyCropImageUpdates = async ({
         files,
         startOrder: nextImageOrder,
         hasPrimary: hasRemainingPrimary,
+        sources: body?.new_image_sources,
+        defaultSource: body?.image_source_default,
       }),
       { transaction },
     );
@@ -290,7 +330,12 @@ export const createCrop = async (req, res) => {
 
     if (files.length > 0) {
       await CropImage.bulkCreate(
-        buildCropImageRecords({ cropId: crop.id, files }),
+        buildCropImageRecords({
+          cropId: crop.id,
+          files,
+          sources: req.body?.new_image_sources,
+          defaultSource: req.body?.image_source_default,
+        }),
         { transaction },
       );
     }
@@ -385,6 +430,7 @@ export const updateCrop = async (req, res) => {
       cropId: crop.id,
       files,
       imageUpdatePlan: imagePlan,
+      body: req.body,
       transaction,
     });
 

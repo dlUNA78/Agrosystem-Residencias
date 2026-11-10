@@ -5,10 +5,12 @@ import path from 'node:path';
 
 import {
   MAX_PLAGUE_IMAGES,
+  buildExistingPlagueImageSourceUpdates,
   buildPlagueImageRecords,
   buildPlagueImageUpdatePlan,
   cleanupStoredPlagueImages,
   parseRemovedPlagueImageIds,
+  sanitizeImageSource,
 } from '../../src/services/plagueImageService.js';
 
 describe('reglas de la galería de plagas', () => {
@@ -97,5 +99,49 @@ describe('reglas de la galería de plagas', () => {
       fs.rmSync(plagueFile, { force: true });
       fs.rmSync(externalDirectory, { recursive: true, force: true });
     }
+  });
+
+  it('asigna créditos individuales y de respaldo en las imágenes de plaga', () => {
+    expect(sanitizeImageSource('  Dr. Roberto Mendoza  ')).toBe(
+      'Dr. Roberto Mendoza',
+    );
+    expect(sanitizeImageSource('')).toBeNull();
+    expect(sanitizeImageSource(null)).toBeNull();
+
+    const records = buildPlagueImageRecords({
+      plagueId: 10,
+      files: [{ filename: 'foto1.png' }, { filename: 'foto2.jpg' }],
+      startOrder: 0,
+      sources: ['Autor Particular', ''],
+      defaultSource: 'INIFAP Campo Experimental',
+    });
+
+    expect(records).toEqual([
+      {
+        plague_id: 10,
+        url: 'images/plagues/foto1.png',
+        sort_order: 0,
+        source: 'Autor Particular',
+      },
+      {
+        plague_id: 10,
+        url: 'images/plagues/foto2.jpg',
+        sort_order: 1,
+        source: 'INIFAP Campo Experimental',
+      },
+    ]);
+
+    const updates = buildExistingPlagueImageSourceUpdates({
+      existingImages: [
+        { id: 1, source: null },
+        { id: 2, source: null },
+      ],
+      removedImageIds: [2],
+      rawIds: ['1', '2', '999'],
+      rawSources: ['Fotógrafo A', 'Fotógrafo B', 'Fotógrafo C'],
+      defaultSource: 'INIFAP',
+    });
+
+    expect(updates).toEqual([{ id: 1, source: 'Fotógrafo A' }]);
   });
 });

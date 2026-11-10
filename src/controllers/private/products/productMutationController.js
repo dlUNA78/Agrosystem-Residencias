@@ -4,6 +4,7 @@ import { CROP_WORKFLOW_STATUSES } from '../../../services/cropWorkflowService.js
 import { PLAGUE_WORKFLOW_STATUSES } from '../../../services/plagueWorkflowService.js';
 import {
   MAX_PRODUCT_IMAGES,
+  buildExistingProductImageSourceUpdates,
   buildProductImageRecords,
   buildProductImageUpdatePlan,
   cleanupStoredProductImages,
@@ -196,11 +197,38 @@ const parseMutationInputs = (req, files) => {
   };
 };
 
+const updateExistingProductImageSources = async ({
+  productId,
+  remainingImages = [],
+  body,
+  transaction,
+}) => {
+  const sourceUpdates = buildExistingProductImageSourceUpdates({
+    existingImages: remainingImages,
+    removedImageIds: [],
+    rawIds: body?.existing_image_source_ids,
+    rawSources: body?.existing_image_sources,
+    defaultSource: body?.image_source_default,
+  });
+  if (!sourceUpdates.length || typeof ProductImage?.update !== 'function') {
+    return;
+  }
+  await Promise.all(
+    sourceUpdates.map((item) =>
+      ProductImage.update(
+        { source: item.source },
+        { where: { id: item.id, product_id: productId }, transaction },
+      ),
+    ),
+  );
+};
+
 const applyImageUpdates = async ({
   product,
   files,
   removedImageIds,
   primaryImageId,
+  body,
   transaction,
 }) => {
   const existingRows = await ProductImage.findAll({
@@ -240,6 +268,12 @@ const applyImageUpdates = async ({
       );
     }
   }
+  await updateExistingProductImageSources({
+    productId: product.id,
+    remainingImages: plan.remainingImages,
+    body,
+    transaction,
+  });
   if (files.length > 0) {
     await ProductImage.bulkCreate(
       buildProductImageRecords({
@@ -247,6 +281,8 @@ const applyImageUpdates = async ({
         files,
         startOrder: plan.nextImageOrder,
         hasPrimary: plan.hasPrimary,
+        sources: body?.new_image_sources,
+        defaultSource: body?.image_source_default,
       }),
       { transaction },
     );
@@ -286,7 +322,12 @@ export const createProduct = async (req, res) => {
     );
     if (files.length > 0) {
       await ProductImage.bulkCreate(
-        buildProductImageRecords({ productId: product.id, files }),
+        buildProductImageRecords({
+          productId: product.id,
+          files,
+          sources: req.body?.new_image_sources,
+          defaultSource: req.body?.image_source_default,
+        }),
         { transaction },
       );
     }
@@ -358,6 +399,7 @@ export const updateProduct = async (req, res) => {
       files,
       removedImageIds: parsed.removedImageIds,
       primaryImageId: parsed.primaryImageId,
+      body: req.body,
       transaction,
     });
     if (imageUpdate.error) {

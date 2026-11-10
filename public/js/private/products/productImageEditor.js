@@ -37,6 +37,35 @@ const createThumbImage = (src, alt) => {
   return img;
 };
 
+const getFileKey = (file) => `${file.name}:${file.size}:${file.lastModified}`;
+
+const buildCreditFooter = ({ id, source = '', isNew, onSourceChange }) => {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'border-t border-border/60 bg-muted/20 p-1.5';
+
+  if (!isNew && id) {
+    const idInput = document.createElement('input');
+    idInput.type = 'hidden';
+    idInput.name = 'existing_image_source_ids';
+    idInput.value = String(id);
+    wrapper.appendChild(idInput);
+  }
+
+  const sourceInput = document.createElement('input');
+  sourceInput.type = 'text';
+  sourceInput.name = isNew ? 'new_image_sources' : 'existing_image_sources';
+  sourceInput.value = source || '';
+  sourceInput.maxLength = 255;
+  sourceInput.placeholder = 'Crédito / fuente (opcional)';
+  sourceInput.className =
+    'w-full rounded-lg border border-input bg-card px-2 py-1 text-[10px] text-foreground focus:border-[#1b4332] focus:outline-hidden';
+  sourceInput.addEventListener('input', (event) => {
+    onSourceChange?.(event.target.value);
+  });
+  wrapper.appendChild(sourceInput);
+  return wrapper;
+};
+
 export const createProductImageEditor = () => {
   const fileInput = document.getElementById('image');
   const pickerBtn = document.getElementById('product-image-picker');
@@ -48,10 +77,14 @@ export const createProductImageEditor = () => {
   const noteEl = document.getElementById('product-existing-images-note');
   const removedIdsInput = document.getElementById('product-removed-image-ids');
   const primaryIdInput = document.getElementById('product-primary-image-id');
+  const defaultSourceInput = document.getElementById(
+    'product-image-source-default',
+  );
 
   let existingImages = [];
   const removedImageIds = new Set();
   let selectedFiles = [];
+  const newFileSources = new Map();
   let objectUrls = [];
   let primaryImageId = null;
 
@@ -105,11 +138,14 @@ export const createProductImageEditor = () => {
   const buildExistingCard = (image) => {
     const isPrimary = image.id === primaryImageId;
     const figure = document.createElement('figure');
-    figure.className = `relative aspect-square rounded-xl overflow-hidden border bg-card shadow-2xs ${
+    figure.className = `rounded-xl overflow-hidden border bg-card shadow-2xs flex flex-col ${
       isPrimary
         ? 'border-[#1b4332] ring-2 ring-[#1b4332]/20'
         : 'border-border/80'
     }`;
+
+    const mediaBox = document.createElement('div');
+    mediaBox.className = 'relative aspect-square overflow-hidden';
 
     const img = createThumbImage(
       normalizePreviewUrl(image.image_url),
@@ -152,14 +188,29 @@ export const createProductImageEditor = () => {
     });
 
     caption.append(primaryBtn, removeBtn);
-    figure.append(img, caption);
+    mediaBox.append(img, caption);
+    figure.append(
+      mediaBox,
+      buildCreditFooter({
+        id: image.id,
+        source: image.source || '',
+        isNew: false,
+        onSourceChange: (value) => {
+          image.source = value;
+        },
+      }),
+    );
     return figure;
   };
 
   const buildNewCard = (file, index, url) => {
+    const fileKey = getFileKey(file);
     const figure = document.createElement('figure');
     figure.className =
-      'relative aspect-square rounded-xl overflow-hidden border border-emerald-300 bg-card shadow-2xs';
+      'rounded-xl overflow-hidden border border-emerald-300 bg-card shadow-2xs flex flex-col';
+
+    const mediaBox = document.createElement('div');
+    mediaBox.className = 'relative aspect-square overflow-hidden';
 
     const img = createThumbImage(url, file.name);
     const caption = document.createElement('figcaption');
@@ -176,12 +227,23 @@ export const createProductImageEditor = () => {
       'shrink-0 rounded px-1 font-bold text-rose-300 hover:text-rose-100 cursor-pointer';
     removeBtn.textContent = 'Quitar';
     removeBtn.addEventListener('click', () => {
+      newFileSources.delete(fileKey);
       selectedFiles.splice(index, 1);
       renderAll();
     });
 
     caption.append(badge, removeBtn);
-    figure.append(img, caption);
+    mediaBox.append(img, caption);
+    figure.append(
+      mediaBox,
+      buildCreditFooter({
+        source: newFileSources.get(fileKey) || '',
+        isNew: true,
+        onSourceChange: (value) => {
+          newFileSources.set(fileKey, value);
+        },
+      }),
+    );
     return figure;
   };
 
@@ -246,6 +308,7 @@ export const createProductImageEditor = () => {
   );
   clearBtn?.addEventListener('click', () => {
     selectedFiles = [];
+    newFileSources.clear();
     if (fileInput) fileInput.value = '';
     setErrorMessage('');
     renderAll();
@@ -264,24 +327,32 @@ export const createProductImageEditor = () => {
     addIncomingFiles(event.dataTransfer?.files);
   });
 
+  const normalizeLoadedImages = (images) => {
+    if (!Array.isArray(images)) return [];
+    return images
+      .filter((img) => img && (img.image_url || img.url))
+      .map((img) => ({
+        id: Number(img.id),
+        image_url: img.image_url || img.url,
+        original_name: img.original_name || '',
+        source: img.source || '',
+        is_primary: Boolean(img.is_primary),
+      }));
+  };
+
   return {
     loadExistingImages(images = []) {
-      existingImages = Array.isArray(images)
-        ? images
-            .filter((img) => img && (img.image_url || img.url))
-            .map((img) => ({
-              id: Number(img.id),
-              image_url: img.image_url || img.url,
-              original_name: img.original_name || '',
-              is_primary: Boolean(img.is_primary),
-            }))
-        : [];
+      existingImages = normalizeLoadedImages(images);
       removedImageIds.clear();
       selectedFiles = [];
+      newFileSources.clear();
       primaryImageId =
         existingImages.find((img) => img.is_primary)?.id ||
         existingImages[0]?.id ||
         null;
+      if (defaultSourceInput) {
+        defaultSourceInput.value = existingImages[0]?.source || '';
+      }
       setErrorMessage('');
       if (fileInput) fileInput.value = '';
       renderAll();
@@ -290,8 +361,10 @@ export const createProductImageEditor = () => {
       existingImages = [];
       removedImageIds.clear();
       selectedFiles = [];
+      newFileSources.clear();
       primaryImageId = null;
       setErrorMessage('');
+      if (defaultSourceInput) defaultSourceInput.value = '';
       if (fileInput) fileInput.value = '';
       renderAll();
     },

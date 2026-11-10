@@ -6,10 +6,12 @@ import path from 'node:path';
 import {
   buildCropImageRecords,
   buildCropImageUpdatePlan,
+  buildExistingCropImageSourceUpdates,
   cleanupStoredCropImages,
   MAX_CROP_IMAGES,
   parsePrimaryCropImageId,
   parseRemovedCropImageIds,
+  sanitizeImageSource,
 } from '../../src/services/cropImageService.js';
 
 describe('reglas de la galería fotográfica de cultivos', () => {
@@ -144,5 +146,31 @@ describe('reglas de la galería fotográfica de cultivos', () => {
       fs.rmSync(cropFile, { force: true });
       fs.rmSync(externalDir, { recursive: true, force: true });
     }
+  });
+
+  it('asigna créditos y procesa actualizaciones de fuente en imágenes de cultivos', () => {
+    expect(sanitizeImageSource('  Acervo Maíz INIFAP  ')).toBe(
+      'Acervo Maíz INIFAP',
+    );
+
+    const records = buildCropImageRecords({
+      cropId: 25,
+      files: [{ filename: 'c1.webp', originalname: 'c1.webp' }],
+      startOrder: 0,
+      hasPrimary: false,
+      sources: [''],
+      defaultSource: 'Campo Experimental Valle de México',
+    });
+
+    expect(records[0].source).toBe('Campo Experimental Valle de México');
+
+    const updates = buildExistingCropImageSourceUpdates({
+      existingImages: [{ id: 10, source: null }],
+      removedImageIds: [],
+      rawIds: ['10'],
+      rawSources: ['Fotógrafo Especialista'],
+    });
+
+    expect(updates).toEqual([{ id: 10, source: 'Fotógrafo Especialista' }]);
   });
 });

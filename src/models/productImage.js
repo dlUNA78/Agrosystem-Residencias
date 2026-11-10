@@ -24,6 +24,10 @@ export default (sequelize, DataTypes) => {
         type: DataTypes.STRING(255),
         allowNull: true,
       },
+      source: {
+        type: DataTypes.STRING(255),
+        allowNull: true,
+      },
       is_primary: {
         type: DataTypes.BOOLEAN,
         defaultValue: true,
