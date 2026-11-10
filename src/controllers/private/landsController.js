@@ -7,6 +7,10 @@ import {
   getLandListWhere,
   getLandPermissions,
 } from '../../services/landAuthorizationService.js';
+import {
+  buildLandListCsv,
+  buildLandListGeoJson,
+} from '../../services/landExportService.js';
 import { validateLandInput } from '../../services/landValidationService.js';
 import { createRegionalBulletinRecord } from '../../services/regionalBulletinService.js';
 
@@ -141,6 +145,28 @@ const computeLandStats = (farms) => {
   };
 };
 
+const handleExportResponse = (res, format, filteredFarms) => {
+  if (format === 'csv') {
+    const csv = buildLandListCsv(filteredFarms);
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader(
+      'Content-Disposition',
+      'attachment; filename="padron-predios-inifap.csv"',
+    );
+    return res.status(200).send(csv);
+  }
+  if (format === 'geojson') {
+    const geojson = buildLandListGeoJson(filteredFarms);
+    res.setHeader('Content-Type', 'application/geo+json; charset=utf-8');
+    res.setHeader(
+      'Content-Disposition',
+      'attachment; filename="padron-predios-inifap.geojson"',
+    );
+    return res.status(200).json(geojson);
+  }
+  return null;
+};
+
 export const renderLandsPrivate = async (req, res) => {
   try {
     const permissions = getLandPermissions(req.user.role);
@@ -160,6 +186,16 @@ export const renderLandsPrivate = async (req, res) => {
 
     const allScopeFarms = farms.map((farm) => serializeFarm(farm, req.user));
     const filteredFarms = filterFarmsInMemory(allScopeFarms, query);
+
+    if (req.query?.format) {
+      const exported = handleExportResponse(
+        res,
+        req.query.format,
+        filteredFarms,
+      );
+      if (exported) return exported;
+    }
+
     const stats = computeLandStats(allScopeFarms);
     const role = req.user?.role || '';
 
@@ -276,6 +312,7 @@ export const createRegionalBulletinHandler = async (req, res) => {
 export { landDetail } from './lands/landDetailController.js';
 export {
   archiveFarmPrivate,
+  deleteFarmPrivate,
   restoreFarmPrivate,
   updateFarmPrivate,
 } from './lands/landMutationController.js';

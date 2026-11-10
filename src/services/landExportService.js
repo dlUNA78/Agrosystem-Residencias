@@ -216,6 +216,98 @@ export const buildLandExpedienteGeoJson = (context) => {
   };
 };
 
+const formatFarmCode = (farm) =>
+  farm.codeLabel || `#PRD-${String(farm.id).padStart(4, '0')}`;
+
+const formatFarmLocation = (farm) => ({
+  lat: farm.location_lat || '',
+  lng: farm.location_lng || '',
+  municipality: farm.municipality || 'No especificado',
+  region: farm.region?.name || 'No especificada',
+});
+
+const formatFarmDetails = (farm) => ({
+  name: farm.name || 'Sin nombre',
+  status: farm.status ? 'Activo' : 'Archivado',
+  hectares: Number(farm.size_hectares) || 0,
+  farmingType: farm.farming_type || 'No especificado',
+  owner: farm.user?.full_name || 'N/D',
+});
+
+const mapFarmToCsvRow = (farm) => {
+  const code = formatFarmCode(farm);
+  const details = formatFarmDetails(farm);
+  const loc = formatFarmLocation(farm);
+  return toCsvRow([
+    code,
+    details.name,
+    details.status,
+    details.hectares,
+    details.farmingType,
+    loc.municipality,
+    loc.region,
+    loc.lat,
+    loc.lng,
+    details.owner,
+  ]);
+};
+
+export const buildLandListCsv = (farms = []) => {
+  const headers = [
+    'Código',
+    'Nombre del Predio',
+    'Estado',
+    'Superficie (ha)',
+    'Régimen Hídrico / Manejo',
+    'Municipio',
+    'Región',
+    'Latitud',
+    'Longitud',
+    'Propietario',
+  ];
+
+  const lines = [toCsvRow(headers), ...farms.map(mapFarmToCsvRow)];
+  return CSV_BOM + lines.join('\r\n');
+};
+
+const resolveFarmPoint = (farm) => {
+  const lat = Number(farm.location_lat);
+  const lng = Number(farm.location_lng);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  return { type: 'Point', coordinates: [lng, lat] };
+};
+
+const mapFarmToFeature = (farm) => {
+  const details = formatFarmDetails(farm);
+  const loc = formatFarmLocation(farm);
+  return {
+    type: 'Feature',
+    id: farm.id,
+    geometry: resolveFarmPoint(farm),
+    properties: {
+      id: farm.id,
+      code: formatFarmCode(farm),
+      name: details.name,
+      status: details.status,
+      sizeHectares: details.hectares,
+      farmingType: farm.farming_type || null,
+      municipality: loc.municipality,
+      region: farm.region?.name || null,
+      owner: farm.user?.full_name || null,
+    },
+  };
+};
+
+export const buildLandListGeoJson = (farms = []) => ({
+  type: 'FeatureCollection',
+  metadata: {
+    exportedAt: new Date().toISOString(),
+    totalCount: farms.length,
+    generator: 'AgroSystem INIFAP',
+  },
+  features: farms.map(mapFarmToFeature),
+});
+
 const formatCoordinatesLabel = (coords) =>
   coords ? `${coords.lat}, ${coords.lng}` : 'Sin georreferenciación';
 
