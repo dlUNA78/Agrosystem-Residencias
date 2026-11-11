@@ -1,9 +1,9 @@
 <header
   id="topnav"
-  class="fixed top-0 right-0 z-40 flex h-16 w-[calc(100%-16rem)] items-center justify-between border-b border-neutral-200/80 bg-white/90 px-4 font-['Geist',sans-serif] text-[#0a0a0a] backdrop-blur-md transition-all duration-300 ease-in-out sidebar-open:w-[calc(100%-16rem)] sm:px-8"
+  class="fixed top-0 right-0 z-40 flex h-16 w-full lg:w-[calc(100%-16rem)] items-center justify-between border-b border-neutral-200/80 bg-white/90 px-4 font-['Geist',sans-serif] text-[#0a0a0a] backdrop-blur-md transition-all duration-300 ease-in-out sm:px-8"
 >
   <!-- Buscador Rápido y Toggle Sidebar -->
-  <div class="flex items-center gap-3">
+  <div class="flex items-center gap-2 sm:gap-3">
     <button
       id="sidebar-toggle-btn"
       type="button"
@@ -19,7 +19,7 @@
       action="/private/products"
       method="GET"
       role="search"
-      class="m-0 flex w-48 items-center gap-2 rounded-lg border border-neutral-200/90 bg-neutral-100/70 px-3 py-1.5 transition-colors focus-within:border-[#1b4332]/50 focus-within:bg-white sm:w-80 md:w-96"
+      class="m-0 flex w-32 sm:w-80 md:w-96 items-center gap-2 rounded-lg border border-neutral-200/90 bg-neutral-100/70 px-2.5 sm:px-3 py-1.5 transition-colors focus-within:border-[#1b4332]/50 focus-within:bg-white"
     >
       <label for="private-global-search" class="sr-only">Buscar insumos, plagas o registros en el panel</label>
       <i data-lucide="search" class="h-4 w-4 shrink-0 text-neutral-400" aria-hidden="true"></i>
