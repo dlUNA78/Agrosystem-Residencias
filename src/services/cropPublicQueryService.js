@@ -1,4 +1,5 @@
 import { CROP_WORKFLOW_STATUSES } from './cropWorkflowService.js';
+import { buildAccentInsensitiveRegex } from '../utils/validators.js';
 
 export const DEFAULT_PUBLIC_CROP_PAGE_SIZE = 8;
 export const MAX_PUBLIC_CROP_PAGE_SIZE = 24;
@@ -113,6 +114,7 @@ export const buildPublishedCropWhere = (Op, query) => {
   const conditions = [];
 
   if (query.search) {
+    const accentRegex = buildAccentInsensitiveRegex(query.search);
     conditions.push({
       [Op.or]: [
         { name: { [Op.iLike]: `%${query.search}%` } },
@@ -122,6 +124,15 @@ export const buildPublishedCropWhere = (Op, query) => {
         { family: { [Op.iLike]: `%${query.search}%` } },
         { botanical_family: { [Op.iLike]: `%${query.search}%` } },
         { variety: { [Op.iLike]: `%${query.search}%` } },
+        ...(Op.iRegexp && accentRegex
+          ? [
+              { name: { [Op.iRegexp]: accentRegex } },
+              { common_name: { [Op.iRegexp]: accentRegex } },
+              { scientific_name: { [Op.iRegexp]: accentRegex } },
+              { family: { [Op.iRegexp]: accentRegex } },
+              { botanical_family: { [Op.iRegexp]: accentRegex } },
+            ]
+          : []),
       ],
     });
   }

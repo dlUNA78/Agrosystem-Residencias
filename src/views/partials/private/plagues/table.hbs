@@ -100,27 +100,52 @@
                         </span>
                         {{/if}}
                     </td>
-                    <td class="px-5 py-3.5 text-right">
-                        <div class="flex items-center justify-end gap-1">
-                            <a href="/private/plagues/{{id}}" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-[#e6f0e6] text-[#1b4332] hover:bg-[#1b4332] hover:text-white text-[11px] font-bold transition-colors" title="Abrir expediente técnico">
-                                <i data-lucide="folder-open" class="w-3.5 h-3.5"></i>
-                                <span>Ficha</span>
+                    <td class="px-5 py-3.5 text-right whitespace-nowrap">
+                        <div class="inline-flex items-center justify-end gap-1">
+                            <a
+                                href="/private/plagues/{{id}}"
+                                class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-transparent text-[#1b4332] hover:border-border hover:bg-[#e6f0e6]/70 transition-colors"
+                                title="Ver ficha técnica completa"
+                                aria-label="Ver ficha de {{name}}"
+                            >
+                                <i data-lucide="eye" class="w-4 h-4"></i>
                             </a>
                             {{#if canEditRecord}}
-                            <button type="button" aria-label="Editar datos de {{name}}" class="btn-edit-plague p-1.5 rounded-lg text-muted-foreground hover:text-[#1b4332] hover:bg-muted transition-colors cursor-pointer"
-                                title="Editar datos de la plaga" data-id="{{id}}" data-name="{{name}}"
-                                data-scientific-name="{{scientific_name}}" data-category="{{category}}"
-                                data-region="{{region}}" data-risk-level="{{risk_level}}"
-                                data-description="{{description}}" data-symptoms="{{symptoms}}"
+                            <button
+                                type="button"
+                                aria-label="Editar {{name}}"
+                                class="btn-edit-plague inline-flex h-8 w-8 items-center justify-center rounded-lg border border-transparent text-[#1b4332] hover:border-border hover:bg-[#e6f0e6]/70 transition-colors cursor-pointer"
+                                title="Editar plaga"
+                                data-id="{{id}}"
+                                data-name="{{name}}"
+                                data-scientific-name="{{scientific_name}}"
+                                data-category="{{category}}"
+                                data-region="{{region}}"
+                                data-risk-level="{{risk_level}}"
+                                data-description="{{description}}"
+                                data-symptoms="{{symptoms}}"
                                 data-control-methods="{{control_methods}}"
                                 data-biological-control="{{biological_control}}"
-                                data-biological-cycle="{{biological_cycle_json}}" data-images="{{images_json}}" data-image-url="{{image_url}}">
-                                <i data-lucide="edit-3" class="w-4 h-4"></i>
+                                data-biological-cycle="{{biological_cycle_json}}"
+                                data-images="{{images_json}}"
+                                data-image-url="{{image_url}}"
+                                data-crop-ids="{{crop_ids_json}}"
+                                data-product-ids="{{product_ids_json}}"
+                                data-workflow-status="{{workflow_status}}"
+                                data-controlled-edit="{{#if isControlledEdit}}1{{else}}0{{/if}}"
+                            >
+                                <i data-lucide="pencil" class="w-4 h-4"></i>
                             </button>
                             {{/if}}
-                            {{#if ../permissions.canDelete}}
-                            <button type="button" aria-label="Eliminar plaga {{name}}" class="btn-delete-plague p-1.5 rounded-lg text-muted-foreground hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
-                                title="Eliminar plaga" data-id="{{id}}" data-name="{{name}}">
+                            {{#if canDeleteRecord}}
+                            <button
+                                type="button"
+                                aria-label="Eliminar plaga {{name}}"
+                                class="btn-delete-plague inline-flex h-8 w-8 items-center justify-center rounded-lg border border-transparent text-rose-700 hover:border-rose-200 hover:bg-rose-50 transition-colors cursor-pointer"
+                                title="Eliminar plaga"
+                                data-id="{{id}}"
+                                data-name="{{name}}"
+                            >
                                 <i data-lucide="trash-2" class="w-4 h-4"></i>
                             </button>
                             {{/if}}

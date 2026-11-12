@@ -431,6 +431,8 @@ const drawFooters = (doc) => {
   const range = doc.bufferedPageRange();
   for (let i = range.start; i < range.start + range.count; i += 1) {
     doc.switchToPage(i);
+    const prevBottom = doc.page.margins.bottom;
+    doc.page.margins.bottom = 0;
     const { startX, contentWidth } = getPageBox(doc);
     const footerY = doc.page.height - 28;
     doc
@@ -443,6 +445,7 @@ const drawFooters = (doc) => {
         footerY,
         { width: contentWidth, align: 'center', lineBreak: false },
       );
+    doc.page.margins.bottom = prevBottom;
   }
 };
 

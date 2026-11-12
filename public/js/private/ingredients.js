@@ -98,6 +98,126 @@ const handleDeleteIngredientSubmit = async (form) => {
   });
 };
 
+const resolveWorkflowPrompt = (action, name) => {
+  if (action === 'approve_archive') {
+    return {
+      title: `¿Aprobar dictamen de baja para "${name}"?`,
+      description:
+        'Como segundo evaluador imparcial, confirmas la baja justificada. Se verificará que no existan formulaciones activas.',
+      confirmLabel: 'Aprobar baja',
+      variant: 'danger',
+    };
+  }
+  if (action === 'reject_archive') {
+    return {
+      title: `¿Rechazar baja y mantener activo "${name}"?`,
+      description:
+        'La solicitud de baja será desestimada y la molécula continuará activa.',
+      confirmLabel: 'Rechazar baja',
+      variant: 'editorial',
+    };
+  }
+  return {
+    title: `¿Restaurar a activo "${name}"?`,
+    description: 'La molécula volverá al catálogo activo.',
+    confirmLabel: 'Restaurar',
+    variant: 'editorial',
+  };
+};
+
+const handleWorkflowIngredientSubmit = async (form) => {
+  const name = form.dataset.ingredientName || 'este ingrediente';
+  const action = form.dataset.ingredientAction;
+  const prompt = resolveWorkflowPrompt(action, name);
+
+  const confirmed = await confirmAsyncAction(prompt);
+  if (!confirmed) return;
+
+  const btn = form.querySelector('button[type="submit"]');
+  await withButtonLoading(btn, '...', async () => {
+    const response = await fetch(form.action, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'X-Requested-With': 'fetch',
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams(new FormData(form)).toString(),
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || data.success === false) {
+      showAsyncToast(
+        data.error || 'No se pudo procesar la acción editorial.',
+        'error',
+      );
+      return;
+    }
+    showAsyncToast(
+      data.message || 'Estado del ingrediente actualizado.',
+      'success',
+    );
+    await refreshIngredientsRegion(
+      window.location.pathname + window.location.search,
+      false,
+    );
+  });
+};
+
+const openIngredientArchiveModal = (btn) => {
+  const modal = document.getElementById('modal-request-archive-ingredient');
+  const form = document.getElementById('form-request-archive-ingredient');
+  if (!modal || !form) return;
+  const id = btn.dataset.id;
+  form.action = `/private/ingredients/${encodeURIComponent(id)}/workflow`;
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+  window.modalScrollLock?.lock?.();
+};
+
+const closeIngredientArchiveModal = () => {
+  const modal = document.getElementById('modal-request-archive-ingredient');
+  if (!modal) return;
+  modal.classList.add('hidden');
+  modal.classList.remove('flex');
+  window.modalScrollLock?.unlock?.();
+};
+
+const handleRequestArchiveFormSubmit = async (form) => {
+  if (!form.reportValidity()) return;
+  const confirmed = await confirmAsyncAction({
+    title: '¿Tramitar solicitud formal de baja?',
+    description:
+      'La solicitud quedará registrada en el sistema y requerirá el dictamen imparcial de otro especialista (principio de 4 ojos).',
+    confirmLabel: 'Tramitar solicitud',
+    variant: 'danger',
+  });
+  if (!confirmed) return;
+
+  const btn = form.querySelector('button[type="submit"]');
+  await withButtonLoading(btn, 'Enviando...', async () => {
+    const response = await fetch(form.action, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'X-Requested-With': 'fetch',
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams(new FormData(form)).toString(),
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || data.success === false) {
+      showAsyncToast(data.error || 'Error al tramitar la baja.', 'error');
+      return;
+    }
+    closeIngredientArchiveModal();
+    showAsyncToast(data.message || 'Solicitud de baja tramitada.', 'success');
+    await refreshIngredientsRegion(
+      window.location.pathname + window.location.search,
+      false,
+    );
+  });
+};
+
 const clearIngredientFilters = () => {
   const form = document.getElementById('form-filter-ingredients');
   if (form) {
@@ -142,39 +262,75 @@ const bindIngredientsFilterEvents = () => {
   });
 };
 
-const bindDelegatedIngredientActions = () => {
-  document.addEventListener('click', (event) => {
-    const typePill = event.target.closest('[data-ingredient-type-pill]');
-    if (typePill) {
-      const value = typePill.dataset.ingredientTypePill || '';
-      const select = document.getElementById('filter-tipo');
-      if (select) select.value = value;
-      syncQuickTypePills(value);
-      refreshIngredientsRegion(buildIngredientsFilterUrl());
-      return;
-    }
+const handleDelegatedClick = (event) => {
+  const typePill = event.target.closest('[data-ingredient-type-pill]');
+  if (typePill) {
+    const value = typePill.dataset.ingredientTypePill || '';
+    const select = document.getElementById('filter-tipo');
+    if (select) select.value = value;
+    syncQuickTypePills(value);
+    refreshIngredientsRegion(buildIngredientsFilterUrl());
+    return;
+  }
 
-    if (event.target.closest('[data-ingredients-clear]')) {
-      event.preventDefault();
-      clearIngredientFilters();
-      return;
-    }
+  if (event.target.closest('[data-ingredients-clear]')) {
+    event.preventDefault();
+    clearIngredientFilters();
+    return;
+  }
 
-    const pageLink = event.target.closest('[data-ingredients-page]');
-    if (pageLink) {
-      event.preventDefault();
-      refreshIngredientsRegion(pageLink.getAttribute('href'));
-    }
-  });
+  const pageLink = event.target.closest('[data-ingredients-page]');
+  if (pageLink) {
+    event.preventDefault();
+    refreshIngredientsRegion(pageLink.getAttribute('href'));
+    return;
+  }
 
-  document.addEventListener('submit', (event) => {
-    const deleteForm = event.target.closest(
-      'form[data-delete-ingredient-form]',
-    );
-    if (!deleteForm) return;
+  const requestArchiveBtn = event.target.closest(
+    '[data-request-archive-ingredient]',
+  );
+  if (requestArchiveBtn) {
+    openIngredientArchiveModal(requestArchiveBtn);
+    return;
+  }
+
+  if (
+    event.target.closest('#btn-cancel-request-archive-ingredient') ||
+    event.target.closest('#modal-request-archive-ingredient-backdrop')
+  ) {
+    closeIngredientArchiveModal();
+  }
+};
+
+const handleDelegatedSubmit = (event) => {
+  const deleteForm = event.target.closest('form[data-delete-ingredient-form]');
+  if (deleteForm) {
     event.preventDefault();
     handleDeleteIngredientSubmit(deleteForm);
-  });
+    return;
+  }
+
+  const workflowForm = event.target.closest(
+    'form[data-workflow-ingredient-form]',
+  );
+  if (workflowForm) {
+    event.preventDefault();
+    handleWorkflowIngredientSubmit(workflowForm);
+    return;
+  }
+
+  const requestArchiveForm = event.target.closest(
+    '#form-request-archive-ingredient',
+  );
+  if (requestArchiveForm) {
+    event.preventDefault();
+    handleRequestArchiveFormSubmit(requestArchiveForm);
+  }
+};
+
+const bindDelegatedIngredientActions = () => {
+  document.addEventListener('click', handleDelegatedClick);
+  document.addEventListener('submit', handleDelegatedSubmit);
 };
 
 document.addEventListener('DOMContentLoaded', () => {

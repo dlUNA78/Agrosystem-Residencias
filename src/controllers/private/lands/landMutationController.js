@@ -150,3 +150,82 @@ export const restoreFarmPrivate = (req, res) =>
     expected: false,
     next: true,
   });
+
+const deleteFarmChildren = async (farmId, transaction) => {
+  if (db.FarmApplication) {
+    await db.FarmApplication.destroy({
+      where: { farm_id: farmId },
+      transaction,
+    });
+  }
+  if (db.FarmHealthReport) {
+    await db.FarmHealthReport.destroy({
+      where: { farm_id: farmId },
+      transaction,
+    });
+  }
+  if (db.FarmLot) {
+    await db.FarmLot.destroy({ where: { farm_id: farmId }, transaction });
+  }
+  if (db.FarmCrop) {
+    if (db.FarmCropStage) {
+      const crops = await db.FarmCrop.findAll({
+        where: { farm_id: farmId },
+        attributes: ['id'],
+        transaction,
+      });
+      const cropIds = crops.map((c) => c.id);
+      if (cropIds.length > 0) {
+        await db.FarmCropStage.destroy({
+          where: { farm_crop_id: cropIds },
+          transaction,
+        });
+      }
+    }
+    await db.FarmCrop.destroy({ where: { farm_id: farmId }, transaction });
+  }
+};
+
+export const deleteFarmPrivate = async (req, res) => {
+  const id = parseLandId(req.params.id);
+  if (!id) return res.status(400).send('Identificador de terreno inválido');
+
+  try {
+    const result = await sequelize.transaction(async (transaction) => {
+      const farm = await findAccessibleFarm(id, req.user, transaction);
+      if (!farm) return 'not_found';
+      if (farm.status === true) return 'invalid_status';
+
+      const oldValues = getAuditSnapshot(farm);
+      await deleteFarmChildren(farm.id, transaction);
+      await farm.destroy({ transaction });
+      await AuditLog.create(
+        {
+          action: 'delete',
+          table_name: 'Farms',
+          record_id: farm.id,
+          old_values: oldValues,
+          new_values: null,
+          user_id: req.user.id,
+        },
+        { transaction },
+      );
+      return 'deleted';
+    });
+
+    if (result === 'not_found') {
+      return res.status(404).send('Predio no encontrado');
+    }
+    if (result === 'invalid_status') {
+      return res
+        .status(409)
+        .send(
+          'El predio debe estar archivado antes de poder eliminarse definitivamente.',
+        );
+    }
+    return sendMutationSuccess(req, res, '/private/lands?status=archived');
+  } catch (error) {
+    console.error('Error al eliminar definitivamente el terreno:', error);
+    return res.status(500).send('Error al eliminar el terreno');
+  }
+};

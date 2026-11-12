@@ -2,6 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 
 import {
   buildPlaguePublicationReadiness,
+  countBiologicalStages,
   requiresPlagueReadiness,
 } from '../../src/services/plagueReadinessService.js';
 
@@ -13,7 +14,11 @@ const completePlague = {
   description: 'Descripción técnica completa.',
   symptoms: 'Daño foliar y presencia de larvas.',
   control_methods: 'Monitoreo y manejo integrado.',
-  biological_cycle: [{ title: 'Larva', duration: '14 días' }],
+  biological_cycle: [
+    { title: 'Huevo', duration: '3 días' },
+    { title: 'Larva', duration: '14 días' },
+    { title: 'Adulto', duration: '10 días' },
+  ],
   images: [{ id: 1 }],
   crops: [{ id: 8 }],
   regions: [{ id: 3 }],
@@ -61,6 +66,38 @@ describe('checklist de publicación de plagas', () => {
     );
 
     expect(readiness.isReady).toBe(true);
+  });
+
+  it('exige al menos 3 etapas documentadas en el ciclo biológico para estar lista', () => {
+    expect(countBiologicalStages(null)).toBe(0);
+    expect(countBiologicalStages([{ title: 'Huevo' }])).toBe(1);
+    expect(
+      countBiologicalStages([{ title: 'Huevo' }, { title: 'Larva' }]),
+    ).toBe(2);
+    expect(
+      countBiologicalStages([
+        { title: 'Huevo' },
+        { title: 'Larva' },
+        { title: 'Adulto' },
+      ]),
+    ).toBe(3);
+
+    const incompleteCycle = buildPlaguePublicationReadiness({
+      ...completePlague,
+      biological_cycle: [{ title: 'Huevo' }, { title: 'Larva' }],
+    });
+    expect(incompleteCycle.isReady).toBe(false);
+    expect(incompleteCycle.missingItems).toContain('Ciclo biológico');
+
+    const completeCycle = buildPlaguePublicationReadiness({
+      ...completePlague,
+      biological_cycle: [
+        { title: 'Huevo' },
+        { title: 'Larva' },
+        { title: 'Adulto' },
+      ],
+    });
+    expect(completeCycle.isReady).toBe(true);
   });
 
   it.each(['submit_review', 'verify', 'publish'])(

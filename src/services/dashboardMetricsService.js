@@ -56,6 +56,16 @@ const ADMIN_QUICK_ACTIONS = [
     label: 'Registrar predio',
   },
   {
+    href: '/private/bulletins',
+    icon: 'megaphone',
+    label: 'Boletines regionales',
+  },
+  {
+    href: '/private/suggestions',
+    icon: 'inbox',
+    label: 'Sugerencias ciudadanas',
+  },
+  {
     href: '/private/ingredients',
     icon: 'flask-conical',
     label: 'Ingredientes activos',
@@ -87,6 +97,16 @@ const INIFAP_QUICK_ACTIONS = [
     href: '/private/lands',
     icon: 'map-pin',
     label: 'Predios monitoreados',
+  },
+  {
+    href: '/private/bulletins',
+    icon: 'megaphone',
+    label: 'Boletines regionales',
+  },
+  {
+    href: '/private/suggestions',
+    icon: 'inbox',
+    label: 'Sugerencias ciudadanas',
   },
   {
     href: '/private/catalog/plagues',

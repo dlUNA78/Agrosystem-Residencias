@@ -9,8 +9,8 @@
         class="h-full w-full object-cover transition-opacity duration-200"
       >
       <div class="pointer-events-none absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-black/20"></div>
-      <span class="absolute bottom-3 left-3 rounded bg-black/40 px-2 py-1 font-mono text-[10px] tracking-wider text-white/90 backdrop-blur-xs">
-        ACERVO FOTOGRÁFICO AGRONÓMICO · INIFAP
+      <span data-crop-gallery-source class="absolute bottom-3 left-3 max-w-[75%] truncate rounded bg-black/50 px-2.5 py-1 font-mono text-[10px] tracking-wider text-white/95 backdrop-blur-xs">
+        {{#if crop.images.[0].source}}CRÉDITO: {{crop.images.[0].source}}{{else}}ACERVO FOTOGRÁFICO AGRONÓMICO · INIFAP{{/if}}
       </span>
 
       {{#if (gt crop.images.length 1)}}
@@ -33,7 +33,7 @@
   {{#if (gt crop.images.length 1)}}
     <div class="grid grid-cols-4 gap-2" aria-label="Imágenes del cultivo">
       {{#each crop.images}}
-        <button type="button" data-crop-gallery-item data-index="{{@index}}" data-src="{{image_url}}" class="overflow-hidden rounded-lg border-2 border-transparent bg-card p-1 transition hover:border-primary/50" aria-label="Mostrar imagen {{add @index 1}}">
+        <button type="button" data-crop-gallery-item data-index="{{@index}}" data-src="{{image_url}}" data-source="{{source}}" class="overflow-hidden rounded-lg border-2 border-transparent bg-card p-1 transition hover:border-primary/50" aria-label="Mostrar imagen {{add @index 1}}">
           <img src="{{image_url}}" alt="Miniatura {{add @index 1}} de {{../crop.name}}" data-fallback-src="/images/test/default.png" class="h-16 w-full rounded-md object-cover" loading="lazy">
         </button>
       {{/each}}

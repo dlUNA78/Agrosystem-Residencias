@@ -10,7 +10,10 @@ import { buildCropDetailView } from '../../../services/cropDetailService.js';
 import { sendCropPdfResponse } from '../../../services/cropPdfService.js';
 import { buildCropPublicationReadiness } from '../../../services/cropReadinessService.js';
 import { buildCropRelationEditor } from '../../../services/cropRelationService.js';
-import { isCropEditable } from '../../../services/cropWorkflowService.js';
+import {
+  CROP_WORKFLOW_STATUSES,
+  isCropEditable,
+} from '../../../services/cropWorkflowService.js';
 
 const currentDirectory = path.dirname(fileURLToPath(import.meta.url));
 const privateLayout = path.join(
@@ -59,6 +62,18 @@ const cropDetailIncludes = [
     required: false,
     attributes: ['id', 'full_name'],
   },
+  {
+    model: User,
+    as: 'archiveRequestedBy',
+    required: false,
+    attributes: ['id', 'full_name'],
+  },
+  {
+    model: User,
+    as: 'archivedBy',
+    required: false,
+    attributes: ['id', 'full_name'],
+  },
 ];
 
 const parseCropId = (value) => {
@@ -84,6 +99,7 @@ const normalizeEditableImage = (img) => ({
         .replace(/^public\/+/, '')}`
     : null,
   original_name: img.original_name || null,
+  source: img.source || null,
   is_primary: Boolean(img.is_primary),
   display_order: Number(img.display_order) || 0,
 });
@@ -113,18 +129,60 @@ const loadRelationEditor = async (cropData) => {
   });
 };
 
+const loadCropFormRelationOptions = async () => {
+  const [plagues, products] = await Promise.all([
+    Plague?.findAll
+      ? Plague.findAll({
+          where: { status: true, workflow_status: 'published' },
+          attributes: ['id', 'name', 'scientific_name', 'category'],
+          order: [['name', 'ASC']],
+          raw: true,
+        })
+      : [],
+    Product?.findAll
+      ? Product.findAll({
+          where: { status: true, workflow_status: 'published' },
+          attributes: ['id', 'name', 'active_ingredient', 'category'],
+          order: [['name', 'ASC']],
+          raw: true,
+        })
+      : [],
+  ]);
+  return { plagues, products };
+};
+
+const isControlledCropStage = (status) =>
+  status === CROP_WORKFLOW_STATUSES.VERIFIED ||
+  status === CROP_WORKFLOW_STATUSES.PUBLISHED;
+
+const canRolePerformControlledEdit = (role, status) =>
+  ['admin', 'inifap'].includes(role) && isControlledCropStage(status);
+
 const resolveDetailEditState = (user, cropData) => {
   const permissions = getContextualCropPermissions({
     role: user.role,
     userId: user.id,
     createdByUserId: cropData.created_by_user_id,
+    archiveRequestedByUserId: cropData.archive_requested_by_user_id,
   });
   const rolePermissions = getCropPermissions(user.role);
   const editableStatus = isCropEditable(cropData.workflow_status);
+  const isDraftEditable = permissions.canEdit && editableStatus;
+  const canControlledEdit = canRolePerformControlledEdit(
+    user.role,
+    cropData.workflow_status,
+  );
 
   return {
-    permissions,
-    canEditRecord: permissions.canEdit && editableStatus,
+    permissions: {
+      ...permissions,
+      canEdit: permissions.canEdit || canControlledEdit,
+    },
+    canEditRecord: isDraftEditable || canControlledEdit,
+    isControlledEdit: !isDraftEditable && canControlledEdit,
+    canDeleteRecord:
+      permissions.canDelete &&
+      cropData.workflow_status === CROP_WORKFLOW_STATUSES.DRAFT,
     canEditRelations: permissions.canManageRelations && editableStatus,
     relationsLocked: rolePermissions.canManageRelations && !editableStatus,
     relationsOwnershipRestricted:
@@ -157,9 +215,10 @@ const sendHtmlDetail = async (req, res, options) => {
     });
   }
 
-  const relationEditor = editState.canEditRelations
-    ? await loadRelationEditor(cropData)
-    : null;
+  const [relationEditor, relationOptions] = await Promise.all([
+    editState.canEditRelations ? loadRelationEditor(cropData) : null,
+    loadCropFormRelationOptions(),
+  ]);
 
   const editableCrop = buildEditableCropPayload(cropData, images);
 
@@ -172,6 +231,7 @@ const sendHtmlDetail = async (req, res, options) => {
     ...editState,
     editableCrop,
     relationEditor,
+    relationOptions,
     ...detail,
     crop: { ...cropData, ...detail.crop },
     primaryImage: primaryImage?.image_url || null,
@@ -202,6 +262,8 @@ export const getCropDetail = async (req, res) => {
       ...cropData,
       images,
       image_url: primaryImage?.image_url,
+      canEditRecord: editState.canEditRecord,
+      isControlledEdit: editState.isControlledEdit,
     };
 
     const wantsJson =

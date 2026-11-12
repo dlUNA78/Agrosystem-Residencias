@@ -220,6 +220,14 @@ export const validatePlagueInput = (input = {}) => {
   }
 
   const biologicalCycle = buildBiologicalCycle(input, errors);
+  if (
+    normalizeText(input.require_min_stages) === '1' &&
+    biologicalCycle.length < 3
+  ) {
+    errors.push(
+      'El ciclo de vida de la plaga debe documentar como mínimo 3 etapas biológicas.',
+    );
+  }
 
   const description = readText('description', 'descripción', 5000);
   const region = readText('region', 'región', 250);

@@ -9,7 +9,10 @@ import {
   PRODUCT_HAZARD_BANDS,
   normalizeHazardCategory,
 } from '../../../services/productValidationService.js';
-import { isProductEditable } from '../../../services/productWorkflowService.js';
+import {
+  PRODUCT_WORKFLOW_STATUSES,
+  isProductEditable,
+} from '../../../services/productWorkflowService.js';
 import {
   loadFormCatalogOptions,
   normalizeImageUrl,
@@ -57,12 +60,41 @@ const detailIncludes = [
     required: false,
     attributes: ['id', 'full_name'],
   },
+  {
+    model: User,
+    as: 'archiveRequestedBy',
+    required: false,
+    attributes: ['id', 'full_name'],
+  },
+  {
+    model: User,
+    as: 'archivedBy',
+    required: false,
+    attributes: ['id', 'full_name'],
+  },
 ];
 
 const wantsJsonResponse = (req) =>
   Boolean(req.xhr || req.headers.accept?.includes('application/json'));
 
-const buildJsonEditableProduct = (rawRecord, permissions) => {
+const isControlledProductStage = (status) =>
+  status === PRODUCT_WORKFLOW_STATUSES.VERIFIED ||
+  status === PRODUCT_WORKFLOW_STATUSES.PUBLISHED;
+
+const resolveProductEditAccess = (workflowStatus, permissions, role) => {
+  const isDraftEditable =
+    permissions.canEdit && isProductEditable(workflowStatus);
+  const canControlledEdit =
+    (role === 'admin' || role === 'inifap') &&
+    isControlledProductStage(workflowStatus);
+  return {
+    canEditRecord: isDraftEditable || canControlledEdit,
+    isControlledEdit: !isDraftEditable && canControlledEdit,
+    isEditableStage: isProductEditable(workflowStatus),
+  };
+};
+
+const buildJsonEditableProduct = (rawRecord, permissions, role) => {
   const raw = rawRecord.toJSON();
   const images = (raw.images || [])
     .map((img) => {
@@ -72,12 +104,18 @@ const buildJsonEditableProduct = (rawRecord, permissions) => {
         image_url: url,
         url,
         original_name: img.original_name || null,
+        source: img.source || null,
         is_primary: Boolean(img.is_primary),
         display_order: Number(img.display_order) || 0,
       };
     })
     .filter((img) => img.image_url);
   const primary = images.find((img) => img.is_primary) || images[0];
+  const editAccess = resolveProductEditAccess(
+    raw.workflow_status,
+    permissions,
+    role,
+  );
 
   return {
     ...raw,
@@ -86,9 +124,11 @@ const buildJsonEditableProduct = (rawRecord, permissions) => {
     images,
     image_url: primary?.image_url || '/images/products/default.png',
     expirationDateFormatted: raw.expiration_date?.toISOString?.().slice(0, 10),
-    canEditRecord:
-      permissions.canEdit && isProductEditable(raw.workflow_status),
-    canDeleteRecord: permissions.canDelete,
+    canEditRecord: editAccess.canEditRecord,
+    isControlledEdit: editAccess.isControlledEdit,
+    canDeleteRecord:
+      permissions.canDelete &&
+      raw.workflow_status === PRODUCT_WORKFLOW_STATUSES.DRAFT,
     permissions,
   };
 };
@@ -104,8 +144,12 @@ const renderPrivateProductHtml = async (
     crops: catalogOptions.crops,
     plagues: catalogOptions.plagues,
   });
-  const isEditableStage = isProductEditable(record.workflow_status);
   const role = req.user ? req.user.role : '';
+  const editAccess = resolveProductEditAccess(
+    record.workflow_status,
+    permissions,
+    role,
+  );
 
   return res.render('shared/product-detail', {
     layout: privateLayout,
@@ -117,19 +161,28 @@ const renderPrivateProductHtml = async (
     ...detail,
     product: {
       ...detail.product,
-      canEditRecord: permissions.canEdit && isEditableStage,
-      canDeleteRecord: permissions.canDelete,
+      canEditRecord: editAccess.canEditRecord,
+      isControlledEdit: editAccess.isControlledEdit,
+      canDeleteRecord:
+        permissions.canDelete &&
+        record.workflow_status === PRODUCT_WORKFLOW_STATUSES.DRAFT,
     },
     permissions,
     readiness,
-    canEditRecord: permissions.canEdit && isEditableStage,
-    canManageRelations: permissions.canManageRelations && isEditableStage,
+    canEditRecord: editAccess.canEditRecord,
+    isControlledEdit: editAccess.isControlledEdit,
+    canDeleteRecord:
+      permissions.canDelete &&
+      record.workflow_status === PRODUCT_WORKFLOW_STATUSES.DRAFT,
+    canManageRelations:
+      permissions.canManageRelations && editAccess.isEditableStage,
     relationEditor,
     relationOptions: {
       crops: catalogOptions.crops,
       plagues: catalogOptions.plagues,
     },
     activeIngredients: catalogOptions.ingredients,
+    suppliers: catalogOptions.suppliers || [],
     productCategories: PRODUCT_CATEGORIES,
     hazardCategories: PRODUCT_HAZARD_BANDS,
   });
@@ -149,8 +202,13 @@ export const getProductDetail = async (req, res) => {
       role: req.user.role,
       userId: req.user.id,
       createdByUserId: record.created_by_user_id,
+      archiveRequestedByUserId: record.archive_requested_by_user_id,
     });
-    const editablePayload = buildJsonEditableProduct(record, permissions);
+    const editablePayload = buildJsonEditableProduct(
+      record,
+      permissions,
+      req.user.role,
+    );
     const readiness = buildProductPublicationReadiness(editablePayload);
 
     if (wantsJsonResponse(req)) {

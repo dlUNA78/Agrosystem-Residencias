@@ -212,8 +212,9 @@
         </span>
       </div>
 
-      <!-- Ficha de Datos Institucionales -->
+      <!-- Ficha de Datos Institucionales / de Contacto -->
       <dl class="mt-6 w-full space-y-2.5 border-t border-slate-100 pt-4 text-left text-xs">
+        {{#if (canAccessPanel user)}}
         <div class="flex items-center justify-between gap-2">
           <dt class="text-slate-500">Matrícula / Código</dt>
           <dd class="font-['Geist_Mono'] font-bold text-slate-800">{{#if user.code_masked}}{{user.code_masked}}{{else if user.code}}{{user.code}}{{else}}No asignada{{/if}}</dd>
@@ -226,6 +227,7 @@
           <dt class="text-slate-500">Turno Operativo</dt>
           <dd class="font-semibold text-slate-800 capitalize">{{#if user.shift}}{{user.shift}}{{else}}No asignado{{/if}}</dd>
         </div>
+        {{/if}}
         <div class="flex items-center justify-between gap-2">
           <dt class="text-slate-500">Teléfono</dt>
           <dd class="font-['Geist_Mono'] font-semibold text-slate-800">{{#if user.phone}}{{user.phone}}{{else}}No registrado{{/if}}</dd>
@@ -268,10 +270,7 @@
             <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
             <path d="M7 11V7a5 5 0 0 1 10 0v4" />
           </svg>
-          <span>Seguridad y Sesiones</span>
-          <span class="rounded-full bg-slate-100 px-1.5 py-0.2 text-[10px] font-['Geist_Mono'] font-bold text-slate-600">
-            {{sessionCount}}
-          </span>
+          <span>Seguridad y Contraseña</span>
         </button>
 
         <button
@@ -328,13 +327,17 @@
                 name="full_name"
                 value="{{user.full_name}}"
                 required
+                minlength="2"
+                maxlength="120"
+                data-validate="person-name"
+                data-validate-live="true"
                 class="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 py-2.5 text-xs font-medium text-slate-900 transition-colors focus:border-[#1b4332] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1b4332]/15"
               />
             </div>
 
             <div>
               <label for="profile-email" class="mb-1 block font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                Correo Institucional (No editable)
+                Correo Electrónico (No editable)
               </label>
               <input
                 id="profile-email"
@@ -345,6 +348,24 @@
               />
             </div>
 
+            <div>
+              <label for="profile-phone" class="mb-1 block font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider text-slate-600">
+                Teléfono de Contacto (10 dígitos)
+              </label>
+              <input
+                id="profile-phone"
+                type="text"
+                name="phone"
+                value="{{user.phone}}"
+                maxlength="15"
+                data-validate="phone"
+                data-validate-live="true"
+                placeholder="Ej. 5551234567"
+                class="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 py-2.5 font-['Geist_Mono'] text-xs text-slate-900 transition-colors focus:border-[#1b4332] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1b4332]/15"
+              />
+            </div>
+
+            {{#if (canAccessPanel user)}}
             <div>
               <label for="profile-code" class="mb-1 block font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider text-slate-400">
                 Matrícula / Código Único (No editable)
@@ -360,29 +381,16 @@
             </div>
 
             <div>
-              <label for="profile-phone" class="mb-1 block font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider text-slate-600">
-                Teléfono de Contacto
-              </label>
-              <input
-                id="profile-phone"
-                type="text"
-                name="phone"
-                value="{{user.phone}}"
-                placeholder="Ej. 5551234567"
-                class="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 py-2.5 font-['Geist_Mono'] text-xs text-slate-900 transition-colors focus:border-[#1b4332] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1b4332]/15"
-              />
-            </div>
-
-            <div>
               <label for="profile-job-title" class="mb-1 block font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider text-slate-600">
-                Puesto o Cargo
+                Puesto o Cargo Institucional
               </label>
               <input
                 id="profile-job-title"
                 type="text"
                 name="job_title"
                 value="{{user.job_title}}"
-                placeholder="Ej. Investigador Fitosanitario, Productor"
+                maxlength="100"
+                placeholder="Ej. Investigador Fitosanitario"
                 class="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 py-2.5 text-xs font-medium text-slate-900 transition-colors focus:border-[#1b4332] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1b4332]/15"
               />
             </div>
@@ -403,6 +411,7 @@
                 <option value="completo" {{#if (eq user.shift 'completo')}}selected{{/if}}>Tiempo Completo</option>
               </select>
             </div>
+            {{/if}}
           </div>
 
           <div>
@@ -491,8 +500,11 @@
                   name="new_password"
                   required
                   minlength="8"
+                  maxlength="72"
+                  data-validate="strict-password"
+                  data-validate-live="true"
                   autocomplete="new-password"
-                  placeholder="Mínimo 8 caracteres"
+                  placeholder="Mín. 8 caracteres, mayúscula, minúscula y número"
                   class="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 py-2.5 text-xs font-medium text-slate-900 transition-colors focus:border-[#1b4332] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1b4332]/15"
                 />
               </div>
@@ -507,6 +519,7 @@
                   name="confirm_password"
                   required
                   minlength="8"
+                  maxlength="72"
                   autocomplete="new-password"
                   placeholder="Repite la nueva contraseña"
                   class="w-full rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 py-2.5 text-xs font-medium text-slate-900 transition-colors focus:border-[#1b4332] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1b4332]/15"
@@ -514,14 +527,18 @@
               </div>
             </div>
 
-            <p class="text-[11px] text-slate-500">
-              Recomendación: Utiliza al menos 8 caracteres combinando letras, números y símbolos.
-            </p>
+            <div class="rounded-xl border border-slate-200/80 bg-slate-50/70 p-3 text-[11px] text-slate-600">
+              <p class="font-['Geist_Mono'] text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                Política de seguridad de contraseña:
+              </p>
+              <p>Debe contener al menos <strong>8 caracteres</strong>, incluyendo <strong>1 letra mayúscula</strong>, <strong>1 letra minúscula</strong> y <strong>1 número</strong>.</p>
+            </div>
 
             <div class="flex justify-end pt-1">
               <button
                 type="submit"
-                class="inline-flex items-center gap-2 rounded-xl bg-purple-700 px-5 py-2.5 text-xs font-semibold text-white shadow-xs transition-all hover:bg-purple-800 active:scale-[0.99] cursor-pointer"
+                data-loading-text="Actualizando contraseña..."
+                class="inline-flex items-center gap-2 rounded-xl bg-[#1b4332] px-5 py-2.5 text-xs font-semibold text-white shadow-xs transition-all hover:bg-[#143326] active:scale-[0.99] cursor-pointer"
               >
                 <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                   <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
@@ -530,87 +547,6 @@
               </button>
             </div>
           </form>
-        </div>
-
-        <!-- Tarjeta B: Sesiones Activas en PostgreSQL -->
-        <div class="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-2xs space-y-4">
-          <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 pb-3.5">
-            <div class="flex items-center gap-2.5">
-              <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-sky-50 text-sky-700">
-                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                  <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
-                  <line x1="8" y1="21" x2="16" y2="21" />
-                  <line x1="12" y1="17" x2="12" y2="21" />
-                </svg>
-              </span>
-              <div>
-                <h3 class="text-sm font-bold text-slate-900">Dispositivos y Sesiones Activas</h3>
-                <p class="text-[11px] text-slate-500">Monitoreo de sesiones en PostgreSQL respaldadas por conectividad segura.</p>
-              </div>
-            </div>
-
-            <span class="inline-flex items-center rounded-full border border-sky-200 bg-sky-50 px-2.5 py-0.5 font-['Geist_Mono'] text-[10px] font-bold text-sky-700">
-              {{sessionCount}} sesión(es) activa(s)
-            </span>
-          </div>
-
-          <!-- Listado de Sesiones -->
-          <div class="space-y-3">
-            {{#each activeSessions}}
-            <div class="flex flex-col gap-2 rounded-xl border border-slate-200/80 bg-slate-50/50 p-3.5 sm:flex-row sm:items-center sm:justify-between">
-              <div class="flex items-start gap-3">
-                <span class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-600 shadow-2xs">
-                  <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
-                    <line x1="8" y1="21" x2="16" y2="21" />
-                    <line x1="12" y1="17" x2="12" y2="21" />
-                  </svg>
-                </span>
-                <div>
-                  <div class="flex items-center gap-2">
-                    <span class="text-xs font-bold text-slate-800">{{deviceSummary}}</span>
-                    {{#if isCurrent}}
-                    <span class="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.2 font-['Geist_Mono'] text-[9px] font-bold text-emerald-700">
-                      Este Dispositivo
-                    </span>
-                    {{else}}
-                    <span class="rounded-full border border-slate-200 bg-white px-2 py-0.2 font-['Geist_Mono'] text-[9px] font-medium text-slate-500">
-                      Sesión Remota
-                    </span>
-                    {{/if}}
-                  </div>
-                  <div class="mt-0.5 flex flex-wrap items-center gap-x-3 text-[11px] text-slate-500 font-['Geist_Mono']">
-                    <span>IP: {{clientIp}}</span>
-                    <span>•</span>
-                    <span>Expira: {{formatDate expire}}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            {{/each}}
-          </div>
-
-          {{#if (gt sessionCount 1)}}
-          <!-- Botón de Revocación Masiva de Otras Sesiones -->
-          <div class="pt-2 border-t border-slate-100 flex justify-end">
-            <form
-              id="revoke-sessions-form"
-              action="{{#if isPrivatePath}}/private/profile/sessions/revoke-others{{else}}/profile/sessions/revoke-others{{/if}}"
-              method="POST"
-            >
-              <button
-                type="submit"
-                class="inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-xs font-semibold text-rose-700 hover:bg-rose-100 transition-colors cursor-pointer"
-              >
-                <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                  <path d="M18.36 6.64a9 9 0 1 1-12.73 0" />
-                  <line x1="12" y1="2" x2="12" y2="12" />
-                </svg>
-                <span>Cerrar sesión en otros dispositivos</span>
-              </button>
-            </form>
-          </div>
-          {{/if}}
         </div>
       </section>
 
@@ -692,16 +628,17 @@
             </div>
           </div>
 
-          <form action="/auth/upgrade" method="POST" class="flex flex-col sm:flex-row gap-2.5 pt-1">
+          <form action="/auth/inifap-upgrade" method="POST" class="flex flex-col sm:flex-row gap-2.5 pt-1">
             <input
               type="text"
-              name="inifap_code"
+              name="secret_code"
               required
               placeholder="AGS-XXXX-XXXX-XXXX-XXXX"
               class="flex-1 rounded-xl border border-emerald-300 bg-white px-3.5 py-2.5 font-['Geist_Mono'] text-xs font-bold uppercase tracking-wider text-slate-900 transition-colors focus:border-[#1b4332] focus:outline-none focus:ring-2 focus:ring-[#1b4332]/20"
             />
             <button
               type="submit"
+              data-loading-text="Validando código..."
               class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#1b4332] px-5 py-2.5 text-xs font-semibold text-white shadow-xs hover:bg-[#143326] active:scale-[0.99] cursor-pointer"
             >
               <span>Canjear Código</span>

@@ -4,15 +4,12 @@ import {
   MAP_WIDTH,
   MAP_HEIGHT,
 } from '../../services/mexicoGeo.js';
+import {
+  fetchPublishedBulletins,
+  fetchDynamicSeasonalCrops,
+} from '../../services/regionalBulletinService.js';
 
 const { Plague, Crop, Product } = db;
-
-const frequentSearches = [
-  'Gusano cogollero en maíz',
-  'HLB en cítricos',
-  'Umbral económico de pulgón amarillo',
-  'Riego por goteo en aguacate',
-];
 
 // Diccionario de alertas fitosanitarias por entidad federativa
 const estadosData = {
@@ -509,9 +506,13 @@ const buildMapData = () => {
   return { mapPaths, ranking: rankingConAncho, estadoInicial };
 };
 
-export const renderHomeIndex = async (req, res) => {
+export const renderHomeIndex = async (_req, res) => {
   const lastUpdate = '22.08.2026 · 06:00 H (CDMX)';
-  const counts = await queryPublishedCounts();
+  const [counts, dbBulletins, dynamicCrops] = await Promise.all([
+    queryPublishedCounts(),
+    fetchPublishedBulletins(10),
+    fetchDynamicSeasonalCrops(cultivosTemporada),
+  ]);
   const heroStats = buildHeroStats(counts);
   const acervoStats = buildAcervoStats(counts);
   const { mapPaths, ranking, estadoInicial } = buildMapData();
@@ -521,7 +522,10 @@ export const renderHomeIndex = async (req, res) => {
     a.localeCompare(b, 'es'),
   );
 
-  const cultivosConEstado = cultivosTemporada.map((c) => {
+  const effectiveBulletins =
+    dbBulletins.length > 0 ? [...dbBulletins, ...boletin].slice(0, 8) : boletin;
+
+  const cultivosConEstado = dynamicCrops.map((c) => {
     const enSiembra =
       Array.isArray(c.siembra) &&
       mesActual >= c.siembra[0] &&
@@ -547,7 +551,6 @@ export const renderHomeIndex = async (req, res) => {
     activePage: 'home',
     lastUpdate,
     heroStats,
-    frequentSearches,
     mapWidth: MAP_WIDTH,
     mapHeight: MAP_HEIGHT,
     mapPaths,
@@ -555,7 +558,7 @@ export const renderHomeIndex = async (req, res) => {
     estadoInicial,
     estadosList,
     mesActual,
-    boletin,
+    boletin: effectiveBulletins,
     cultivosTemporada: cultivosConEstado,
     acervoStats,
   });

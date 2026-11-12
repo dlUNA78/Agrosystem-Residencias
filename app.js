@@ -24,6 +24,7 @@ import {
   getUserRoleSummary,
 } from './src/services/rbacService.js';
 import { enrichSessionActivity } from './src/services/sessionManagementService.js';
+import { sendNotFoundResponse } from './src/utils/errorRenderer.js';
 
 const { sequelize } = db;
 
@@ -122,6 +123,8 @@ hbs.registerHelper('gte', (a, b) => Number(a) >= Number(b));
 hbs.registerHelper('lte', (a, b) => Number(a) <= Number(b));
 hbs.registerHelper('add', (a, b) => Number(a) + Number(b));
 hbs.registerHelper('sub', (a, b) => Number(a) - Number(b));
+hbs.registerHelper('or', (...args) => args.slice(0, -1).some(Boolean));
+hbs.registerHelper('and', (...args) => args.slice(0, -1).every(Boolean));
 hbs.registerHelper('urlEncode', (str) =>
   str !== null && str !== undefined ? encodeURIComponent(String(str)) : '',
 );
@@ -361,10 +364,16 @@ app.use((req, res, next) => {
   next();
 });
 
+app.get('/login', (_req, res) => res.redirect(302, '/auth/login'));
+app.get('/register', (_req, res) => res.redirect(302, '/auth/register'));
+
 app.use('/auth', authRoutes);
 app.use('/', publicRoutes);
-app.use('/', privateRoutes);
 app.use('/', notificationRoutes);
+app.use('/', privateRoutes);
+
+// Manejador 404 para rutas inexistentes
+app.use((req, res) => sendNotFoundResponse(req, res));
 
 // Arrancar el servidor solo si no estamos en entorno de prueba
 if (process.env.NODE_ENV !== 'test') {

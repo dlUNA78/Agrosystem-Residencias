@@ -77,6 +77,24 @@ const initializeUsersViewToggle = () => {
   applyView();
 };
 
+const PERSONAL_FIELD_IDS = ['user-nombre', 'user-email', 'user-telefono'];
+
+const setPersonalFieldsReadOnly = (isReadOnly) => {
+  const notice = document.getElementById('user-identity-readonly-notice');
+  const modeInput = document.getElementById('user-form-mode');
+  if (modeInput) modeInput.value = isReadOnly ? 'institutional' : '';
+  if (notice) notice.classList.toggle('hidden', !isReadOnly);
+
+  PERSONAL_FIELD_IDS.forEach((fieldId) => {
+    const input = document.getElementById(fieldId);
+    if (!input) return;
+    input.readOnly = isReadOnly;
+    input.classList.toggle('bg-slate-100', isReadOnly);
+    input.classList.toggle('text-slate-500', isReadOnly);
+    input.classList.toggle('cursor-not-allowed', isReadOnly);
+  });
+};
+
 const populateUserEditFields = (data) => {
   setFieldValue('user-nombre', data.name || '');
   setFieldValue('user-email', data.email || '');
@@ -105,7 +123,8 @@ const initializeUserFormModal = () => {
   const openCreateModal = () => {
     formUser.reset();
     formUser.action = '/private/users/create';
-    setText('modal-user-title', 'Nuevo Usuario');
+    setText('modal-user-title', 'Nuevo Usuario Institucional');
+    setPersonalFieldsReadOnly(false);
     passwordGroup?.classList.remove('hidden');
     if (userPassword) userPassword.required = true;
     modalUser.classList.remove('hidden');
@@ -116,8 +135,9 @@ const initializeUserFormModal = () => {
   const openEditModal = (btn) => {
     const data = btn.dataset;
     formUser.action = `/private/users/edit/${data.id}`;
-    setText('modal-user-title', 'Editar Usuario');
+    setText('modal-user-title', 'Editar Atribuciones Institucionales');
     populateUserEditFields(data);
+    setPersonalFieldsReadOnly(true);
     passwordGroup?.classList.add('hidden');
     if (userPassword) userPassword.required = false;
 
@@ -533,9 +553,9 @@ const initializeUserDeleteConfirmation = () => {
     event.preventDefault();
     const userName = form.dataset.userName || 'este usuario';
     const accepted = await confirmAsyncAction({
-      title: '¿Eliminar cuenta de usuario?',
-      description: `Se eliminará permanentemente el acceso de ${userName}. Esta acción quedará registrada en auditoría.`,
-      confirmLabel: 'Sí, eliminar usuario',
+      title: '¿Suspender / Desactivar cuenta de usuario?',
+      description: `Se desactivará el acceso operativo de ${userName} pasando su cuenta a estado Suspendido, preservando la integridad de sus registros y bitácora de auditoría.`,
+      confirmLabel: 'Sí, suspender cuenta',
       cancelLabel: 'Cancelar',
       variant: 'danger',
     });

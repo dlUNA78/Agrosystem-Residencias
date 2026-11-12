@@ -58,14 +58,14 @@ export const normalizePublicLandQuery = (query = {}) => ({
 export const parsePublicCoverageFilter = (query = {}) =>
   query?.coverage === 'active' ? 'active' : '';
 
-export const buildPublicRegionWhere = (Op, query) =>
-  query.search
-    ? {
-        name: {
-          [Op.iLike]: `%${query.search}%`,
-        },
-      }
-    : {};
+export const buildPublicRegionWhere = (Op, query) => {
+  if (!query.search) return {};
+  return {
+    name: {
+      [Op.iLike]: `%${query.search}%`,
+    },
+  };
+};
 
 export const buildPublicRegionCard = (region) => {
   const value = typeof region.toJSON === 'function' ? region.toJSON() : region;

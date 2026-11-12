@@ -27,6 +27,8 @@ const SUCCESS_MESSAGES = {
   usuario_actualizado: 'Datos y permisos del usuario actualizados.',
   estatus_actualizado: 'Estatus operativo del usuario actualizado.',
   usuario_eliminado: 'Cuenta de usuario eliminada permanentemente.',
+  usuario_suspendido:
+    'Cuenta de usuario suspendida y desactivada preservando su historial de auditoría.',
   rol_creado: 'Sub-rol RBAC creado exitosamente.',
   rol_actualizado: 'Sub-rol y permisos actualizados.',
   rol_eliminado: 'Sub-rol RBAC eliminado.',
@@ -138,13 +140,18 @@ const sanitizeUserRecord = (userInstance) => {
 
 const trimOrNull = (val) => (val ? String(val).trim() : null);
 
-const applyUserUpdates = (user, body = {}) => {
+const applyPersonalIdentityUpdates = (user, body = {}) => {
+  if (body.mode === 'institutional') return;
   if (body.full_name) user.full_name = body.full_name.trim();
   if (body.email) user.email = body.email.trim().toLowerCase();
+  if (body.phone !== undefined) user.phone = trimOrNull(body.phone);
+};
+
+const applyUserUpdates = (user, body = {}) => {
+  applyPersonalIdentityUpdates(user, body);
   if (body.role) user.role = body.role;
   if (body.status) user.status = body.status;
   if (body.job_title !== undefined) user.job_title = trimOrNull(body.job_title);
-  if (body.phone !== undefined) user.phone = trimOrNull(body.phone);
   if (body.address !== undefined) user.address = trimOrNull(body.address);
   if (body.rbac_role_id !== undefined) {
     user.rbac_role_id = body.rbac_role_id ? Number(body.rbac_role_id) : null;
@@ -398,7 +405,23 @@ export const deleteUser = async (req, res) => {
       full_name: user.full_name,
       email: user.email,
       role: user.role,
+      status: user.status,
     };
+
+    if (req.body?.mode === 'suspend') {
+      user.status = 'suspendido';
+      await user.save();
+
+      await recordUserAudit({
+        actorId: req.user?.id,
+        action: 'suspend',
+        recordId: id,
+        oldValues: snapshot,
+        newValues: { status: 'suspendido' },
+      });
+
+      return res.redirect('/private/users?success=usuario_suspendido');
+    }
 
     await user.destroy();
 

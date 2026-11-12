@@ -1,4 +1,5 @@
 import { PLAGUE_WORKFLOW_STATUSES } from './plagueWorkflowService.js';
+import { buildAccentInsensitiveRegex } from '../utils/validators.js';
 
 export const DEFAULT_PUBLIC_PLAGUE_PAGE_SIZE = 8;
 export const MAX_PUBLIC_PLAGUE_PAGE_SIZE = 24;
@@ -72,6 +73,35 @@ export const normalizePublicPlagueQuery = (query = {}) => {
   };
 };
 
+const buildPlagueSearchOrConditions = (Op, search) => {
+  const accentRegex = buildAccentInsensitiveRegex(search);
+  return [
+    { name: { [Op.iLike]: `%${search}%` } },
+    { scientific_name: { [Op.iLike]: `%${search}%` } },
+    { description: { [Op.iLike]: `%${search}%` } },
+    { symptoms: { [Op.iLike]: `%${search}%` } },
+    ...(Op.iRegexp && accentRegex
+      ? [
+          { name: { [Op.iRegexp]: accentRegex } },
+          { scientific_name: { [Op.iRegexp]: accentRegex } },
+          { description: { [Op.iRegexp]: accentRegex } },
+          { symptoms: { [Op.iRegexp]: accentRegex } },
+        ]
+      : []),
+  ];
+};
+
+const buildPlagueCropWhere = (Op, cropQuery) => {
+  if (!cropQuery.startsWith('group:')) {
+    return { name: cropQuery };
+  }
+  const groupName = cropQuery.slice(6).trim();
+  if (!groupName) return { name: cropQuery };
+  return {
+    [Op.or]: [{ category: groupName }, { botanical_family: groupName }],
+  };
+};
+
 export const buildPublishedPlagueQuery = ({
   Op,
   query,
@@ -85,12 +115,7 @@ export const buildPublishedPlagueQuery = ({
   };
 
   if (query.search) {
-    where[Op.or] = [
-      { name: { [Op.iLike]: `%${query.search}%` } },
-      { scientific_name: { [Op.iLike]: `%${query.search}%` } },
-      { description: { [Op.iLike]: `%${query.search}%` } },
-      { symptoms: { [Op.iLike]: `%${query.search}%` } },
-    ];
+    where[Op.or] = buildPlagueSearchOrConditions(Op, query.search);
   }
   if (query.category) {
     where.category = { [Op.in]: categoryVariants.get(query.category) };
@@ -126,7 +151,7 @@ export const buildPublishedPlagueQuery = ({
       as: 'crops',
       attributes: [],
       through: { attributes: [] },
-      where: { name: query.crop },
+      where: buildPlagueCropWhere(Op, query.crop),
       required: true,
     });
   }

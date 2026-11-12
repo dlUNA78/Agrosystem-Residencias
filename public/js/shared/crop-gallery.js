@@ -4,6 +4,7 @@ document.querySelectorAll('[data-crop-gallery]').forEach((gallery) => {
     gallery.querySelectorAll('[data-crop-gallery-item]'),
   );
   const counter = gallery.querySelector('[data-crop-gallery-counter]');
+  const sourceBadge = gallery.querySelector('[data-crop-gallery-source]');
   let currentIndex = 0;
 
   const showImage = (index) => {
@@ -13,6 +14,12 @@ document.querySelectorAll('[data-crop-gallery]').forEach((gallery) => {
     mainImage.src = selected.dataset.src;
     mainImage.alt = selected.querySelector('img')?.alt || 'Imagen del cultivo';
     if (counter) counter.textContent = `${currentIndex + 1} / ${items.length}`;
+    if (sourceBadge) {
+      const credit = String(selected.dataset.source || '').trim();
+      sourceBadge.textContent = credit
+        ? `CRÉDITO: ${credit}`
+        : 'ACERVO FOTOGRÁFICO AGRONÓMICO · INIFAP';
+    }
     items.forEach((item, itemIndex) => {
       const isCurrent = itemIndex === currentIndex;
       item.classList.toggle('border-primary', isCurrent);

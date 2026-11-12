@@ -52,6 +52,27 @@ const WORKFLOW_CONFIRM_CONFIG = Object.freeze({
     confirmLabel: 'Publicar oficialmente',
     variant: 'editorial',
   },
+  request_archive: {
+    title: '¿Tramitar solicitud formal de retiro fitosanitario?',
+    description:
+      'El producto entrará en estado "Baja en trámite" con tu justificación técnica y requerirá el dictamen de un segundo especialista (principio de 4 ojos).',
+    confirmLabel: 'Tramitar solicitud',
+    variant: 'danger',
+  },
+  approve_archive: {
+    title: '¿Aprobar dictamen de retiro fitosanitario?',
+    description:
+      'Como segundo evaluador imparcial, confirmas la baja justificada. El insumo se retirará del catálogo público y pasará al archivo histórico.',
+    confirmLabel: 'Aprobar retiro oficial',
+    variant: 'danger',
+  },
+  reject_archive: {
+    title: '¿Rechazar solicitud de retiro?',
+    description:
+      'La solicitud de retiro será desestimada y el producto permanecerá publicado en el catálogo oficial.',
+    confirmLabel: 'Rechazar retiro y mantener activo',
+    variant: 'editorial',
+  },
   archive: {
     title: '¿Archivar este expediente de producto?',
     description:
@@ -452,10 +473,38 @@ const syncLucideIcons = () => {
   }
 };
 
+const initProductArchiveModal = () => {
+  const modal = document.getElementById('modal-request-archive-product');
+  if (!modal) return;
+  const openBtn = document.getElementById('btn-open-request-archive-product');
+  const closeBtn = document.getElementById(
+    'btn-cancel-request-archive-product',
+  );
+  const backdrop = document.getElementById(
+    'modal-request-archive-product-backdrop',
+  );
+
+  const openModal = () => {
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    window.modalScrollLock?.lock?.();
+  };
+  const closeModal = () => {
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    window.modalScrollLock?.unlock?.();
+  };
+
+  openBtn?.addEventListener('click', openModal);
+  closeBtn?.addEventListener('click', closeModal);
+  backdrop?.addEventListener('click', closeModal);
+};
+
 const rehydrateProductDetail = () => {
   initProductScrollSpy();
   initProductGalleries();
   initProductRelationsEditor();
+  initProductArchiveModal();
   syncLucideIcons();
 };
 
@@ -466,5 +515,6 @@ document.addEventListener('DOMContentLoaded', () => {
   initProductRelationsEditor();
   initProductWorkflowForms();
   initProductInSituActions();
+  initProductArchiveModal();
   syncLucideIcons();
 });

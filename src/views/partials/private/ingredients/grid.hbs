@@ -7,10 +7,24 @@
                     <span class="rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 font-['Geist_Mono'] text-[10px] font-bold text-slate-600">
                         {{this.code}}
                     </span>
-                    <span class="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[10px] font-bold {{this.regulatoryBadgeClass}}">
-                        <span class="h-1.5 w-1.5 rounded-full {{this.toxicityDotClass}}"></span>
-                        {{this.regulatoryLabel}}
-                    </span>
+                    <div class="flex flex-wrap items-center gap-1 justify-end">
+                        <span class="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[10px] font-bold {{this.regulatoryBadgeClass}}">
+                            <span class="h-1.5 w-1.5 rounded-full {{this.toxicityDotClass}}"></span>
+                            {{this.regulatoryLabel}}
+                        </span>
+                        {{#if this.isArchivePending}}
+                        <span class="inline-flex items-center gap-1 rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-800" title="Justificación: {{this.archive_reason}}">
+                            <i data-lucide="clock" class="h-3 w-3"></i>
+                            Baja en trámite
+                        </span>
+                        {{/if}}
+                        {{#if this.isArchived}}
+                        <span class="inline-flex items-center gap-1 rounded-full border border-slate-300 bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600">
+                            <i data-lucide="archive" class="h-3 w-3"></i>
+                            Archivado
+                        </span>
+                        {{/if}}
+                    </div>
                 </div>
 
                 <div class="mt-3.5">
@@ -47,6 +61,80 @@
                     >
                         <i data-lucide="eye" class="h-4 w-4"></i>
                     </button>
+
+                    {{#if this.canRequestArchive}}
+                    <button
+                        type="button"
+                        data-request-archive-ingredient
+                        data-id="{{this.id}}"
+                        data-name="{{this.name}}"
+                        class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-amber-600 hover:bg-amber-50 transition-colors cursor-pointer"
+                        title="Solicitar baja justificada"
+                        aria-label="Solicitar baja de {{this.name}}"
+                    >
+                        <i data-lucide="shield-alert" class="h-4 w-4"></i>
+                    </button>
+                    {{/if}}
+
+                    {{#if this.canApproveArchive}}
+                    <form
+                        action="/private/ingredients/{{this.id}}/workflow"
+                        method="POST"
+                        data-workflow-ingredient-form
+                        data-ingredient-action="approve_archive"
+                        data-ingredient-name="{{this.name}}"
+                        class="inline"
+                    >
+                        <input type="hidden" name="action" value="approve_archive" />
+                        <button
+                            type="submit"
+                            class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-rose-700 hover:bg-rose-50 transition-colors cursor-pointer"
+                            title="Aprobar dictamen de baja (Dual Approval)"
+                            aria-label="Aprobar baja de {{this.name}}"
+                        >
+                            <i data-lucide="check-circle-2" class="h-4 w-4"></i>
+                        </button>
+                    </form>
+                    <form
+                        action="/private/ingredients/{{this.id}}/workflow"
+                        method="POST"
+                        data-workflow-ingredient-form
+                        data-ingredient-action="reject_archive"
+                        data-ingredient-name="{{this.name}}"
+                        class="inline"
+                    >
+                        <input type="hidden" name="action" value="reject_archive" />
+                        <button
+                            type="submit"
+                            class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 transition-colors cursor-pointer"
+                            title="Rechazar solicitud de baja"
+                            aria-label="Rechazar baja de {{this.name}}"
+                        >
+                            <i data-lucide="x-circle" class="h-4 w-4"></i>
+                        </button>
+                    </form>
+                    {{/if}}
+
+                    {{#if this.canRestore}}
+                    <form
+                        action="/private/ingredients/{{this.id}}/workflow"
+                        method="POST"
+                        data-workflow-ingredient-form
+                        data-ingredient-action="restore"
+                        data-ingredient-name="{{this.name}}"
+                        class="inline"
+                    >
+                        <input type="hidden" name="action" value="restore" />
+                        <button
+                            type="submit"
+                            class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-emerald-700 hover:bg-emerald-50 transition-colors cursor-pointer"
+                            title="Restaurar a activo"
+                            aria-label="Restaurar {{this.name}}"
+                        >
+                            <i data-lucide="rotate-ccw" class="h-4 w-4"></i>
+                        </button>
+                    </form>
+                    {{/if}}
 
                     {{#if @root.canManage}}
                     <button

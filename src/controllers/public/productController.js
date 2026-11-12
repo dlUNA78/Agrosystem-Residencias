@@ -2,6 +2,7 @@ import db from '../../models/index.js';
 import { CROP_WORKFLOW_STATUSES } from '../../services/cropWorkflowService.js';
 import { PLAGUE_WORKFLOW_STATUSES } from '../../services/plagueWorkflowService.js';
 import { buildProductDetailView } from '../../services/productDetailService.js';
+import { sendProductHdsPdfResponse } from '../../services/productHdsPdfService.js';
 import { sendProductPdfResponse } from '../../services/productPdfService.js';
 import {
   buildPublicProductCard,
@@ -275,6 +276,11 @@ export const renderProductDetail = async (req, res) => {
         isPrivate: false,
       });
     }
+    if (req.query?.format === 'hds') {
+      return await sendProductHdsPdfResponse(res, detail, {
+        download: req.query.download !== '0',
+      });
+    }
 
     return res.render('shared/product-detail', {
       pageTitle: detail.product.name,
@@ -292,5 +298,31 @@ export const renderProductDetail = async (req, res) => {
       totalCount: 0,
       error: 'Error al cargar el detalle del producto.',
     });
+  }
+};
+
+export const downloadProductHds = async (req, res) => {
+  const productId = parsePublicProductId(req.params.id);
+  if (!productId) return renderPublicNotFound(res);
+
+  try {
+    const record = await Product.findOne({
+      where: {
+        ...buildPublishedProductWhere(db.Sequelize.Op, {}),
+        id: productId,
+      },
+      include: detailIncludes,
+    });
+    if (!record) return renderPublicNotFound(res);
+
+    const detail = buildProductDetailView(record);
+    return await sendProductHdsPdfResponse(res, detail, {
+      download: req.query?.inline !== '1',
+    });
+  } catch (error) {
+    console.error('Error al generar HDS del producto:', error);
+    return res
+      .status(500)
+      .send('Error al generar la Hoja de Datos de Seguridad');
   }
 };

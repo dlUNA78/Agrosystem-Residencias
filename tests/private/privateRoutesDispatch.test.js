@@ -74,6 +74,7 @@ const mockControllers = {
   createIngredient: createMockController('createIngredient'),
   updateIngredient: createMockController('updateIngredient'),
   deleteIngredient: createMockController('deleteIngredient'),
+  updateIngredientWorkflow: createMockController('updateIngredientWorkflow'),
 
   // Lands
   renderLandsPrivate: createMockController('renderLandsPrivate'),
@@ -82,6 +83,7 @@ const mockControllers = {
   updateFarmPrivate: createMockController('updateFarmPrivate'),
   archiveFarmPrivate: createMockController('archiveFarmPrivate'),
   restoreFarmPrivate: createMockController('restoreFarmPrivate'),
+  deleteFarmPrivate: createMockController('deleteFarmPrivate'),
   createLandCropCycle: createMockController('createLandCropCycle'),
   advanceLandCropStage: createMockController('advanceLandCropStage'),
   finishLandCropCycle: createMockController('finishLandCropCycle'),
@@ -205,6 +207,7 @@ jest.unstable_mockModule(
     createIngredient: mockControllers.createIngredient,
     updateIngredient: mockControllers.updateIngredient,
     deleteIngredient: mockControllers.deleteIngredient,
+    updateIngredientWorkflow: mockControllers.updateIngredientWorkflow,
   }),
 );
 
@@ -217,6 +220,7 @@ jest.unstable_mockModule(
     updateFarmPrivate: mockControllers.updateFarmPrivate,
     archiveFarmPrivate: mockControllers.archiveFarmPrivate,
     restoreFarmPrivate: mockControllers.restoreFarmPrivate,
+    deleteFarmPrivate: mockControllers.deleteFarmPrivate,
     createLandCropCycle: mockControllers.createLandCropCycle,
     advanceLandCropStage: mockControllers.advanceLandCropStage,
     finishLandCropCycle: mockControllers.finishLandCropCycle,
@@ -660,7 +664,7 @@ const ALL_50_DISPATCH_ENDPOINTS = [
     authEvent: 'auth:product:products.manageRelations',
   },
 
-  // ─── CATÁLOGO: INGREDIENTES (4) ────────────────────────────────────────────
+  // ─── CATÁLOGO: INGREDIENTES (5) ────────────────────────────────────────────
   {
     method: 'get',
     routePath: '/private/ingredients',
@@ -690,6 +694,17 @@ const ALL_50_DISPATCH_ENDPOINTS = [
     dispatchPath: '/private/ingredients/delete/1',
     controller: 'deleteIngredient',
     params: { id: '1' },
+  },
+  {
+    method: 'post',
+    routePath: '/private/ingredients/:id/workflow',
+    dispatchPath: '/private/ingredients/1/workflow',
+    controller: 'updateIngredientWorkflow',
+    params: { id: '1' },
+    body: {
+      action: 'request_archive',
+      archive_reason: 'Motivo técnico de prueba con mas de 20 caracteres',
+    },
   },
 
   // ─── PARCELAS / GRANJAS (11) ──────────────────────────────────────────────
@@ -733,6 +748,13 @@ const ALL_50_DISPATCH_ENDPOINTS = [
     routePath: '/private/lands/restore/:id',
     dispatchPath: '/private/lands/restore/201',
     controller: 'restoreFarmPrivate',
+    params: { id: '201' },
+  },
+  {
+    method: 'post',
+    routePath: '/private/lands/delete/:id',
+    dispatchPath: '/private/lands/delete/201',
+    controller: 'deleteFarmPrivate',
     params: { id: '201' },
   },
   {
@@ -915,15 +937,15 @@ describe('pruebas de despacho HTTP del router privado', () => {
   });
 
   // ════════════════════════════════════════════════════════════════════════════
-  // 1. COBERTURA PARAMETRIZADA DE LOS 67 ENDPOINTS
+  // 1. COBERTURA PARAMETRIZADA DE LOS 69 ENDPOINTS
   // ════════════════════════════════════════════════════════════════════════════
-  describe('cobertura parametrizada exhaustiva de los 67 endpoints', () => {
-    it('el catálogo de pruebas de despacho cubre exactamente 67 endpoints únicos', () => {
-      expect(ALL_50_DISPATCH_ENDPOINTS).toHaveLength(67);
+  describe('cobertura parametrizada exhaustiva de los 69 endpoints', () => {
+    it('el catálogo de pruebas de despacho cubre exactamente 69 endpoints únicos', () => {
+      expect(ALL_50_DISPATCH_ENDPOINTS).toHaveLength(69);
       const keys = ALL_50_DISPATCH_ENDPOINTS.map(
         (e) => `${e.method.toUpperCase()} ${e.routePath}`,
       );
-      expect(new Set(keys).size).toBe(67);
+      expect(new Set(keys).size).toBe(69);
     });
 
     test.each(ALL_50_DISPATCH_ENDPOINTS)(

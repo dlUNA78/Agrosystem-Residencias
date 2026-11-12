@@ -1,6 +1,20 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { sanitizeText } from '../utils/validators.js';
+
+export const sanitizeImageSource = (value) => {
+  const cleaned = sanitizeText(value, 255);
+  return cleaned || null;
+};
+
+const normalizeSourceList = (rawSources) => {
+  if (rawSources === undefined || rawSources === null) return [];
+  return Array.isArray(rawSources) ? rawSources : [rawSources];
+};
+
+const resolveImageSourceAt = (sources, defaultSource, index) =>
+  sanitizeImageSource(sources[index]) || sanitizeImageSource(defaultSource);
 
 const currentDirectory = path.dirname(fileURLToPath(import.meta.url));
 const productImageDirectory = path.resolve(
@@ -130,11 +144,52 @@ export const buildProductImageRecords = ({
   files = [],
   startOrder = 0,
   hasPrimary = false,
-}) =>
-  files.map((file, index) => ({
-    product_id: productId,
-    image_url: `images/products/${file.filename}`,
-    original_name: file.originalname,
-    is_primary: !hasPrimary && index === 0,
-    display_order: startOrder + index,
-  }));
+  sources = [],
+  defaultSource = null,
+}) => {
+  const normalizedSources = normalizeSourceList(sources);
+  return files.map((file, index) => {
+    const source = resolveImageSourceAt(
+      normalizedSources,
+      defaultSource,
+      index,
+    );
+    return {
+      product_id: productId,
+      image_url: `images/products/${file.filename}`,
+      original_name: file.originalname,
+      is_primary: !hasPrimary && index === 0,
+      display_order: startOrder + index,
+      ...(source ? { source } : {}),
+    };
+  });
+};
+
+export const buildExistingProductImageSourceUpdates = ({
+  existingImages = [],
+  removedImageIds = [],
+  rawIds,
+  rawSources,
+  defaultSource = null,
+}) => {
+  const ids = normalizeSourceList(rawIds);
+  const sources = normalizeSourceList(rawSources);
+  if (!ids.length) return [];
+
+  const remainingIds = new Set(
+    existingImages
+      .map((img) => Number(img.id))
+      .filter((id) => !removedImageIds.includes(id)),
+  );
+  const fallback = sanitizeImageSource(defaultSource);
+
+  return ids.reduce((acc, rawId, index) => {
+    const id = Number(String(rawId).trim());
+    if (!Number.isSafeInteger(id) || id <= 0 || !remainingIds.has(id)) {
+      return acc;
+    }
+    const source = sanitizeImageSource(sources[index]) || fallback;
+    acc.push({ id, source });
+    return acc;
+  }, []);
+};

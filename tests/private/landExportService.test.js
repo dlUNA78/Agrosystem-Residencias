@@ -1,7 +1,10 @@
 import { describe, expect, it } from '@jest/globals';
 import {
   buildLandExpedienteCsv,
+  buildLandExpedienteGeoJson,
   buildLandExpedientePayload,
+  buildLandListCsv,
+  buildLandListGeoJson,
 } from '../../src/services/landExportService.js';
 import { buildProductDetailView } from '../../src/services/productDetailService.js';
 
@@ -95,6 +98,70 @@ describe('exportación del expediente operativo de terrenos y mapeo de riesgo', 
     expect(csv).toContain('Gusano cogollero');
     expect(csv).toContain('Belt 480 SC');
     expect(csv).toContain("'=SUM(1,2) nota con fórmula potencial");
+  });
+
+  it('construye un FeatureCollection GeoJSON RFC 7946 válido con coordenadas [lng, lat]', () => {
+    const geojson = buildLandExpedienteGeoJson(sampleContext);
+
+    expect(geojson.type).toBe('FeatureCollection');
+    expect(geojson.features).toHaveLength(1);
+    expect(geojson.features[0].geometry).toEqual({
+      type: 'Point',
+      coordinates: [-100.8157, 20.5235],
+    });
+    expect(geojson.features[0].properties.expedienteCode).toBe('TR-0018');
+  });
+
+  it('genera CSV del padrón general con encabezados y celdas escapadas', () => {
+    const farms = [
+      {
+        id: 1,
+        codeLabel: '#PRD-0001',
+        name: 'Rancho Las Palmas',
+        status: true,
+        size_hectares: 25.5,
+        farming_type: 'Riego',
+        municipality: 'Irapuato',
+        region: { name: 'El Bajío' },
+        location_lat: 20.67,
+        location_lng: -101.35,
+        user: { full_name: 'Dr. Salvador' },
+      },
+    ];
+
+    const csv = buildLandListCsv(farms);
+    expect(csv.startsWith('\uFEFF')).toBe(true);
+    expect(csv).toContain('Rancho Las Palmas');
+    expect(csv).toContain('#PRD-0001');
+    expect(csv).toContain('Irapuato');
+    expect(csv).toContain('El Bajío');
+  });
+
+  it('genera GeoJSON del padrón general con features formateadas', () => {
+    const farms = [
+      {
+        id: 1,
+        codeLabel: '#PRD-0001',
+        name: 'Rancho Las Palmas',
+        status: true,
+        size_hectares: 25.5,
+        farming_type: 'Riego',
+        municipality: 'Irapuato',
+        region: { name: 'El Bajío' },
+        location_lat: 20.67,
+        location_lng: -101.35,
+        user: { full_name: 'Dr. Salvador' },
+      },
+    ];
+
+    const geojson = buildLandListGeoJson(farms);
+    expect(geojson.type).toBe('FeatureCollection');
+    expect(geojson.features).toHaveLength(1);
+    expect(geojson.features[0].geometry).toEqual({
+      type: 'Point',
+      coordinates: [-101.35, 20.67],
+    });
+    expect(geojson.features[0].properties.name).toBe('Rancho Las Palmas');
   });
 
   it('mapea niveles de riesgo "Crítico" con acento a estilo rose en fichas de producto', () => {

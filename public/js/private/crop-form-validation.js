@@ -1,5 +1,3 @@
-import { showAppNotification } from '../shared/notifications.js';
-
 const rangePairs = Object.freeze([
   ['min_altitude', 'max_altitude', 'altitud'],
   ['min_temperature', 'max_temperature', 'temperatura'],
@@ -37,6 +35,9 @@ const getNativeMessage = (field) => {
   }
   if (validity.stepMismatch) {
     return `${label} no admite esa precisión numérica.`;
+  }
+  if (validity.tooShort) {
+    return `${label} debe tener al menos ${field.minLength} caracteres.`;
   }
   if (validity.tooLong) {
     return `${label} no puede exceder ${field.maxLength} caracteres.`;
@@ -147,6 +148,10 @@ const renderFieldState = (field, form, message) => {
 
 const validateField = (field, form) => {
   field.setCustomValidity('');
+  if (field.disabled) {
+    renderFieldState(field, form, '');
+    return '';
+  }
   const message =
     getNativeMessage(field) ||
     getFormatMessage(field) ||
@@ -209,88 +214,6 @@ const refreshVisibleSummary = (controls, form, summary) => {
   else hideSummary(summary);
 };
 
-const parseResponse = async (response) => {
-  const contentType = response.headers.get('content-type') || '';
-  if (contentType.includes('application/json')) return response.json();
-
-  const message = await response.text();
-  return { success: false, message };
-};
-
-const setSubmitting = (form, submitting) => {
-  const button = form.querySelector('button[type="submit"]');
-  if (!button) return;
-
-  button.disabled = submitting;
-  button.classList.toggle('cursor-wait', submitting);
-  button.classList.toggle('opacity-60', submitting);
-};
-
-const applyServerErrors = (form, fieldErrors) => {
-  for (const [fieldName, messages] of Object.entries(fieldErrors || {})) {
-    const field = form.elements.namedItem(fieldName);
-    if (!field || !('setCustomValidity' in field)) continue;
-
-    const message = Array.isArray(messages) ? messages[0] : messages;
-    field.setCustomValidity(message);
-    renderFieldState(field, form, message);
-  }
-};
-
-const submitForm = async (form, summary) => {
-  setSubmitting(form, true);
-  let restoreButton = true;
-
-  try {
-    const response = await fetch(form.action, {
-      method: 'POST',
-      headers: { Accept: 'application/json' },
-      body: new FormData(form),
-    });
-
-    if (response.redirected) {
-      restoreButton = false;
-      window.location.assign(response.url);
-      return;
-    }
-
-    const result = await parseResponse(response);
-
-    if (!response.ok || !result.success) {
-      applyServerErrors(form, result.fieldErrors);
-      renderSummary(summary, result.errors || [result.message]);
-      showAppNotification({
-        type: 'error',
-        title: 'No se guardó el cultivo',
-        message:
-          result.message || 'Revisa la información e intenta nuevamente.',
-      });
-      return;
-    }
-
-    showAppNotification({
-      type: 'success',
-      title: 'Cultivo guardado',
-      message: result.message,
-      duration: 2000,
-    });
-    restoreButton = false;
-    window.setTimeout(
-      () => window.location.assign(result.redirect || '/private/crops'),
-      500,
-    );
-  } catch (error) {
-    console.error('Error al guardar el cultivo:', error);
-    showAppNotification({
-      type: 'error',
-      title: 'Error de conexión',
-      message: 'No se pudo guardar. Tus datos siguen en el formulario.',
-    });
-  } finally {
-    if (restoreButton) setSubmitting(form, false);
-  }
-};
-
 export const initializeCropFormValidation = (form) => {
   if (!form) return null;
 
@@ -316,27 +239,18 @@ export const initializeCropFormValidation = (form) => {
     });
   }
 
-  form.addEventListener('submit', (event) => {
-    event.preventDefault();
-    controls.forEach((field) => touchedFields.add(field));
-    const messages = collectMessages(controls, form);
-
-    if (messages.length > 0) {
-      renderSummary(summary, messages);
-      showAppNotification({
-        type: 'warning',
-        title: 'Formulario incompleto o inválido',
-        message: `Hay ${messages.length} campo${messages.length === 1 ? '' : 's'} por corregir.`,
-      });
-      controls.find((field) => !field.validity.valid)?.focus();
-      return;
-    }
-
-    hideSummary(summary);
-    void submitForm(form, summary);
-  });
-
   return {
+    validateAll() {
+      controls.forEach((field) => touchedFields.add(field));
+      const messages = collectMessages(controls, form);
+      if (messages.length > 0) {
+        renderSummary(summary, messages);
+        controls.find((field) => !field.validity.valid)?.focus();
+        return false;
+      }
+      hideSummary(summary);
+      return true;
+    },
     reset() {
       touchedFields = new WeakSet();
       hideSummary(summary);

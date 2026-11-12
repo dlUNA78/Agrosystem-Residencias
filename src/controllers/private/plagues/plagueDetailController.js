@@ -7,7 +7,10 @@ import { buildPlagueDetailView } from '../../../services/plagueDetailService.js'
 import { sendPlaguePdfResponse } from '../../../services/plaguePdfService.js';
 import { buildPlagueRelationEditor } from '../../../services/plagueRelationService.js';
 import { buildPlaguePublicationReadiness } from '../../../services/plagueReadinessService.js';
-import { isPlagueEditable } from '../../../services/plagueWorkflowService.js';
+import {
+  PLAGUE_WORKFLOW_STATUSES,
+  isPlagueEditable,
+} from '../../../services/plagueWorkflowService.js';
 import { privateLayout } from './plagueControllerUtils.js';
 
 const { Crop, Plague, PlagueImage, Product, ProductImage, Region, User } = db;
@@ -41,6 +44,18 @@ const plagueDetailIncludes = [
   {
     model: User,
     as: 'verifiedByUser',
+    required: false,
+    attributes: ['id', 'full_name'],
+  },
+  {
+    model: User,
+    as: 'archiveRequestedBy',
+    required: false,
+    attributes: ['id', 'full_name'],
+  },
+  {
+    model: User,
+    as: 'archivedBy',
     required: false,
     attributes: ['id', 'full_name'],
   },
@@ -105,11 +120,44 @@ const buildEditablePlaguePayload = (plagueData) => {
   return {
     id: plagueData.id,
     ...textPayload,
+    workflow_status: plagueData.workflow_status ?? 'draft',
     risk_level: plagueData.risk_level ?? 'Bajo',
     image_url: normalizedImages[0]?.url ?? '',
     images_json: JSON.stringify(normalizedImages),
     biological_cycle_json: JSON.stringify(plagueData.biological_cycle ?? []),
+    crop_ids_json: JSON.stringify(
+      Array.isArray(plagueData.crops)
+        ? plagueData.crops.map((crop) => crop.id)
+        : [],
+    ),
+    product_ids_json: JSON.stringify(
+      Array.isArray(plagueData.products)
+        ? plagueData.products.map((product) => product.id)
+        : [],
+    ),
   };
+};
+
+const loadPlagueFormRelationOptions = async () => {
+  const [crops, products] = await Promise.all([
+    Crop?.findAll
+      ? Crop.findAll({
+          where: { status: 'aprobado', workflow_status: 'published' },
+          attributes: ['id', 'name', 'scientific_name', 'category'],
+          order: [['name', 'ASC']],
+          raw: true,
+        })
+      : [],
+    Product?.findAll
+      ? Product.findAll({
+          where: { status: true, workflow_status: 'published' },
+          attributes: ['id', 'name', 'active_ingredient', 'category'],
+          order: [['name', 'ASC']],
+          raw: true,
+        })
+      : [],
+  ]);
+  return { crops, products };
 };
 
 const parseValidPlagueId = (rawId) => {
@@ -118,17 +166,33 @@ const parseValidPlagueId = (rawId) => {
   return Number.isSafeInteger(numericId) && numericId > 0 ? numericId : null;
 };
 
+const isControlledPlagueStage = (status) =>
+  status === PLAGUE_WORKFLOW_STATUSES.VERIFIED ||
+  status === PLAGUE_WORKFLOW_STATUSES.PUBLISHED;
+
 const resolveDetailEditState = (user, plagueData) => {
   const permissions = getContextualPlaguePermissions({
     role: user.role,
     userId: user.id,
     createdByUserId: plagueData.created_by_user_id,
+    archiveRequestedByUserId: plagueData.archive_requested_by_user_id,
   });
   const rolePermissions = getPlaguePermissions(user.role);
   const editableStatus = isPlagueEditable(plagueData.workflow_status);
+  const isDraftEditable = permissions.canEdit && editableStatus;
+  const canControlledEdit =
+    (user.role === 'admin' || user.role === 'inifap') &&
+    isControlledPlagueStage(plagueData.workflow_status);
   return {
-    permissions,
-    canEditRecord: permissions.canEdit && editableStatus,
+    permissions: {
+      ...permissions,
+      canCreate: rolePermissions.canCreate,
+    },
+    canEditRecord: isDraftEditable || canControlledEdit,
+    isControlledEdit: !isDraftEditable && canControlledEdit,
+    canDeleteRecord:
+      permissions.canDelete &&
+      plagueData.workflow_status === PLAGUE_WORKFLOW_STATUSES.DRAFT,
     canEditRelations: permissions.canManageRelations && editableStatus,
     relationsLocked: rolePermissions.canManageRelations && !editableStatus,
     relationsOwnershipRestricted:
@@ -162,9 +226,10 @@ export const getPlagueDetail = async (req, res) => {
     }
     const readiness = buildPlaguePublicationReadiness(plagueData);
     const editState = resolveDetailEditState(req.user, plagueData);
-    const relationEditor = editState.canEditRelations
-      ? await loadRelationEditor(plagueData)
-      : null;
+    const [relationEditor, relationOptions] = await Promise.all([
+      editState.canEditRelations ? loadRelationEditor(plagueData) : null,
+      loadPlagueFormRelationOptions(),
+    ]);
 
     return res.render('shared/plague-detail', {
       layout: privateLayout,
@@ -175,6 +240,7 @@ export const getPlagueDetail = async (req, res) => {
       ...editState,
       editablePlague: buildEditablePlaguePayload(plagueData),
       relationEditor,
+      relationOptions,
       ...detail,
       extraScripts:
         '<script type="module" src="/js/shared/plague-detail.js?v=2.8"></script>',

@@ -13,6 +13,7 @@ import {
 const mockTransaction = {
   commit: jest.fn(async () => {}),
   rollback: jest.fn(async () => {}),
+  LOCK: { UPDATE: 'UPDATE' },
 };
 
 const mockIngredientInstance = {
@@ -21,6 +22,8 @@ const mockIngredientInstance = {
   chemical_group: 'Glicinas',
   action_type: 'herbicida',
   toxicological_category: 'clase-iii',
+  workflow_status: 'published',
+  archive_requested_by_user_id: null,
   createdAt: new Date(),
   updatedAt: new Date(),
   toJSON: () => ({
@@ -29,6 +32,7 @@ const mockIngredientInstance = {
     chemical_group: 'Glicinas',
     action_type: 'herbicida',
     toxicological_category: 'clase-iii',
+    workflow_status: 'published',
   }),
   update: jest.fn(async function (data) {
     Object.assign(this, data);
@@ -72,8 +76,12 @@ jest.unstable_mockModule('../../src/models/index.js', () => ({
   default: mockDb,
 }));
 
-const { createIngredient, updateIngredient, deleteIngredient } =
-  await import('../../src/controllers/private/ingredientsController.js');
+const {
+  createIngredient,
+  updateIngredient,
+  deleteIngredient,
+  updateIngredientWorkflow,
+} = await import('../../src/controllers/private/ingredientsController.js');
 
 describe('módulo de persistencia y validación de ingredientes activos', () => {
   beforeEach(() => {
@@ -310,6 +318,98 @@ describe('módulo de persistencia y validación de ingredientes activos', () => 
         expect.objectContaining({ success: true }),
       );
       expect(res.redirect).not.toHaveBeenCalled();
+    });
+
+    it('updateIngredientWorkflow procesa solicitud de baja con justificación válida', async () => {
+      mockIngredientInstance.workflow_status = 'published';
+      mockIngredientInstance.archive_requested_by_user_id = null;
+      const req = {
+        params: { id: '1' },
+        headers: { 'x-requested-with': 'fetch' },
+        body: {
+          action: 'request_archive',
+          archive_reason:
+            'Justificación técnica con más de 20 caracteres requeridos.',
+          archive_reason_category: 'toxicologico',
+        },
+        user: { id: 10, role: 'inifap' },
+      };
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+        redirect: jest.fn(),
+      };
+
+      await updateIngredientWorkflow(req, res);
+
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          success: true,
+        }),
+      );
+      expect(mockIngredientInstance.workflow_status).toBe('archive_pending');
+      expect(mockIngredientInstance.archive_requested_by_user_id).toBe(10);
+      expect(mockTransaction.commit).toHaveBeenCalled();
+    });
+
+    it('updateIngredientWorkflow rechaza aprobación de baja si el usuario es el mismo solicitante (4 ojos)', async () => {
+      mockIngredientInstance.workflow_status = 'archive_pending';
+      mockIngredientInstance.archive_requested_by_user_id = 10;
+      const req = {
+        params: { id: '1' },
+        headers: { 'x-requested-with': 'fetch' },
+        body: {
+          action: 'approve_archive',
+          review_notes: 'Intento de autoaprobación de baja.',
+        },
+        user: { id: 10, role: 'admin' },
+      };
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+        redirect: jest.fn(),
+      };
+
+      await updateIngredientWorkflow(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(403);
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          success: false,
+          error: expect.stringMatching(/distinto al solicitante/i),
+        }),
+      );
+      expect(mockTransaction.rollback).toHaveBeenCalled();
+    });
+
+    it('updateIngredientWorkflow permite aprobar la baja por un usuario diferente', async () => {
+      mockIngredientInstance.workflow_status = 'archive_pending';
+      mockIngredientInstance.archive_requested_by_user_id = 10;
+      const req = {
+        params: { id: '1' },
+        headers: { 'x-requested-with': 'fetch' },
+        body: {
+          action: 'approve_archive',
+          review_notes:
+            'Aprobación colegiada confirmada por segundo especialista.',
+        },
+        user: { id: 25, role: 'admin' },
+      };
+      const res = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn(),
+        redirect: jest.fn(),
+      };
+
+      await updateIngredientWorkflow(req, res);
+
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          success: true,
+        }),
+      );
+      expect(mockIngredientInstance.workflow_status).toBe('archived');
+      expect(mockIngredientInstance.archived_by_user_id).toBe(25);
     });
   });
 });

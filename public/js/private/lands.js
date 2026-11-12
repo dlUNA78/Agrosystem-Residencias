@@ -260,18 +260,44 @@ const initFilterControls = () => {
   updateActiveFilterBadge();
 };
 
+const getStatusDialogConfig = (mode, name) => {
+  if (mode === 'delete') {
+    return {
+      title: '¿Eliminar definitivamente este predio?',
+      description: `Esta acción purgará de forma permanente el predio "${name}" y todos sus registros asociados. Esta acción no se puede deshacer.`,
+      confirmLabel: 'Sí, eliminar',
+      variant: 'danger',
+      successMessage: 'Predio eliminado permanentemente.',
+    };
+  }
+  if (mode === 'archive') {
+    return {
+      title: '¿Archivar predio?',
+      description: `El predio "${name}" pasará a la bandeja de archivados conservando íntegro su expediente histórico.`,
+      confirmLabel: 'Sí, archivar',
+      variant: 'warning',
+      successMessage: 'Predio archivado correctamente.',
+    };
+  }
+  return {
+    title: '¿Restaurar predio?',
+    description: `El predio "${name}" volverá a estar activo para el registro operativo de ciclos y aplicaciones.`,
+    confirmLabel: 'Sí, restaurar',
+    variant: 'editorial',
+    successMessage: 'Predio restaurado correctamente.',
+  };
+};
+
 const handleDelegatedStatusForm = async (form) => {
   const mode = form.dataset.landStatusForm;
   const name = form.dataset.landName || 'este predio';
-  const isArchive = mode === 'archive';
+  const config = getStatusDialogConfig(mode, name);
 
   const confirmed = await confirmAsyncAction({
-    title: isArchive ? '¿Archivar predio?' : '¿Restaurar predio?',
-    description: isArchive
-      ? `El predio "${name}" pasará a la bandeja de archivados conservando íntegro su expediente histórico.`
-      : `El predio "${name}" volverá a estar activo para el registro operativo de ciclos y aplicaciones.`,
-    confirmLabel: isArchive ? 'Sí, archivar' : 'Sí, restaurar',
-    variant: isArchive ? 'warning' : 'editorial',
+    title: config.title,
+    description: config.description,
+    confirmLabel: config.confirmLabel,
+    variant: config.variant,
   });
   if (!confirmed) return;
 
@@ -282,15 +308,13 @@ const handleDelegatedStatusForm = async (form) => {
       headers: { Accept: 'application/json', 'X-Requested-With': 'fetch' },
     });
     if (!response.ok) {
-      showAsyncToast('No se pudo actualizar el estado del predio.', 'error');
+      showAsyncToast(
+        'No se pudo completar la operación sobre el predio.',
+        'error',
+      );
       return;
     }
-    showAsyncToast(
-      isArchive
-        ? 'Predio archivado correctamente.'
-        : 'Predio restaurado correctamente.',
-      'success',
-    );
+    showAsyncToast(config.successMessage, 'success');
     await refreshLandsFromUrl(
       window.location.pathname + window.location.search,
       false,
