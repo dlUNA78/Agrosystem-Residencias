@@ -101,7 +101,8 @@ export const getContextualPlaguePermissions = ({
 }) => {
   const permissions = getPlaguePermissions(role);
   const isArchiveRequester = sameUser(userId, archiveRequestedByUserId);
-  const canApproveArchive = permissions.canApproveArchive && !isArchiveRequester;
+  const canApproveArchive =
+    permissions.canApproveArchive && !isArchiveRequester;
 
   if (role !== 'inifap') {
     return {

@@ -169,7 +169,8 @@ describe('workflow editorial de plagas', () => {
         currentStatus: PLAGUE_WORKFLOW_STATUSES.PUBLISHED,
         action: PLAGUE_WORKFLOW_ACTIONS.REQUEST_ARCHIVE,
         actor: { id: 10, role: 'inifap' },
-        archiveReason: 'Reclasificación taxonómica y erradicación regional comprobada.',
+        archiveReason:
+          'Reclasificación taxonómica y erradicación regional comprobada.',
         archiveReasonCategory: 'obsolescencia',
         now,
       });

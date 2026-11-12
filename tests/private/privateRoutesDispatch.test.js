@@ -701,7 +701,10 @@ const ALL_50_DISPATCH_ENDPOINTS = [
     dispatchPath: '/private/ingredients/1/workflow',
     controller: 'updateIngredientWorkflow',
     params: { id: '1' },
-    body: { action: 'request_archive', archive_reason: 'Motivo técnico de prueba con mas de 20 caracteres' },
+    body: {
+      action: 'request_archive',
+      archive_reason: 'Motivo técnico de prueba con mas de 20 caracteres',
+    },
   },
 
   // ─── PARCELAS / GRANJAS (11) ──────────────────────────────────────────────

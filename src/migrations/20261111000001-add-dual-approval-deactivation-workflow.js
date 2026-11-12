@@ -1,8 +1,14 @@
 // src/migrations/20261111000001-add-dual-approval-deactivation-workflow.js
 
 const ARCHIVE_COLUMNS = [
-  { name: 'archive_reason_category', def: (Sequelize) => ({ type: Sequelize.STRING(64), allowNull: true }) },
-  { name: 'archive_reason', def: (Sequelize) => ({ type: Sequelize.TEXT, allowNull: true }) },
+  {
+    name: 'archive_reason_category',
+    def: (Sequelize) => ({ type: Sequelize.STRING(64), allowNull: true }),
+  },
+  {
+    name: 'archive_reason',
+    def: (Sequelize) => ({ type: Sequelize.TEXT, allowNull: true }),
+  },
   {
     name: 'archive_requested_by_user_id',
     def: (Sequelize) => ({
@@ -13,7 +19,10 @@ const ARCHIVE_COLUMNS = [
       onDelete: 'SET NULL',
     }),
   },
-  { name: 'archive_requested_at', def: (Sequelize) => ({ type: Sequelize.DATE, allowNull: true }) },
+  {
+    name: 'archive_requested_at',
+    def: (Sequelize) => ({ type: Sequelize.DATE, allowNull: true }),
+  },
   {
     name: 'archived_by_user_id',
     def: (Sequelize) => ({
@@ -24,8 +33,14 @@ const ARCHIVE_COLUMNS = [
       onDelete: 'SET NULL',
     }),
   },
-  { name: 'archived_at', def: (Sequelize) => ({ type: Sequelize.DATE, allowNull: true }) },
-  { name: 'archive_approval_notes', def: (Sequelize) => ({ type: Sequelize.TEXT, allowNull: true }) },
+  {
+    name: 'archived_at',
+    def: (Sequelize) => ({ type: Sequelize.DATE, allowNull: true }),
+  },
+  {
+    name: 'archive_approval_notes',
+    def: (Sequelize) => ({ type: Sequelize.TEXT, allowNull: true }),
+  },
 ];
 
 export default {
@@ -38,12 +53,18 @@ export default {
         const tableDescription = await queryInterface.describeTable(tableName);
         for (const col of ARCHIVE_COLUMNS) {
           if (!tableDescription[col.name]) {
-            await queryInterface.addColumn(tableName, col.name, col.def(Sequelize), { transaction });
+            await queryInterface.addColumn(
+              tableName,
+              col.name,
+              col.def(Sequelize),
+              { transaction },
+            );
           }
         }
       }
 
-      const ingredientTable = await queryInterface.describeTable('ActiveIngredients');
+      const ingredientTable =
+        await queryInterface.describeTable('ActiveIngredients');
       if (!ingredientTable.workflow_status) {
         await queryInterface.addColumn(
           'ActiveIngredients',
@@ -87,7 +108,12 @@ export default {
 
       for (const col of ARCHIVE_COLUMNS) {
         if (!ingredientTable[col.name]) {
-          await queryInterface.addColumn('ActiveIngredients', col.name, col.def(Sequelize), { transaction });
+          await queryInterface.addColumn(
+            'ActiveIngredients',
+            col.name,
+            col.def(Sequelize),
+            { transaction },
+          );
         }
       }
 
@@ -107,20 +133,35 @@ export default {
         const tableDescription = await queryInterface.describeTable(tableName);
         for (const col of ARCHIVE_COLUMNS) {
           if (tableDescription[col.name]) {
-            await queryInterface.removeColumn(tableName, col.name, { transaction });
+            await queryInterface.removeColumn(tableName, col.name, {
+              transaction,
+            });
           }
         }
       }
 
-      const ingredientTable = await queryInterface.describeTable('ActiveIngredients');
+      const ingredientTable =
+        await queryInterface.describeTable('ActiveIngredients');
       if (ingredientTable.workflow_status) {
-        await queryInterface.removeColumn('ActiveIngredients', 'workflow_status', { transaction });
+        await queryInterface.removeColumn(
+          'ActiveIngredients',
+          'workflow_status',
+          { transaction },
+        );
       }
       if (ingredientTable.created_by_user_id) {
-        await queryInterface.removeColumn('ActiveIngredients', 'created_by_user_id', { transaction });
+        await queryInterface.removeColumn(
+          'ActiveIngredients',
+          'created_by_user_id',
+          { transaction },
+        );
       }
       if (ingredientTable.updated_by_user_id) {
-        await queryInterface.removeColumn('ActiveIngredients', 'updated_by_user_id', { transaction });
+        await queryInterface.removeColumn(
+          'ActiveIngredients',
+          'updated_by_user_id',
+          { transaction },
+        );
       }
 
       await transaction.commit();

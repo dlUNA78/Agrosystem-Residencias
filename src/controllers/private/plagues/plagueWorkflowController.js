@@ -86,7 +86,12 @@ const handlePlagueWorkflowError = (error, req, res) => {
   }
 
   console.error('Error al actualizar el workflow de la plaga:', error);
-  return respondError(req, res, 500, 'Error al actualizar el estado de la plaga');
+  return respondError(
+    req,
+    res,
+    500,
+    'Error al actualizar el estado de la plaga',
+  );
 };
 
 const parsePlagueId = (value) => {

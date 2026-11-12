@@ -97,7 +97,8 @@ export const getContextualCropPermissions = ({
 }) => {
   const permissions = getCropPermissions(role);
   const isArchiveRequester = sameUser(userId, archiveRequestedByUserId);
-  const canApproveArchive = permissions.canApproveArchive && !isArchiveRequester;
+  const canApproveArchive =
+    permissions.canApproveArchive && !isArchiveRequester;
 
   if (role !== 'inifap') {
     return {

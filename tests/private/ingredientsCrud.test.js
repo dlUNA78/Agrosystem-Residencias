@@ -328,7 +328,8 @@ describe('módulo de persistencia y validación de ingredientes activos', () => 
         headers: { 'x-requested-with': 'fetch' },
         body: {
           action: 'request_archive',
-          archive_reason: 'Justificación técnica con más de 20 caracteres requeridos.',
+          archive_reason:
+            'Justificación técnica con más de 20 caracteres requeridos.',
           archive_reason_category: 'toxicologico',
         },
         user: { id: 10, role: 'inifap' },
@@ -389,7 +390,8 @@ describe('módulo de persistencia y validación de ingredientes activos', () => 
         headers: { 'x-requested-with': 'fetch' },
         body: {
           action: 'approve_archive',
-          review_notes: 'Aprobación colegiada confirmada por segundo especialista.',
+          review_notes:
+            'Aprobación colegiada confirmada por segundo especialista.',
         },
         user: { id: 25, role: 'admin' },
       };

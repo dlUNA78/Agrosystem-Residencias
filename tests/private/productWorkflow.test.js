@@ -125,7 +125,9 @@ describe('workflow y RBAC de productos', () => {
         archiveReasonCategory: 'regulatorio',
       });
 
-      expect(changes.workflow_status).toBe(PRODUCT_WORKFLOW_STATUSES.ARCHIVE_PENDING);
+      expect(changes.workflow_status).toBe(
+        PRODUCT_WORKFLOW_STATUSES.ARCHIVE_PENDING,
+      );
       expect(changes.archive_requested_by_user_id).toBe(10);
       expect(changes.archive_reason_category).toBe('regulatorio');
     });

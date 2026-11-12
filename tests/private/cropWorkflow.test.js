@@ -159,7 +159,8 @@ describe('workflow editorial de cultivos', () => {
         currentStatus: CROP_WORKFLOW_STATUSES.PUBLISHED,
         action: CROP_WORKFLOW_ACTIONS.REQUEST_ARCHIVE,
         actor: { id: 10, role: 'inifap' },
-        archiveReason: 'Baja solicitada por obsolescencia técnica de la variedad.',
+        archiveReason:
+          'Baja solicitada por obsolescencia técnica de la variedad.',
         archiveReasonCategory: 'obsolescencia',
         now,
       });

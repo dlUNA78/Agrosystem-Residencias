@@ -187,8 +187,8 @@ const resolveIngredientWorkflowState = (plain, currentUser) => {
   const requesterId = plain.archive_requested_by_user_id;
   const isArchiveRequester = Boolean(
     currentUser?.id &&
-      requesterId &&
-      Number(currentUser.id) === Number(requesterId),
+    requesterId &&
+    Number(currentUser.id) === Number(requesterId),
   );
   return {
     workflow_status: workflowStatus,

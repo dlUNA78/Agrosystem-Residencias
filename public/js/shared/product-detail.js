@@ -477,7 +477,9 @@ const initProductArchiveModal = () => {
   const modal = document.getElementById('modal-request-archive-product');
   if (!modal) return;
   const openBtn = document.getElementById('btn-open-request-archive-product');
-  const closeBtn = document.getElementById('btn-cancel-request-archive-product');
+  const closeBtn = document.getElementById(
+    'btn-cancel-request-archive-product',
+  );
   const backdrop = document.getElementById(
     'modal-request-archive-product-backdrop',
   );

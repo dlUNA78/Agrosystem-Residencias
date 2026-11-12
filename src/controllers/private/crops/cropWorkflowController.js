@@ -44,7 +44,12 @@ const validateCropDeactivation = async (action, cropId, transaction) => {
   return impact.hasBlockingDependencies ? impact.message : null;
 };
 
-const validateCropReadiness = async (action, cropId, oldValues, transaction) => {
+const validateCropReadiness = async (
+  action,
+  cropId,
+  oldValues,
+  transaction,
+) => {
   if (!requiresCropReadiness(action)) return null;
   const imageCount = await CropImage.count({
     where: { crop_id: cropId },
@@ -71,7 +76,12 @@ const handleCropWorkflowError = (error, req, res) => {
     return respondError(req, res, status, error.message, error.code);
   }
   console.error('Error al actualizar el workflow del cultivo:', error);
-  return respondError(req, res, 500, 'Error al actualizar el estado del cultivo');
+  return respondError(
+    req,
+    res,
+    500,
+    'Error al actualizar el estado del cultivo',
+  );
 };
 
 export const updateCropWorkflow = async (req, res) => {

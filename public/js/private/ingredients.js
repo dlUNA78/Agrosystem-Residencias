@@ -210,10 +210,7 @@ const handleRequestArchiveFormSubmit = async (form) => {
       return;
     }
     closeIngredientArchiveModal();
-    showAsyncToast(
-      data.message || 'Solicitud de baja tramitada.',
-      'success',
-    );
+    showAsyncToast(data.message || 'Solicitud de baja tramitada.', 'success');
     await refreshIngredientsRegion(
       window.location.pathname + window.location.search,
       false,
@@ -306,9 +303,7 @@ const handleDelegatedClick = (event) => {
 };
 
 const handleDelegatedSubmit = (event) => {
-  const deleteForm = event.target.closest(
-    'form[data-delete-ingredient-form]',
-  );
+  const deleteForm = event.target.closest('form[data-delete-ingredient-form]');
   if (deleteForm) {
     event.preventDefault();
     handleDeleteIngredientSubmit(deleteForm);
