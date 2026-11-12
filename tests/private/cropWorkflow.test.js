@@ -141,4 +141,86 @@ describe('workflow editorial de cultivos', () => {
     expect(migration).toMatch(/status[^\n]+aprobado[^\n]+published/i);
     expect(migration).toMatch(/removeColumn\(\s*'Crops',\s*'workflow_status'/);
   });
+
+  describe('baja justificada y principio de los 4 ojos (dual approval)', () => {
+    it('exige justificación técnica de al menos 20 caracteres al solicitar baja', () => {
+      expect(() =>
+        transitionCropWorkflow({
+          currentStatus: CROP_WORKFLOW_STATUSES.PUBLISHED,
+          action: CROP_WORKFLOW_ACTIONS.REQUEST_ARCHIVE,
+          actor: { id: 10, role: 'inifap' },
+          archiveReason: 'Muy corta',
+        }),
+      ).toThrow(/al menos 20 caracteres/i);
+    });
+
+    it('registra la solicitud de baja en archive_pending', () => {
+      const changes = transitionCropWorkflow({
+        currentStatus: CROP_WORKFLOW_STATUSES.PUBLISHED,
+        action: CROP_WORKFLOW_ACTIONS.REQUEST_ARCHIVE,
+        actor: { id: 10, role: 'inifap' },
+        archiveReason: 'Baja solicitada por obsolescencia técnica de la variedad.',
+        archiveReasonCategory: 'obsolescencia',
+        now,
+      });
+
+      expect(changes).toEqual(
+        expect.objectContaining({
+          workflow_status: CROP_WORKFLOW_STATUSES.ARCHIVE_PENDING,
+          archive_requested_by_user_id: 10,
+          archive_reason_category: 'obsolescencia',
+          archive_requested_at: now,
+        }),
+      );
+    });
+
+    it('bloquea que el mismo usuario solicitante apruebe la baja (principio de 4 ojos)', () => {
+      expect(() =>
+        transitionCropWorkflow({
+          currentStatus: CROP_WORKFLOW_STATUSES.ARCHIVE_PENDING,
+          action: CROP_WORKFLOW_ACTIONS.APPROVE_ARCHIVE,
+          actor: { id: 10, role: 'admin' },
+          record: { archive_requested_by_user_id: 10 },
+          now,
+        }),
+      ).toThrow(/distinto al solicitante/i);
+    });
+
+    it('permite que un segundo usuario apruebe la baja formalmente', () => {
+      const changes = transitionCropWorkflow({
+        currentStatus: CROP_WORKFLOW_STATUSES.ARCHIVE_PENDING,
+        action: CROP_WORKFLOW_ACTIONS.APPROVE_ARCHIVE,
+        actor: { id: 25, role: 'admin' },
+        record: { archive_requested_by_user_id: 10 },
+        reviewNotes: 'Dictamen favorable tras revisión colegiada.',
+        now,
+      });
+
+      expect(changes).toEqual(
+        expect.objectContaining({
+          workflow_status: CROP_WORKFLOW_STATUSES.ARCHIVED,
+          archived_by_user_id: 25,
+          archived_at: now,
+          status: 'pendiente',
+        }),
+      );
+    });
+
+    it('permite rechazar la baja y devolver el cultivo a published', () => {
+      const changes = transitionCropWorkflow({
+        currentStatus: CROP_WORKFLOW_STATUSES.ARCHIVE_PENDING,
+        action: CROP_WORKFLOW_ACTIONS.REJECT_ARCHIVE,
+        actor: { id: 25, role: 'admin' },
+        reviewNotes: 'Se desestima la baja; la variedad continúa activa.',
+      });
+
+      expect(changes).toEqual(
+        expect.objectContaining({
+          workflow_status: CROP_WORKFLOW_STATUSES.PUBLISHED,
+          archive_requested_by_user_id: null,
+          archive_requested_at: null,
+        }),
+      );
+    });
+  });
 });

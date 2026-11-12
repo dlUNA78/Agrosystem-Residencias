@@ -60,6 +60,18 @@ const detailIncludes = [
     required: false,
     attributes: ['id', 'full_name'],
   },
+  {
+    model: User,
+    as: 'archiveRequestedBy',
+    required: false,
+    attributes: ['id', 'full_name'],
+  },
+  {
+    model: User,
+    as: 'archivedBy',
+    required: false,
+    attributes: ['id', 'full_name'],
+  },
 ];
 
 const wantsJsonResponse = (req) =>
@@ -114,7 +126,9 @@ const buildJsonEditableProduct = (rawRecord, permissions, role) => {
     expirationDateFormatted: raw.expiration_date?.toISOString?.().slice(0, 10),
     canEditRecord: editAccess.canEditRecord,
     isControlledEdit: editAccess.isControlledEdit,
-    canDeleteRecord: permissions.canDelete,
+    canDeleteRecord:
+      permissions.canDelete &&
+      raw.workflow_status === PRODUCT_WORKFLOW_STATUSES.DRAFT,
     permissions,
   };
 };
@@ -149,12 +163,17 @@ const renderPrivateProductHtml = async (
       ...detail.product,
       canEditRecord: editAccess.canEditRecord,
       isControlledEdit: editAccess.isControlledEdit,
-      canDeleteRecord: permissions.canDelete,
+      canDeleteRecord:
+        permissions.canDelete &&
+        record.workflow_status === PRODUCT_WORKFLOW_STATUSES.DRAFT,
     },
     permissions,
     readiness,
     canEditRecord: editAccess.canEditRecord,
     isControlledEdit: editAccess.isControlledEdit,
+    canDeleteRecord:
+      permissions.canDelete &&
+      record.workflow_status === PRODUCT_WORKFLOW_STATUSES.DRAFT,
     canManageRelations:
       permissions.canManageRelations && editAccess.isEditableStage,
     relationEditor,
@@ -183,6 +202,7 @@ export const getProductDetail = async (req, res) => {
       role: req.user.role,
       userId: req.user.id,
       createdByUserId: record.created_by_user_id,
+      archiveRequestedByUserId: record.archive_requested_by_user_id,
     });
     const editablePayload = buildJsonEditableProduct(
       record,

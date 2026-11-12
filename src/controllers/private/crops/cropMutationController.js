@@ -16,6 +16,7 @@ import {
   CROP_WORKFLOW_STATUSES,
   isCropEditable,
 } from '../../../services/cropWorkflowService.js';
+import { getCropDeactivationImpact } from '../../../services/deactivationImpactService.js';
 
 const { Crop, CropImage, AuditLog } = db;
 
@@ -487,41 +488,27 @@ export const deleteCrop = async (req, res) => {
       return respondMutationError(req, res, 404, 'Cultivo no encontrado.');
     }
 
-    const oldValues = crop.toJSON();
-    const shouldArchive =
-      req.body?.mode === 'archive' ||
+    if (
       crop.workflow_status === CROP_WORKFLOW_STATUSES.PUBLISHED ||
-      crop.workflow_status === CROP_WORKFLOW_STATUSES.VERIFIED;
-
-    if (shouldArchive) {
-      await crop.update(
-        {
-          workflow_status: CROP_WORKFLOW_STATUSES.ARCHIVED,
-          status: 'pendiente',
-          updated_by_user_id: req.user.id,
-        },
-        { transaction },
-      );
-      await AuditLog.create(
-        {
-          action: 'crop.archive',
-          table_name: 'Crops',
-          record_id: crop.id,
-          old_values: oldValues,
-          new_values: crop.toJSON(),
-          user_id: req.user.id,
-        },
-        { transaction },
-      );
-      await transaction.commit();
-      return respondMutationSuccess(
+      crop.workflow_status === CROP_WORKFLOW_STATUSES.VERIFIED ||
+      crop.workflow_status === CROP_WORKFLOW_STATUSES.ARCHIVE_PENDING
+    ) {
+      await transaction.rollback();
+      return respondMutationError(
         req,
         res,
-        'Cultivo dado de baja y archivado correctamente.',
-        '/private/crops',
+        409,
+        'Los cultivos publicados o en verificación no pueden eliminarse directamente. Debes tramitar la baja justificada a través del flujo editorial con aprobación dual.',
       );
     }
 
+    const impact = await getCropDeactivationImpact(crop.id, transaction);
+    if (impact.hasBlockingDependencies) {
+      await transaction.rollback();
+      return respondMutationError(req, res, 409, impact.message);
+    }
+
+    const oldValues = crop.toJSON();
     const images = await CropImage.findAll({
       where: { crop_id: crop.id },
       attributes: ['image_url'],
@@ -557,7 +544,7 @@ export const deleteCrop = async (req, res) => {
     return respondMutationSuccess(
       req,
       res,
-      'Cultivo eliminado correctamente.',
+      'Cultivo borrador eliminado correctamente.',
       '/private/crops',
     );
   } catch (error) {

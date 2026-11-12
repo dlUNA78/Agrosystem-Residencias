@@ -10,8 +10,28 @@ import {
   transitionPlagueWorkflow,
 } from '../../../services/plagueWorkflowService.js';
 import { notifyAuthorOnWorkflowChange } from '../../../services/notificationService.js';
+import { getPlagueDeactivationImpact } from '../../../services/deactivationImpactService.js';
 
 const { AuditLog, Plague, PlagueImage } = db;
+
+const wantsJson = (req) =>
+  Boolean(req.xhr || req.headers?.accept?.includes('application/json'));
+
+const respondError = (req, res, status, message, code = null) => {
+  if (wantsJson(req)) {
+    return res
+      .status(status)
+      .json({ success: false, message, ...(code ? { code } : {}) });
+  }
+  return res.status(status).send(message);
+};
+
+const respondSuccess = (req, res, redirectUrl, message, payload = {}) => {
+  if (wantsJson(req)) {
+    return res.status(200).json({ success: true, message, ...payload });
+  }
+  return res.redirect(redirectUrl);
+};
 
 const getWorkflowReadiness = async (plague, transaction) => {
   const [imageCount, cropCount, regionCount] = await Promise.all([
@@ -37,72 +57,114 @@ const resolvePlagueVerifiedBy = (action, user) => {
   return undefined;
 };
 
-const handlePlagueWorkflowError = (error, res) => {
+const validatePlagueDeactivation = async (action, plagueId, transaction) => {
+  if (action !== 'approve_archive' && action !== 'archive') return null;
+  const impact = await getPlagueDeactivationImpact(plagueId, transaction);
+  return impact.hasBlockingDependencies ? impact.message : null;
+};
+
+const validatePlagueReadiness = async (action, plague, transaction) => {
+  if (!requiresPlagueReadiness(action)) return null;
+  const readiness = await getWorkflowReadiness(plague, transaction);
+  return readiness.isReady
+    ? null
+    : `La ficha está incompleta. Completa: ${readiness.missingItems.join(', ')}.`;
+};
+
+const handlePlagueWorkflowError = (error, req, res) => {
   if (error instanceof PlagueWorkflowError) {
-    const status =
-      error.code === 'REVIEW_NOTES_REQUIRED' || error.code === 'MISSING_ACTOR'
-        ? 400
+    const status = [
+      'REVIEW_NOTES_REQUIRED',
+      'MISSING_ACTOR',
+      'ARCHIVE_REASON_REQUIRED',
+    ].includes(error.code)
+      ? 400
+      : error.code === 'DUAL_APPROVAL_REQUIRED'
+        ? 403
         : 409;
-    return res.status(status).send(error.message);
+    return respondError(req, res, status, error.message, error.code);
   }
 
   console.error('Error al actualizar el workflow de la plaga:', error);
-  return res.status(500).send('Error al actualizar el estado de la plaga');
+  return respondError(req, res, 500, 'Error al actualizar el estado de la plaga');
+};
+
+const parsePlagueId = (value) => {
+  if (!/^\d+$/.test(String(value || ''))) return null;
+  const id = Number(value);
+  return Number.isSafeInteger(id) && id > 0 ? id : null;
 };
 
 export const updatePlagueWorkflow = async (req, res) => {
-  const { id } = req.params;
-  if (!/^\d+$/.test(id) || Number(id) <= 0) {
-    return res.status(400).send('ID de plaga no válido');
+  const plagueId = parsePlagueId(req.params.id);
+  if (!plagueId) {
+    return respondError(req, res, 400, 'ID de plaga no válido');
   }
 
   const transaction = await db.sequelize.transaction();
 
   try {
-    const plague = await Plague.findByPk(Number(id), {
+    const plague = await Plague.findByPk(plagueId, {
       transaction,
       lock: transaction.LOCK.UPDATE,
     });
     if (!plague) {
       await transaction.rollback();
-      return res.status(404).send('Plaga no encontrada');
+      return respondError(req, res, 404, 'Plaga no encontrada');
     }
 
-    if (
-      !canPerformContextualPlagueWorkflowAction({
-        role: req.user.role,
-        userId: req.user.id,
-        createdByUserId: plague.created_by_user_id,
-        action: req.body.action,
-      })
-    ) {
+    const { action, review_notes, archive_reason, archive_reason_category } =
+      req.body;
+
+    const allowed = canPerformContextualPlagueWorkflowAction({
+      role: req.user.role,
+      userId: req.user.id,
+      createdByUserId: plague.created_by_user_id,
+      archiveRequestedByUserId: plague.archive_requested_by_user_id,
+      action,
+    });
+    if (!allowed) {
       await transaction.rollback();
-      return res
-        .status(403)
-        .send('No tienes permiso para realizar esta acción editorial.');
+      return respondError(
+        req,
+        res,
+        403,
+        'No tienes permiso o violas el principio de aprobación dual para esta acción.',
+      );
+    }
+
+    const deactivationError = await validatePlagueDeactivation(
+      action,
+      plague.id,
+      transaction,
+    );
+    if (deactivationError) {
+      await transaction.rollback();
+      return respondError(req, res, 409, deactivationError);
+    }
+
+    const readinessError = await validatePlagueReadiness(
+      action,
+      plague,
+      transaction,
+    );
+    if (readinessError) {
+      await transaction.rollback();
+      return respondError(req, res, 409, readinessError);
     }
 
     const oldValues = plague.toJSON();
     const changes = transitionPlagueWorkflow({
       currentStatus: plague.workflow_status,
-      action: req.body.action,
+      action,
       actor: req.user,
-      reviewNotes: req.body.review_notes,
+      reviewNotes: review_notes,
+      archiveReason: archive_reason,
+      archiveReasonCategory: archive_reason_category,
+      record: plague,
     });
 
-    if (requiresPlagueReadiness(req.body.action)) {
-      const readiness = await getWorkflowReadiness(plague, transaction);
-      if (!readiness.isReady) {
-        await transaction.rollback();
-        return res
-          .status(409)
-          .send(
-            `La ficha está incompleta. Completa: ${readiness.missingItems.join(', ')}.`,
-          );
-      }
-    }
-
-    const verifiedBy = resolvePlagueVerifiedBy(req.body.action, req.user);
+    const verifiedBy = resolvePlagueVerifiedBy(action, req.user);
     if (verifiedBy !== undefined) {
       changes.verified_by = verifiedBy;
     }
@@ -110,7 +172,7 @@ export const updatePlagueWorkflow = async (req, res) => {
     await plague.update(changes, { transaction });
     await AuditLog.create(
       {
-        action: `plague.${req.body.action}`,
+        action: `plague.${action}`,
         table_name: 'Plagues',
         record_id: plague.id,
         old_values: oldValues,
@@ -127,13 +189,19 @@ export const updatePlagueWorkflow = async (req, res) => {
       actorId: req.user.id,
       entityName: plague.name,
       moduleTitle: 'Plaga',
-      workflowStatus: changes.workflow_status || req.body.action,
+      workflowStatus: changes.workflow_status || action,
       actionUrl: `/private/plagues/${plague.id}`,
     });
 
-    return res.redirect(`/private/plagues/${plague.id}`);
+    return respondSuccess(
+      req,
+      res,
+      `/private/plagues/${plague.id}`,
+      'Estado de la plaga actualizado correctamente.',
+      { workflowStatus: changes.workflow_status },
+    );
   } catch (error) {
     await transaction.rollback();
-    return handlePlagueWorkflowError(error, res);
+    return handlePlagueWorkflowError(error, req, res);
   }
 };

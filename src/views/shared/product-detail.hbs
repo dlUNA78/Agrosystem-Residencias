@@ -102,13 +102,35 @@
               {{/if}}
             {{/if}}
 
-            {{#if (eq product.workflow_status 'published')}}
-              {{#if permissions.canArchive}}
+            {{#if (or (eq product.workflow_status 'published') (eq product.workflow_status 'verified'))}}
+              {{#if permissions.canRequestArchive}}
+                <button
+                  type="button"
+                  id="btn-open-request-archive-product"
+                  class="inline-flex items-center gap-1.5 rounded-xl border border-rose-300 bg-rose-50 px-3.5 py-2 text-xs font-bold text-rose-800 transition-colors hover:bg-rose-100 cursor-pointer"
+                  title="Tramitar solicitud formal de baja fitosanitaria"
+                >
+                  <span class="material-symbols-outlined text-sm text-rose-600">report_problem</span>
+                  <span>Solicitar baja</span>
+                </button>
+              {{/if}}
+            {{/if}}
+
+            {{#if (eq product.workflow_status 'archive_pending')}}
+              {{#if permissions.canApproveArchive}}
+                <form method="POST" action="/private/products/{{product.id}}/workflow" class="flex flex-wrap items-center gap-2">
+                  <input type="hidden" name="action" value="approve_archive" />
+                  <input type="text" name="review_notes" maxlength="500" placeholder="Dictamen final (opcional)..." class="rounded-xl border border-amber-300 bg-white px-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:border-[#1b4332] focus:outline-none" />
+                  <button type="submit" class="inline-flex items-center gap-1.5 rounded-xl bg-rose-700 px-3.5 py-2 text-xs font-bold text-white shadow-2xs hover:bg-rose-800 transition-colors cursor-pointer">
+                    <span class="material-symbols-outlined text-sm">verified_user</span>
+                    <span>Aprobar baja</span>
+                  </button>
+                </form>
                 <form method="POST" action="/private/products/{{product.id}}/workflow">
-                  <input type="hidden" name="action" value="archive" />
-                  <button type="submit" class="inline-flex items-center gap-1.5 rounded-xl border border-border bg-background px-3.5 py-2 text-xs font-bold text-foreground hover:bg-muted transition-colors cursor-pointer">
-                    <span class="material-symbols-outlined text-sm">archive</span>
-                    <span>Archivar</span>
+                  <input type="hidden" name="action" value="reject_archive" />
+                  <button type="submit" class="inline-flex items-center gap-1.5 rounded-xl border border-amber-300 bg-white px-3.5 py-2 text-xs font-bold text-amber-900 hover:bg-amber-100 transition-colors cursor-pointer">
+                    <span class="material-symbols-outlined text-sm">close</span>
+                    <span>Rechazar baja</span>
                   </button>
                 </form>
               {{/if}}
@@ -127,13 +149,44 @@
             {{/if}}
 
             {{#if product.canDeleteRecord}}
-              <button type="button" id="btn-delete-product-dossier" data-id="{{product.id}}" data-name="{{product.name}}" class="inline-flex items-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-2 text-xs font-bold text-rose-700 hover:bg-rose-100 transition-colors cursor-pointer">
+              <button type="button" id="btn-delete-product-dossier" data-id="{{product.id}}" data-name="{{product.name}}" class="inline-flex items-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-2 text-xs font-bold text-rose-700 hover:bg-rose-100 transition-colors cursor-pointer" title="Eliminar borrador permanentemente">
                 <span class="material-symbols-outlined text-sm">delete</span>
                 <span>Eliminar</span>
               </button>
             {{/if}}
           </div>
         </div>
+
+        {{#if (eq product.workflow_status 'archive_pending')}}
+          <div class="mt-4 rounded-2xl border border-amber-300 bg-amber-50/90 p-4 text-amber-950 shadow-xs">
+            <div class="flex items-start gap-3">
+              <div class="rounded-xl bg-amber-200/80 p-2 text-amber-900 shrink-0">
+                <span class="material-symbols-outlined text-xl">gavel</span>
+              </div>
+              <div class="flex-1 space-y-1.5">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <h4 class="text-sm font-bold text-amber-950">Solicitud de Retiro Fitosanitario en Trámite</h4>
+                  <span class="inline-flex items-center rounded-lg bg-amber-200 px-2.5 py-0.5 text-[10px] font-bold text-amber-950 uppercase tracking-wide">
+                    Dictamen Dual Pendiente
+                  </span>
+                </div>
+                <div class="text-xs text-amber-900 space-y-1">
+                  <p><strong class="font-bold">Motivo:</strong> {{product.archive_reason_category}} &bull; <strong class="font-bold">Solicitado por:</strong> {{product.archiveRequestedBy.full_name}} {{#if product.archive_requested_at}}el {{product.archive_requested_at}}{{/if}}</p>
+                  <div class="rounded-xl border border-amber-200 bg-white/80 p-3 text-xs text-foreground mt-1">
+                    <span class="font-bold text-amber-900 block mb-0.5">Justificación técnica:</span>
+                    {{product.archive_reason}}
+                  </div>
+                </div>
+                {{#unless permissions.canApproveArchive}}
+                  <p class="text-[11px] text-amber-800 font-medium italic mt-2">
+                    <span class="material-symbols-outlined text-xs align-middle">lock</span>
+                    Principio de aprobación dual (4 ojos): La baja debe ser evaluada y dictaminada por un especialista o administrador distinto a quien la solicitó.
+                  </p>
+                {{/unless}}
+              </div>
+            </div>
+          </div>
+        {{/if}}
 
         <div class="border-t border-border/70 pt-4">
           <div class="mb-2.5 flex items-center justify-between text-[11px]">
@@ -717,6 +770,52 @@
 {{> shared/product-pdf-modal}}
 {{#if isPrivate}}
   {{> private/products/form-modal}}
+
+  <!-- Modal Solicitud Justificada de Retiro de Insumo (Dual Approval) -->
+  <div id="modal-request-archive-product" role="dialog" aria-modal="true" class="fixed inset-0 z-100 hidden items-center justify-center p-4">
+    <div id="modal-request-archive-product-backdrop" class="absolute inset-0 bg-black/40 backdrop-blur-xs"></div>
+    <div class="relative z-10 w-full max-w-lg bg-card border border-border/80 rounded-2xl shadow-xl overflow-hidden font-['Geist']">
+      <div class="p-6 border-b border-border/60">
+        <div class="flex items-start gap-4">
+          <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined text-xl">gavel</span>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-foreground">Solicitud de Retiro Fitosanitario</h3>
+            <p class="mt-0.5 text-xs text-muted-foreground">
+              Principio de los 4 ojos: Para dar de baja un insumo comercial registrado o publicado, debes capturar la causa técnica. La solicitud pasará a dictamen por otro especialista antes de proceder al retiro.
+            </p>
+          </div>
+        </div>
+      </div>
+      <form id="form-request-archive-product" method="POST" action="/private/products/{{product.id}}/workflow" class="p-6 space-y-4">
+        <input type="hidden" name="action" value="request_archive" />
+        <div>
+          <label class="block text-xs font-bold text-foreground mb-1.5">Motivo / Causa de la baja <span class="text-rose-500">*</span></label>
+          <select name="archive_reason_category" required class="w-full rounded-xl border border-input bg-background px-3 py-2 text-xs text-foreground focus:border-[#1b4332] focus:outline-none">
+            <option value="cambio_normativo">Cancelación de Registro COFEPRIS / CICOPLAFEST</option>
+            <option value="riesgo_sanitario">Prohibición por Toxicidad / Impacto Ambiental</option>
+            <option value="obsolescencia_tecnica">Discontinuación por Fabricante / Obsolescencia</option>
+            <option value="duplicado_invalido">Registro Duplicado o Ficha Errónea</option>
+            <option value="otro">Otro motivo técnico justificado</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-foreground mb-1.5">Justificación técnica detallada <span class="text-rose-500">* (mínimo 20 caracteres)</span></label>
+          <textarea name="archive_reason" required minlength="20" maxlength="1000" rows="4" placeholder="Describe detalladamente los fundamentos sanitarios, toxicológicos o normativos para retirar este insumo..." class="w-full rounded-xl border border-input bg-background p-3 text-xs text-foreground focus:border-[#1b4332] focus:outline-none placeholder:text-muted-foreground"></textarea>
+        </div>
+        <div class="pt-2 border-t border-border/60 flex justify-end gap-2">
+          <button type="button" id="btn-cancel-request-archive-product" class="px-4 py-2 rounded-xl border border-border text-xs font-bold text-muted-foreground hover:bg-muted transition-colors cursor-pointer">
+            Cancelar
+          </button>
+          <button type="submit" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-600 text-white text-xs font-bold hover:bg-amber-700 transition-colors shadow-2xs cursor-pointer">
+            <span class="material-symbols-outlined text-sm">send</span>
+            <span>Tramitar Solicitud de Baja</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
 {{/if}}
 
 <script type="module" src="/js/shared/product-detail.js"></script>

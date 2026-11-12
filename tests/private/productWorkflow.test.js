@@ -103,4 +103,55 @@ describe('workflow y RBAC de productos', () => {
     expect(isProductEditable('changes_requested')).toBe(true);
     expect(isProductEditable('published')).toBe(false);
   });
+
+  describe('baja justificada y principio de 4 ojos en productos', () => {
+    it('exige justificación técnica de al menos 20 caracteres al solicitar baja', () => {
+      expect(() =>
+        transitionProductWorkflow({
+          currentStatus: PRODUCT_WORKFLOW_STATUSES.PUBLISHED,
+          action: PRODUCT_WORKFLOW_ACTIONS.REQUEST_ARCHIVE,
+          actor: { id: 10 },
+          archiveReason: 'Muy corta',
+        }),
+      ).toThrow(ProductWorkflowError);
+    });
+
+    it('registra solicitud de baja en archive_pending', () => {
+      const changes = transitionProductWorkflow({
+        currentStatus: PRODUCT_WORKFLOW_STATUSES.PUBLISHED,
+        action: PRODUCT_WORKFLOW_ACTIONS.REQUEST_ARCHIVE,
+        actor: { id: 10 },
+        archiveReason: 'Retiro de registro sanitario oficial por COFEPRIS.',
+        archiveReasonCategory: 'regulatorio',
+      });
+
+      expect(changes.workflow_status).toBe(PRODUCT_WORKFLOW_STATUSES.ARCHIVE_PENDING);
+      expect(changes.archive_requested_by_user_id).toBe(10);
+      expect(changes.archive_reason_category).toBe('regulatorio');
+    });
+
+    it('bloquea que el mismo usuario solicitante apruebe la baja', () => {
+      expect(() =>
+        transitionProductWorkflow({
+          currentStatus: PRODUCT_WORKFLOW_STATUSES.ARCHIVE_PENDING,
+          action: PRODUCT_WORKFLOW_ACTIONS.APPROVE_ARCHIVE,
+          actor: { id: 10 },
+          record: { archive_requested_by_user_id: 10 },
+        }),
+      ).toThrow(ProductWorkflowError);
+    });
+
+    it('permite que un segundo usuario apruebe la baja', () => {
+      const changes = transitionProductWorkflow({
+        currentStatus: PRODUCT_WORKFLOW_STATUSES.ARCHIVE_PENDING,
+        action: PRODUCT_WORKFLOW_ACTIONS.APPROVE_ARCHIVE,
+        actor: { id: 25 },
+        record: { archive_requested_by_user_id: 10 },
+      });
+
+      expect(changes.workflow_status).toBe(PRODUCT_WORKFLOW_STATUSES.ARCHIVED);
+      expect(changes.archived_by_user_id).toBe(25);
+      expect(changes.status).toBe(false);
+    });
+  });
 });

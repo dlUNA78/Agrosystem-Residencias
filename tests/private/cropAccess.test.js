@@ -23,6 +23,8 @@ describe('RBAC del módulo privado de cultivos', () => {
       canSubmitReview: true,
       canVerify: false,
       canPublish: true,
+      canRequestArchive: true,
+      canApproveArchive: true,
       canArchive: true,
       canRestore: true,
       canDelete: true,
@@ -59,6 +61,22 @@ describe('RBAC del módulo privado de cultivos', () => {
     expect(permissions.canEdit).toBe(false);
     expect(permissions.canSubmitReview).toBe(false);
     expect(permissions.canVerify).toBe(false);
+  });
+
+  it('aplica el principio de 4 ojos: el solicitante de baja no puede aprobar el dictamen de baja', () => {
+    const requester = getContextualCropPermissions({
+      role: 'admin',
+      userId: 5,
+      archiveRequestedByUserId: 5,
+    });
+    const secondApprover = getContextualCropPermissions({
+      role: 'admin',
+      userId: 9,
+      archiveRequestedByUserId: 5,
+    });
+
+    expect(requester.canApproveArchive).toBe(false);
+    expect(secondApprover.canApproveArchive).toBe(true);
   });
 
   it('impide a INIFAP publicar, archivar o eliminar', () => {

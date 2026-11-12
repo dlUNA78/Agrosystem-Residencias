@@ -47,6 +47,18 @@ const plagueDetailIncludes = [
     required: false,
     attributes: ['id', 'full_name'],
   },
+  {
+    model: User,
+    as: 'archiveRequestedBy',
+    required: false,
+    attributes: ['id', 'full_name'],
+  },
+  {
+    model: User,
+    as: 'archivedBy',
+    required: false,
+    attributes: ['id', 'full_name'],
+  },
 ];
 
 const loadRelationEditor = async (plagueData) => {
@@ -163,6 +175,7 @@ const resolveDetailEditState = (user, plagueData) => {
     role: user.role,
     userId: user.id,
     createdByUserId: plagueData.created_by_user_id,
+    archiveRequestedByUserId: plagueData.archive_requested_by_user_id,
   });
   const rolePermissions = getPlaguePermissions(user.role);
   const editableStatus = isPlagueEditable(plagueData.workflow_status);
@@ -177,6 +190,9 @@ const resolveDetailEditState = (user, plagueData) => {
     },
     canEditRecord: isDraftEditable || canControlledEdit,
     isControlledEdit: !isDraftEditable && canControlledEdit,
+    canDeleteRecord:
+      permissions.canDelete &&
+      plagueData.workflow_status === PLAGUE_WORKFLOW_STATUSES.DRAFT,
     canEditRelations: permissions.canManageRelations && editableStatus,
     relationsLocked: rolePermissions.canManageRelations && !editableStatus,
     relationsOwnershipRestricted:

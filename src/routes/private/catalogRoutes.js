@@ -54,6 +54,7 @@ import {
   createIngredient,
   updateIngredient,
   deleteIngredient,
+  updateIngredientWorkflow,
 } from '../../controllers/private/ingredientsController.js';
 
 const catalogRouter = Router();
@@ -214,6 +215,11 @@ catalogRouter.post(
   '/private/ingredients/delete/:id',
   requireRole('admin'),
   deleteIngredient,
+);
+catalogRouter.post(
+  '/private/ingredients/:id/workflow',
+  requireRole('admin', 'inifap'),
+  updateIngredientWorkflow,
 );
 
 export default catalogRouter;

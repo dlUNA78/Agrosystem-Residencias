@@ -336,6 +336,14 @@ export const EXPECTED_CONTRACT = [
     middlewares: ['requireRole'],
     permissionArg: 'admin',
   },
+  {
+    method: 'POST',
+    path: '/private/ingredients/:id/workflow',
+    domain: 'catalog',
+    controller: 'updateIngredientWorkflow',
+    middlewares: ['requireRole'],
+    permissionArg: 'admin',
+  },
 
   // ─── PARCELAS Y GRANJAS (11) ──────────────────────────────────────────────
   {
@@ -708,12 +716,12 @@ describe('pruebas estructurales y de inventario de rutas privadas por dominio', 
     });
   });
 
-  describe('equivalencia del inventario de rutas (74 endpoints)', () => {
+  describe('equivalencia del inventario de rutas (75 endpoints)', () => {
     const registeredRoutes = extractDetailedRoutes(privateRouter);
 
-    it('el total de registros explícitos coincide exactamente con los 74 del contrato base', () => {
-      expect(registeredRoutes).toHaveLength(74);
-      expect(EXPECTED_CONTRACT).toHaveLength(74);
+    it('el total de registros explícitos coincide exactamente con los 75 del contrato base', () => {
+      expect(registeredRoutes).toHaveLength(75);
+      expect(EXPECTED_CONTRACT).toHaveLength(75);
     });
 
     it('cada endpoint esperado existe con el método, path, controlador final y middlewares exactos', () => {
@@ -753,7 +761,7 @@ describe('pruebas estructurales y de inventario de rutas privadas por dominio', 
     it('no existen rutas adicionales, huérfanas ni duplicadas en el router compuesto', () => {
       const routeKeys = registeredRoutes.map((r) => `${r.method} ${r.path}`);
       const uniqueKeys = new Set(routeKeys);
-      expect(uniqueKeys.size).toBe(74);
+      expect(uniqueKeys.size).toBe(75);
 
       registeredRoutes.forEach((route) => {
         const expected = EXPECTED_CONTRACT.find(
@@ -768,14 +776,14 @@ describe('pruebas estructurales y de inventario de rutas privadas por dominio', 
       const landRoutes = extractDetailedRoutes(landRouter);
       const adminRoutes = extractDetailedRoutes(adminRouter);
 
-      expect(catalogRoutes).toHaveLength(28);
+      expect(catalogRoutes).toHaveLength(29);
       expect(landRoutes).toHaveLength(18);
       expect(adminRoutes).toHaveLength(17);
 
-      // 28 catálogo + 18 parcelas + 17 admin + 11 agregador raíz = 74
+      // 29 catálogo + 18 parcelas + 17 admin + 11 agregador raíz = 75
       const totalModularRoutes =
         catalogRoutes.length + landRoutes.length + adminRoutes.length + 11;
-      expect(totalModularRoutes).toBe(74);
+      expect(totalModularRoutes).toBe(75);
     });
 
     it('las 18 rutas de parcelas apuntan a sus controladores correspondientes (incluyendo archive/restore/delete/revert/lots)', () => {

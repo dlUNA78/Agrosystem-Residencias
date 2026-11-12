@@ -207,13 +207,35 @@
                 {{/if}}
               {{/if}}
 
-              {{#if (eq crop.workflow_status 'published')}}
-                {{#if permissions.canArchive}}
+              {{#if (or (eq crop.workflow_status 'published') (eq crop.workflow_status 'verified'))}}
+                {{#if permissions.canRequestArchive}}
+                  <button
+                    type="button"
+                    id="btn-open-request-archive-crop"
+                    class="inline-flex items-center gap-1.5 rounded-xl border border-rose-300 bg-rose-50 px-3.5 py-2 text-xs font-bold text-rose-800 transition-colors hover:bg-rose-100 cursor-pointer"
+                    title="Tramitar solicitud formal de baja técnica institucional"
+                  >
+                    <span class="material-symbols-outlined text-base text-rose-600">report_problem</span>
+                    Solicitar baja
+                  </button>
+                {{/if}}
+              {{/if}}
+
+              {{#if (eq crop.workflow_status 'archive_pending')}}
+                {{#if permissions.canApproveArchive}}
+                  <form method="POST" action="/private/crops/{{crop.id}}/workflow" class="flex flex-wrap items-center gap-2">
+                    <input type="hidden" name="action" value="approve_archive" />
+                    <input type="text" name="review_notes" maxlength="500" placeholder="Dictamen final (opcional)..." class="rounded-xl border border-amber-300 bg-white px-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:border-[#1b4332] focus:outline-none" />
+                    <button type="submit" class="inline-flex items-center gap-1.5 rounded-xl bg-rose-700 px-4 py-2 text-xs font-bold text-white shadow-2xs hover:bg-rose-800 transition-colors cursor-pointer">
+                      <span class="material-symbols-outlined text-base">verified_user</span>
+                      Aprobar baja
+                    </button>
+                  </form>
                   <form method="POST" action="/private/crops/{{crop.id}}/workflow">
-                    <input type="hidden" name="action" value="archive" />
-                    <button type="submit" class="inline-flex items-center gap-1 rounded-xl border border-neutral-300 bg-neutral-100 px-3.5 py-2 text-xs font-bold text-neutral-800 transition-colors hover:bg-neutral-200 cursor-pointer">
-                      <span class="material-symbols-outlined text-base">archive</span>
-                      Archivar
+                    <input type="hidden" name="action" value="reject_archive" />
+                    <button type="submit" class="inline-flex items-center gap-1.5 rounded-xl border border-amber-300 bg-white px-3.5 py-2 text-xs font-bold text-amber-900 hover:bg-amber-100 transition-colors cursor-pointer">
+                      <span class="material-symbols-outlined text-base">close</span>
+                      Rechazar baja
                     </button>
                   </form>
                 {{/if}}
@@ -231,14 +253,14 @@
                 {{/if}}
               {{/if}}
 
-              {{#if permissions.canDelete}}
+              {{#if canDeleteRecord}}
                 <button
                   type="button"
                   id="btn-delete-crop-dossier"
                   data-id="{{crop.id}}"
                   data-name="{{crop.commonName}}"
                   class="inline-flex items-center gap-1 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-bold text-rose-800 transition-colors hover:bg-rose-100 cursor-pointer"
-                  title="Eliminar este expediente permanentemente"
+                  title="Eliminar este expediente borrador permanentemente"
                 >
                   <span class="material-symbols-outlined text-base text-rose-600">delete</span>
                   <span class="sr-only sm:not-sr-only">Eliminar</span>
@@ -246,6 +268,37 @@
               {{/if}}
             </div>
           </div>
+
+          {{#if (eq crop.workflow_status 'archive_pending')}}
+            <div class="mt-4 rounded-2xl border border-amber-300 bg-amber-50/90 p-4 text-amber-950 shadow-xs">
+              <div class="flex items-start gap-3">
+                <div class="rounded-xl bg-amber-200/80 p-2 text-amber-900 shrink-0">
+                  <span class="material-symbols-outlined text-xl">gavel</span>
+                </div>
+                <div class="flex-1 space-y-1.5">
+                  <div class="flex flex-wrap items-center justify-between gap-2">
+                    <h4 class="text-sm font-bold text-amber-950">Solicitud de Baja Institucional en Trámite</h4>
+                    <span class="inline-flex items-center rounded-lg bg-amber-200 px-2.5 py-0.5 text-[10px] font-bold text-amber-950 uppercase tracking-wide">
+                      Dictamen Dual Pendiente
+                    </span>
+                  </div>
+                  <div class="text-xs text-amber-900 space-y-1">
+                    <p><strong class="font-bold">Motivo:</strong> {{crop.archive_reason_category}} &bull; <strong class="font-bold">Solicitado por:</strong> {{crop.archiveRequestedBy.full_name}} {{#if crop.archive_requested_at}}el {{crop.archive_requested_at}}{{/if}}</p>
+                    <div class="rounded-xl border border-amber-200 bg-white/80 p-3 text-xs text-foreground mt-1">
+                      <span class="font-bold text-amber-900 block mb-0.5">Justificación técnica:</span>
+                      {{crop.archive_reason}}
+                    </div>
+                  </div>
+                  {{#unless permissions.canApproveArchive}}
+                    <p class="text-[11px] text-amber-800 font-medium italic mt-2">
+                      <span class="material-symbols-outlined text-xs align-middle">lock</span>
+                      Principio de aprobación dual (4 ojos): La baja debe ser evaluada y dictaminada por un especialista o administrador distinto a quien la solicitó.
+                    </p>
+                  {{/unless}}
+                </div>
+              </div>
+            </div>
+          {{/if}}
 
           {{! Checklist de Preparación Editorial }}
           <div id="publication-checklist" class="mt-5 border-t border-border pt-4">
@@ -1074,9 +1127,55 @@
     {{#if canEditRecord}}
       {{> private/crops/form-modal}}
     {{/if}}
-    {{#if permissions.canDelete}}
+    {{#if canDeleteRecord}}
       {{> private/crops/delete-modal}}
     {{/if}}
+
+    <!-- Modal Solicitud Justificada de Baja (Dual Approval) -->
+    <div id="modal-request-archive-crop" role="dialog" aria-modal="true" class="fixed inset-0 z-100 hidden items-center justify-center p-4">
+      <div id="modal-request-archive-crop-backdrop" class="absolute inset-0 bg-black/40 backdrop-blur-xs"></div>
+      <div class="relative z-10 w-full max-w-lg bg-card border border-border/80 rounded-2xl shadow-xl overflow-hidden font-['Geist']">
+        <div class="p-6 border-b border-border/60">
+          <div class="flex items-start gap-4">
+            <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-xl">gavel</span>
+            </div>
+            <div>
+              <h3 class="text-base font-bold text-foreground">Solicitud Justificada de Baja</h3>
+              <p class="mt-0.5 text-xs text-muted-foreground">
+                Principio de los 4 ojos: Para dar de baja un cultivo publicado o verificado, debes registrar la causa técnica. La solicitud pasará a dictamen por otro especialista antes de proceder al retiro.
+              </p>
+            </div>
+          </div>
+        </div>
+        <form id="form-request-archive-crop" method="POST" action="/private/crops/{{crop.id}}/workflow" class="p-6 space-y-4">
+          <input type="hidden" name="action" value="request_archive" />
+          <div>
+            <label class="block text-xs font-bold text-foreground mb-1.5">Motivo / Causa de la baja <span class="text-rose-500">*</span></label>
+            <select name="archive_reason_category" required class="w-full rounded-xl border border-input bg-background px-3 py-2 text-xs text-foreground focus:border-[#1b4332] focus:outline-none">
+              <option value="obsolescencia_tecnica">Obsolescencia Técnica / Científica</option>
+              <option value="riesgo_sanitario">Riesgo Fitosanitario / Alerta Oficial</option>
+              <option value="cambio_normativo">Cambio Regulatorio / Normativo</option>
+              <option value="duplicado_invalido">Registro Duplicado o Inválido</option>
+              <option value="otro">Otro motivo justificado</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-foreground mb-1.5">Justificación técnica detallada <span class="text-rose-500">* (mínimo 20 caracteres)</span></label>
+            <textarea name="archive_reason" required minlength="20" maxlength="1000" rows="4" placeholder="Describe detalladamente los fundamentos agronómicos o normativos que justifican retirar este cultivo..." class="w-full rounded-xl border border-input bg-background p-3 text-xs text-foreground focus:border-[#1b4332] focus:outline-none placeholder:text-muted-foreground"></textarea>
+          </div>
+          <div class="pt-2 border-t border-border/60 flex justify-end gap-2">
+            <button type="button" id="btn-cancel-request-archive-crop" class="px-4 py-2 rounded-xl border border-border text-xs font-bold text-muted-foreground hover:bg-muted transition-colors cursor-pointer">
+              Cancelar
+            </button>
+            <button type="submit" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-600 text-white text-xs font-bold hover:bg-amber-700 transition-colors shadow-2xs cursor-pointer">
+              <span class="material-symbols-outlined text-sm">send</span>
+              <span>Tramitar Solicitud de Baja</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   {{/if}}
 
 </div>

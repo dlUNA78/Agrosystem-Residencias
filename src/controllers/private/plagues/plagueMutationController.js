@@ -15,6 +15,7 @@ import {
   PLAGUE_WORKFLOW_STATUSES,
   isPlagueEditable,
 } from '../../../services/plagueWorkflowService.js';
+import { getPlagueDeactivationImpact } from '../../../services/deactivationImpactService.js';
 
 const { AuditLog, Plague, PlagueImage } = db;
 
@@ -334,6 +335,28 @@ export const updatePlague = async (req, res) => {
   }
 };
 
+const wantsJson = (req) =>
+  Boolean(req.xhr || req.headers?.accept?.includes('application/json'));
+
+const respondMutationError = (req, res, status, message) => {
+  if (wantsJson(req)) {
+    return res.status(status).json({ success: false, message });
+  }
+  return res.status(status).send(message);
+};
+
+const respondMutationSuccess = (req, res, redirectUrl, message) => {
+  if (wantsJson(req)) {
+    return res.status(200).json({ success: true, message });
+  }
+  return res.redirect(redirectUrl);
+};
+
+const isDirectDeleteBlocked = (status) =>
+  status === PLAGUE_WORKFLOW_STATUSES.PUBLISHED ||
+  status === PLAGUE_WORKFLOW_STATUSES.VERIFIED ||
+  status === PLAGUE_WORKFLOW_STATUSES.ARCHIVE_PENDING;
+
 export const deletePlague = async (req, res) => {
   const transaction = await db.sequelize.transaction();
 
@@ -341,45 +364,32 @@ export const deletePlague = async (req, res) => {
     const { id } = req.params;
     if (!/^\d+$/.test(id)) {
       await transaction.rollback();
-      return res.status(400).send('ID de plaga no válido');
+      return respondMutationError(req, res, 400, 'ID de plaga no válido');
     }
 
     const plague = await Plague.findByPk(Number(id), { transaction });
     if (!plague) {
       await transaction.rollback();
-      return res.status(404).send('Plaga no encontrada');
+      return respondMutationError(req, res, 404, 'Plaga no encontrada');
+    }
+
+    if (isDirectDeleteBlocked(plague.workflow_status)) {
+      await transaction.rollback();
+      return respondMutationError(
+        req,
+        res,
+        409,
+        'Las plagas publicadas o en verificación no pueden eliminarse directamente. Debes tramitar la baja justificada a través del flujo editorial con aprobación dual.',
+      );
+    }
+
+    const impact = await getPlagueDeactivationImpact(plague.id, transaction);
+    if (impact.hasBlockingDependencies) {
+      await transaction.rollback();
+      return respondMutationError(req, res, 409, impact.message);
     }
 
     const oldValues = plague.toJSON();
-    const shouldArchive =
-      req.body?.mode === 'archive' ||
-      plague.workflow_status === PLAGUE_WORKFLOW_STATUSES.PUBLISHED ||
-      plague.workflow_status === PLAGUE_WORKFLOW_STATUSES.VERIFIED;
-
-    if (shouldArchive) {
-      await plague.update(
-        {
-          workflow_status: PLAGUE_WORKFLOW_STATUSES.ARCHIVED,
-          status: false,
-          updated_by_user_id: req.user.id,
-        },
-        { transaction },
-      );
-      await AuditLog.create(
-        {
-          action: 'plague.archive',
-          table_name: 'Plagues',
-          record_id: plague.id,
-          old_values: oldValues,
-          new_values: plague.toJSON(),
-          user_id: req.user.id,
-        },
-        { transaction },
-      );
-      await transaction.commit();
-      return res.redirect('/private/plagues');
-    }
-
     await PlagueImage.destroy({
       where: { plague_id: plague.id },
       transaction,
@@ -398,10 +408,15 @@ export const deletePlague = async (req, res) => {
     );
 
     await transaction.commit();
-    return res.redirect('/private/plagues');
+    return respondMutationSuccess(
+      req,
+      res,
+      '/private/plagues',
+      'Plaga borrador eliminada correctamente.',
+    );
   } catch (error) {
     await transaction.rollback();
     console.error('Error al eliminar la plaga:', error);
-    return res.status(500).send('Error al eliminar la plaga');
+    return respondMutationError(req, res, 500, 'Error al eliminar la plaga');
   }
 };

@@ -123,6 +123,8 @@ hbs.registerHelper('gte', (a, b) => Number(a) >= Number(b));
 hbs.registerHelper('lte', (a, b) => Number(a) <= Number(b));
 hbs.registerHelper('add', (a, b) => Number(a) + Number(b));
 hbs.registerHelper('sub', (a, b) => Number(a) - Number(b));
+hbs.registerHelper('or', (...args) => args.slice(0, -1).some(Boolean));
+hbs.registerHelper('and', (...args) => args.slice(0, -1).every(Boolean));
 hbs.registerHelper('urlEncode', (str) =>
   str !== null && str !== undefined ? encodeURIComponent(String(str)) : '',
 );

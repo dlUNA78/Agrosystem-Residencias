@@ -156,6 +156,9 @@ const serializePlague = (plague, currentUser) => {
     authorName: data.createdBy?.full_name || 'Sistema INIFAP',
     authorRole: data.createdBy?.role || 'inifap',
     ...editFlags,
+    canDeleteRecord:
+      recordPermissions.canDelete &&
+      data.workflow_status === PLAGUE_WORKFLOW_STATUSES.DRAFT,
   };
 };
 

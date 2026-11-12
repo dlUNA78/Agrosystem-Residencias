@@ -8,6 +8,8 @@ export const CROP_PERMISSIONS = Object.freeze({
   SUBMIT_REVIEW: 'crops.submitReview',
   VERIFY: 'crops.verify',
   PUBLISH: 'crops.publish',
+  REQUEST_ARCHIVE: 'crops.requestArchive',
+  APPROVE_ARCHIVE: 'crops.approveArchive',
   ARCHIVE: 'crops.archive',
   RESTORE: 'crops.restore',
   DELETE: 'crops.delete',
@@ -21,6 +23,8 @@ const permissionFlags = Object.freeze({
   [CROP_PERMISSIONS.SUBMIT_REVIEW]: 'canSubmitReview',
   [CROP_PERMISSIONS.VERIFY]: 'canVerify',
   [CROP_PERMISSIONS.PUBLISH]: 'canPublish',
+  [CROP_PERMISSIONS.REQUEST_ARCHIVE]: 'canRequestArchive',
+  [CROP_PERMISSIONS.APPROVE_ARCHIVE]: 'canApproveArchive',
   [CROP_PERMISSIONS.ARCHIVE]: 'canArchive',
   [CROP_PERMISSIONS.RESTORE]: 'canRestore',
   [CROP_PERMISSIONS.DELETE]: 'canDelete',
@@ -36,6 +40,8 @@ const permissionsByRole = Object.freeze({
     CROP_PERMISSIONS.MANAGE_RELATIONS,
     CROP_PERMISSIONS.SUBMIT_REVIEW,
     CROP_PERMISSIONS.PUBLISH,
+    CROP_PERMISSIONS.REQUEST_ARCHIVE,
+    CROP_PERMISSIONS.APPROVE_ARCHIVE,
     CROP_PERMISSIONS.ARCHIVE,
     CROP_PERMISSIONS.RESTORE,
     CROP_PERMISSIONS.DELETE,
@@ -47,6 +53,8 @@ const permissionsByRole = Object.freeze({
     CROP_PERMISSIONS.MANAGE_RELATIONS,
     CROP_PERMISSIONS.SUBMIT_REVIEW,
     CROP_PERMISSIONS.VERIFY,
+    CROP_PERMISSIONS.REQUEST_ARCHIVE,
+    CROP_PERMISSIONS.APPROVE_ARCHIVE,
   ]),
 });
 
@@ -55,6 +63,9 @@ const workflowPermissions = Object.freeze({
   [CROP_WORKFLOW_ACTIONS.REQUEST_CHANGES]: CROP_PERMISSIONS.VERIFY,
   [CROP_WORKFLOW_ACTIONS.VERIFY]: CROP_PERMISSIONS.VERIFY,
   [CROP_WORKFLOW_ACTIONS.PUBLISH]: CROP_PERMISSIONS.PUBLISH,
+  [CROP_WORKFLOW_ACTIONS.REQUEST_ARCHIVE]: CROP_PERMISSIONS.REQUEST_ARCHIVE,
+  [CROP_WORKFLOW_ACTIONS.APPROVE_ARCHIVE]: CROP_PERMISSIONS.APPROVE_ARCHIVE,
+  [CROP_WORKFLOW_ACTIONS.REJECT_ARCHIVE]: CROP_PERMISSIONS.APPROVE_ARCHIVE,
   [CROP_WORKFLOW_ACTIONS.ARCHIVE]: CROP_PERMISSIONS.ARCHIVE,
   [CROP_WORKFLOW_ACTIONS.RESTORE]: CROP_PERMISSIONS.RESTORE,
 });
@@ -71,22 +82,28 @@ export const getCropPermissions = (role) =>
     ]),
   );
 
-const sameUser = (userId, createdByUserId) =>
+const sameUser = (userId, targetUserId) =>
   userId !== null &&
   userId !== undefined &&
-  createdByUserId !== null &&
-  createdByUserId !== undefined &&
-  Number(userId) === Number(createdByUserId);
+  targetUserId !== null &&
+  targetUserId !== undefined &&
+  Number(userId) === Number(targetUserId);
 
 export const getContextualCropPermissions = ({
   role,
   userId,
   createdByUserId,
+  archiveRequestedByUserId,
 }) => {
   const permissions = getCropPermissions(role);
+  const isArchiveRequester = sameUser(userId, archiveRequestedByUserId);
+  const canApproveArchive = permissions.canApproveArchive && !isArchiveRequester;
 
   if (role !== 'inifap') {
-    return permissions;
+    return {
+      ...permissions,
+      canApproveArchive,
+    };
   }
 
   const isAuthor = sameUser(userId, createdByUserId);
@@ -99,6 +116,7 @@ export const getContextualCropPermissions = ({
     canManageRelations: permissions.canManageRelations && isAuthor,
     canSubmitReview: permissions.canSubmitReview && isAuthor,
     canVerify: permissions.canVerify && hasKnownAuthor && !isAuthor,
+    canApproveArchive,
   };
 };
 
@@ -109,16 +127,17 @@ export const canPerformContextualCropWorkflowAction = ({
   role,
   userId,
   createdByUserId,
+  archiveRequestedByUserId,
   action,
 }) => {
   const permission = getRequiredCropPermissionForWorkflowAction(action);
-
   if (!permission) return false;
 
   const permissions = getContextualCropPermissions({
     role,
     userId,
     createdByUserId,
+    archiveRequestedByUserId,
   });
 
   return permissions[permissionFlags[permission]] === true;

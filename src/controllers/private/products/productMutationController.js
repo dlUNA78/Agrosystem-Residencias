@@ -18,6 +18,7 @@ import {
   PRODUCT_WORKFLOW_STATUSES,
   isProductEditable,
 } from '../../../services/productWorkflowService.js';
+import { getProductDeactivationImpact } from '../../../services/deactivationImpactService.js';
 import { parsePositiveId } from './productControllerUtils.js';
 
 const { AuditLog, Crop, Plague, Product, ProductImage } = db;
@@ -442,42 +443,36 @@ export const deleteProduct = async (req, res) => {
   const transaction = await db.sequelize.transaction();
 
   try {
-    const product = await Product.findByPk(productId, { transaction });
+    const product = await Product.findByPk(productId, {
+      transaction,
+      lock: transaction.LOCK.UPDATE,
+    });
     if (!product) {
       await transaction.rollback();
       return failure(req, res, 404, 'Producto no encontrado.');
     }
-    const oldValues = product.toJSON();
-    const shouldArchive =
-      req.body?.mode === 'archive' ||
-      product.workflow_status === PRODUCT_WORKFLOW_STATUSES.PUBLISHED ||
-      product.workflow_status === PRODUCT_WORKFLOW_STATUSES.VERIFIED;
 
-    if (shouldArchive) {
-      await product.update(
-        {
-          workflow_status: PRODUCT_WORKFLOW_STATUSES.ARCHIVED,
-          validation_status: 'Retirado',
-          status: false,
-          updated_by_user_id: req.user.id,
-        },
-        { transaction },
+    if (
+      product.workflow_status === PRODUCT_WORKFLOW_STATUSES.PUBLISHED ||
+      product.workflow_status === PRODUCT_WORKFLOW_STATUSES.VERIFIED ||
+      product.workflow_status === PRODUCT_WORKFLOW_STATUSES.ARCHIVE_PENDING
+    ) {
+      await transaction.rollback();
+      return failure(
+        req,
+        res,
+        409,
+        'Los productos publicados o en verificación no pueden eliminarse directamente. Debes tramitar la baja justificada a través del flujo editorial con aprobación dual.',
       );
-      await AuditLog.create(
-        {
-          action: 'product.archive',
-          table_name: 'Products',
-          record_id: product.id,
-          old_values: oldValues,
-          new_values: product.toJSON(),
-          user_id: req.user.id,
-        },
-        { transaction },
-      );
-      await transaction.commit();
-      return success(req, res, 'Producto dado de baja y archivado.');
     }
 
+    const impact = await getProductDeactivationImpact(product.id, transaction);
+    if (impact.hasBlockingDependencies) {
+      await transaction.rollback();
+      return failure(req, res, 409, impact.message);
+    }
+
+    const oldValues = product.toJSON();
     const images = await ProductImage.findAll({
       where: { product_id: product.id },
       attributes: ['image_url'],

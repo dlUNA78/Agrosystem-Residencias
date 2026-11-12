@@ -110,7 +110,9 @@ const buildListItem = (record, user) => {
     authorName: crop.createdBy?.full_name || 'Sistema INIFAP',
     authorRole: crop.createdBy?.role || 'inifap',
     ...editFlags,
-    canDeleteRecord: permissions.canDelete,
+    canDeleteRecord:
+      permissions.canDelete &&
+      crop.workflow_status === CROP_WORKFLOW_STATUSES.DRAFT,
   };
 };
 

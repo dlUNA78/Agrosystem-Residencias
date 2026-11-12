@@ -62,6 +62,18 @@ const cropDetailIncludes = [
     required: false,
     attributes: ['id', 'full_name'],
   },
+  {
+    model: User,
+    as: 'archiveRequestedBy',
+    required: false,
+    attributes: ['id', 'full_name'],
+  },
+  {
+    model: User,
+    as: 'archivedBy',
+    required: false,
+    attributes: ['id', 'full_name'],
+  },
 ];
 
 const parseCropId = (value) => {
@@ -151,6 +163,7 @@ const resolveDetailEditState = (user, cropData) => {
     role: user.role,
     userId: user.id,
     createdByUserId: cropData.created_by_user_id,
+    archiveRequestedByUserId: cropData.archive_requested_by_user_id,
   });
   const rolePermissions = getCropPermissions(user.role);
   const editableStatus = isCropEditable(cropData.workflow_status);
@@ -167,6 +180,9 @@ const resolveDetailEditState = (user, cropData) => {
     },
     canEditRecord: isDraftEditable || canControlledEdit,
     isControlledEdit: !isDraftEditable && canControlledEdit,
+    canDeleteRecord:
+      permissions.canDelete &&
+      cropData.workflow_status === CROP_WORKFLOW_STATUSES.DRAFT,
     canEditRelations: permissions.canManageRelations && editableStatus,
     relationsLocked: rolePermissions.canManageRelations && !editableStatus,
     relationsOwnershipRestricted:

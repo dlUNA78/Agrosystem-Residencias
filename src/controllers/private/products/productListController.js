@@ -114,7 +114,9 @@ const buildProductListItem = (record, user) => {
     authorName: product.createdBy?.full_name || 'Sistema INIFAP',
     authorRole: product.createdBy?.role || 'inifap',
     ...editFlags,
-    canDeleteRecord: permissions.canDelete,
+    canDeleteRecord:
+      permissions.canDelete &&
+      product.workflow_status === PRODUCT_WORKFLOW_STATUSES.DRAFT,
     permissions,
   };
 };
