@@ -109,14 +109,25 @@ Ordenada estrictamente de mayor a menor **costo estimado por el planificador de 
 
 ---
 
-## 5. Resultados de pruebas de carga con `k6` en entorno Docker (`50`, `200` y `500` VUs)
+## 5. Resultados de concurrencia con `k6` y condiciones del entorno (`0.A4` y `0.A5`)
 
-Pruebas ejecutadas sobre el entorno reproducible definido en [entorno-carga.md](entorno-carga.md) (`docker-compose.loadtest.yml` con PostgreSQL 16 y contenedor `app` en `NODE_ENV=production`, limitados a `2.0` CPUs y `1536m` RAM cada uno; banderas de carga controlada `COOKIE_SECURE=false` y `DISABLE_RATE_LIMIT=true`; `pg_stat_statements` reiniciado por bloque).
+Pruebas ejecutadas el **`2026-11-15`** contra el commit **`654570042f5fff13281be201447e4c0a8cfc385f`** (`6545700`) sobre el entorno reproducible definido en [entorno-carga.md](entorno-carga.md). Los scripts `k6` limpian `setup_data.cookieHeader` mediante `handleSummary` antes de exportar resúmenes y los archivos JSON crudos no se versionan en el repositorio (`loadtests/results/` ignorado en `.gitignore`).
 
-- **Volumen verificado en `agrosystem_loadtest`**: `Farms: 50,002`, `FarmCrops: 50,000`, `AuditLogs: 500,000`, `Notifications: 50,000`, `session: 100,000` (`Users: 6`, `Crops: 7`, `Products: 8`, `Plagues: 8`). El admin sembrado concentró `8,335` fincas activas.
-- **Salud de contenedores**: `RestartCount=0`, `OOMKilled=false`, `0` excepciones de aplicación en logs de `app`; consumo al cierre: `app` `153.9 MiB / 1.5 GiB` (`9.34 GB` enviados / `3.89 GB` recibidos), `postgres` `287.7 MiB / 1.5 GiB`.
+### 5.1 Condiciones confirmadas del entorno de prueba (`0.A5`)
 
-### 5.1 Resumen por flujo y escalón vs. umbrales acordados
+| Parámetro                            | Valor observado / verificado                                                                                                                      | Impacto en el baseline                                                                                                      |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `NODE_ENV` en contenedor `app`       | `production` (`express.enabled('view cache') === true`)                                                                                           | `express-hbs` cachea vistas, layouts y parciales (`self.cache`); evita la recompilación por petición de `development`       |
+| Registro SQL / logging (`Sequelize`) | **Activo** (`console.log` por defecto; [config.js](../src/config/config.js#L20-L27) no fija `logging: false`)                                     | Imprime `Executing (default): ...` a `stdout` en cada SQL y añade presión sincrónica de E/S al event loop                   |
+| Limitadores de tasa (`rateLimiter`)  | **Desactivados** (`DISABLE_RATE_LIMIT=true`)                                                                                                      | Sin este bypass, `publicRateLimiter` (`30 req/min` por IP) habría rechazado con HTTP `429` los `130–142 req/s` desde una IP |
+| Cookie de sesión sobre HTTP          | `COOKIE_SECURE=false`                                                                                                                             | Permite cookies `connect.sid` sin TLS entre `k6` y `http://localhost:3000`                                                  |
+| Límites del contenedor `app`         | `2.0` CPUs (`NanoCpus=2000000000`), `1536m` (`1610612736` bytes = `1.5 GiB`) RAM                                                                  | Al ser proceso Node único sin cluster, satura un máximo efectivo de `~1.0` CPU lógico                                       |
+| Límites del contenedor `postgres`    | `2.0` CPUs (`NanoCpus=2000000000`), `1536m` (`1.5 GiB`) RAM, `shared_buffers=256MB`, `max_connections=100`                                        | `pg_stat_statements` activo (`track=all`); consumo real estable en `287.7 MiB`                                              |
+| Máquina anfitriona y VM WSL2         | Host Windows: `11th Gen Intel(R) Core(TM) i5-1155G7 @ 2.50GHz` (`4` núcleos / `8` lógicos, `7.79 GB` RAM); VM WSL2: `4` vCPUs, `3,917 MiB` RAM    | Docker Engine corre dentro de WSL2 (`4` vCPUs / `~3.82 GiB` RAM totales compartidos entre `app` y `postgres`)               |
+| Volumen en `agrosystem_loadtest`     | `Farms: 50,002`, `FarmCrops: 50,000`, `AuditLogs: 500,000`, `Notifications: 50,000`, `session: 100,000` (`Crops: 7`, `Products: 8`, `Plagues: 8`) | El usuario administrador sembrado concentró `8,335` fincas activas                                                          |
+| Salud al cierre de corridas          | `RestartCount=0`, `OOMKilled=false`, `0` excepciones de app en logs; `app` `153.9 MiB / 1.5 GiB` (`9.34 GB` enviados / `3.89 GB` recibidos)       | No hubo caída por memoria; la saturación fue de CPU/latencia en Node                                                        |
+
+### 5.2 Resumen de concurrencia por flujo y escalón vs. umbrales acordados
 
 | Flujo (`loadtests/`)                          |   VUs | Iteraciones (`req/s`)    | Error HTTP (`meta`)  | `checks` (`meta`)      |  `p50` (`med`) | `p95` (`meta`)              |          `max` | Datos recibidos | Estado global                                            |
 | --------------------------------------------- | ----: | ------------------------ | -------------------- | ---------------------- | -------------: | --------------------------- | -------------: | --------------: | -------------------------------------------------------- |
@@ -129,11 +140,11 @@ Pruebas ejecutadas sobre el entorno reproducible definido en [entorno-carga.md](
 
 > **Escalones omitidos intencionalmente**: no se ejecutaron `pdf.js` a `500` VUs (en `200` VUs ya saturó su techo de `~15 req/s` con `p95 = 23.05 s`) ni `auth-panel.js` a `200`/`500` VUs (alcanzó el punto de quiebre en `50` VUs con `7.41%` de errores por timeout HTTP de `60 s` de `k6`).
 
-### 5.2 Desglose de métricas y `pg_stat_statements`
+### 5.3 Desglose de métricas y `pg_stat_statements`
 
 1. **`catalog.js` — techo de event loop de Node (~130–142 req/s), no de PostgreSQL**:
    - Desglose `p95` (`50 -> 200 -> 500` VUs): `catalog_home_duration` `292.29 -> 1,668.90 -> 7,143.10 ms`; `catalog_list_duration` `572.38 -> 2,062.67 -> 6,212.11 ms`; `catalog_detail_duration` `692.11 -> 2,562.77 -> 7,976.12 ms`; `iteration_duration` `p95` `3.46 -> 10.99 -> 36.30 s`.
-   - En `pg_stat_statements`, las consultas del catálogo público se mantuvieron por debajo de **`0.71 ms` promedio** en los tres escalones (`6.1–7.0 s` acumulados en el top 20 durante corridas de ~`121–139 s`). La degradación proviene de un único proceso Node saturado imprimiendo SQL en consola (ver [hallazgos.md](hallazgos.md)), renderizando `~139 KB` HTML sin caché en cada petición y encolando conexiones (`116` fallos en `GET /` con espera `0 ms` a `500` VUs).
+   - En `pg_stat_statements`, las consultas del catálogo público se mantuvieron por debajo de **`0.71 ms` promedio** en los tres escalones (`6.1–7.0 s` acumulados en el top 20 durante corridas de ~`121–139 s`). La degradación proviene de un único proceso Node saturado imprimiendo SQL en consola (ver [hallazgos.md](hallazgos.md)), hidratando modelos Sequelize y renderizando HTML/SVG sin caché en cada petición.
 2. **`pdf.js` — techo en ~15 req/s e hidratación repetitiva de `Farms`**:
    - En `50 -> 200` VUs: `pdf_crop_duration` (`GET /crops/1?format=pdf&download=1`) pasó de `p95 3,725.65 ms` a `12,791.80 ms`; `pdf_report_duration` (`GET /private/reports?period=mensual&format=pdf`) pasó de `p95 5,267.46 ms` a `23,728.68 ms` (`med 19,104.69 ms`).
    - En `pg_stat_statements`, cada reporte PDF disparó `4` veces `SELECT "id" FROM "Farms" WHERE status = true AND user_id = ...` (`3,812` llamadas devolviendo `31,773,020` filas en `50` VUs; `4,100` llamadas devolviendo `34,173,500` filas en `200` VUs, `8,335` predios por consulta), además de `SELECT "id", "name", "municipality" FROM "Farms"` (`7.94M`/`8.54M` filas), `sum`, `count` y un `INSERT INTO "AuditLogs"` por descarga (`953`/`1,025` inserciones). El tiempo SQL por llamada fue `6.09–9.15 ms` (`~52 s` acumulados), por lo que la latencia de `23 s` se explica por hidratación masiva en Sequelize + generación síncrona/CPU en PDFKit dentro del mismo proceso.
@@ -141,3 +152,64 @@ Pruebas ejecutadas sobre el entorno reproducible definido en [entorno-carga.md](
    - Cada iteración completa promedió `127.40 s` (`p95 127.55 s`, `~21.6 MB` por iteración), por lo que los `50` VUs solo completaron `1` iteración (`553` HTTP reqs totales).
    - Los `41` errores HTTP (`7.41%`) fueron timeouts de `60 s` de `k6`: **`35/50` (`70%`) en `GET /private/lands`** (`p95 = 60.00 s`; incluso las respuestas exitosas alcanzaron `p95 = 29.18 s`, `max = 57.83 s`) y **`6/50` (`12%`) en `GET /private/ingredients`** ejecutado inmediatamente después bajo congestión; `private_dashboard_duration` marcó `p95 = 11,045.15 ms` (`auth_login_duration` inicial `130.04 ms`).
    - En `pg_stat_statements`, sobre `AuditLogs` (`500,000` filas) dominaron: `count(DISTINCT)` (`683.22 ms/call`, `34.16 s` en 50 calls), listado `LIMIT 15` (`668.48 ms/call`, `33.42 s`), dashboard `LIMIT 5` (`288.45 ms/call`, `14.42 s`) y KPI hoy (`202.37 ms/call`, `10.12 s`); sobre `Farms`/`FarmCrops`, `/private/lands` leyó `416,750` filas (`8,335` por llamada a `58.04 ms/call`), cuya serialización HTML bloqueó el event loop hasta superar los `60 s`.
+
+---
+
+## 6. Perfil de CPU (`0.A6`) y peso de páginas públicas (`0.A7`)
+
+### 6.1 Perfil de CPU con `node --cpu-prof` (`0.A6`)
+
+Capturado con `node --cpu-prof --cpu-prof-interval=250` (`Node v22.14.0`, `NODE_ENV=production`, `Accept-Encoding: gzip`, `15` peticiones de calentamiento + `300` peticiones medidas con concurrencia `2` contra `agrosystem_loadtest`).
+
+| Subsistema en hilo principal JS (tiempo activo en peticiones) |               Listado `GET /products` (`3,736.33 ms` activos / `3.53 s` totales) |                  Detalle `GET /crops/1` (`4,154.45 ms` activos / `4.41 s` totales) |
+| ------------------------------------------------------------- | -------------------------------------------------------------------------------: | ---------------------------------------------------------------------------------: |
+| **Hidratación y ORM Sequelize** (`hidratación` + `SQL/ORM`)   |                                **`39.72%`** (`1,483.90 ms`: `26.10%` + `13.62%`) |                                   **`31.74%`** (`1,318.50 ms`: `21.87%` + `9.87%`) |
+| **Renderizado Handlebars** (`express-hbs` / `handlebars`)     |                                                        **`7.82%`** (`292.33 ms`) |                                                         **`13.45%`** (`558.71 ms`) |
+| **Driver `pg` + I/O de red TCP**                              |                                                       **`14.78%`** (`552.19 ms`) |                                                         **`10.63%`** (`441.47 ms`) |
+| **Compresión (`compression` / `node:zlib`, hilo JS)** _(\*)_  |                                                        **`4.74%`** (`177.00 ms`) |                                                          **`5.59%`** (`232.09 ms`) |
+| **Logging SQL a `stdout`** (`consoleCall` / `writeUtf8`)      |                                                        **`4.38%`** (`163.77 ms`) |                                                           **`2.29%`** (`94.93 ms`) |
+| **Controladores/servicios propios de app**                    |                                                            `3.65%` (`136.35 ms`) |                                `6.76%` (`280.65 ms`, destaca `formatDate` `3.20%`) |
+| **`res.send` / cálculo de ETag MD5 / `Buffer.from`**          |                                                             `2.39%` (`89.30 ms`) |                                        `4.76%` (`197.79 ms`, por `216 KB` de HTML) |
+| **Express HTTP + Sesión/Auth + GC + Otros V8/Node**           | `22.53%` (`841.49 ms`: `V8 11.39%`, `Express 5.41%`, `GC 3.60%`, `Sesión 2.13%`) | `24.78%` (`1,029.31 ms`: `V8 13.87%`, `Express 4.64%`, `GC 4.33%`, `Sesión 1.95%`) |
+
+> _(\*) Nota sobre `compression` / `node:zlib`_: `--cpu-prof` muestrea el hilo principal JavaScript (`V8`). En Node.js, la compresión real `gzip` de cada payload se delega además de forma nativa en C++ al threadpool de `libuv` (`4` hilos trabajadores), fuera del porcentaje mostrado en el hilo principal.
+
+#### Top 10 mayores consumidores por tiempo propio (self-time)
+
+- **`GET /products` (listado)**:
+  1. `writeBuffer` (`pg/lib/connection.js` envío socket PG) — `162.40 ms` (`4.35%`)
+  2. `(garbage collector)` (V8 GC) — `134.50 ms` (`3.60%`)
+  3. `(program)` (runtime C++/V8) — `101.02 ms` (`2.70%`)
+  4. `writeUtf8String` (`console` / SQL logging a `stdout`) — `57.71 ms` (`1.54%`)
+  5. `_groupJoinData` (`sequelize/lib/dialects/abstract/query.js:277`) — `57.26 ms` (`1.53%`)
+  6. `baseClone` (`lodash/lodash.js:2666`, clonación de opciones/modelos Sequelize) — `52.13 ms` (`1.40%`)
+  7. `hasResolvers` (`express-hbs/lib/resolver.js:43`) — `50.56 ms` (`1.35%`)
+  8. `__defNormalProp` (`sequelize/lib/model.js:7`, hidratación de instancias) — `49.41 ms` (`1.32%`)
+  9. `slice @ node:buffer:635` (decodificación de paquetes `pg-protocol`) — `48.91 ms` (`1.31%`)
+  10. `run` (`sequelize/lib/dialects/postgres/query.js:34`) — `46.04 ms` (`1.23%`)
+
+- **`GET /crops/1` (detalle)**:
+  1. `(garbage collector)` (V8 GC) — `179.79 ms` (`4.33%`)
+  2. `formatDate` (`src/services/cropDetailService.js:52`) — `132.82 ms` (`3.20%`)
+  3. `writev` (socket TCP `pg/lib/connection.js`) — `132.20 ms` (`3.18%`)
+  4. `(program)` (runtime C++/V8) — `119.42 ms` (`2.87%`)
+  5. `hasResolvers` (`express-hbs/lib/resolver.js:43`) — `114.54 ms` (`2.76%`)
+  6. `writeBuffer` (`pg/lib/connection.js`) — `75.05 ms` (`1.81%`)
+  7. `_groupJoinData` (`sequelize/lib/dialects/abstract/query.js:277`) — `72.16 ms` (`1.74%`)
+  8. `addFields` (`pg/lib/result.js:81`) — `66.47 ms` (`1.60%`)
+  9. `Buffer.from` / `node:internal/buffer:1060` (`res.send` en `express/lib/response.js:124`) — `61.63 ms` (`1.48%`)
+  10. Template compilado Handlebars `(anon) @ vm:0` — `60.15 ms` (`1.45%`)
+
+### 6.2 Peso real de las páginas públicas de `catalog.js` (`0.A7`)
+
+Se midió cada ruta con `Accept-Encoding: identity` (sin comprimir), `gzip` y `br` (Brotli). **Compresión confirmada activa** mediante `app.use(compression())` ([app.js](../app.js#L62)), devolviendo `Vary: Accept-Encoding` y `Content-Encoding: gzip` o `br`. En `k6` (`Accept-Encoding: gzip`), la métrica `data_received` (`~138.9 KB/req`) contabilizó los cuerpos **descomprimidos** (`media aritmética = 138,354 B/req`), aunque por red viajó tráfico comprimido.
+
+| Ruta pública  | Sin comprimir (`identity`) |       `gzip` (ahorro) |         `br` (ahorro) | Layout shell (`public.hbs`) | Mayor contribuyente al peso HTML                                                                                                                     |
+| ------------- | -------------------------: | --------------------: | --------------------: | --------------------------: | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/`           |                `250,500 B` | `61,778 B` (`-75.3%`) | `59,266 B` (`-76.3%`) |                  `15,496 B` | **`9` `<svg>` inline: `141,255 B` (`56.4%`)**, casi todo el mapa vectorial de México; `32,321 B` espacios; `0` base64 / JS inline                    |
+| `/crops`      |                 `63,460 B` |  `8,642 B` (`-86.4%`) |  `8,519 B` (`-86.6%`) |                  `15,498 B` | HTML SSR de tarjetas/filtros (`47,962 B` `<main>`), `15,182 B` espacios, `3,623 B` comentarios; `0` SVG / base64 / JS inline                         |
+| `/plagues`    |                 `64,600 B` |  `9,217 B` (`-85.7%`) |  `8,992 B` (`-86.1%`) |                  `15,485 B` | HTML SSR (`49,115 B` `<main>`), `13,778 B` espacios, `4,811 B` comentarios; `0` SVG / base64 / JS inline                                             |
+| `/products`   |                 `73,040 B` | `10,145 B` (`-86.1%`) |  `9,993 B` (`-86.3%`) |                  `15,466 B` | HTML SSR (`57,574 B` `<main>`), `17,237 B` espacios, `4,727 B` comentarios; `0` SVG / base64 / JS inline                                             |
+| `/crops/1`    |                `216,033 B` | `58,758 B` (`-72.8%`) | `55,855 B` (`-74.1%`) |                  `15,502 B` | **`1` `<svg id="crop-mexico-map">` inline: `136,461 B` (`63.2%`)** vía [mexicoGeo.js](../src/services/mexicoGeo.js); `23,088 B` espacios; `0` base64 |
+| `/plagues/1`  |                `238,447 B` | `63,023 B` (`-74.4%`) | `60,178 B` (`-74.8%`) |                  `15,520 B` | **`1` `<svg id="plague-mexico-map">` inline: `136,011 B` (`57.0%`)** + `30,243 B` espacios + `1` GIF base64 1x1 de `78 B`                            |
+| `/products/1` |                 `62,401 B` | `10,181 B` (`-83.7%`) | `10,356 B` (`-83.4%`) |                  `15,439 B` | HTML SSR (`46,962 B` `<main>`), `12,691 B` espacios; `0` SVG / base64 / JS inline                                                                    |

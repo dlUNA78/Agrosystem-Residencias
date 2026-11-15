@@ -79,4 +79,4 @@ Al terminar cada corrida, k6 imprime métricas agregadas y el estado de los **th
 
 Si cualquier umbral marcado con `✗` falla, `k6` termina con código de salida distinto de `0`.
 
-Para ejecutar escalones completos (`50`, `200` y `500` VUs) en el entorno Docker con PostgreSQL 16 y `pg_stat_statements`, consulta [entorno-carga.md](../docs/entorno-carga.md).
+Para ejecutar escalones completos (`50`, `200` y `500` VUs) en el entorno Docker con PostgreSQL 16 y `pg_stat_statements`, consulta [entorno-carga.md](../docs/entorno-carga.md). Los tres scripts limpian `setup_data.cookieHeader` vía `handleSummary` antes de exportar resultados; si guardas reportes JSON en `loadtests/results/`, esa carpeta está ignorada por Git en `.gitignore`.

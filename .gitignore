@@ -48,3 +48,6 @@ public/images/test/*
 # Documentos pesados de ofimática (mantener sólo Markdown .md en docs/)
 docs/**/*.docx
 docs/**/*.pdf
+
+# Resultados locales de pruebas de carga con k6
+loadtests/results/

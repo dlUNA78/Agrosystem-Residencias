@@ -7,6 +7,7 @@ import {
   extractCookieValue,
   getContentTypeHeader,
   getCredentials,
+  handleSanitizedSummary,
   hasPdfSignature,
   normalizeBaseUrl,
   parseFirstRecordId,
@@ -14,6 +15,7 @@ import {
   parsePositiveInt,
   parseRateThreshold,
   resolveThresholdConfig,
+  sanitizeSummaryData,
 } from '../../loadtests/lib/config.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -151,13 +153,40 @@ describe('loadtests/lib/config', () => {
       'application/pdf',
     );
   });
+
+  it('strips cookieHeader from summary setup_data while keeping metadata intact', () => {
+    const summary = {
+      metrics: { http_reqs: { count: 10 } },
+      setup_data: {
+        baseUrl: 'http://localhost:3000',
+        cookieHeader: 'connect.sid=s%3Asensitive-session-token',
+        cropId: 1,
+      },
+    };
+
+    const sanitized = sanitizeSummaryData(summary);
+    expect(sanitized.setup_data).toEqual({
+      baseUrl: 'http://localhost:3000',
+      cropId: 1,
+    });
+    expect(sanitized.setup_data).not.toHaveProperty('cookieHeader');
+    expect(sanitizeSummaryData(null)).toBeNull();
+    expect(sanitizeSummaryData({ metrics: {} })).toEqual({ metrics: {} });
+
+    const withCookie = {
+      setup_data: { baseUrl: 'http://localhost:3000', cookieHeader: 'secret' },
+    };
+    expect(handleSanitizedSummary(withCookie)).toBeUndefined();
+    expect(withCookie.setup_data).not.toHaveProperty('cookieHeader');
+  });
 });
 
 describe('loadtests k6 scripts contract & secret hygiene', () => {
   const scriptFiles = ['catalog.js', 'auth-panel.js', 'pdf.js'];
+  const rootDir = path.resolve(__dirname, '../..');
 
   it.each(scriptFiles)(
-    '%s defines thresholds and has no hardcoded credentials',
+    '%s defines thresholds, handleSummary sanitization, and no hardcoded credentials',
     async (fileName) => {
       const content = await fs.readFile(
         path.join(loadtestsDir, fileName),
@@ -166,8 +195,18 @@ describe('loadtests k6 scripts contract & secret hygiene', () => {
       expect(content).toContain('thresholds:');
       expect(content).toContain('http_req_failed');
       expect(content).toContain('http_req_duration');
+      expect(content).toContain('export function handleSummary');
+      expect(content).toContain('handleSanitizedSummary');
       expect(content).not.toMatch(/@agrosystem\.com/i);
       expect(content).not.toMatch(/admin123|123456/);
     },
   );
+
+  it('ignores loadtests/results/ in .gitignore to keep raw exports out of git', async () => {
+    const gitignore = await fs.readFile(
+      path.join(rootDir, '.gitignore'),
+      'utf8',
+    );
+    expect(gitignore).toMatch(/^loadtests\/results\/$/m);
+  });
 });

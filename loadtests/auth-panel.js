@@ -6,6 +6,7 @@ import {
   extractCookieValue,
   getCredentials,
   getRuntimeEnv,
+  handleSanitizedSummary,
   normalizeBaseUrl,
   parseNonNegativeNumber,
   resolveThresholdConfig,
@@ -173,4 +174,8 @@ export function teardown(data) {
       tags: { name: 'auth_logout' },
     },
   );
+}
+
+export function handleSummary(data) {
+  return handleSanitizedSummary(data);
 }

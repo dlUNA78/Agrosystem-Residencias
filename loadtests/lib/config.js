@@ -203,3 +203,27 @@ export const hasPdfSignature = (body) => {
 
 export const getContentTypeHeader = (headers = {}) =>
   String(headers['Content-Type'] || headers['content-type'] || '');
+
+/**
+ * Elimina cookieHeader de setup_data in-place para evitar exponer sesiones
+ * en --summary-export y salidas JSON de k6.
+ */
+export const sanitizeSummaryData = (data) => {
+  if (
+    data?.setup_data &&
+    typeof data.setup_data === 'object' &&
+    Object.hasOwn(data.setup_data, 'cookieHeader')
+  ) {
+    delete data.setup_data.cookieHeader;
+  }
+  return data;
+};
+
+/**
+ * Callback compartido de handleSummary para k6: limpia setup_data y preserva
+ * tanto el resumen estándar en stdout como --summary-export al retornar undefined.
+ */
+export const handleSanitizedSummary = (data) => {
+  sanitizeSummaryData(data);
+  return undefined;
+};

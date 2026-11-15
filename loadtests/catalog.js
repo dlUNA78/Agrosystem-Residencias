@@ -4,6 +4,7 @@ import { Trend } from 'k6/metrics';
 import {
   buildWorkloadOptions,
   getRuntimeEnv,
+  handleSanitizedSummary,
   normalizeBaseUrl,
   parseFirstRecordId,
   parseNonNegativeNumber,
@@ -142,4 +143,8 @@ export default function (data) {
   if (SLEEP_SECONDS > 0) {
     sleep(SLEEP_SECONDS);
   }
+}
+
+export function handleSummary(data) {
+  return handleSanitizedSummary(data);
 }

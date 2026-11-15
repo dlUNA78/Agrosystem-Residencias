@@ -7,6 +7,7 @@ import {
   getContentTypeHeader,
   getCredentials,
   getRuntimeEnv,
+  handleSanitizedSummary,
   hasPdfSignature,
   normalizeBaseUrl,
   parseFirstRecordId,
@@ -163,4 +164,8 @@ export function teardown(data) {
       tags: { name: 'pdf_teardown_logout' },
     },
   );
+}
+
+export function handleSummary(data) {
+  return handleSanitizedSummary(data);
 }
