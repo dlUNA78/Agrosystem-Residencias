@@ -209,4 +209,26 @@ describe('loadtests k6 scripts contract & secret hygiene', () => {
     );
     expect(gitignore).toMatch(/^loadtests\/results\/$/m);
   });
+
+  it('defines Nginx replica overlay without port collisions or hardcoded secrets', async () => {
+    const [composeReplicas, nginxConf] = await Promise.all([
+      fs.readFile(path.join(rootDir, 'docker-compose.replicas.yml'), 'utf8'),
+      fs.readFile(
+        path.join(rootDir, 'docker/nginx/loadtest-replicas.conf'),
+        'utf8',
+      ),
+    ]);
+
+    expect(composeReplicas).toContain('ports: !reset []');
+    expect(composeReplicas).toContain('image: nginx:1.27-alpine');
+    expect(composeReplicas).toContain(
+      './docker/nginx/loadtest-replicas.conf:/etc/nginx/nginx.conf:ro',
+    );
+    expect(composeReplicas).not.toMatch(/ADMIN_PASSWORD|SESSION_SECRET/);
+
+    expect(nginxConf).toContain('gzip off;');
+    expect(nginxConf).toContain('resolver 127.0.0.11');
+    expect(nginxConf).toContain('server app:3000 resolve;');
+    expect(nginxConf).toContain('proxy_pass http://app_backend;');
+  });
 });

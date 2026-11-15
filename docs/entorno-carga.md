@@ -146,3 +146,21 @@ Al terminar, comparte:
 2. Los archivos `pg-stat-*vus.txt` y el pico de CPU/RAM visto en `docker stats`.
 
 Con esos datos interpretaré los cuellos reales bajo concurrencia y documentaré el resultado en [carga-baseline.md](carga-baseline.md). Para apagar el entorno sin perder los datos sembrados usa `docker compose -f docker-compose.loadtest.yml --env-file .env.loadtest down` (o agrega `-v` si quieres borrar también el volumen de PostgreSQL).
+
+---
+
+## 6. Experimento de réplicas con Nginx (`0.A8`)
+
+Para probar escalado horizontal local de `app` sin modificar código de limitadores de tasa, usa el overlay [docker-compose.replicas.yml](../docker-compose.replicas.yml) junto con [loadtest-replicas.conf](../docker/nginx/loadtest-replicas.conf), reemplazando `N` por `1`, `2` o `4`:
+
+```powershell
+# Levantar N réplicas de app detrás de Nginx en http://localhost:3000
+docker compose -f docker-compose.loadtest.yml -f docker-compose.replicas.yml --env-file .env.loadtest up -d --no-build --remove-orphans --scale app=N
+docker compose -f docker-compose.loadtest.yml -f docker-compose.replicas.yml --env-file .env.loadtest up -d --no-deps --force-recreate nginx
+
+# Ejecutar catálogo con 200 VUs (2 minutos)
+k6 run -e K6_VUS=200 -e K6_RAMP_UP=20s -e K6_DURATION=2m -e K6_RAMP_DOWN=10s -e K6_P95_MS=2000 -e K6_ERROR_RATE=0.02 -e K6_CHECK_RATE=0.98 --summary-export loadtests/results/replicas-N.json loadtests/catalog.js
+
+# Apagar stack de réplicas al finalizar
+docker compose -f docker-compose.loadtest.yml -f docker-compose.replicas.yml --env-file .env.loadtest down
+```
