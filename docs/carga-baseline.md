@@ -106,3 +106,38 @@ Ordenada estrictamente de mayor a menor **costo estimado por el planificador de 
    - Evaluar conteo aproximado/cacheado o separado de los KPIs del día y evitar `COUNT(DISTINCT)` sobre joins completos cuando no hay filtro sobre `Users`.
 4. **Escritura en `"session"` por petición (`enrichSessionActivity`)**:
    - Agregar ventana mínima (throttling/debounce) antes de ejecutar `INSERT ... ON CONFLICT` en `"session"` en cada petición GET autenticada.
+
+---
+
+## 5. Resultados de pruebas de carga con `k6` en entorno Docker (`50`, `200` y `500` VUs)
+
+Pruebas ejecutadas sobre el entorno reproducible definido en [entorno-carga.md](entorno-carga.md) (`docker-compose.loadtest.yml` con PostgreSQL 16 y contenedor `app` en `NODE_ENV=production`, limitados a `2.0` CPUs y `1536m` RAM cada uno; banderas de carga controlada `COOKIE_SECURE=false` y `DISABLE_RATE_LIMIT=true`; `pg_stat_statements` reiniciado por bloque).
+
+- **Volumen verificado en `agrosystem_loadtest`**: `Farms: 50,002`, `FarmCrops: 50,000`, `AuditLogs: 500,000`, `Notifications: 50,000`, `session: 100,000` (`Users: 6`, `Crops: 7`, `Products: 8`, `Plagues: 8`). El admin sembrado concentró `8,335` fincas activas.
+- **Salud de contenedores**: `RestartCount=0`, `OOMKilled=false`, `0` excepciones de aplicación en logs de `app`; consumo al cierre: `app` `153.9 MiB / 1.5 GiB` (`9.34 GB` enviados / `3.89 GB` recibidos), `postgres` `287.7 MiB / 1.5 GiB`.
+
+### 5.1 Resumen por flujo y escalón vs. umbrales acordados
+
+| Flujo (`loadtests/`)                          |   VUs | Iteraciones (`req/s`)    | Error HTTP (`meta`)  | `checks` (`meta`)      |  `p50` (`med`) | `p95` (`meta`)              |          `max` | Datos recibidos | Estado global                                            |
+| --------------------------------------------- | ----: | ------------------------ | -------------------- | ---------------------- | -------------: | --------------------------- | -------------: | --------------: | -------------------------------------------------------- |
+| [`catalog.js`](../loadtests/catalog.js)       |  `50` | `2,258` (`130.79 req/s`) | `0.00%` (`< 1%`)     | `100.00%` (`> 99%`)    |    `330.69 ms` | **`653.15 ms`** (`< 1.5s`)  |  `1,314.89 ms` |     `~2.05 GiB` | **PASA**                                                 |
+| [`catalog.js`](../loadtests/catalog.js)       | `200` | `2,600` (`141.89 req/s`) | `0.00%` (`< 2%`)     | `100.00%` (`> 98%`)    |  `1,310.21 ms` | **`2,471.45 ms`** (`< 2s`)  |  `3,591.61 ms` |     `~2.35 GiB` | **FALLA `p95`** _(corrió con umbral CLI default `1.5s`)_ |
+| [`catalog.js`](../loadtests/catalog.js)       | `500` | `2,512` (`126.36 req/s`) | `0.66%` (`< 5%`)     | `99.34%` (`> 98%`)     |  `3,518.58 ms` | **`7,508.55 ms`** (`< 3s`)  | `11,124.02 ms` |     `~2.25 GiB` | **FALLA `p95`** _(`116` rechazos `0 ms` en `GET /`)_     |
+| [`pdf.js`](../loadtests/pdf.js)               |  `50` | `953` (`15.22 req/s`)    | `0.00%` (`< 1%`)     | `100.00%` (`> 99%`)    |  `3,031.00 ms` | **`5,137.50 ms`** (`< 3s`)  |  `6,248.55 ms` |      `10.84 MB` | **FALLA `p95`**                                          |
+| [`pdf.js`](../loadtests/pdf.js)               | `200` | `1,025` (`14.65 req/s`)  | `0.78%` (`< 2%`)     | `99.22%` (`> 98%`)     | `12,581.49 ms` | **`23,047.37 ms`** (`< 5s`) | `30,062.63 ms` |      `11.56 MB` | **FALLA `p95`** _(`16` fallos en `pdf_crop`)_            |
+| [`auth-panel.js`](../loadtests/auth-panel.js) |  `50` | `50` (`4.33 req/s`)      | **`7.41%`** (`< 1%`) | **`96.28%`** (`> 99%`) |  `4,716.31 ms` | **`60,000.26 ms`** (`< 2s`) | `60,048.68 ms` |     `~1.05 GiB` | **PUNTO DE QUIEBRE en `50` VUs**                         |
+
+> **Escalones omitidos intencionalmente**: no se ejecutaron `pdf.js` a `500` VUs (en `200` VUs ya saturó su techo de `~15 req/s` con `p95 = 23.05 s`) ni `auth-panel.js` a `200`/`500` VUs (alcanzó el punto de quiebre en `50` VUs con `7.41%` de errores por timeout HTTP de `60 s` de `k6`).
+
+### 5.2 Desglose de métricas y `pg_stat_statements`
+
+1. **`catalog.js` — techo de event loop de Node (~130–142 req/s), no de PostgreSQL**:
+   - Desglose `p95` (`50 -> 200 -> 500` VUs): `catalog_home_duration` `292.29 -> 1,668.90 -> 7,143.10 ms`; `catalog_list_duration` `572.38 -> 2,062.67 -> 6,212.11 ms`; `catalog_detail_duration` `692.11 -> 2,562.77 -> 7,976.12 ms`; `iteration_duration` `p95` `3.46 -> 10.99 -> 36.30 s`.
+   - En `pg_stat_statements`, las consultas del catálogo público se mantuvieron por debajo de **`0.71 ms` promedio** en los tres escalones (`6.1–7.0 s` acumulados en el top 20 durante corridas de ~`121–139 s`). La degradación proviene de un único proceso Node saturado imprimiendo SQL en consola (ver [hallazgos.md](hallazgos.md)), renderizando `~139 KB` HTML sin caché en cada petición y encolando conexiones (`116` fallos en `GET /` con espera `0 ms` a `500` VUs).
+2. **`pdf.js` — techo en ~15 req/s e hidratación repetitiva de `Farms`**:
+   - En `50 -> 200` VUs: `pdf_crop_duration` (`GET /crops/1?format=pdf&download=1`) pasó de `p95 3,725.65 ms` a `12,791.80 ms`; `pdf_report_duration` (`GET /private/reports?period=mensual&format=pdf`) pasó de `p95 5,267.46 ms` a `23,728.68 ms` (`med 19,104.69 ms`).
+   - En `pg_stat_statements`, cada reporte PDF disparó `4` veces `SELECT "id" FROM "Farms" WHERE status = true AND user_id = ...` (`3,812` llamadas devolviendo `31,773,020` filas en `50` VUs; `4,100` llamadas devolviendo `34,173,500` filas en `200` VUs, `8,335` predios por consulta), además de `SELECT "id", "name", "municipality" FROM "Farms"` (`7.94M`/`8.54M` filas), `sum`, `count` y un `INSERT INTO "AuditLogs"` por descarga (`953`/`1,025` inserciones). El tiempo SQL por llamada fue `6.09–9.15 ms` (`~52 s` acumulados), por lo que la latencia de `23 s` se explica por hidratación masiva en Sequelize + generación síncrona/CPU en PDFKit dentro del mismo proceso.
+3. **`auth-panel.js` — quiebre en `50` VUs por `/private/lands` y `AuditLogs` (`500k`)**:
+   - Cada iteración completa promedió `127.40 s` (`p95 127.55 s`, `~21.6 MB` por iteración), por lo que los `50` VUs solo completaron `1` iteración (`553` HTTP reqs totales).
+   - Los `41` errores HTTP (`7.41%`) fueron timeouts de `60 s` de `k6`: **`35/50` (`70%`) en `GET /private/lands`** (`p95 = 60.00 s`; incluso las respuestas exitosas alcanzaron `p95 = 29.18 s`, `max = 57.83 s`) y **`6/50` (`12%`) en `GET /private/ingredients`** ejecutado inmediatamente después bajo congestión; `private_dashboard_duration` marcó `p95 = 11,045.15 ms` (`auth_login_duration` inicial `130.04 ms`).
+   - En `pg_stat_statements`, sobre `AuditLogs` (`500,000` filas) dominaron: `count(DISTINCT)` (`683.22 ms/call`, `34.16 s` en 50 calls), listado `LIMIT 15` (`668.48 ms/call`, `33.42 s`), dashboard `LIMIT 5` (`288.45 ms/call`, `14.42 s`) y KPI hoy (`202.37 ms/call`, `10.12 s`); sobre `Farms`/`FarmCrops`, `/private/lands` leyó `416,750` filas (`8,335` por llamada a `58.04 ms/call`), cuya serialización HTML bloqueó el event loop hasta superar los `60 s`.

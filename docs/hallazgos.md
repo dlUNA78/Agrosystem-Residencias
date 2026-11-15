@@ -33,3 +33,12 @@ Problemas detectados durante la ejecución y perfilado de la **Fase 0 (`0.A1`, `
   - `InifapCodes` y `RbacRoles` tienen índices únicos duplicados (`InifapCodes_code_key` / `inifap_codes_code` y `RbacRoles_slug_key` / `idx_rbac_roles_slug`).
   - Persisten sesiones expiradas en `"session"` (`100,469` totales frente a `80,113` vigentes con `expire > NOW()`) y `enrichSessionActivity` dispara `INSERT ... ON CONFLICT` en casi cada GET privado autenticado.
   - Los cuellos específicos de consulta (producto cartesiano en detalle de cultivo `22.9 s`, `/private/lands` sin paginación `37.4 MB`, `4x` consultas repetidas en reportes y `LIKE '%...%'` en auditoría) se detallan con métricas en [carga-baseline.md](carga-baseline.md).
+
+## 6. `logging` de Sequelize activo en producción y saturación del event loop bajo carga `k6`
+
+- **Ubicación**: [config.js](../src/config/config.js#L3-L28), flujo PDF/reportes y resultados documentados en [carga-baseline.md](carga-baseline.md#L112-L143).
+- **Qué se observó**:
+  - Ninguno de los entornos (`development`, `test`, `production`) en [config.js](../src/config/config.js#L3-L28) configura `logging: false`. En el entorno Docker de pruebas de carga (`NODE_ENV=production`), Node imprimió `Executing (default): ...` a `stdout` en cada consulta SQL durante miles de peticiones concurrentes.
+  - En las corridas de [catalog.js](../loadtests/catalog.js), aunque PostgreSQL ejecutó cada consulta pública en `<= 0.71 ms`, el proceso único de Node se saturó en `~130–142 req/s` (`p95`: `653 ms` en `50` VUs -> `2,471 ms` en `200` VUs -> `7,509 ms` con `116` rechazos `0 ms` en `500` VUs) por combinación de logging SQL sincrónico a `stdout`, SSR sin caché (`~139 KB`/req) y pool Sequelize por defecto.
+  - En las corridas de [pdf.js](../loadtests/pdf.js), además de repetir `4x` la lectura de todos los `Farms` activos del usuario (`8,335` predios por consulta en el admin sembrado), cada descarga `GET /private/reports?...&format=pdf` ejecutó un `INSERT INTO "AuditLogs"` (`953` escrituras en `50` VUs y `1,025` en `200` VUs) y topó la capacidad de generación PDF del proceso en `~15 req/s` (`p95 = 23.05 s` a `200` VUs).
+  - En [auth-panel.js](../loadtests/auth-panel.js), el panel alcanzó su punto de quiebre ya en `50` VUs (`7.41%` de fallos por timeout de `60 s` en `GET /private/lands` y `GET /private/ingredients`, `127.4 s` por iteración) sin que el contenedor cayera por OOM (`153.9 MiB / 1.5 GiB`, `RestartCount=0`).
