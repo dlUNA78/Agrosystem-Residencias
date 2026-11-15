@@ -22,7 +22,10 @@ Ningún script guarda credenciales ni secretos en el repositorio. Pásalos en ti
 | `LOADTEST_ROLE`                        | `admin` (incluye `/private/audit` y `/private/users`) o `inifap`       | `admin`                             |
 | `K6_VUS`                               | Número de usuarios virtuales simultáneos                               | `2`                                 |
 | `K6_ITERATIONS`                        | Iteraciones compartidas cuando no se define `K6_DURATION`              | `3` / `2` / `4`                     |
-| `K6_DURATION`                          | Duración fija (ej. `30s`, `2m`); anula `K6_ITERATIONS`                 | _(vacío)_                           |
+| `K6_DURATION`                          | Duración sostenida (ej. `30s`, `2m`); anula `K6_ITERATIONS`            | _(vacío)_                           |
+| `K6_RAMP_UP` / `K6_RAMP_DOWN`          | Rampa progresiva de subida/bajada en etapas (`stages` de k6)           | _(vacío)_                           |
+| `K6_P95_MS` / `K6_P99_MS`              | Sobreescribe el umbral `p(95)` / `p(99)` en ms de cada script          | Según script                        |
+| `K6_ERROR_RATE` / `K6_CHECK_RATE`      | Sobreescribe `http_req_failed` (`rate<...`) y `checks` (`rate>...`)    | `0.01` / `0.99`                     |
 | `K6_SLEEP`                             | Pausa entre iteraciones en segundos                                    | `0.2`                               |
 | `CROP_ID` / `PLAGUE_ID` / `PRODUCT_ID` | IDs específicos de catálogo (si se omiten, se resuelven vía `/api/*`)  | _(auto)_                            |
 | `PDF_CROP_SCOPE`                       | `public` (`/crops/:id`) o `private` (`/private/crops/:id`) en `pdf.js` | `public`                            |
@@ -75,3 +78,5 @@ Al terminar cada corrida, k6 imprime métricas agregadas y el estado de los **th
   - `pdf_crop_duration`, `pdf_report_duration`
 
 Si cualquier umbral marcado con `✗` falla, `k6` termina con código de salida distinto de `0`.
+
+Para ejecutar escalones completos (`50`, `200` y `500` VUs) en el entorno Docker con PostgreSQL 16 y `pg_stat_statements`, consulta [entorno-carga.md](../docs/entorno-carga.md).

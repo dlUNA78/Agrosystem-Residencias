@@ -1,8 +1,12 @@
 import { afterAll, jest, describe, it, expect } from '@jest/globals';
 import request from 'supertest';
-import app, { closeAppResources } from '../../app.js';
+import app, {
+  closeAppResources,
+  resolveSessionCookieSecure,
+} from '../../app.js';
 import {
   authLimiter,
+  isRateLimitBypassed,
   upgradeLimiter,
 } from '../../src/middlewares/rateLimiter.js';
 
@@ -70,5 +74,36 @@ describe('🛡️ Pruebas de Seguridad de Sesión y Rate Limiting (Pasos 3 y 4)'
 
     expect(response.status).toBe(401);
     expect(response.text).toContain('Credenciales incorrectas');
+  });
+
+  it('4. Mantiene cookie.secure seguro por defecto y respeta COOKIE_SECURE / DISABLE_RATE_LIMIT explícitos', () => {
+    expect(resolveSessionCookieSecure({ NODE_ENV: 'production' })).toBe(true);
+    expect(resolveSessionCookieSecure({ NODE_ENV: 'development' })).toBe(false);
+    expect(
+      resolveSessionCookieSecure({
+        NODE_ENV: 'production',
+        COOKIE_SECURE: 'false',
+      }),
+    ).toBe(false);
+    expect(
+      resolveSessionCookieSecure({
+        NODE_ENV: 'development',
+        COOKIE_SECURE: 'true',
+      }),
+    ).toBe(true);
+
+    expect(isRateLimitBypassed({}, { NODE_ENV: 'production' })).toBe(false);
+    expect(
+      isRateLimitBypassed(
+        {},
+        { NODE_ENV: 'production', DISABLE_RATE_LIMIT: 'true' },
+      ),
+    ).toBe(true);
+    expect(
+      isRateLimitBypassed(
+        { query: { rateLimitTest: '1' } },
+        { NODE_ENV: 'production', DISABLE_RATE_LIMIT: 'true' },
+      ),
+    ).toBe(false);
   });
 });

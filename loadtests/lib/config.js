@@ -51,6 +51,39 @@ export const parseNonNegativeNumber = (rawValue, fallback) => {
   return parsed;
 };
 
+export const parseRateThreshold = (rawValue, fallback) => {
+  if (rawValue === undefined || rawValue === null || rawValue === '') {
+    return fallback;
+  }
+  const parsed = Number(rawValue);
+  if (!Number.isFinite(parsed) || parsed < 0 || parsed > 1) {
+    return fallback;
+  }
+  return parsed;
+};
+
+export const resolveThresholdConfig = (env, defaults) => {
+  const p95Ms = parsePositiveInt(env?.K6_P95_MS, defaults.p95Ms);
+  const defaultP99 = defaults.p99Ms ?? p95Ms * 2;
+  const p99Ms = parsePositiveInt(
+    env?.K6_P99_MS,
+    env?.K6_P95_MS ? Math.max(defaultP99, p95Ms * 2) : defaultP99,
+  );
+
+  return {
+    errorRate: parseRateThreshold(
+      env?.K6_ERROR_RATE,
+      defaults.errorRate ?? 0.01,
+    ),
+    checkRate: parseRateThreshold(
+      env?.K6_CHECK_RATE,
+      defaults.checkRate ?? 0.99,
+    ),
+    p95Ms,
+    p99Ms,
+  };
+};
+
 export const getCredentials = (
   env = getRuntimeEnv(),
   { required = true } = {},
@@ -67,19 +100,35 @@ export const getCredentials = (
   return { email, password };
 };
 
+const buildRampStages = (env, vus, duration) => {
+  const rampUp = String(env.K6_RAMP_UP || '').trim();
+  if (!rampUp) return null;
+
+  const stages = [
+    { duration: rampUp, target: vus },
+    { duration: duration || '1m', target: vus },
+  ];
+  const rampDown = String(env.K6_RAMP_DOWN || '').trim();
+  if (rampDown) {
+    stages.push({ duration: rampDown, target: 0 });
+  }
+  return stages;
+};
+
 export const buildWorkloadOptions = (
   env,
   { defaultVus = 2, defaultIterations = 3, thresholds = {} } = {},
 ) => {
   const vus = parsePositiveInt(env.K6_VUS, defaultVus);
   const duration = String(env.K6_DURATION || '').trim();
+  const stages = buildRampStages(env, vus, duration);
+
+  if (stages) {
+    return { stages, thresholds };
+  }
 
   if (duration) {
-    return {
-      vus,
-      duration,
-      thresholds,
-    };
+    return { vus, duration, thresholds };
   }
 
   return {

@@ -4,6 +4,7 @@ node_modules/
 # Archivos de variables de entorno (¡Crítico para la seguridad!)
 .env
 .env.local
+.env.loadtest
 
 # Archivos de logs (ignora cualquier archivo que termine en .log)
 *.log

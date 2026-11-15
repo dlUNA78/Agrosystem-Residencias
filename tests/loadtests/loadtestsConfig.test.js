@@ -12,6 +12,8 @@ import {
   parseFirstRecordId,
   parseNonNegativeNumber,
   parsePositiveInt,
+  parseRateThreshold,
+  resolveThresholdConfig,
 } from '../../loadtests/lib/config.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -72,6 +74,48 @@ describe('loadtests/lib/config', () => {
       duration: '20s',
       thresholds: { checks: ['rate>0.99'] },
     });
+
+    const rampOpts = buildWorkloadOptions(
+      {
+        K6_VUS: '200',
+        K6_RAMP_UP: '20s',
+        K6_DURATION: '2m',
+        K6_RAMP_DOWN: '10s',
+      },
+      { thresholds: { checks: ['rate>0.98'] } },
+    );
+    expect(rampOpts).toEqual({
+      stages: [
+        { duration: '20s', target: 200 },
+        { duration: '2m', target: 200 },
+        { duration: '10s', target: 0 },
+      ],
+      thresholds: { checks: ['rate>0.98'] },
+    });
+  });
+
+  it('resolves rate and p95/p99 thresholds with fallbacks and env overrides', () => {
+    expect(parseRateThreshold('0.02', 0.01)).toBe(0.02);
+    expect(parseRateThreshold('1.5', 0.01)).toBe(0.01);
+    expect(parseRateThreshold('-0.1', 0.01)).toBe(0.01);
+
+    expect(
+      resolveThresholdConfig(
+        {},
+        { errorRate: 0.01, checkRate: 0.99, p95Ms: 1500, p99Ms: 3000 },
+      ),
+    ).toEqual({ errorRate: 0.01, checkRate: 0.99, p95Ms: 1500, p99Ms: 3000 });
+
+    expect(
+      resolveThresholdConfig(
+        {
+          K6_P95_MS: '3000',
+          K6_ERROR_RATE: '0.05',
+          K6_CHECK_RATE: '0.98',
+        },
+        { errorRate: 0.01, checkRate: 0.99, p95Ms: 1500, p99Ms: 3000 },
+      ),
+    ).toEqual({ errorRate: 0.05, checkRate: 0.98, p95Ms: 3000, p99Ms: 6000 });
   });
 
   it('extracts connect.sid cookie from k6 cookies map or Set-Cookie headers', () => {

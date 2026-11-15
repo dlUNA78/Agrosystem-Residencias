@@ -12,6 +12,7 @@ import {
   parseFirstRecordId,
   parseNonNegativeNumber,
   parsePositiveInt,
+  resolveThresholdConfig,
 } from './lib/config.js';
 
 const env = getRuntimeEnv();
@@ -27,15 +28,23 @@ const REPORT_PERIOD = String(env.REPORT_PERIOD || 'mensual')
 const cropPdfDuration = new Trend('pdf_crop_duration', true);
 const reportPdfDuration = new Trend('pdf_report_duration', true);
 
+const { errorRate, checkRate, p95Ms, p99Ms } = resolveThresholdConfig(env, {
+  errorRate: 0.01,
+  checkRate: 0.99,
+  p95Ms: 3000,
+  p99Ms: 5000,
+});
+const reportP95Ms = env.K6_P95_MS ? p95Ms : 3500;
+
 export const options = buildWorkloadOptions(env, {
   defaultVus: 2,
   defaultIterations: 4,
   thresholds: {
-    http_req_failed: ['rate<0.01'],
-    checks: ['rate>0.99'],
-    http_req_duration: ['p(95)<3000', 'p(99)<5000'],
-    pdf_crop_duration: ['p(95)<3000'],
-    pdf_report_duration: ['p(95)<3500'],
+    http_req_failed: [`rate<${errorRate}`],
+    checks: [`rate>${checkRate}`],
+    http_req_duration: [`p(95)<${p95Ms}`, `p(99)<${p99Ms}`],
+    pdf_crop_duration: [`p(95)<${p95Ms}`],
+    pdf_report_duration: [`p(95)<${reportP95Ms}`],
   },
 });
 

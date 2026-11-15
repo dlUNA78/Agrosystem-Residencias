@@ -8,6 +8,7 @@ import {
   parseFirstRecordId,
   parseNonNegativeNumber,
   parsePositiveInt,
+  resolveThresholdConfig,
 } from './lib/config.js';
 
 const env = getRuntimeEnv();
@@ -18,16 +19,23 @@ const homeDuration = new Trend('catalog_home_duration', true);
 const listDuration = new Trend('catalog_list_duration', true);
 const detailDuration = new Trend('catalog_detail_duration', true);
 
+const { errorRate, checkRate, p95Ms, p99Ms } = resolveThresholdConfig(env, {
+  errorRate: 0.01,
+  checkRate: 0.99,
+  p95Ms: 1500,
+  p99Ms: 3000,
+});
+
 export const options = buildWorkloadOptions(env, {
   defaultVus: 2,
   defaultIterations: 3,
   thresholds: {
-    http_req_failed: ['rate<0.01'],
-    checks: ['rate>0.99'],
-    http_req_duration: ['p(95)<1500', 'p(99)<3000'],
-    catalog_home_duration: ['p(95)<1500'],
-    catalog_list_duration: ['p(95)<1500'],
-    catalog_detail_duration: ['p(95)<1500'],
+    http_req_failed: [`rate<${errorRate}`],
+    checks: [`rate>${checkRate}`],
+    http_req_duration: [`p(95)<${p95Ms}`, `p(99)<${p99Ms}`],
+    catalog_home_duration: [`p(95)<${p95Ms}`],
+    catalog_list_duration: [`p(95)<${p95Ms}`],
+    catalog_detail_duration: [`p(95)<${p95Ms}`],
   },
 });
 

@@ -8,6 +8,7 @@ import {
   getRuntimeEnv,
   normalizeBaseUrl,
   parseNonNegativeNumber,
+  resolveThresholdConfig,
 } from './lib/config.js';
 
 const env = getRuntimeEnv();
@@ -21,16 +22,24 @@ const loginDuration = new Trend('auth_login_duration', true);
 const dashboardDuration = new Trend('private_dashboard_duration', true);
 const listDuration = new Trend('private_list_duration', true);
 
+const { errorRate, checkRate, p95Ms, p99Ms } = resolveThresholdConfig(env, {
+  errorRate: 0.01,
+  checkRate: 0.99,
+  p95Ms: 2000,
+  p99Ms: 4000,
+});
+const listP95Ms = env.K6_P95_MS ? p95Ms : 2500;
+
 export const options = buildWorkloadOptions(env, {
   defaultVus: 2,
   defaultIterations: 2,
   thresholds: {
-    http_req_failed: ['rate<0.01'],
-    checks: ['rate>0.99'],
-    http_req_duration: ['p(95)<2000', 'p(99)<4000'],
-    auth_login_duration: ['p(95)<2000'],
-    private_dashboard_duration: ['p(95)<2000'],
-    private_list_duration: ['p(95)<2500'],
+    http_req_failed: [`rate<${errorRate}`],
+    checks: [`rate>${checkRate}`],
+    http_req_duration: [`p(95)<${p95Ms}`, `p(99)<${p99Ms}`],
+    auth_login_duration: [`p(95)<${p95Ms}`],
+    private_dashboard_duration: [`p(95)<${p95Ms}`],
+    private_list_duration: [`p(95)<${listP95Ms}`],
   },
 });
 

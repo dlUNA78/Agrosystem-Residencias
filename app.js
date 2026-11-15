@@ -301,6 +301,29 @@ app.use(express.urlencoded({ extended: true }));
 
 const PgSession = connectPgSimple(session);
 
+export const resolveSessionCookieSecure = (env = process.env) => {
+  if (env.COOKIE_SECURE === 'false') {
+    return false;
+  }
+  if (env.COOKIE_SECURE === 'true') {
+    return true;
+  }
+  return env.NODE_ENV === 'production';
+};
+
+const logLoadTestModeWarnings = (env = process.env) => {
+  if (env.DISABLE_RATE_LIMIT === 'true') {
+    console.warn(
+      '⚠️ MODO CARGA CONTROLADA: DISABLE_RATE_LIMIT=true desactiva rate limiting en memoria.',
+    );
+  }
+  if (env.NODE_ENV === 'production' && env.COOKIE_SECURE === 'false') {
+    console.warn(
+      '⚠️ MODO CARGA CONTROLADA: COOKIE_SECURE=false permite cookies de sesión sobre HTTP sin TLS.',
+    );
+  }
+};
+
 app.use(
   session({
     // Reutilizamos el pool de pg en vez de pasar credenciales sueltas.
@@ -318,7 +341,7 @@ app.use(
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: resolveSessionCookieSecure(),
       maxAge: 1000 * 60 * 60 * 24, // 1 día
     },
   }),
@@ -376,6 +399,7 @@ if (process.env.NODE_ENV !== 'test') {
 
     // Crear usuarios por defecto si no existen (admin/inifap y agricultor)
     await seedDefaultUsers();
+    logLoadTestModeWarnings();
 
     app.listen(PORT, () => {
       console.log(
