@@ -1,9 +1,18 @@
+export const isRateLimitBypassed = (req, env = process.env) => {
+  if (req.query?.rateLimitTest === '1') {
+    return false;
+  }
+
+  return env.NODE_ENV === 'test' || env.DISABLE_RATE_LIMIT === 'true';
+};
+
 const createRateLimiter = (windowMs, maxRequests, errorMessage) => {
   const requestCounts = new Map();
 
   return (req, res, next) => {
-    // En entorno de prueba (Jest), aplicar rate limit únicamente si req.query.rateLimitTest === '1'
-    if (process.env.NODE_ENV === 'test' && req.query.rateLimitTest !== '1') {
+    // En Jest (NODE_ENV=test) o carga controlada (DISABLE_RATE_LIMIT=true),
+    // aplicar límite solo cuando se fuerce explícitamente con rateLimitTest=1.
+    if (isRateLimitBypassed(req)) {
       return next();
     }
 

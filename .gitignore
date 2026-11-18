@@ -4,6 +4,7 @@ node_modules/
 # Archivos de variables de entorno (¡Crítico para la seguridad!)
 .env
 .env.local
+.env.loadtest
 
 # Archivos de logs (ignora cualquier archivo que termine en .log)
 *.log
@@ -47,3 +48,6 @@ public/images/test/*
 # Documentos pesados de ofimática (mantener sólo Markdown .md en docs/)
 docs/**/*.docx
 docs/**/*.pdf
+
+# Resultados locales de pruebas de carga con k6
+loadtests/results/
