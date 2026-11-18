@@ -14,6 +14,7 @@ import {
   renderProductsPublic,
   renderProductDetail,
   getProductsData,
+  downloadProductHds,
 } from '../controllers/public/productController.js';
 import { renderLandsPublic } from '../controllers/public/landController.js';
 
@@ -42,6 +43,7 @@ publicRouter.get('/crops/:id', renderCropDetail);
 // Productos
 publicRouter.get('/api/products', getProductsData);
 publicRouter.get('/products', renderProductsPublic);
+publicRouter.get('/products/:id/hds.pdf', downloadProductHds);
 publicRouter.get('/products/:id', renderProductDetail);
 
 // Regiones agrícolas. No expone predios, responsables ni coordenadas privadas.

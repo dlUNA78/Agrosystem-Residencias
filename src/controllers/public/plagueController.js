@@ -245,6 +245,77 @@ export const getPlaguesData = async (req, res) => {
   }
 };
 
+const classifyMacroRegion = (regionName) => {
+  const lower = String(regionName || '').toLowerCase();
+  if (/sinaloa|sonora|baja california|noroeste/.test(lower)) {
+    return 'Macro-región Noroeste';
+  }
+  if (/chihuahua|durango|zacatecas|coahuila|laguna|norte/.test(lower)) {
+    return 'Macro-región Norte-Centro';
+  }
+  if (/tamaulipas|nuevo le|noreste/.test(lower)) {
+    return 'Macro-región Noreste';
+  }
+  if (/jalisco|michoac|colima|nayarit|occidente/.test(lower)) {
+    return 'Macro-región Occidente';
+  }
+  if (
+    /guanajuato|quer|aguascalientes|baj|puebla|hidalgo|centro|edomex/.test(
+      lower,
+    )
+  ) {
+    return 'Macro-región Centro-Bajío';
+  }
+  return 'Macro-región Sur-Sureste y Otras';
+};
+
+const buildGroupedFilterOptions = (regionsDB, cropsDB) => {
+  const cropGroupMap = new Map();
+  cropsDB.forEach((rawCrop) => {
+    const c = typeof rawCrop.toJSON === 'function' ? rawCrop.toJSON() : rawCrop;
+    if (!c.name) return;
+    const groupLabel = c.category || c.botanical_family || 'Otros Cultivos';
+    const familyHint = c.botanical_family ? ` (${c.botanical_family})` : '';
+    const key = `${groupLabel}${familyHint}`;
+    if (!cropGroupMap.has(key)) {
+      cropGroupMap.set(key, {
+        groupName: groupLabel,
+        groupValue: `group:${groupLabel}`,
+        label: key,
+        items: new Set(),
+      });
+    }
+    cropGroupMap.get(key).items.add(c.name);
+  });
+
+  const cropGroups = Array.from(cropGroupMap.values()).map((g) => ({
+    groupName: g.groupName,
+    groupValue: g.groupValue,
+    label: g.label,
+    crops: Array.from(g.items).sort(),
+  }));
+
+  const regionGroupMap = new Map();
+  regionsDB.forEach((rawRegion) => {
+    const rName = rawRegion.name;
+    if (!rName) return;
+    const macro = classifyMacroRegion(rName);
+    if (!regionGroupMap.has(macro)) {
+      regionGroupMap.set(macro, new Set());
+    }
+    regionGroupMap.get(macro).add(rName);
+  });
+
+  const regionGroups = Array.from(regionGroupMap.entries()).map(
+    ([macro, set]) => ({
+      macroRegion: macro,
+      regions: Array.from(set).sort(),
+    }),
+  );
+
+  return { cropGroups, regionGroups };
+};
+
 // ── GET /plagues ───────────────────────────────────────────────────────────
 export const renderPlaguesPublic = async (req, res) => {
   try {
@@ -255,13 +326,17 @@ export const renderPlaguesPublic = async (req, res) => {
         order: [['name', 'ASC']],
       }),
       Crop.findAll({
-        attributes: ['name'],
+        attributes: ['name', 'category', 'botanical_family'],
         order: [['name', 'ASC']],
       }),
     ]);
 
     const regionNames = regionsDB.map((r) => r.name);
     const cropNames = [...new Set(cropsDB.map((c) => c.name).filter(Boolean))];
+    const { cropGroups, regionGroups } = buildGroupedFilterOptions(
+      regionsDB,
+      cropsDB,
+    );
 
     res.render('public/plagues', {
       pageTitle: 'Plagas',
@@ -269,6 +344,8 @@ export const renderPlaguesPublic = async (req, res) => {
       plagues: result.plagues,
       regions: regionNames,
       crops: cropNames,
+      cropGroups,
+      regionGroups,
       totalCount: result.totalCount,
       totalPages: result.totalPages,
       currentPage: result.currentPage,

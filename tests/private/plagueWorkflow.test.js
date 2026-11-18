@@ -151,4 +151,70 @@ describe('workflow editorial de plagas', () => {
     expect(catalogView).not.toMatch(/name=["']status["']/);
     expect(detailView).toContain('/private/plagues/{{plague.id}}/workflow');
   });
+
+  describe('baja justificada y principio de los 4 ojos en plagas', () => {
+    it('exige justificación técnica de al menos 20 caracteres al solicitar baja', () => {
+      expect(() =>
+        transitionPlagueWorkflow({
+          currentStatus: PLAGUE_WORKFLOW_STATUSES.PUBLISHED,
+          action: PLAGUE_WORKFLOW_ACTIONS.REQUEST_ARCHIVE,
+          actor: { id: 10, role: 'inifap' },
+          archiveReason: 'Muy corta',
+        }),
+      ).toThrow(/al menos 20 caracteres/i);
+    });
+
+    it('registra la solicitud de baja en archive_pending', () => {
+      const changes = transitionPlagueWorkflow({
+        currentStatus: PLAGUE_WORKFLOW_STATUSES.PUBLISHED,
+        action: PLAGUE_WORKFLOW_ACTIONS.REQUEST_ARCHIVE,
+        actor: { id: 10, role: 'inifap' },
+        archiveReason:
+          'Reclasificación taxonómica y erradicación regional comprobada.',
+        archiveReasonCategory: 'obsolescencia',
+        now,
+      });
+
+      expect(changes).toEqual(
+        expect.objectContaining({
+          workflow_status: PLAGUE_WORKFLOW_STATUSES.ARCHIVE_PENDING,
+          archive_requested_by_user_id: 10,
+          archive_reason_category: 'obsolescencia',
+          archive_requested_at: now,
+        }),
+      );
+    });
+
+    it('bloquea que el mismo usuario solicitante apruebe la baja (principio de 4 ojos)', () => {
+      expect(() =>
+        transitionPlagueWorkflow({
+          currentStatus: PLAGUE_WORKFLOW_STATUSES.ARCHIVE_PENDING,
+          action: PLAGUE_WORKFLOW_ACTIONS.APPROVE_ARCHIVE,
+          actor: { id: 10, role: 'admin' },
+          record: { archive_requested_by_user_id: 10 },
+          now,
+        }),
+      ).toThrow(/distinto al solicitante/i);
+    });
+
+    it('permite que un segundo usuario apruebe la baja formalmente', () => {
+      const changes = transitionPlagueWorkflow({
+        currentStatus: PLAGUE_WORKFLOW_STATUSES.ARCHIVE_PENDING,
+        action: PLAGUE_WORKFLOW_ACTIONS.APPROVE_ARCHIVE,
+        actor: { id: 25, role: 'admin' },
+        record: { archive_requested_by_user_id: 10 },
+        reviewNotes: 'Dictamen entomológico favorable.',
+        now,
+      });
+
+      expect(changes).toEqual(
+        expect.objectContaining({
+          workflow_status: PLAGUE_WORKFLOW_STATUSES.ARCHIVED,
+          archived_by_user_id: 25,
+          archived_at: now,
+          status: false,
+        }),
+      );
+    });
+  });
 });

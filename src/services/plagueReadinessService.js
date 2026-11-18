@@ -8,30 +8,33 @@ const readinessActions = new Set([
 
 const hasText = (value) => String(value || '').trim().length > 0;
 
-const hasBiologicalCycle = (cycle) => {
+export const countBiologicalStages = (cycle) => {
   if (Array.isArray(cycle)) {
-    return cycle.some((stage) => {
+    return cycle.filter((stage) => {
       if (typeof stage === 'string') return hasText(stage);
       return (
         hasText(stage?.title) ||
         hasText(stage?.description) ||
         hasText(stage?.duration)
       );
-    });
+    }).length;
   }
 
   if (cycle && typeof cycle === 'object') {
-    return Object.keys(cycle).length > 0;
+    return Object.keys(cycle).length;
   }
 
   if (!hasText(cycle)) {
-    return false;
+    return 0;
   }
 
   try {
-    return hasBiologicalCycle(JSON.parse(cycle));
+    return countBiologicalStages(JSON.parse(cycle));
   } catch {
-    return true;
+    return cycle
+      .split(/\r?\n/)
+      .map((entry) => entry.trim())
+      .filter((entry) => entry.length > 0).length;
   }
 };
 
@@ -92,8 +95,8 @@ export const buildPlaguePublicationReadiness = (
     {
       key: 'cycle',
       label: 'Ciclo biológico',
-      hint: 'Al menos una etapa documentada.',
-      complete: hasBiologicalCycle(plagueData.biological_cycle),
+      hint: 'Al menos 3 fases o etapas documentadas.',
+      complete: countBiologicalStages(plagueData.biological_cycle) >= 3,
     },
     {
       key: 'images',

@@ -1,6 +1,35 @@
 import { confirmAsyncAction } from '../asyncUi.js';
 
+const MIN_STAGES = 3;
 const MAX_STAGES = 20;
+
+const DEFAULT_INITIAL_STAGES = Object.freeze([
+  {
+    title: 'Fase 1 · Incubación / Emergencia',
+    duration: '3-5 días',
+    plantZone: 'Follaje / Suelo superficial',
+    damageLevel: 'Bajo',
+    isControlWindow: true,
+    description:
+      'Aparición inicial de estructuras reproductivas o huevecillos.',
+  },
+  {
+    title: 'Fase 2 · Desarrollo e Infestación Activa',
+    duration: '10-14 días',
+    plantZone: 'Dosel vegetativo / órganos de interés',
+    damageLevel: 'Severo',
+    isControlWindow: true,
+    description: 'Etapa de mayor colonización y daño económico directo.',
+  },
+  {
+    title: 'Fase 3 · Maduración y Dispersión',
+    duration: '7-12 días',
+    plantZone: 'Planta completa y parcelas contiguas',
+    damageLevel: 'Moderado',
+    isControlWindow: false,
+    description: 'Reproducción y diseminación hacia hospederos cercanos.',
+  },
+]);
 
 const CYCLE_PRESETS = Object.freeze({
   holometabolo: [
@@ -360,14 +389,21 @@ export const createPlagueCycleEditor = () => {
       if (number) number.textContent = String(index + 1);
       const upBtn = stage.querySelector('.move-stage-up');
       const downBtn = stage.querySelector('.move-stage-down');
+      const removeBtn = stage.querySelector('.remove-biological-stage');
       if (upBtn) upBtn.disabled = index === 0;
       if (downBtn) downBtn.disabled = index === stages.length - 1;
+      if (removeBtn) {
+        const minReached = stages.length <= MIN_STAGES;
+        removeBtn.disabled = minReached;
+        removeBtn.classList.toggle('opacity-35', minReached);
+        removeBtn.classList.toggle('cursor-not-allowed', minReached);
+      }
       upBtn?.classList.toggle('opacity-35', index === 0);
       downBtn?.classList.toggle('opacity-35', index === stages.length - 1);
     });
 
     if (counterBadge) {
-      counterBadge.textContent = `${stages.length} / ${MAX_STAGES} etapas`;
+      counterBadge.textContent = `${stages.length} / ${MAX_STAGES} etapas (mín. ${MIN_STAGES})`;
     }
 
     if (addButton) {
@@ -404,6 +440,10 @@ export const createPlagueCycleEditor = () => {
     });
 
     removeButton?.addEventListener('click', async () => {
+      const currentCount = builder.querySelectorAll(
+        '[data-biological-stage]',
+      ).length;
+      if (currentCount <= MIN_STAGES) return;
       if (hasStageContent(stageElement)) {
         const confirmed = await confirmAsyncAction({
           title: '¿Quitar esta etapa del ciclo?',
@@ -444,10 +484,15 @@ export const createPlagueCycleEditor = () => {
     builder.replaceChildren();
     const stages = normalizeStages(rawCycle).slice(0, MAX_STAGES);
     if (stages.length === 0) {
-      addStage();
+      DEFAULT_INITIAL_STAGES.forEach(addStage);
       return;
     }
     stages.forEach(addStage);
+    while (
+      builder.querySelectorAll('[data-biological-stage]').length < MIN_STAGES
+    ) {
+      addStage();
+    }
   };
 
   document.querySelectorAll('[data-cycle-preset]').forEach((presetBtn) => {

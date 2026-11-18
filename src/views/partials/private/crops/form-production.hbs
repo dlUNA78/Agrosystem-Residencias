@@ -61,4 +61,42 @@
         class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-input bg-background focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all">
     </div>
   </div>
+
+  <!-- Regla de Negocio INIFAP: Ciclo Fenológico Obligatorio (Mínimo 3 Etapas) -->
+  <div class="mt-6 pt-5 border-t border-border/60">
+    <input type="hidden" name="require_min_stages" value="1" />
+    <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+      <div>
+        <h5 class="text-xs font-bold text-foreground flex items-center gap-1.5">
+          <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-[#1b4332]"></i>
+          Etapas Fenológicas del Ciclo de Vida (Mínimo 3 fases obligatorias) <span class="text-rose-600">*</span>
+        </h5>
+        <p class="text-[11px] text-muted-foreground">Documenta las 3 fases principales del desarrollo del cultivo desde emergencia hasta cosecha.</p>
+      </div>
+      <span class="px-2.5 py-0.5 rounded-full bg-[#e6f0e6] text-[#1b4332] font-mono text-[10px] font-bold">Mín. 3 fases INIFAP</span>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="rounded-xl border border-border/80 bg-muted/20 p-3">
+        <label for="crop-stage-1" class="block text-[11px] font-bold text-[#1b4332] mb-1">1. Fase Inicial / Emergencia *</label>
+        <input type="text" id="crop-stage-1" name="phenological_stage_1" required maxlength="180"
+          value="Germinación, emergencia radicular y establecimiento vegetativo (V0–V2)"
+          placeholder="Ej. Germinación y emergencia (0–15 DDS)"
+          class="w-full px-3 py-2 text-xs rounded-lg border border-input bg-card focus:outline-hidden focus:border-[#1b4332]">
+      </div>
+      <div class="rounded-xl border border-border/80 bg-muted/20 p-3">
+        <label for="crop-stage-2" class="block text-[11px] font-bold text-[#1b4332] mb-1">2. Desarrollo Vegetativo / Floración *</label>
+        <input type="text" id="crop-stage-2" name="phenological_stage_2" required maxlength="180"
+          value="Elongación de tallo, expansión foliar y diferenciación floral (V3–R1)"
+          placeholder="Ej. Crecimiento activo y floración (16–65 DDS)"
+          class="w-full px-3 py-2 text-xs rounded-lg border border-input bg-card focus:outline-hidden focus:border-[#1b4332]">
+      </div>
+      <div class="rounded-xl border border-border/80 bg-muted/20 p-3">
+        <label for="crop-stage-3" class="block text-[11px] font-bold text-[#1b4332] mb-1">3. Llenado y Madurez Fisiológica *</label>
+        <input type="text" id="crop-stage-3" name="phenological_stage_3" required maxlength="180"
+          value="Llenado de grano/fruto, madurez fisiológica y cosecha comercial (R2–R6)"
+          placeholder="Ej. Fructificación y madurez a cosecha"
+          class="w-full px-3 py-2 text-xs rounded-lg border border-input bg-card focus:outline-hidden focus:border-[#1b4332]">
+      </div>
+    </div>
+  </div>
 </section>

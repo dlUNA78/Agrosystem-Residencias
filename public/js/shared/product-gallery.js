@@ -7,6 +7,7 @@ const setupSingleGallery = (gallery) => {
     gallery.querySelectorAll('[data-product-gallery-item]'),
   );
   const counter = gallery.querySelector('[data-product-gallery-counter]');
+  const sourceBadge = gallery.querySelector('[data-product-gallery-source]');
   let currentIndex = 0;
 
   const showImage = (index) => {
@@ -16,6 +17,12 @@ const setupSingleGallery = (gallery) => {
     mainImage.src = selected.dataset.src;
     mainImage.alt = selected.querySelector('img')?.alt || 'Imagen del producto';
     if (counter) counter.textContent = `${currentIndex + 1} / ${items.length}`;
+    if (sourceBadge) {
+      const credit = String(selected.dataset.source || '').trim();
+      sourceBadge.textContent = credit
+        ? `CRÉDITO: ${credit}`
+        : 'ENVASE / ETIQUETA · INIFAP';
+    }
     items.forEach((item, itemIndex) => {
       const isCurrent = itemIndex === currentIndex;
       item.classList.toggle('border-[#1b4332]', isCurrent);

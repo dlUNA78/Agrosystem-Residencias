@@ -31,6 +31,19 @@
     Las fotos marcadas como «Actual» se conservarán; haz clic en «Quitar» si deseas eliminar alguna antes de guardar.
   </p>
 
+  <div class="rounded-xl border border-border/80 bg-muted/20 p-3.5">
+    <div class="flex flex-wrap items-center justify-between gap-1 mb-1.5">
+      <label for="crop-image-source-default" class="text-xs font-bold text-foreground flex items-center gap-1.5">
+        <i data-lucide="camera" class="w-3.5 h-3.5 text-[#1b4332]"></i>
+        Créditos / Fuente de las imágenes (opcional)
+      </label>
+      <span class="text-[10px] font-mono text-muted-foreground">Se aplica a las fotos sin crédito individual</span>
+    </div>
+    <input id="crop-image-source-default" type="text" name="image_source_default" maxlength="255"
+      placeholder="Ej. Programa de Maíz · INIFAP Campo Experimental Valle de México"
+      class="w-full bg-background border border-input rounded-xl px-3.5 py-2 text-xs text-foreground focus:outline-hidden focus:ring-2 focus:ring-[#1b4332]/20 focus:border-[#1b4332] transition-all" />
+  </div>
+
   <div id="crop-images-preview"
     class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 pt-2">
   </div>

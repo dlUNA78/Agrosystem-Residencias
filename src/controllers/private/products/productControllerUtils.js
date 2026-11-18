@@ -29,8 +29,8 @@ export const normalizeImageUrl = (value) =>
 export const getRecordId = (record) => Number(record?.id ?? record);
 
 export const loadFormCatalogOptions = async () => {
-  const { ActiveIngredient, Crop, Plague } = db;
-  const [crops, plagues, ingredients] = await Promise.all([
+  const { ActiveIngredient, Crop, Plague, Supplier } = db;
+  const [crops, plagues, ingredients, suppliers] = await Promise.all([
     Crop.findAll({
       where: {
         status: 'aprobado',
@@ -54,6 +54,13 @@ export const loadFormCatalogOptions = async () => {
       order: [['name', 'ASC']],
       raw: true,
     }),
+    Supplier?.findAll
+      ? Supplier.findAll({
+          attributes: ['id', 'name', 'commercial_name', 'supply_type'],
+          order: [['name', 'ASC']],
+          raw: true,
+        })
+      : Promise.resolve([]),
   ]);
-  return { crops, plagues, ingredients };
+  return { crops, plagues, ingredients, suppliers };
 };

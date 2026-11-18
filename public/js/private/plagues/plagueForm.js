@@ -8,6 +8,119 @@ import {
 import { createPlagueCycleEditor } from './plagueCycleEditor.js';
 import { createPlagueImageEditor } from './plagueImageEditor.js';
 
+const LOCKED_PLAGUE_IDENTITY_FIELDS = ['name', 'scientific_name', 'category'];
+
+const normalizeSearchText = (value) =>
+  String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+
+const updatePlagueRelationCounter = (container) => {
+  const targetId = container?.dataset?.counterTarget;
+  if (!targetId) return;
+  const badge = document.getElementById(targetId);
+  if (!badge) return;
+  const checkedCount = container.querySelectorAll(
+    'input[type="checkbox"]:checked',
+  ).length;
+  badge.textContent =
+    checkedCount === 1 ? '1 seleccionado' : `${checkedCount} seleccionados`;
+};
+
+const setupPlagueRelationCheckboxes = (form) => {
+  const searches = Array.from(
+    form?.querySelectorAll('[data-plague-relation-search]') || [],
+  );
+  const containers = searches
+    .map((input) => document.getElementById(input.dataset.plagueRelationSearch))
+    .filter(Boolean);
+
+  searches.forEach((search) => {
+    search.addEventListener('input', () => {
+      const query = normalizeSearchText(search.value.trim());
+      const container = document.getElementById(
+        search.dataset.plagueRelationSearch,
+      );
+      container?.querySelectorAll('.relation-option').forEach((option) => {
+        option.classList.toggle(
+          'hidden',
+          !normalizeSearchText(option.dataset.searchText).includes(query),
+        );
+      });
+    });
+  });
+
+  containers.forEach((container) => {
+    container.addEventListener('change', () =>
+      updatePlagueRelationCounter(container),
+    );
+  });
+
+  return {
+    reset() {
+      searches.forEach((search) => {
+        search.value = '';
+        search.dispatchEvent(new Event('input'));
+      });
+      containers.forEach(updatePlagueRelationCounter);
+    },
+    select(name, ids = []) {
+      const selectedIds = new Set(ids.map((id) => String(id)));
+      form?.querySelectorAll(`input[name="${name}"]`).forEach((checkbox) => {
+        checkbox.checked = selectedIds.has(checkbox.value);
+      });
+      containers.forEach(updatePlagueRelationCounter);
+    },
+  };
+};
+
+const parseIdArray = (rawJson) => {
+  if (!rawJson) return [];
+  try {
+    const parsed = JSON.parse(rawJson);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
+
+const togglePlagueEditControlMode = (form, isEdit) => {
+  LOCKED_PLAGUE_IDENTITY_FIELDS.forEach((fieldName) => {
+    const field = form.querySelector(`[name="${fieldName}"]`);
+    if (!field) return;
+    if (field.tagName === 'SELECT') {
+      field.classList.toggle('pointer-events-none', isEdit);
+      field.tabIndex = isEdit ? -1 : 0;
+    } else {
+      field.readOnly = isEdit;
+    }
+    field.setAttribute('aria-readonly', String(isEdit));
+    field.classList.toggle('bg-muted/60', isEdit);
+    field.classList.toggle('cursor-not-allowed', isEdit);
+  });
+
+  form
+    .querySelectorAll('[data-plague-identity-lock-badge]')
+    .forEach((badge) => {
+      badge.classList.toggle('hidden', !isEdit);
+      badge.classList.toggle('inline-flex', isEdit);
+    });
+
+  const banner = document.getElementById('plague-edit-control-banner');
+  banner?.classList.toggle('hidden', !isEdit);
+
+  const controlledInput = document.getElementById('plague-controlled-edit');
+  if (controlledInput) controlledInput.value = isEdit ? '1' : '0';
+
+  const reasonField = document.getElementById('plague-edit-reason');
+  if (reasonField) {
+    reasonField.disabled = !isEdit;
+    reasonField.required = isEdit;
+    if (!isEdit) reasonField.value = '';
+  }
+};
+
 const setInputValue = (form, name, value) => {
   const input = form.querySelector(`[name="${name}"]`);
   if (input) input.value = value || '';
@@ -142,6 +255,7 @@ export const initializePlagueForm = ({ onAfterSave } = {}) => {
   const saveButtonText = document.getElementById('btn-save-plague-text');
   const imageEditor = createPlagueImageEditor();
   const cycleEditor = createPlagueCycleEditor();
+  const relationCheckboxes = setupPlagueRelationCheckboxes(form);
   const resetModalScroll = initModalSectionNav(modal);
   let isDirty = false;
 
@@ -197,6 +311,8 @@ export const initializePlagueForm = ({ onAfterSave } = {}) => {
     form.action = '/private/plagues/create';
     if (title) title.textContent = 'Nueva Plaga';
     setSaveButtonLabel('Guardar borrador');
+    togglePlagueEditControlMode(form, false);
+    relationCheckboxes.reset();
     imageEditor.reset();
     cycleEditor.reset();
     showModal();
@@ -207,6 +323,8 @@ export const initializePlagueForm = ({ onAfterSave } = {}) => {
     const id = data?.id || '';
     if (!id) return;
 
+    form.reset();
+    togglePlagueEditControlMode(form, true);
     setInputValue(form, 'name', data.name);
     setInputValue(form, 'scientific_name', data.scientificName);
     setInputValue(form, 'category', normalizeCategoryForSelect(data.category));
@@ -216,6 +334,9 @@ export const initializePlagueForm = ({ onAfterSave } = {}) => {
     setInputValue(form, 'symptoms', data.symptoms);
     setInputValue(form, 'control_methods', data.controlMethods);
     setInputValue(form, 'biological_control', data.biologicalControl);
+    relationCheckboxes.reset();
+    relationCheckboxes.select('crop_ids', parseIdArray(data.cropIds));
+    relationCheckboxes.select('product_ids', parseIdArray(data.productIds));
     cycleEditor.reset(data.biologicalCycle || []);
     form.action = `/private/plagues/update/${id}`;
     if (title) title.textContent = `Editar: ${data.name || 'Plaga'}`;

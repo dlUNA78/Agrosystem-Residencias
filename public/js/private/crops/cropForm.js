@@ -9,6 +9,113 @@ import { initializeCropFormValidation } from '../crop-form-validation.js';
 import { observeCropDialog } from '../cropDialog.js';
 import { createCropImageEditor } from './cropImageEditor.js';
 
+const LOCKED_CROP_IDENTITY_IDS = [
+  'crop-name',
+  'crop-scientific-name',
+  'crop-category',
+];
+
+const normalizeSearchText = (value) =>
+  String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+
+const updateCropRelationCounter = (container) => {
+  const targetId = container?.dataset?.counterTarget;
+  if (!targetId) return;
+  const badge = document.getElementById(targetId);
+  if (!badge) return;
+  const checkedCount = container.querySelectorAll(
+    'input[type="checkbox"]:checked',
+  ).length;
+  badge.textContent =
+    checkedCount === 1 ? '1 seleccionado' : `${checkedCount} seleccionados`;
+};
+
+const setupCropRelationCheckboxes = (form) => {
+  const searches = Array.from(
+    form?.querySelectorAll('[data-crop-relation-search]') || [],
+  );
+  const containers = searches
+    .map((input) => document.getElementById(input.dataset.cropRelationSearch))
+    .filter(Boolean);
+
+  searches.forEach((search) => {
+    search.addEventListener('input', () => {
+      const query = normalizeSearchText(search.value.trim());
+      const container = document.getElementById(
+        search.dataset.cropRelationSearch,
+      );
+      container?.querySelectorAll('.relation-option').forEach((option) => {
+        option.classList.toggle(
+          'hidden',
+          !normalizeSearchText(option.dataset.searchText).includes(query),
+        );
+      });
+    });
+  });
+
+  containers.forEach((container) => {
+    container.addEventListener('change', () =>
+      updateCropRelationCounter(container),
+    );
+  });
+
+  return {
+    reset() {
+      searches.forEach((search) => {
+        search.value = '';
+        search.dispatchEvent(new Event('input'));
+      });
+      containers.forEach(updateCropRelationCounter);
+    },
+    select(name, records = []) {
+      const selectedIds = new Set(
+        records.map((item) => String(item?.id ?? item)),
+      );
+      form?.querySelectorAll(`input[name="${name}"]`).forEach((checkbox) => {
+        checkbox.checked = selectedIds.has(checkbox.value);
+      });
+      containers.forEach(updateCropRelationCounter);
+    },
+  };
+};
+
+const toggleCropEditControlMode = (form, isEdit) => {
+  LOCKED_CROP_IDENTITY_IDS.forEach((fieldId) => {
+    const field = document.getElementById(fieldId);
+    if (!field) return;
+    if (field.tagName === 'SELECT') {
+      field.classList.toggle('pointer-events-none', isEdit);
+      field.tabIndex = isEdit ? -1 : 0;
+    } else {
+      field.readOnly = isEdit;
+    }
+    field.setAttribute('aria-readonly', String(isEdit));
+    field.classList.toggle('bg-muted/60', isEdit);
+    field.classList.toggle('cursor-not-allowed', isEdit);
+  });
+
+  form?.querySelectorAll('[data-crop-identity-lock-badge]').forEach((badge) => {
+    badge.classList.toggle('hidden', !isEdit);
+    badge.classList.toggle('inline-flex', isEdit);
+  });
+
+  const banner = document.getElementById('crop-edit-control-banner');
+  banner?.classList.toggle('hidden', !isEdit);
+
+  const controlledInput = document.getElementById('crop-controlled-edit');
+  if (controlledInput) controlledInput.value = isEdit ? '1' : '0';
+
+  const reasonField = document.getElementById('crop-edit-reason');
+  if (reasonField) {
+    reasonField.disabled = !isEdit;
+    reasonField.required = isEdit;
+    if (!isEdit) reasonField.value = '';
+  }
+};
+
 const setFieldValue = (id, value) => {
   const element = document.getElementById(id);
   if (!element) return;
@@ -169,6 +276,7 @@ export const initializeCropForm = ({ onAfterSave } = {}) => {
 
   const validation = form ? initializeCropFormValidation(form) : null;
   const imageEditor = createCropImageEditor();
+  const relationCheckboxes = setupCropRelationCheckboxes(form);
   let isFormDirty = false;
 
   form?.addEventListener('input', () => {
@@ -200,6 +308,8 @@ export const initializeCropForm = ({ onAfterSave } = {}) => {
 
   const openCreateModal = () => {
     form.reset();
+    toggleCropEditControlMode(form, false);
+    relationCheckboxes.reset();
     validation?.reset();
     imageEditor.reset();
     form.action = '/private/crops/create';
@@ -219,6 +329,10 @@ export const initializeCropForm = ({ onAfterSave } = {}) => {
 
       const crop = data.crop;
       form.reset();
+      toggleCropEditControlMode(form, true);
+      relationCheckboxes.reset();
+      relationCheckboxes.select('plague_ids', crop.plagues || []);
+      relationCheckboxes.select('product_ids', crop.products || []);
       validation?.reset();
       form.action = `/private/crops/update/${crop.id}`;
       if (modalTitle)

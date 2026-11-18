@@ -133,6 +133,7 @@ const buildGalleryImages = (rawProduct) => {
       id: img.id || idx + 1,
       image_url: normalizeProductImagePath(img.image_url),
       original_name: img.original_name || null,
+      source: img.source || null,
       is_primary: Boolean(img.is_primary),
       display_order: Number(img.display_order) || idx,
     }))
@@ -261,6 +262,83 @@ const toPlainRecord = (record) =>
 
 const toArrayOrEmpty = (list) => (Array.isArray(list) ? list : []);
 
+const buildSyngentaRecommendationRow = ({
+  cropName,
+  cropSci,
+  plagueName,
+  plagueSci,
+  dosage,
+  intervalLabel,
+  modeLabel,
+}) => ({
+  cropName,
+  cropSci,
+  plagueName,
+  plagueSci,
+  dosage,
+  intervalLabel,
+  observation: `Aplicar al detectar primeros síntomas o umbral de acción (${modeLabel}). Realizar máximo 2 aplicaciones por ciclo alternando grupo químico.`,
+});
+
+const buildSyngentaRecommendationsMatrix = (
+  rawProduct,
+  relatedCrops,
+  relatedPlagues,
+  safetyInterval,
+) => {
+  const dosage = textOrFallback(
+    rawProduct.suggested_dosage,
+    '0.5 – 1.0 L o kg / ha',
+  );
+  const intervalLabel = safetyInterval.hasValue
+    ? safetyInterval.value
+    : 'Segun etiqueta RSCO';
+  const modeLabel = textOrFallback(
+    rawProduct.mode_of_action,
+    'Manejo preventivo y curativo',
+  );
+
+  const crops =
+    relatedCrops.length > 0
+      ? relatedCrops
+      : [
+          {
+            name: textOrFallback(
+              rawProduct.target_crops,
+              'Cultivos autorizados en registro RSCO',
+            ),
+            scientific_name: null,
+          },
+        ];
+  const plagues =
+    relatedPlagues.length > 0
+      ? relatedPlagues
+      : [
+          {
+            name: 'Complejo de plagas / patógenos de etiqueta',
+            scientific_name: null,
+          },
+        ];
+
+  const rows = [];
+  crops.slice(0, 6).forEach((crop) => {
+    plagues.slice(0, 4).forEach((plague) => {
+      rows.push(
+        buildSyngentaRecommendationRow({
+          cropName: crop.name,
+          cropSci: crop.scientific_name,
+          plagueName: plague.name,
+          plagueSci: plague.scientific_name,
+          dosage,
+          intervalLabel,
+          modeLabel,
+        }),
+      );
+    });
+  });
+  return rows.slice(0, 10);
+};
+
 export const buildProductDetailView = (record) => {
   const raw = toPlainRecord(record);
   const galleryImages = buildGalleryImages(raw);
@@ -273,6 +351,12 @@ export const buildProductDetailView = (record) => {
   const relatedCrops = toArrayOrEmpty(raw.crops).map(normalizeRelatedCrop);
   const targetCropTags = parseTargetCropTags(raw.target_crops);
   const isVerified = ['verified', 'published'].includes(raw.workflow_status);
+  const syngentaRecommendations = buildSyngentaRecommendationsMatrix(
+    raw,
+    relatedCrops,
+    relatedPlagues,
+    safetyInterval,
+  );
 
   const product = {
     ...raw,
@@ -299,6 +383,7 @@ export const buildProductDetailView = (record) => {
     plagues: relatedPlagues,
     crops: relatedCrops,
     targetCropTags,
+    hdsDownloadUrl: `/products/${raw.id}/hds.pdf`,
   };
 
   return {
@@ -310,5 +395,6 @@ export const buildProductDetailView = (record) => {
     relatedPlagues,
     relatedCrops,
     targetCropTags,
+    syngentaRecommendations,
   };
 };

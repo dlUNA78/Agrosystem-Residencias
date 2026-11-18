@@ -3,17 +3,20 @@ import { getContextualCropPermissions } from '../../../services/cropAuthorizatio
 import {
   buildCropImageRecords,
   buildCropImageUpdatePlan,
+  buildExistingCropImageSourceUpdates,
   cleanupStoredCropImages,
   cleanupUploadedCropFiles,
   MAX_CROP_IMAGES,
   parsePrimaryCropImageId,
   parseRemovedCropImageIds,
 } from '../../../services/cropImageService.js';
+import { validateCropRelationsInput } from '../../../services/cropRelationService.js';
 import { validateCropInput } from '../../../services/cropValidationService.js';
 import {
   CROP_WORKFLOW_STATUSES,
   isCropEditable,
 } from '../../../services/cropWorkflowService.js';
+import { getCropDeactivationImpact } from '../../../services/deactivationImpactService.js';
 
 const { Crop, CropImage, AuditLog } = db;
 
@@ -63,7 +66,29 @@ const respondMutationSuccess = (
   return res.redirect(redirect);
 };
 
-const checkCropEditEligibility = (crop, user) => {
+const isControlledCropStage = (status) =>
+  status === CROP_WORKFLOW_STATUSES.VERIFIED ||
+  status === CROP_WORKFLOW_STATUSES.PUBLISHED;
+
+const isControlledCropEditAuthorized = (crop, user, body) =>
+  body?.controlled_edit === '1' &&
+  (user.role === 'admin' || user.role === 'inifap') &&
+  isControlledCropStage(crop.workflow_status);
+
+const checkCropEditEligibility = (crop, user, body) => {
+  const isControlled = body?.controlled_edit === '1';
+  const editReason = String(body?.edit_reason || '').trim();
+  if (isControlled && editReason.length < 10) {
+    return {
+      status: 400,
+      message:
+        'Debes capturar una justificación técnica de al menos 10 caracteres para modificar el cultivo.',
+    };
+  }
+  if (isControlledCropEditAuthorized(crop, user, body)) {
+    return null;
+  }
+
   const permissions = getContextualCropPermissions({
     role: user.role,
     userId: user.id,
@@ -87,6 +112,36 @@ const checkCropEditEligibility = (crop, user) => {
   return null;
 };
 
+const buildCropUpdatePayload = (crop, validatedValue, user, body) => {
+  const isControlled = body?.controlled_edit === '1';
+  if (!isControlled) {
+    return { ...validatedValue, updated_by_user_id: user.id };
+  }
+  const editReason = String(body?.edit_reason || '').trim();
+  const actorLabel = user.full_name || user.email || 'Especialista INIFAP';
+  const lockedIdentity = {
+    name: crop.name,
+    scientific_name: crop.scientific_name,
+    category: crop.category || validatedValue.category,
+  };
+  const stageTransition = isControlledCropStage(crop.workflow_status)
+    ? {
+        workflow_status: CROP_WORKFLOW_STATUSES.IN_REVIEW,
+        status: 'pendiente',
+        verified_by_user_id: null,
+        verified_at: null,
+        created_by_user_id: crop.created_by_user_id || user.id,
+      }
+    : {};
+  return {
+    ...validatedValue,
+    ...lockedIdentity,
+    ...stageTransition,
+    review_notes: `[Edición controlada · ${actorLabel}]: ${editReason}`,
+    updated_by_user_id: user.id,
+  };
+};
+
 const prepareCropUpdateContext = async ({
   cropId,
   body,
@@ -102,7 +157,7 @@ const prepareCropUpdateContext = async ({
     return { errorStatus: 404, errorMessage: 'Cultivo no encontrado.' };
   }
 
-  const eligibility = checkCropEditEligibility(crop, user);
+  const eligibility = checkCropEditEligibility(crop, user, body);
   if (eligibility) {
     return {
       errorStatus: eligibility.status,
@@ -128,17 +183,63 @@ const prepareCropUpdateContext = async ({
     return { errorStatus: 400, errorMessage: imagePlan.error };
   }
 
+  if (body?.relations_submitted === '1') {
+    const relations = validateCropRelationsInput(body);
+    if (!relations.isValid) {
+      return { errorStatus: 400, errorMessage: relations.errors.join(' ') };
+    }
+  }
+
   return { crop, imagePlan };
+};
+
+const syncCropModalRelations = async (crop, body, transaction) => {
+  if (body?.relations_submitted !== '1') return null;
+  const parsed = validateCropRelationsInput(body);
+  if (!parsed.isValid) return parsed.errors.join(' ');
+  await crop.setPlagues?.(parsed.value.plagueIds, { transaction });
+  await crop.setProducts?.(parsed.value.productIds, { transaction });
+  return null;
+};
+
+const updateExistingCropImageSources = async ({
+  cropId,
+  remainingImages = [],
+  body,
+  transaction,
+}) => {
+  const sourceUpdates = buildExistingCropImageSourceUpdates({
+    existingImages: remainingImages,
+    removedImageIds: [],
+    rawIds: body?.existing_image_source_ids,
+    rawSources: body?.existing_image_sources,
+    defaultSource: body?.image_source_default,
+  });
+  if (!sourceUpdates.length || typeof CropImage?.update !== 'function') return;
+  await Promise.all(
+    sourceUpdates.map((item) =>
+      CropImage.update(
+        { source: item.source },
+        { where: { id: item.id, crop_id: cropId }, transaction },
+      ),
+    ),
+  );
 };
 
 const applyCropImageUpdates = async ({
   cropId,
   files,
   imageUpdatePlan,
+  body,
   transaction,
 }) => {
-  const { removedImages, nextPrimaryId, nextImageOrder, hasRemainingPrimary } =
-    imageUpdatePlan;
+  const {
+    removedImages,
+    remainingImages,
+    nextPrimaryId,
+    nextImageOrder,
+    hasRemainingPrimary,
+  } = imageUpdatePlan;
 
   if (removedImages.length > 0) {
     const removedIds = removedImages.map((img) => img.id);
@@ -159,6 +260,13 @@ const applyCropImageUpdates = async ({
     );
   }
 
+  await updateExistingCropImageSources({
+    cropId,
+    remainingImages,
+    body,
+    transaction,
+  });
+
   if (files.length > 0) {
     await CropImage.bulkCreate(
       buildCropImageRecords({
@@ -166,6 +274,8 @@ const applyCropImageUpdates = async ({
         files,
         startOrder: nextImageOrder,
         hasPrimary: hasRemainingPrimary,
+        sources: body?.new_image_sources,
+        defaultSource: body?.image_source_default,
       }),
       { transaction },
     );
@@ -209,9 +319,24 @@ export const createCrop = async (req, res) => {
       { transaction },
     );
 
+    const relationError = await syncCropModalRelations(
+      crop,
+      req.body,
+      transaction,
+    );
+    if (relationError) {
+      await rollbackWithUploads(transaction, files);
+      return respondMutationError(req, res, 400, relationError);
+    }
+
     if (files.length > 0) {
       await CropImage.bulkCreate(
-        buildCropImageRecords({ cropId: crop.id, files }),
+        buildCropImageRecords({
+          cropId: crop.id,
+          files,
+          sources: req.body?.new_image_sources,
+          defaultSource: req.body?.image_source_default,
+        }),
         { transaction },
       );
     }
@@ -296,14 +421,17 @@ export const updateCrop = async (req, res) => {
     const oldValues = crop.toJSON();
 
     await crop.update(
-      { ...validation.value, updated_by_user_id: req.user.id },
+      buildCropUpdatePayload(crop, validation.value, req.user, req.body),
       { transaction },
     );
+
+    await syncCropModalRelations(crop, req.body, transaction);
 
     await applyCropImageUpdates({
       cropId: crop.id,
       files,
       imageUpdatePlan: imagePlan,
+      body: req.body,
       transaction,
     });
 
@@ -360,12 +488,32 @@ export const deleteCrop = async (req, res) => {
       return respondMutationError(req, res, 404, 'Cultivo no encontrado.');
     }
 
+    if (
+      crop.workflow_status === CROP_WORKFLOW_STATUSES.PUBLISHED ||
+      crop.workflow_status === CROP_WORKFLOW_STATUSES.VERIFIED ||
+      crop.workflow_status === CROP_WORKFLOW_STATUSES.ARCHIVE_PENDING
+    ) {
+      await transaction.rollback();
+      return respondMutationError(
+        req,
+        res,
+        409,
+        'Los cultivos publicados o en verificación no pueden eliminarse directamente. Debes tramitar la baja justificada a través del flujo editorial con aprobación dual.',
+      );
+    }
+
+    const impact = await getCropDeactivationImpact(crop.id, transaction);
+    if (impact.hasBlockingDependencies) {
+      await transaction.rollback();
+      return respondMutationError(req, res, 409, impact.message);
+    }
+
+    const oldValues = crop.toJSON();
     const images = await CropImage.findAll({
       where: { crop_id: crop.id },
       attributes: ['image_url'],
       transaction,
     });
-    const oldValues = crop.toJSON();
 
     await CropImage.destroy({ where: { crop_id: crop.id }, transaction });
     await crop.destroy({ transaction });
@@ -396,7 +544,7 @@ export const deleteCrop = async (req, res) => {
     return respondMutationSuccess(
       req,
       res,
-      'Cultivo eliminado correctamente.',
+      'Cultivo borrador eliminado correctamente.',
       '/private/crops',
     );
   } catch (error) {

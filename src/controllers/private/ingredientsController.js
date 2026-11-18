@@ -8,6 +8,11 @@ import {
   serializeIngredient,
   computeIngredientStats,
 } from '../../services/ingredientQueryService.js';
+import { getIngredientDeactivationImpact } from '../../services/deactivationImpactService.js';
+import {
+  IngredientWorkflowError,
+  transitionIngredientWorkflow,
+} from '../../services/ingredientWorkflowService.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -134,15 +139,36 @@ export const ingredientsPrivate = async (req = {}, res = {}) => {
 
   try {
     const where = buildIngredientWhere(db.Sequelize, query);
+    const include = [];
+    if (db.User) {
+      include.push(
+        {
+          model: db.User,
+          as: 'archiveRequestedBy',
+          attributes: ['id', 'full_name'],
+          required: false,
+        },
+        {
+          model: db.User,
+          as: 'archivedBy',
+          attributes: ['id', 'full_name'],
+          required: false,
+        },
+      );
+    }
+
     const result = await db.ActiveIngredient.findAndCountAll({
       where,
+      include,
       limit: query.limit,
       offset: (query.page - 1) * query.limit,
       order: [['createdAt', 'DESC']],
     });
 
     const rows = result.rows || [];
-    const serializedIngredients = rows.map(serializeIngredient);
+    const serializedIngredients = rows.map((row) =>
+      serializeIngredient(row, req.user),
+    );
     const stats = await fetchGlobalStats(rows, result.count);
     const pagination = buildPaginationMeta(
       result.count,
@@ -302,6 +328,27 @@ export const deleteIngredient = async (req, res) => {
       return respondMutationError(req, res, 'no_encontrado');
     }
 
+    if (ingredient.workflow_status === 'archive_pending') {
+      return respondMutationError(
+        req,
+        res,
+        encodeURIComponent(
+          'El ingrediente tiene una solicitud de baja en trámite; debe resolverse mediante el flujo editorial dual.',
+        ),
+        true,
+      );
+    }
+
+    const impact = await getIngredientDeactivationImpact(ingredient.name);
+    if (impact.hasBlockingDependencies) {
+      return respondMutationError(
+        req,
+        res,
+        encodeURIComponent(impact.message),
+        true,
+      );
+    }
+
     const oldValues = toPlainValues(ingredient);
     const transaction = await db.sequelize.transaction();
     try {
@@ -330,5 +377,119 @@ export const deleteIngredient = async (req, res) => {
   } catch (error) {
     console.error('Error al eliminar ingrediente activo:', error);
     return respondMutationError(req, res, 'eliminacion_fallida');
+  }
+};
+
+const handleWorkflowError = (error, req, res) => {
+  if (error instanceof IngredientWorkflowError) {
+    const status =
+      error.code === 'DUAL_APPROVAL_REQUIRED'
+        ? 403
+        : ['ARCHIVE_REASON_REQUIRED', 'MISSING_ACTOR'].includes(error.code)
+          ? 400
+          : 409;
+    return isAsyncFetch(req)
+      ? res
+          .status(status)
+          .json({ success: false, error: error.message, code: error.code })
+      : res.redirect(
+          `/private/ingredients?error=${encodeURIComponent(error.message)}`,
+        );
+  }
+  console.error('Error al actualizar estado del ingrediente:', error);
+  return isAsyncFetch(req)
+    ? res
+        .status(500)
+        .json({ success: false, error: 'Error interno del servidor.' })
+    : res.redirect('/private/ingredients?error=workflow_fallido');
+};
+
+const parseIngredientId = (value) => {
+  if (!/^\d+$/.test(String(value || ''))) return null;
+  const id = Number(value);
+  return Number.isSafeInteger(id) && id > 0 ? id : null;
+};
+
+const checkApproveArchiveImpact = async (action, name, transaction) => {
+  if (action !== 'approve_archive') return null;
+  const impact = await getIngredientDeactivationImpact(name, transaction);
+  return impact.hasBlockingDependencies ? impact.message : null;
+};
+
+export const updateIngredientWorkflow = async (req, res) => {
+  const id = parseIngredientId(req.params.id);
+  if (!id) {
+    return isAsyncFetch(req)
+      ? res
+          .status(400)
+          .json({ success: false, error: 'ID de ingrediente no válido.' })
+      : res.redirect('/private/ingredients?error=id_invalido');
+  }
+
+  const transaction = await db.sequelize.transaction();
+  try {
+    const ingredient = await db.ActiveIngredient.findByPk(id, {
+      transaction,
+      lock: transaction.LOCK.UPDATE,
+    });
+    if (!ingredient) {
+      await transaction.rollback();
+      return isAsyncFetch(req)
+        ? res
+            .status(404)
+            .json({ success: false, error: 'Ingrediente no encontrado.' })
+        : res.redirect('/private/ingredients?error=no_encontrado');
+    }
+
+    const { action, review_notes, archive_reason, archive_reason_category } =
+      req.body;
+
+    const blockingMessage = await checkApproveArchiveImpact(
+      action,
+      ingredient.name,
+      transaction,
+    );
+    if (blockingMessage) {
+      await transaction.rollback();
+      return isAsyncFetch(req)
+        ? res.status(409).json({ success: false, error: blockingMessage })
+        : res.redirect(
+            `/private/ingredients?error=${encodeURIComponent(blockingMessage)}`,
+          );
+    }
+
+    const oldValues = toPlainValues(ingredient);
+    const changes = transitionIngredientWorkflow({
+      currentStatus: ingredient.workflow_status,
+      action,
+      actor: req.user,
+      reviewNotes: review_notes,
+      archiveReason: archive_reason,
+      archiveReasonCategory: archive_reason_category,
+      record: ingredient,
+    });
+
+    await ingredient.update(changes, { transaction });
+    await recordIngredientAudit(
+      {
+        user_id: req.user?.id || null,
+        action: `workflow.${action}`,
+        record_id: ingredient.id,
+        old_values: oldValues,
+        new_values: toPlainValues(ingredient),
+      },
+      transaction,
+    );
+
+    await transaction.commit();
+    return respondMutationSuccess(
+      req,
+      res,
+      'estado_actualizado',
+      'Estado del ingrediente activo actualizado correctamente.',
+    );
+  } catch (error) {
+    await transaction.rollback();
+    return handleWorkflowError(error, req, res);
   }
 };

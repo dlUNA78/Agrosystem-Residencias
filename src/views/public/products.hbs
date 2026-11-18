@@ -269,18 +269,54 @@
                   </div>
 
                   <!-- Pie de Tarjeta -->
-                  <div class="mt-auto flex items-end justify-between gap-4 border-t border-border pt-4">
+                  <div class="mt-auto flex items-end justify-between gap-3 border-t border-border pt-4">
                     <div class="flex flex-col gap-0.5">
                       <span class="text-mono-label text-muted-foreground text-[10px]">Dictamen oficial</span>
                       <span class="text-xs font-semibold text-emerald-800">Validado INIFAP</span>
                     </div>
-                    <a href="/products/{{id}}" class="inline-flex shrink-0 items-center gap-1 text-xs font-bold text-[#1b4332] hover:underline">
-                      Ver ficha →
-                    </a>
+                    <div class="flex items-center gap-2">
+                      <a href="/products/{{id}}/hds.pdf" title="Descargar Hoja de Datos de Seguridad (HDS / MSDS)" class="inline-flex items-center gap-1 rounded-md border border-border bg-muted/50 px-2 py-1 font-mono text-[10px] font-bold text-foreground hover:border-[#1b4332] hover:text-[#1b4332] transition-colors">
+                        <span class="material-symbols-outlined text-xs">health_and_safety</span>
+                        <span>HDS</span>
+                      </a>
+                      <a href="/products/{{id}}" class="inline-flex shrink-0 items-center gap-1 text-xs font-bold text-[#1b4332] hover:underline">
+                        Ficha técnica →
+                      </a>
+                    </div>
                   </div>
                 </div>
               </article>
             {{/each}}
+
+            <!-- Card CTA para sugerir incorporación de nuevo insumo fitosanitario -->
+            <article class="group flex flex-col items-center justify-center p-8 border-2 border-dashed border-border hover:border-[#1b4332]/40 rounded-xl bg-card/60 hover:bg-card transition-all text-center">
+              <span class="material-symbols-outlined text-4xl text-[#1b4332]/60 mb-3">add_circle</span>
+              <h3 class="text-base font-headline font-bold text-foreground mb-1">¿Nuevo insumo o agroquímico?</h3>
+              <p class="text-xs text-muted-foreground leading-relaxed mb-5 max-w-50">
+                Propón la incorporación de un insumo fitosanitario o bioinsumo con registro RSCO para validación técnica del INIFAP.
+              </p>
+              {{#if user}}
+                <button
+                  type="button"
+                  data-open-suggestion-modal
+                  class="px-4 py-2 bg-[#1b4332] hover:bg-[#2d6a4f] text-white text-xs font-bold rounded-md transition-colors cursor-pointer"
+                >
+                  Sugerir nuevo producto
+                </button>
+              {{else}}
+                <a href="/auth/login" class="px-4 py-2 bg-secondary hover:bg-emerald-100 text-[#1b4332] text-xs font-bold rounded-md border border-border transition-colors">
+                  Inicia sesión para colaborar
+                </a>
+              {{/if}}
+            </article>
+          </div>
+
+          <!-- Banner de confirmación de sugerencia ciudadana -->
+          <div id="suggestion-success-banner" class="hidden mt-6 items-center justify-between gap-3 rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-3 text-xs font-semibold text-emerald-950">
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-emerald-700 text-base">verified</span>
+              <span>¡Gracias por tu aportación! Tu propuesta de insumo fue enviada a la bandeja de validación técnica del INIFAP.</span>
+            </div>
           </div>
 
           <!-- Paginación Pública -->
@@ -327,5 +363,84 @@
     </div>
   </section>
 </div>
+
+{{#if user}}
+  <!-- Modal: Sugerir Nuevo Producto / Agroquímico (Colaboración Ciudadana / Científica) -->
+  <div id="modal-catalog-suggestion" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-xs" role="dialog" aria-modal="true" aria-labelledby="modal-suggest-product-title">
+    <div class="w-full max-w-lg rounded-2xl border border-border bg-card shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+      <div class="flex items-center justify-between border-b border-border px-6 py-4 bg-muted/30">
+        <div class="flex items-center gap-2.5">
+          <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-[#e6f0e6] text-[#1b4332]">
+            <span class="material-symbols-outlined text-lg">science</span>
+          </span>
+          <div>
+            <h3 id="modal-suggest-product-title" class="text-sm font-headline font-extrabold text-foreground">
+              Sugerir Incorporación de Insumo Fitosanitario
+            </h3>
+            <p class="text-[11px] text-muted-foreground">Se enviará a la bandeja de validación del comité técnico INIFAP</p>
+          </div>
+        </div>
+        <button type="button" data-close-suggestion-modal class="rounded-lg p-1.5 text-muted-foreground hover:bg-muted cursor-pointer" aria-label="Cerrar modal">
+          <span class="material-symbols-outlined text-lg">close</span>
+        </button>
+      </div>
+
+      <form action="/suggestions/products" method="POST" class="p-6 space-y-4 overflow-y-auto">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label for="suggest-prod-name" class="block text-xs font-bold text-foreground mb-1">Nombre comercial <span class="text-red-600">*</span></label>
+            <input type="text" id="suggest-prod-name" name="name" required minlength="2" maxlength="140" placeholder="Ej. Amistar Top SC" class="w-full rounded-xl border border-input bg-background px-3 py-2 text-xs outline-none focus:border-[#1b4332]" />
+          </div>
+          <div>
+            <label for="suggest-prod-ing" class="block text-xs font-bold text-foreground mb-1">Ingrediente activo y concentración <span class="text-red-600">*</span></label>
+            <input type="text" id="suggest-prod-ing" name="active_ingredient" required minlength="3" maxlength="160" placeholder="Ej. Azoxistrobina 200 g/L + Difenoconazol 125 g/L" class="w-full rounded-xl border border-input bg-background px-3 py-2 text-xs outline-none focus:border-[#1b4332]" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label for="suggest-prod-cat" class="block text-xs font-bold text-foreground mb-1">Categoría</label>
+            <select id="suggest-prod-cat" name="category" class="w-full rounded-xl border border-input bg-background px-3 py-2 text-xs outline-none focus:border-[#1b4332]">
+              <option value="Fungicida">Fungicida</option>
+              <option value="Insecticida">Insecticida</option>
+              <option value="Herbicida">Herbicida</option>
+              <option value="Acaricida">Acaricida</option>
+              <option value="Biológico">Bioinsumo / Biológico</option>
+            </select>
+          </div>
+          <div>
+            <label for="suggest-prod-rsco" class="block text-xs font-bold text-foreground mb-1">Registro RSCO / COFEPRIS</label>
+            <input type="text" id="suggest-prod-rsco" name="registration_code" maxlength="80" placeholder="Ej. RSCO-MEZC-1101" class="w-full rounded-xl border border-input bg-background px-3 py-2 text-xs font-mono outline-none focus:border-[#1b4332]" />
+          </div>
+          <div>
+            <label for="suggest-prod-mfg" class="block text-xs font-bold text-foreground mb-1">Fabricante / Titular</label>
+            <input type="text" id="suggest-prod-mfg" name="manufacturer" maxlength="120" placeholder="Ej. Syngenta Agro" class="w-full rounded-xl border border-input bg-background px-3 py-2 text-xs outline-none focus:border-[#1b4332]" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label for="suggest-prod-dose" class="block text-xs font-bold text-foreground mb-1">Dosis recomendada en etiqueta</label>
+            <input type="text" id="suggest-prod-dose" name="suggested_dosage" maxlength="100" placeholder="Ej. 0.5 - 0.75 L/ha" class="w-full rounded-xl border border-input bg-background px-3 py-2 text-xs outline-none focus:border-[#1b4332]" />
+          </div>
+          <div>
+            <label for="suggest-prod-crops" class="block text-xs font-bold text-foreground mb-1">Cultivos autorizados</label>
+            <input type="text" id="suggest-prod-crops" name="target_crops" maxlength="200" placeholder="Ej. Jitomate, Chile, Maíz" class="w-full rounded-xl border border-input bg-background px-3 py-2 text-xs outline-none focus:border-[#1b4332]" />
+          </div>
+        </div>
+
+        <div>
+          <label for="suggest-prod-desc" class="block text-xs font-bold text-foreground mb-1">Descripción técnica y modo de acción <span class="text-red-600">*</span></label>
+          <textarea id="suggest-prod-desc" name="description" required minlength="10" maxlength="1200" rows="3" placeholder="Mecanismo de acción, plagas controladas y observaciones de aplicación..." class="w-full rounded-xl border border-input bg-background px-3 py-2 text-xs outline-none focus:border-[#1b4332]"></textarea>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-3 border-t border-border">
+          <button type="button" data-close-suggestion-modal class="rounded-xl border border-border bg-card px-4 py-2 text-xs font-bold text-foreground hover:bg-muted cursor-pointer">Cancelar</button>
+          <button type="submit" data-loading-text="Enviando propuesta..." class="rounded-xl bg-[#1b4332] px-5 py-2 text-xs font-bold text-white hover:bg-[#2d6a4f] cursor-pointer">Enviar a validación INIFAP</button>
+        </div>
+      </form>
+    </div>
+  </div>
+{{/if}}
 <script type="module" src="/js/public/products.js"></script>
 <script src="/js/shared/image-fallback.js"></script>

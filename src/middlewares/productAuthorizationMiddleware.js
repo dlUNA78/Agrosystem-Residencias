@@ -2,9 +2,7 @@ import {
   getRequiredProductPermissionForWorkflowAction,
   hasProductPermission,
 } from '../services/productAuthorizationService.js';
-
-const isJsonRequest = (req) =>
-  req.xhr || req.headers?.accept?.includes('application/json');
+import { sendForbiddenResponse } from '../utils/errorRenderer.js';
 
 export const requireProductPermission = (permission) => (req, res, next) => {
   if (!req.user) return res.redirect('/auth/login');
@@ -12,10 +10,7 @@ export const requireProductPermission = (permission) => (req, res, next) => {
   if (!hasProductPermission(req.user.role, permission)) {
     const message =
       'Acceso denegado: no tienes permiso para realizar esta acción sobre productos.';
-    if (isJsonRequest(req)) {
-      return res.status(403).json({ error: 'Forbidden', message });
-    }
-    return res.status(403).send(message);
+    return sendForbiddenResponse(req, res, message);
   }
 
   return next();

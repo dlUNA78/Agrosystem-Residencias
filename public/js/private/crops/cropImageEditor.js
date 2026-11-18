@@ -19,6 +19,35 @@ const validateIncomingFiles = (files) => {
   return '';
 };
 
+const getFileKey = (file) => `${file.name}:${file.size}:${file.lastModified}`;
+
+const buildCreditFooter = ({ id, source = '', isNew, onSourceChange }) => {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'border-t border-border/60 bg-muted/20 p-1.5';
+
+  if (!isNew && id) {
+    const idInput = document.createElement('input');
+    idInput.type = 'hidden';
+    idInput.name = 'existing_image_source_ids';
+    idInput.value = String(id);
+    wrapper.appendChild(idInput);
+  }
+
+  const sourceInput = document.createElement('input');
+  sourceInput.type = 'text';
+  sourceInput.name = isNew ? 'new_image_sources' : 'existing_image_sources';
+  sourceInput.value = source || '';
+  sourceInput.maxLength = 255;
+  sourceInput.placeholder = 'Crédito / fuente (opcional)';
+  sourceInput.className =
+    'w-full rounded-lg border border-input bg-card px-2 py-1 text-[10px] text-foreground focus:border-[#1b4332] focus:outline-hidden';
+  sourceInput.addEventListener('input', (event) => {
+    onSourceChange?.(event.target.value);
+  });
+  wrapper.appendChild(sourceInput);
+  return wrapper;
+};
+
 export const createCropImageEditor = () => {
   const fileInput = document.getElementById('crop-images');
   const previewContainer = document.getElementById('crop-images-preview');
@@ -27,10 +56,14 @@ export const createCropImageEditor = () => {
   const noteEl = document.getElementById('crop-existing-images-note');
   const removedIdsInput = document.getElementById('crop-removed-image-ids');
   const primaryIdInput = document.getElementById('crop-primary-image-id');
+  const defaultSourceInput = document.getElementById(
+    'crop-image-source-default',
+  );
 
   let existingImages = [];
   const removedImageIds = new Set();
   let selectedFiles = [];
+  const newFileSources = new Map();
   let primaryImageId = null;
 
   const updateCounter = () => {
@@ -82,7 +115,10 @@ export const createCropImageEditor = () => {
     const isPrimary = image.id === primaryImageId || image.is_primary;
     const figure = document.createElement('figure');
     figure.className =
-      'relative aspect-square rounded-xl overflow-hidden border border-border bg-card shadow-2xs group';
+      'rounded-xl overflow-hidden border border-border bg-card shadow-2xs flex flex-col';
+
+    const mediaBox = document.createElement('div');
+    mediaBox.className = 'relative aspect-square overflow-hidden';
 
     const img = document.createElement('img');
     img.src = image.image_url?.startsWith('/')
@@ -124,14 +160,29 @@ export const createCropImageEditor = () => {
     });
 
     caption.append(badge, removeBtn);
-    figure.append(img, caption);
+    mediaBox.append(img, caption);
+    figure.append(
+      mediaBox,
+      buildCreditFooter({
+        id: image.id,
+        source: image.source || '',
+        isNew: false,
+        onSourceChange: (value) => {
+          image.source = value;
+        },
+      }),
+    );
     return figure;
   };
 
   const renderNewCard = (file, index) => {
+    const fileKey = getFileKey(file);
     const figure = document.createElement('figure');
     figure.className =
-      'relative aspect-square rounded-xl overflow-hidden border border-emerald-300 bg-card shadow-2xs group';
+      'rounded-xl overflow-hidden border border-emerald-300 bg-card shadow-2xs flex flex-col';
+
+    const mediaBox = document.createElement('div');
+    mediaBox.className = 'relative aspect-square overflow-hidden';
 
     const img = document.createElement('img');
     img.src = URL.createObjectURL(file);
@@ -152,13 +203,24 @@ export const createCropImageEditor = () => {
       'text-rose-300 hover:text-rose-100 font-bold px-1.5 py-0.5 rounded cursor-pointer';
     removeBtn.textContent = 'Quitar';
     removeBtn.addEventListener('click', () => {
+      newFileSources.delete(fileKey);
       selectedFiles.splice(index, 1);
       syncFileInput();
       renderAll();
     });
 
     caption.append(badge, removeBtn);
-    figure.append(img, caption);
+    mediaBox.append(img, caption);
+    figure.append(
+      mediaBox,
+      buildCreditFooter({
+        source: newFileSources.get(fileKey) || '',
+        isNew: true,
+        onSourceChange: (value) => {
+          newFileSources.set(fileKey, value);
+        },
+      }),
+    );
     return figure;
   };
 
@@ -221,13 +283,18 @@ export const createCropImageEditor = () => {
             id: Number(img.id),
             image_url: img.image_url || img.url,
             original_name: img.original_name,
+            source: img.source || '',
             is_primary: Boolean(img.is_primary),
           }))
         : [];
       removedImageIds.clear();
       selectedFiles = [];
+      newFileSources.clear();
       const primary = existingImages.find((img) => img.is_primary);
       primaryImageId = primary ? primary.id : existingImages[0]?.id || null;
+      if (defaultSourceInput) {
+        defaultSourceInput.value = existingImages[0]?.source || '';
+      }
       setErrorMessage('');
       syncFileInput();
       renderAll();
@@ -236,8 +303,10 @@ export const createCropImageEditor = () => {
       existingImages = [];
       removedImageIds.clear();
       selectedFiles = [];
+      newFileSources.clear();
       primaryImageId = null;
       setErrorMessage('');
+      if (defaultSourceInput) defaultSourceInput.value = '';
       if (fileInput) fileInput.value = '';
       if (previewContainer) previewContainer.innerHTML = '';
       syncHiddenInputs();

@@ -54,6 +54,27 @@ const WORKFLOW_CONFIRM_CONFIG = Object.freeze({
     confirmLabel: 'Publicar oficialmente',
     variant: 'editorial',
   },
+  request_archive: {
+    title: '¿Tramitar solicitud formal de baja institucional?',
+    description:
+      'El expediente entrará en estado "Baja en trámite" con tu justificación técnica y quedará pendiente de dictamen por otro especialista (principio de 4 ojos).',
+    confirmLabel: 'Tramitar solicitud',
+    variant: 'danger',
+  },
+  approve_archive: {
+    title: '¿Aprobar dictamen de baja institucional?',
+    description:
+      'Como segundo evaluador imparcial, confirmas la baja justificada. El cultivo se retirará del catálogo público y pasará al archivo histórico.',
+    confirmLabel: 'Aprobar baja oficial',
+    variant: 'danger',
+  },
+  reject_archive: {
+    title: '¿Rechazar solicitud de baja?',
+    description:
+      'La solicitud de baja será desestimada y el cultivo permanecerá publicado en el catálogo oficial.',
+    confirmLabel: 'Rechazar baja y mantener activo',
+    variant: 'editorial',
+  },
   archive: {
     title: '¿Archivar este expediente de cultivo?',
     description:
@@ -513,11 +534,37 @@ const initCropInSituActions = () => {
   });
 };
 
+const initCropArchiveModal = () => {
+  const modal = document.getElementById('modal-request-archive-crop');
+  if (!modal) return;
+  const openBtn = document.getElementById('btn-open-request-archive-crop');
+  const closeBtn = document.getElementById('btn-cancel-request-archive-crop');
+  const backdrop = document.getElementById(
+    'modal-request-archive-crop-backdrop',
+  );
+
+  const openModal = () => {
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    window.modalScrollLock?.lock?.();
+  };
+  const closeModal = () => {
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    window.modalScrollLock?.unlock?.();
+  };
+
+  openBtn?.addEventListener('click', openModal);
+  closeBtn?.addEventListener('click', closeModal);
+  backdrop?.addEventListener('click', closeModal);
+};
+
 // ── Rehidratación tras swaps parciales ──────────────────────────────────────
 const rehydrateCropDetail = () => {
   initCropScrollSpy();
   initCropMap();
   initCropRelationsEditor();
+  initCropArchiveModal();
 };
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -527,5 +574,6 @@ document.addEventListener('DOMContentLoaded', () => {
   initCropMap();
   initCropRelationsEditor();
   initCropWorkflowForms();
+  initCropArchiveModal();
   initCropInSituActions();
 });

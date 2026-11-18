@@ -7,7 +7,12 @@ import {
   getLandListWhere,
   getLandPermissions,
 } from '../../services/landAuthorizationService.js';
+import {
+  buildLandListCsv,
+  buildLandListGeoJson,
+} from '../../services/landExportService.js';
 import { validateLandInput } from '../../services/landValidationService.js';
+import { createRegionalBulletinRecord } from '../../services/regionalBulletinService.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -140,6 +145,28 @@ const computeLandStats = (farms) => {
   };
 };
 
+const handleExportResponse = (res, format, filteredFarms) => {
+  if (format === 'csv') {
+    const csv = buildLandListCsv(filteredFarms);
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader(
+      'Content-Disposition',
+      'attachment; filename="padron-predios-inifap.csv"',
+    );
+    return res.status(200).send(csv);
+  }
+  if (format === 'geojson') {
+    const geojson = buildLandListGeoJson(filteredFarms);
+    res.setHeader('Content-Type', 'application/geo+json; charset=utf-8');
+    res.setHeader(
+      'Content-Disposition',
+      'attachment; filename="padron-predios-inifap.geojson"',
+    );
+    return res.status(200).json(geojson);
+  }
+  return null;
+};
+
 export const renderLandsPrivate = async (req, res) => {
   try {
     const permissions = getLandPermissions(req.user.role);
@@ -159,6 +186,16 @@ export const renderLandsPrivate = async (req, res) => {
 
     const allScopeFarms = farms.map((farm) => serializeFarm(farm, req.user));
     const filteredFarms = filterFarmsInMemory(allScopeFarms, query);
+
+    if (req.query?.format) {
+      const exported = handleExportResponse(
+        res,
+        req.query.format,
+        filteredFarms,
+      );
+      if (exported) return exported;
+    }
+
     const stats = computeLandStats(allScopeFarms);
     const role = req.user?.role || '';
 
@@ -253,9 +290,29 @@ export const createFarmPrivate = async (req, res) => {
   }
 };
 
+export const createRegionalBulletinHandler = async (req, res) => {
+  try {
+    const result = await createRegionalBulletinRecord({
+      payload: req.body,
+      user: req.user,
+    });
+    if (!result.success) {
+      return sendInputError(req, res, { general: [result.message] });
+    }
+    const redirectTo =
+      req.body?.redirect_to === 'public' ? '/lands' : '/private/lands';
+    if (wantsJson(req)) return res.status(201).json({ success: true });
+    return res.redirect(redirectTo);
+  } catch (error) {
+    console.error('Error al publicar boletín regional:', error);
+    return res.status(500).send('Error al publicar boletín regional');
+  }
+};
+
 export { landDetail } from './lands/landDetailController.js';
 export {
   archiveFarmPrivate,
+  deleteFarmPrivate,
   restoreFarmPrivate,
   updateFarmPrivate,
 } from './lands/landMutationController.js';

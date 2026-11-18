@@ -675,6 +675,27 @@ const WORKFLOW_CONFIRM_CONFIG = Object.freeze({
     confirmLabel: 'Publicar en portal',
     variant: 'editorial',
   },
+  request_archive: {
+    title: '¿Tramitar solicitud formal de baja fitosanitaria?',
+    description:
+      'El expediente entrará en estado "Baja en trámite" con tu justificación técnica y quedará pendiente de dictamen por otro especialista (principio de 4 ojos).',
+    confirmLabel: 'Tramitar solicitud',
+    variant: 'danger',
+  },
+  approve_archive: {
+    title: '¿Aprobar dictamen de baja fitosanitaria?',
+    description:
+      'Como segundo evaluador imparcial, confirmas la baja justificada. La plaga se retirará del catálogo público y pasará al archivo histórico.',
+    confirmLabel: 'Aprobar baja oficial',
+    variant: 'danger',
+  },
+  reject_archive: {
+    title: '¿Rechazar solicitud de baja?',
+    description:
+      'La solicitud de baja será desestimada y la plaga permanecerá publicada en el catálogo oficial.',
+    confirmLabel: 'Rechazar baja y mantener activo',
+    variant: 'editorial',
+  },
   archive: {
     title: '¿Archivar este expediente fitosanitario?',
     description:
@@ -811,6 +832,31 @@ const initPrivateDetailEditAndDelete = () => {
   });
 };
 
+const initPlagueArchiveModal = () => {
+  const modal = document.getElementById('modal-request-archive-plague');
+  if (!modal) return;
+  const openBtn = document.getElementById('btn-open-request-archive-plague');
+  const closeBtn = document.getElementById('btn-cancel-request-archive-plague');
+  const backdrop = document.getElementById(
+    'modal-request-archive-plague-backdrop',
+  );
+
+  const openModal = () => {
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    window.modalScrollLock?.lock?.();
+  };
+  const closeModal = () => {
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    window.modalScrollLock?.unlock?.();
+  };
+
+  openBtn?.addEventListener('click', openModal);
+  closeBtn?.addEventListener('click', closeModal);
+  backdrop?.addEventListener('click', closeModal);
+};
+
 document.addEventListener('DOMContentLoaded', () => {
   initHeroCarousel();
   initScrollSpy();
@@ -824,4 +870,5 @@ document.addEventListener('DOMContentLoaded', () => {
   initPrivateRelationEditor();
   initPrivateEditorialForms();
   initPrivateDetailEditAndDelete();
+  initPlagueArchiveModal();
 });

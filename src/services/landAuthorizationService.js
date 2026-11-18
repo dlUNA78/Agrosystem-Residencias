@@ -11,6 +11,7 @@ export const getLandPermissions = (role) => {
     canEditOwn: hasPrivateAccess,
     canArchiveOwn: hasPrivateAccess,
     canRestoreOwn: hasPrivateAccess,
+    canDeleteOwn: hasPrivateAccess,
     canManageAll: false,
   };
 };
@@ -42,5 +43,6 @@ export const getContextualLandPermissions = ({
     canEdit: isOwner && Boolean(isActive),
     canArchive: isOwner && Boolean(isActive),
     canRestore: isOwner && !isActive,
+    canDelete: isOwner && !isActive,
   };
 };

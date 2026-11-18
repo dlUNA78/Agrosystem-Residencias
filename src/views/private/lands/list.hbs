@@ -34,6 +34,28 @@
     </div>
 
     <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+      <div class="inline-flex items-center gap-1 p-1 rounded-xl bg-card border border-border/80 text-xs font-mono shadow-2xs">
+        <a
+          href="/private/lands?status={{filters.status}}{{#if filters.search}}&search={{filters.search}}{{/if}}{{#if filters.region}}&region={{filters.region}}{{/if}}{{#if filters.farmingType}}&farmingType={{filters.farmingType}}{{/if}}&format=csv"
+          class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-colors font-medium text-xs"
+          title="Descargar padrón de predios en CSV"
+          download="padron-predios-inifap.csv"
+        >
+          <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5 text-emerald-600"></i>
+          <span>CSV</span>
+        </a>
+        <span class="w-px h-3.5 bg-border/80"></span>
+        <a
+          href="/private/lands?status={{filters.status}}{{#if filters.search}}&search={{filters.search}}{{/if}}{{#if filters.region}}&region={{filters.region}}{{/if}}{{#if filters.farmingType}}&farmingType={{filters.farmingType}}{{/if}}&format=geojson"
+          class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-colors font-medium text-xs"
+          title="Exportar capas geográficas en GeoJSON"
+          download="padron-predios-inifap.geojson"
+        >
+          <i data-lucide="map" class="w-3.5 h-3.5 text-sky-600"></i>
+          <span>GeoJSON</span>
+        </a>
+      </div>
+
       {{#if permissions.canCreate}}
         <button
           type="button"
@@ -313,6 +335,12 @@
           >
             <div>
               <div class="relative h-28 bg-gradient-to-br from-[#e6f0e6] via-[#f3f8f4] to-muted flex items-center justify-between px-5 overflow-hidden border-b border-border/60">
+                <!-- Textura de retícula cartográfica / coordenadas satelitales -->
+                <div class="absolute inset-0 opacity-[0.14] pointer-events-none bg-[radial-gradient(#1b4332_1px,transparent_1px)] [background-size:12px_12px]" aria-hidden="true"></div>
+                <div class="absolute -right-6 -bottom-6 w-28 h-28 rounded-full border border-emerald-900/10 pointer-events-none opacity-40 flex items-center justify-center" aria-hidden="true">
+                  <div class="w-16 h-16 rounded-full border border-dashed border-emerald-900/20"></div>
+                </div>
+
                 <div class="space-y-1 z-10">
                   <span class="inline-block font-mono text-[10px] font-bold text-[#1b4332] bg-white/90 border border-emerald-900/10 px-2.5 py-0.5 rounded-md">
                     {{this.codeLabel}}
@@ -321,6 +349,17 @@
                     <p class="text-xs font-bold text-[#1b4332]/85 flex items-center gap-1">
                       <i data-lucide="compass" class="w-3 h-3"></i>
                       <span>{{this.region.name}}</span>
+                    </p>
+                  {{/if}}
+                  {{#if this.hasCoords}}
+                    <p class="font-mono text-[10px] font-semibold text-emerald-900/75 flex items-center gap-1">
+                      <i data-lucide="crosshair" class="w-3 h-3 text-emerald-700"></i>
+                      <span>{{this.location_lat}}, {{this.location_lng}}</span>
+                    </p>
+                  {{else}}
+                    <p class="font-mono text-[10px] text-muted-foreground flex items-center gap-1">
+                      <i data-lucide="map-pin-off" class="w-3 h-3"></i>
+                      <span>Sin coordenadas GPS</span>
                     </p>
                   {{/if}}
                 </div>
@@ -340,7 +379,7 @@
                       title="Centrar parcela en el mapa"
                     >
                       <i data-lucide="locate-fixed" class="w-3 h-3"></i>
-                      <span>GPS</span>
+                      <span>Ver en mapa</span>
                     </button>
                   {{/if}}
                 </div>
@@ -411,6 +450,19 @@
                   >
                     <i data-lucide="archive-restore" class="w-3.5 h-3.5"></i>
                     <span>Restaurar</span>
+                  </button>
+                </form>
+              {{/if}}
+
+              {{#if this.permissions.canDelete}}
+                <form action="/private/lands/delete/{{this.id}}" method="POST" data-land-status-form="delete" data-land-name="{{this.name}}">
+                  <button
+                    type="submit"
+                    class="inline-flex items-center justify-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50/70 px-3 py-2.5 text-xs font-bold text-rose-700 transition-colors hover:bg-rose-100 cursor-pointer"
+                    title="Eliminar predio definitivamente"
+                  >
+                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                    <span class="sr-only sm:not-sr-only">Purgar</span>
                   </button>
                 </form>
               {{/if}}
@@ -501,6 +553,13 @@
                         <form action="/private/lands/restore/{{this.id}}" method="POST" data-land-status-form="restore" data-land-name="{{this.name}}" class="inline">
                           <button type="submit" class="rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-xs font-bold text-emerald-800 hover:bg-emerald-100 cursor-pointer">
                             Restaurar
+                          </button>
+                        </form>
+                      {{/if}}
+                      {{#if this.permissions.canDelete}}
+                        <form action="/private/lands/delete/{{this.id}}" method="POST" data-land-status-form="delete" data-land-name="{{this.name}}" class="inline">
+                          <button type="submit" class="rounded-lg border border-rose-200 bg-rose-50 px-2.5 py-1.5 text-xs font-bold text-rose-700 hover:bg-rose-100 cursor-pointer" title="Eliminar definitivamente">
+                            Purgar
                           </button>
                         </form>
                       {{/if}}

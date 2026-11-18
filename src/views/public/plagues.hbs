@@ -77,24 +77,45 @@
 
             <!-- Selectores y Botón (Desktop: en línea; Móvil: colapsable) -->
             <div id="plagues-collapsible-filters" class="hidden sm:flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto pt-2 sm:pt-0 border-t border-border/50 sm:border-t-0 mt-1 sm:mt-0">
-              <!-- Selector de Cultivo Hospedero -->
-              <div class="relative w-full sm:w-48 shrink-0">
-                <select id="crop-filter" name="crop" aria-label="Filtrar por cultivo hospedero" class="h-9 sm:h-10 w-full appearance-none border border-input bg-card px-3 pr-8 text-xs sm:text-sm rounded-md outline-none transition-colors focus-visible:border-[#1b4332] text-foreground font-medium cursor-pointer">
-                  <option value="Cultivo">Cultivo · Todos</option>
-                  {{#each crops}}
-                    <option value="{{this}}" {{#if (eq ../filters.crop this)}}selected{{/if}}>{{this}}</option>
-                  {{/each}}
+              <!-- Selector de Cultivo Hospedero (Agrupado por Familia / Grupo Botánico) -->
+              <div class="relative w-full sm:w-56 shrink-0">
+                <select id="crop-filter" name="crop" aria-label="Filtrar por familia o cultivo hospedero" class="h-9 sm:h-10 w-full appearance-none border border-input bg-card px-3 pr-8 text-xs sm:text-sm rounded-md outline-none transition-colors focus-visible:border-[#1b4332] text-foreground font-medium cursor-pointer">
+                  <option value="Cultivo">Familia / Cultivo · Todos</option>
+                  {{#if cropGroups.length}}
+                    {{#each cropGroups}}
+                      <optgroup label="Grupo: {{this.label}}">
+                        <option value="{{this.groupValue}}" {{#if (eq ../filters.crop this.groupValue)}}selected{{/if}}>▸ Todo el grupo {{this.groupName}}</option>
+                        {{#each this.crops}}
+                          <option value="{{this}}" {{#if (eq ../../filters.crop this)}}selected{{/if}}>{{this}}</option>
+                        {{/each}}
+                      </optgroup>
+                    {{/each}}
+                  {{else}}
+                    {{#each crops}}
+                      <option value="{{this}}" {{#if (eq ../filters.crop this)}}selected{{/if}}>{{this}}</option>
+                    {{/each}}
+                  {{/if}}
                 </select>
                 <span class="material-symbols-outlined pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">expand_more</span>
               </div>
 
-              <!-- Selector de Región -->
-              <div class="relative w-full sm:w-48 shrink-0">
-                <select id="region-filter" name="region" aria-label="Filtrar por región" class="h-9 sm:h-10 w-full appearance-none border border-input bg-card px-3 pr-8 text-xs sm:text-sm rounded-md outline-none transition-colors focus-visible:border-[#1b4332] text-foreground font-medium cursor-pointer">
+              <!-- Selector de Región (Agrupado por Macro-región Agroecológica) -->
+              <div class="relative w-full sm:w-52 shrink-0">
+                <select id="region-filter" name="region" aria-label="Filtrar por macro-región o zona" class="h-9 sm:h-10 w-full appearance-none border border-input bg-card px-3 pr-8 text-xs sm:text-sm rounded-md outline-none transition-colors focus-visible:border-[#1b4332] text-foreground font-medium cursor-pointer">
                   <option value="Región">Región · Todas</option>
-                  {{#each regions}}
-                    <option value="{{this}}" {{#if (eq ../filters.region this)}}selected{{/if}}>{{this}}</option>
-                  {{/each}}
+                  {{#if regionGroups.length}}
+                    {{#each regionGroups}}
+                      <optgroup label="{{this.macroRegion}}">
+                        {{#each this.regions}}
+                          <option value="{{this}}" {{#if (eq ../../filters.region this)}}selected{{/if}}>{{this}}</option>
+                        {{/each}}
+                      </optgroup>
+                    {{/each}}
+                  {{else}}
+                    {{#each regions}}
+                      <option value="{{this}}" {{#if (eq ../filters.region this)}}selected{{/if}}>{{this}}</option>
+                    {{/each}}
+                  {{/if}}
                 </select>
                 <span class="material-symbols-outlined pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">expand_more</span>
               </div>
@@ -321,11 +342,35 @@
           <article id="cta-new-species" class="group flex flex-col items-center justify-center p-8 border-2 border-dashed border-border hover:border-[#1b4332]/40 rounded-xl bg-card/60 hover:bg-card transition-all text-center">
             <span class="material-symbols-outlined text-4xl text-[#1b4332]/60 mb-3">add_circle</span>
             <h3 class="text-base font-headline font-bold text-foreground mb-1">¿Nueva especie?</h3>
-            <p class="text-xs text-muted-foreground leading-relaxed max-w-50">
-              Colabora con nuestra red científica reportando nuevas plagas a nuestro personal técnico.
+            <p class="text-xs text-muted-foreground leading-relaxed mb-4 max-w-50">
+              Colabora con nuestra red científica proponiendo la incorporación de una plaga o patógeno para validación del INIFAP.
             </p>
+            {{#if user}}
+              <button
+                type="button"
+                data-open-suggestion-modal
+                class="px-4 py-2 bg-[#1b4332] hover:bg-[#2d6a4f] text-white text-xs font-bold rounded-md transition-colors cursor-pointer"
+              >
+                Sugerir nueva especie
+              </button>
+            {{else}}
+              <a
+                href="/auth/login"
+                class="px-4 py-2 bg-secondary hover:bg-emerald-100 text-[#1b4332] text-xs font-bold rounded-md border border-border transition-colors"
+              >
+                Inicia sesión para colaborar
+              </a>
+            {{/if}}
           </article>
         {{/if}}
+      </div>
+
+      <!-- Banner de confirmación de sugerencia ciudadana -->
+      <div id="suggestion-success-banner" class="hidden mt-6 items-center justify-between gap-3 rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-3 text-xs font-semibold text-emerald-950">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-emerald-700 text-base">verified</span>
+          <span>¡Gracias por tu aportación científica! Tu propuesta fue enviada a la bandeja de validación técnica del INIFAP.</span>
+        </div>
       </div>
 
       <!-- Paginación Dinámica -->
@@ -346,3 +391,80 @@
     </div>
   </section>
 </div>
+
+{{#if user}}
+  <!-- Modal: Sugerir Nueva Especie Fitosanitaria (Colaboración Ciudadana / Científica) -->
+  <div id="modal-catalog-suggestion" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-xs" role="dialog" aria-modal="true" aria-labelledby="modal-suggest-plague-title">
+    <div class="w-full max-w-lg rounded-2xl border border-border bg-card shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+      <div class="flex items-center justify-between border-b border-border px-6 py-4 bg-muted/30">
+        <div class="flex items-center gap-2.5">
+          <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-[#e6f0e6] text-[#1b4332]">
+            <span class="material-symbols-outlined text-lg">pest_control</span>
+          </span>
+          <div>
+            <h3 id="modal-suggest-plague-title" class="text-sm font-headline font-extrabold text-foreground">
+              Sugerir Incorporación de Plaga o Patógeno
+            </h3>
+            <p class="text-[11px] text-muted-foreground">Se enviará a la bandeja de validación del comité técnico INIFAP</p>
+          </div>
+        </div>
+        <button type="button" data-close-suggestion-modal class="rounded-lg p-1.5 text-muted-foreground hover:bg-muted cursor-pointer" aria-label="Cerrar modal">
+          <span class="material-symbols-outlined text-lg">close</span>
+        </button>
+      </div>
+
+      <form action="/suggestions/plagues" method="POST" class="p-6 space-y-4 overflow-y-auto">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label for="suggest-plague-name" class="block text-xs font-bold text-foreground mb-1">Nombre común <span class="text-red-600">*</span></label>
+            <input type="text" id="suggest-plague-name" name="name" required minlength="3" maxlength="140" placeholder="Ej. Picudo del chile" class="w-full rounded-xl border border-input bg-background px-3 py-2 text-xs outline-none focus:border-[#1b4332]" />
+          </div>
+          <div>
+            <label for="suggest-plague-sci" class="block text-xs font-bold text-foreground mb-1">Nombre científico <span class="text-red-600">*</span></label>
+            <input type="text" id="suggest-plague-sci" name="scientific_name" required minlength="3" maxlength="160" placeholder="Ej. Anthonomus eugenii" class="w-full rounded-xl border border-input bg-background px-3 py-2 text-xs italic outline-none focus:border-[#1b4332]" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label for="suggest-plague-cat" class="block text-xs font-bold text-foreground mb-1">Categoría</label>
+            <select id="suggest-plague-cat" name="category" class="w-full rounded-xl border border-input bg-background px-3 py-2 text-xs outline-none focus:border-[#1b4332]">
+              <option value="Insectos">Insectos</option>
+              <option value="Hongos">Hongos</option>
+              <option value="Bacterias">Bacterias</option>
+              <option value="Virus">Virus</option>
+              <option value="Ácaros">Ácaros</option>
+            </select>
+          </div>
+          <div>
+            <label for="suggest-plague-risk" class="block text-xs font-bold text-foreground mb-1">Nivel de riesgo</label>
+            <select id="suggest-plague-risk" name="risk_level" class="w-full rounded-xl border border-input bg-background px-3 py-2 text-xs outline-none focus:border-[#1b4332]">
+              <option value="Moderado">Moderado</option>
+              <option value="Alto">Crítico / Alto</option>
+              <option value="Bajo">Bajo</option>
+            </select>
+          </div>
+          <div>
+            <label for="suggest-plague-region" class="block text-xs font-bold text-foreground mb-1">Región observada</label>
+            <input type="text" id="suggest-plague-region" name="region" maxlength="100" placeholder="Ej. Bajío, Sinaloa" class="w-full rounded-xl border border-input bg-background px-3 py-2 text-xs outline-none focus:border-[#1b4332]" />
+          </div>
+        </div>
+
+        <div>
+          <label for="suggest-plague-symptoms" class="block text-xs font-bold text-foreground mb-1">Síntomas y daños observados <span class="text-red-600">*</span></label>
+          <textarea id="suggest-plague-symptoms" name="symptoms" required minlength="10" maxlength="1000" rows="2" placeholder="Describe los síntomas en hoja, tallo o fruto..." class="w-full rounded-xl border border-input bg-background px-3 py-2 text-xs outline-none focus:border-[#1b4332]"></textarea>
+        </div>
+
+        <div>
+          <label for="suggest-plague-desc" class="block text-xs font-bold text-foreground mb-1">Descripción técnica y cultivos afectados <span class="text-red-600">*</span></label>
+          <textarea id="suggest-plague-desc" name="description" required minlength="10" maxlength="1200" rows="3" placeholder="Contexto agronómico, hospedantes principales y observaciones de campo..." class="w-full rounded-xl border border-input bg-background px-3 py-2 text-xs outline-none focus:border-[#1b4332]"></textarea>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-3 border-t border-border">
+          <button type="button" data-close-suggestion-modal class="rounded-xl border border-border bg-card px-4 py-2 text-xs font-bold text-foreground hover:bg-muted cursor-pointer">Cancelar</button>
+          <button type="submit" data-loading-text="Enviando propuesta..." class="rounded-xl bg-[#1b4332] px-5 py-2 text-xs font-bold text-white hover:bg-[#2d6a4f] cursor-pointer">Enviar a validación INIFAP</button>
+        </div>
+      </form>
+    </div>
+  </div>
+{{/if}}

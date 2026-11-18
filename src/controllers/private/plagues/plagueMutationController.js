@@ -2,23 +2,154 @@ import db from '../../../models/index.js';
 import { getContextualPlaguePermissions } from '../../../services/plagueAuthorizationService.js';
 import {
   MAX_PLAGUE_IMAGES,
+  buildExistingPlagueImageSourceUpdates,
   buildPlagueImageRecords,
   buildPlagueImageUpdatePlan,
   cleanupStoredPlagueImages,
   cleanupUploadedPlagueFiles,
   parseRemovedPlagueImageIds,
 } from '../../../services/plagueImageService.js';
+import { validatePlagueRelationsInput } from '../../../services/plagueRelationService.js';
 import { validatePlagueInput } from '../../../services/plagueValidationService.js';
 import {
   PLAGUE_WORKFLOW_STATUSES,
   isPlagueEditable,
 } from '../../../services/plagueWorkflowService.js';
+import { getPlagueDeactivationImpact } from '../../../services/deactivationImpactService.js';
 
 const { AuditLog, Plague, PlagueImage } = db;
+
+const isControlledPlagueStage = (status) =>
+  status === PLAGUE_WORKFLOW_STATUSES.VERIFIED ||
+  status === PLAGUE_WORKFLOW_STATUSES.PUBLISHED;
+
+const isControlledPlagueEditAuthorized = (plague, user, body) =>
+  body?.controlled_edit === '1' &&
+  (user.role === 'admin' || user.role === 'inifap') &&
+  isControlledPlagueStage(plague.workflow_status);
+
+const checkPlagueUpdateRestriction = (plague, user, body) => {
+  const isControlled = body?.controlled_edit === '1';
+  const editReason = String(body?.edit_reason || '').trim();
+  if (isControlled && editReason.length < 10) {
+    return {
+      status: 400,
+      message:
+        'Debes capturar una justificación técnica de al menos 10 caracteres para modificar el expediente.',
+    };
+  }
+  if (isControlledPlagueEditAuthorized(plague, user, body)) {
+    return null;
+  }
+  const recordPermissions = getContextualPlaguePermissions({
+    role: user.role,
+    userId: user.id,
+    createdByUserId: plague.created_by_user_id,
+  });
+  if (!recordPermissions.canEdit) {
+    return {
+      status: 403,
+      message: 'Sólo el autor o un administrador puede editar esta plaga.',
+    };
+  }
+  if (!isPlagueEditable(plague.workflow_status)) {
+    return {
+      status: 409,
+      message: 'La plaga debe estar en borrador para poder editarse.',
+    };
+  }
+  return null;
+};
+
+const buildPlagueUpdatePayload = (plague, validatedValue, user, body) => {
+  const isControlled = body?.controlled_edit === '1';
+  if (!isControlled) {
+    return { ...validatedValue, updated_by_user_id: user.id };
+  }
+  const editReason = String(body?.edit_reason || '').trim();
+  const actorLabel = user.full_name || user.email || 'Especialista INIFAP';
+  const lockedIdentity = {
+    name: plague.name,
+    scientific_name: plague.scientific_name,
+    category: plague.category || validatedValue.category,
+  };
+  const stageTransition = isControlledPlagueStage(plague.workflow_status)
+    ? {
+        workflow_status: PLAGUE_WORKFLOW_STATUSES.IN_REVIEW,
+        status: false,
+        verified_by: null,
+        verified_by_user_id: null,
+        verified_at: null,
+        created_by_user_id: plague.created_by_user_id || user.id,
+      }
+    : {};
+  return {
+    ...validatedValue,
+    ...lockedIdentity,
+    ...stageTransition,
+    review_notes: `[Edición controlada · ${actorLabel}]: ${editReason}`,
+    updated_by_user_id: user.id,
+  };
+};
 
 const rollbackWithUploadedFiles = async (transaction, files) => {
   await transaction.rollback();
   await cleanupUploadedPlagueFiles(files);
+};
+
+const syncPlagueModalRelations = async (plague, body, transaction) => {
+  if (body?.relations_submitted !== '1') return null;
+  const parsed = validatePlagueRelationsInput(body);
+  if (!parsed.isValid) return parsed.errors.join(' ');
+  await plague.setCrops?.(parsed.value.cropIds, { transaction });
+  await plague.setProducts?.(parsed.value.productIds, { transaction });
+  return null;
+};
+
+const applyPlagueImageChanges = async ({
+  plagueId,
+  existingImages = [],
+  removedImageIds,
+  files,
+  nextImageOrder,
+  body,
+  transaction,
+}) => {
+  if (removedImageIds.length > 0) {
+    await PlagueImage.destroy({
+      where: { id: removedImageIds, plague_id: plagueId },
+      transaction,
+    });
+  }
+  const sourceUpdates = buildExistingPlagueImageSourceUpdates({
+    existingImages,
+    removedImageIds,
+    rawIds: body?.existing_image_source_ids,
+    rawSources: body?.existing_image_sources,
+    defaultSource: body?.image_source_default,
+  });
+  if (sourceUpdates.length > 0 && typeof PlagueImage?.update === 'function') {
+    await Promise.all(
+      sourceUpdates.map((item) =>
+        PlagueImage.update(
+          { source: item.source },
+          { where: { id: item.id, plague_id: plagueId }, transaction },
+        ),
+      ),
+    );
+  }
+  if (files.length > 0) {
+    await PlagueImage.bulkCreate(
+      buildPlagueImageRecords({
+        plagueId,
+        files,
+        startOrder: nextImageOrder,
+        sources: body?.new_image_sources,
+        defaultSource: body?.image_source_default,
+      }),
+      { transaction },
+    );
+  }
 };
 
 export const createPlague = async (req, res) => {
@@ -51,9 +182,24 @@ export const createPlague = async (req, res) => {
       { transaction },
     );
 
+    const relationError = await syncPlagueModalRelations(
+      plague,
+      req.body,
+      transaction,
+    );
+    if (relationError) {
+      await rollbackWithUploadedFiles(transaction, files);
+      return res.status(400).send(relationError);
+    }
+
     if (files.length > 0) {
       await PlagueImage.bulkCreate(
-        buildPlagueImageRecords({ plagueId: plague.id, files }),
+        buildPlagueImageRecords({
+          plagueId: plague.id,
+          files,
+          sources: req.body?.new_image_sources,
+          defaultSource: req.body?.image_source_default,
+        }),
         { transaction },
       );
     }
@@ -108,22 +254,14 @@ export const updatePlague = async (req, res) => {
       return res.status(404).send('Plaga no encontrada');
     }
 
-    const recordPermissions = getContextualPlaguePermissions({
-      role: req.user.role,
-      userId: req.user.id,
-      createdByUserId: plague.created_by_user_id,
-    });
-    if (!recordPermissions.canEdit) {
+    const restriction = checkPlagueUpdateRestriction(
+      plague,
+      req.user,
+      req.body,
+    );
+    if (restriction) {
       await rollbackWithUploadedFiles(transaction, files);
-      return res
-        .status(403)
-        .send('Sólo el autor o un administrador puede editar esta plaga.');
-    }
-    if (!isPlagueEditable(plague.workflow_status)) {
-      await rollbackWithUploadedFiles(transaction, files);
-      return res
-        .status(409)
-        .send('La plaga debe estar en borrador para poder editarse.');
+      return res.status(restriction.status).send(restriction.message);
     }
 
     const oldValues = plague.toJSON();
@@ -151,26 +289,29 @@ export const updatePlague = async (req, res) => {
     removedImages = imageUpdatePlan.removedImages;
 
     await plague.update(
-      { ...validation.value, updated_by_user_id: req.user.id },
+      buildPlagueUpdatePayload(plague, validation.value, req.user, req.body),
       { transaction },
     );
 
-    if (removedImageIds.length > 0) {
-      await PlagueImage.destroy({
-        where: { id: removedImageIds, plague_id: plague.id },
-        transaction,
-      });
+    const relationError = await syncPlagueModalRelations(
+      plague,
+      req.body,
+      transaction,
+    );
+    if (relationError) {
+      await rollbackWithUploadedFiles(transaction, files);
+      return res.status(400).send(relationError);
     }
-    if (files.length > 0) {
-      await PlagueImage.bulkCreate(
-        buildPlagueImageRecords({
-          plagueId: plague.id,
-          files,
-          startOrder: imageUpdatePlan.nextImageOrder,
-        }),
-        { transaction },
-      );
-    }
+
+    await applyPlagueImageChanges({
+      plagueId: plague.id,
+      existingImages,
+      removedImageIds,
+      files,
+      nextImageOrder: imageUpdatePlan.nextImageOrder,
+      body: req.body,
+      transaction,
+    });
 
     await AuditLog.create(
       {
@@ -194,6 +335,28 @@ export const updatePlague = async (req, res) => {
   }
 };
 
+const wantsJson = (req) =>
+  Boolean(req.xhr || req.headers?.accept?.includes('application/json'));
+
+const respondMutationError = (req, res, status, message) => {
+  if (wantsJson(req)) {
+    return res.status(status).json({ success: false, message });
+  }
+  return res.status(status).send(message);
+};
+
+const respondMutationSuccess = (req, res, redirectUrl, message) => {
+  if (wantsJson(req)) {
+    return res.status(200).json({ success: true, message });
+  }
+  return res.redirect(redirectUrl);
+};
+
+const isDirectDeleteBlocked = (status) =>
+  status === PLAGUE_WORKFLOW_STATUSES.PUBLISHED ||
+  status === PLAGUE_WORKFLOW_STATUSES.VERIFIED ||
+  status === PLAGUE_WORKFLOW_STATUSES.ARCHIVE_PENDING;
+
 export const deletePlague = async (req, res) => {
   const transaction = await db.sequelize.transaction();
 
@@ -201,13 +364,29 @@ export const deletePlague = async (req, res) => {
     const { id } = req.params;
     if (!/^\d+$/.test(id)) {
       await transaction.rollback();
-      return res.status(400).send('ID de plaga no válido');
+      return respondMutationError(req, res, 400, 'ID de plaga no válido');
     }
 
     const plague = await Plague.findByPk(Number(id), { transaction });
     if (!plague) {
       await transaction.rollback();
-      return res.status(404).send('Plaga no encontrada');
+      return respondMutationError(req, res, 404, 'Plaga no encontrada');
+    }
+
+    if (isDirectDeleteBlocked(plague.workflow_status)) {
+      await transaction.rollback();
+      return respondMutationError(
+        req,
+        res,
+        409,
+        'Las plagas publicadas o en verificación no pueden eliminarse directamente. Debes tramitar la baja justificada a través del flujo editorial con aprobación dual.',
+      );
+    }
+
+    const impact = await getPlagueDeactivationImpact(plague.id, transaction);
+    if (impact.hasBlockingDependencies) {
+      await transaction.rollback();
+      return respondMutationError(req, res, 409, impact.message);
     }
 
     const oldValues = plague.toJSON();
@@ -229,10 +408,15 @@ export const deletePlague = async (req, res) => {
     );
 
     await transaction.commit();
-    return res.redirect('/private/plagues');
+    return respondMutationSuccess(
+      req,
+      res,
+      '/private/plagues',
+      'Plaga borrador eliminada correctamente.',
+    );
   } catch (error) {
     await transaction.rollback();
     console.error('Error al eliminar la plaga:', error);
-    return res.status(500).send('Error al eliminar la plaga');
+    return respondMutationError(req, res, 500, 'Error al eliminar la plaga');
   }
 };

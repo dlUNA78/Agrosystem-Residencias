@@ -5,6 +5,7 @@ import {
   resolveProductHazardTheme,
 } from './productValidationService.js';
 import { PRODUCT_WORKFLOW_STATUSES } from './productWorkflowService.js';
+import { buildAccentInsensitiveRegex } from '../utils/validators.js';
 
 export const DEFAULT_PUBLIC_PRODUCT_PAGE_SIZE = 8;
 export const MAX_PUBLIC_PRODUCT_PAGE_SIZE = 24;
@@ -79,6 +80,7 @@ export const buildPublishedProductWhere = (Op, query = {}) => {
   };
 
   if (query.search) {
+    const accentRegex = buildAccentInsensitiveRegex(query.search);
     where[Op.or] = [
       { name: { [Op.iLike]: `%${query.search}%` } },
       { active_ingredient: { [Op.iLike]: `%${query.search}%` } },
@@ -86,6 +88,14 @@ export const buildPublishedProductWhere = (Op, query = {}) => {
       { category: { [Op.iLike]: `%${query.search}%` } },
       { registration_code: { [Op.iLike]: `%${query.search}%` } },
       { formulation_type: { [Op.iLike]: `%${query.search}%` } },
+      ...(Op.iRegexp && accentRegex
+        ? [
+            { name: { [Op.iRegexp]: accentRegex } },
+            { active_ingredient: { [Op.iRegexp]: accentRegex } },
+            { manufacturer: { [Op.iRegexp]: accentRegex } },
+            { category: { [Op.iRegexp]: accentRegex } },
+          ]
+        : []),
     ];
   }
 

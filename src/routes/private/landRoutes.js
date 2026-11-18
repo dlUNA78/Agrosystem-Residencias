@@ -6,6 +6,7 @@ import {
   createFarmPrivate,
   updateFarmPrivate,
   archiveFarmPrivate,
+  deleteFarmPrivate,
   restoreFarmPrivate,
   createLandCropCycle,
   advanceLandCropStage,
@@ -31,6 +32,7 @@ landRouter.post('/private/lands/create', createFarmPrivate);
 landRouter.post('/private/lands/update/:id', updateFarmPrivate);
 landRouter.post('/private/lands/archive/:id', archiveFarmPrivate);
 landRouter.post('/private/lands/restore/:id', restoreFarmPrivate);
+landRouter.post('/private/lands/delete/:id', deleteFarmPrivate);
 landRouter.post('/private/lands/:id/cycles', createLandCropCycle);
 landRouter.post('/private/lands/:id/cycles/advance', advanceLandCropStage);
 landRouter.post('/private/lands/:id/cycles/revert-stage', revertLandCropStage);

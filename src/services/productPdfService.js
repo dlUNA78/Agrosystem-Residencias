@@ -59,24 +59,30 @@ const drawSectionHeading = (doc, stepNumber, title) => {
   const topY = doc.y;
 
   doc.save();
-  doc.roundedRect(startX, topY, contentWidth, 22, 4).fill(COLORS.brandSoft);
+  doc.rect(startX, topY, 3, 16).fill(COLORS.brand);
   doc
     .fillColor(COLORS.brand)
     .font('Helvetica-Bold')
     .fontSize(9.5)
     .text(
       `${stepNumber}. ${sanitizePdfText(title).toUpperCase()}`,
-      startX + 10,
-      topY + 6,
-      { width: contentWidth - 20 },
+      startX + 9,
+      topY + 3,
+      { width: contentWidth - 12 },
     );
+  doc
+    .moveTo(startX, topY + 19)
+    .lineTo(startX + contentWidth, topY + 19)
+    .strokeColor(COLORS.border)
+    .lineWidth(0.6)
+    .stroke();
   doc.restore();
-  doc.y = topY + 28;
+  doc.y = topY + 26;
 };
 
 const resolveBannerBadge = (product, isPrivate) => {
-  if (product?.isVerified) return 'AVAL INIFAP';
-  return isPrivate ? 'USO INTERNO' : 'REGISTRO FITOSANITARIO';
+  if (product?.isVerified) return 'AVAL TECNICO INIFAP';
+  return isPrivate ? 'EXPEDIENTE INTERNO' : 'REGISTRO FITOSANITARIO';
 };
 
 const drawInstitutionalHeader = (doc, detail, isPrivate) => {
@@ -85,60 +91,71 @@ const drawInstitutionalHeader = (doc, detail, isPrivate) => {
   const bannerY = doc.page.margins.top;
 
   doc.save();
-  doc.roundedRect(startX, bannerY, contentWidth, 64, 6).fill(COLORS.brand);
+  doc.rect(startX, bannerY, contentWidth, 3).fill(COLORS.brand);
   doc
-    .fillColor('#a7f3d0')
+    .fillColor(COLORS.brand)
     .font('Courier-Bold')
-    .fontSize(8)
+    .fontSize(7.8)
     .text(
-      'INIFAP - SISTEMA NACIONAL DE REGISTRO FITOSANITARIO Y AGROQUIMICOS',
-      startX + 14,
-      bannerY + 11,
-      { width: contentWidth - 150 },
+      'INIFAP · SISTEMA NACIONAL DE REGISTRO FITOSANITARIO Y AGROQUIMICOS',
+      startX,
+      bannerY + 10,
+      { width: contentWidth - 155 },
     );
   doc
-    .fillColor('#ffffff')
+    .fillColor(COLORS.ink)
     .font('Helvetica-Bold')
-    .fontSize(14)
+    .fontSize(15)
     .text(
       sanitizePdfText(product?.name, 'Ficha tecnica de insumo'),
-      startX + 14,
-      bannerY + 24,
+      startX,
+      bannerY + 23,
       { width: contentWidth - 155, lineBreak: false, ellipsis: true },
     );
   doc
-    .fillColor('#d1fae5')
+    .fillColor(COLORS.muted)
     .font('Courier')
     .fontSize(8.5)
     .text(
       `Ingrediente activo: ${sanitizePdfText(product?.active_ingredient, 'No especificado')}`,
-      startX + 14,
-      bannerY + 43,
+      startX,
+      bannerY + 41,
       { width: contentWidth - 155, lineBreak: false, ellipsis: true },
     );
 
+  const boxX = startX + contentWidth - 146;
   doc
-    .fillColor('#ffffff')
+    .roundedRect(boxX, bannerY + 9, 146, 42, 4)
+    .fillAndStroke(COLORS.surface, COLORS.border);
+  doc
+    .fillColor(COLORS.ink)
     .font('Courier-Bold')
     .fontSize(8.5)
     .text(
       `EXPEDIENTE #${sanitizePdfText(product?.id, 'S/N')}`,
-      startX + contentWidth - 140,
-      bannerY + 14,
-      { width: 126, align: 'right' },
+      boxX + 8,
+      bannerY + 16,
+      {
+        width: 130,
+        align: 'right',
+      },
     );
   doc
-    .fillColor('#d1fae5')
+    .fillColor(COLORS.brand)
     .font('Helvetica-Bold')
-    .fontSize(8)
-    .text(
-      resolveBannerBadge(product, isPrivate),
-      startX + contentWidth - 140,
-      bannerY + 30,
-      { width: 126, align: 'right' },
-    );
+    .fontSize(7.5)
+    .text(resolveBannerBadge(product, isPrivate), boxX + 8, bannerY + 32, {
+      width: 130,
+      align: 'right',
+    });
+  doc
+    .moveTo(startX, bannerY + 58)
+    .lineTo(startX + contentWidth, bannerY + 58)
+    .strokeColor(COLORS.border)
+    .lineWidth(0.75)
+    .stroke();
   doc.restore();
-  doc.y = bannerY + 74;
+  doc.y = bannerY + 68;
 };
 
 const drawToxicologicalBand = (doc, detail) => {
@@ -369,8 +386,10 @@ const stampPageFooters = (doc, productId) => {
 
   for (let i = 0; i < totalPages; i += 1) {
     doc.switchToPage(pages.start + i);
+    const prevBottom = doc.page.margins.bottom;
+    doc.page.margins.bottom = 0;
     const { startX, contentWidth } = getPageBox(doc);
-    const footerY = doc.page.height - doc.page.margins.bottom + 18;
+    const footerY = doc.page.height - 34;
 
     doc.save();
     doc
@@ -404,6 +423,7 @@ const stampPageFooters = (doc, productId) => {
         },
       );
     doc.restore();
+    doc.page.margins.bottom = prevBottom;
   }
 };
 

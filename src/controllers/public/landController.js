@@ -7,6 +7,7 @@ import {
   parsePublicCoverageFilter,
 } from '../../services/landPublicQueryService.js';
 import { PLAGUE_WORKFLOW_STATUSES } from '../../services/plagueWorkflowService.js';
+import { fetchPublishedBulletins } from '../../services/regionalBulletinService.js';
 
 const { Plague, Region } = db;
 
@@ -39,7 +40,7 @@ export const renderLandsPublic = async (req, res) => {
   try {
     const query = normalizePublicLandQuery(req.query);
     const coverage = parsePublicCoverageFilter(req.query);
-    const [result, allRegionCards] = await Promise.all([
+    const [result, allRegionCards, bulletins] = await Promise.all([
       Region.findAndCountAll({
         where: buildPublicRegionWhere(db.Sequelize.Op, query),
         attributes: ['id', 'name'],
@@ -50,6 +51,7 @@ export const renderLandsPublic = async (req, res) => {
         distinct: true,
       }),
       fetchAllRegionsForMap(),
+      fetchPublishedBulletins(12),
     ]);
 
     const mappedCards = result.rows.map(buildPublicRegionCard);
@@ -65,6 +67,8 @@ export const renderLandsPublic = async (req, res) => {
       pageTitle: 'Regiones agrícolas',
       activePage: 'lands',
       regions: filteredCards,
+      allRegions: allRegionCards,
+      bulletins,
       totalCount: effectiveTotal,
       currentPage: query.page,
       totalPages,

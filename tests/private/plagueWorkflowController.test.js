@@ -16,7 +16,11 @@ const readyPlagueData = {
   description: 'Descripción técnica.',
   symptoms: 'Daño foliar.',
   control_methods: 'Manejo integrado.',
-  biological_cycle: [{ title: 'Larva' }],
+  biological_cycle: [
+    { title: 'Huevo' },
+    { title: 'Larva' },
+    { title: 'Adulto' },
+  ],
 };
 
 const plague = {

@@ -6,6 +6,7 @@ const farm = {
   user_id: 12,
   status: true,
   update: jest.fn(),
+  destroy: jest.fn(),
   toJSON: jest.fn(() => ({
     id: 18,
     name: 'Parcela Norte',
@@ -31,10 +32,11 @@ const mockDb = {
   User: {},
   AuditLog: { create: jest.fn() },
   Crop: { findAll: jest.fn(async () => []) },
-  FarmApplication: {},
-  FarmCrop: {},
-  FarmCropStage: {},
-  FarmHealthReport: {},
+  FarmApplication: { destroy: jest.fn() },
+  FarmCrop: { findAll: jest.fn(async () => []), destroy: jest.fn() },
+  FarmCropStage: { destroy: jest.fn() },
+  FarmHealthReport: { destroy: jest.fn() },
+  FarmLot: { destroy: jest.fn() },
   Plague: { findAll: jest.fn(async () => []) },
   Product: { findAll: jest.fn(async () => []) },
 };
@@ -46,6 +48,7 @@ jest.unstable_mockModule('../../src/models/index.js', () => ({
 const {
   archiveFarmPrivate,
   createFarmPrivate,
+  deleteFarmPrivate,
   landDetail,
   renderLandsPrivate,
   restoreFarmPrivate,
@@ -252,6 +255,87 @@ describe('controladores privados de terrenos', () => {
     expect(mockDb.AuditLog.create).toHaveBeenLastCalledWith(
       expect.objectContaining({ action: 'restore' }),
       { transaction },
+    );
+  });
+
+  it('rechaza eliminar definitivamente un predio que aún se encuentra activo', async () => {
+    farm.status = true;
+    const res = buildResponse();
+
+    await deleteFarmPrivate(
+      {
+        params: { id: '18' },
+        user: { id: 12, role: 'inifap' },
+      },
+      res,
+    );
+
+    expect(res.status).toHaveBeenCalledWith(409);
+    expect(farm.destroy).not.toHaveBeenCalled();
+  });
+
+  it('purga definitivamente un predio archivado con limpieza de registros hijos y auditoría', async () => {
+    farm.status = false;
+    const res = buildResponse();
+
+    await deleteFarmPrivate(
+      {
+        params: { id: '18' },
+        headers: { accept: 'application/json' },
+        user: { id: 12, role: 'inifap' },
+      },
+      res,
+    );
+
+    expect(farm.destroy).toHaveBeenCalledWith({ transaction });
+    expect(mockDb.AuditLog.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'delete',
+        table_name: 'Farms',
+        record_id: 18,
+      }),
+      { transaction },
+    );
+    expect(res.json).toHaveBeenCalledWith({ success: true });
+  });
+
+  it('exporta el padrón filtrado en formato CSV y GeoJSON', async () => {
+    const csvResponse = {
+      ...buildResponse(),
+      setHeader: jest.fn(),
+    };
+    await renderLandsPrivate(
+      {
+        query: { format: 'csv' },
+        user: { id: 12, role: 'inifap' },
+      },
+      csvResponse,
+    );
+    expect(csvResponse.setHeader).toHaveBeenCalledWith(
+      'Content-Type',
+      'text/csv; charset=utf-8',
+    );
+    expect(csvResponse.send).toHaveBeenCalledWith(
+      expect.stringContaining('#PRD-0018'),
+    );
+
+    const geoResponse = {
+      ...buildResponse(),
+      setHeader: jest.fn(),
+    };
+    await renderLandsPrivate(
+      {
+        query: { format: 'geojson' },
+        user: { id: 12, role: 'inifap' },
+      },
+      geoResponse,
+    );
+    expect(geoResponse.setHeader).toHaveBeenCalledWith(
+      'Content-Type',
+      'application/geo+json; charset=utf-8',
+    );
+    expect(geoResponse.json).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'FeatureCollection' }),
     );
   });
 });

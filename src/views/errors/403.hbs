@@ -1,0 +1,72 @@
+<!-- Vista Institucional 403: Acceso Denegado / Permisos Insuficientes · Geist Design System -->
+<section class="min-h-[75vh] flex items-center justify-center px-4 py-16 font-['Geist'] antialiased">
+  <div class="max-w-xl w-full bg-white rounded-3xl border border-rose-200/80 shadow-sm p-8 sm:p-10 text-center space-y-6 relative overflow-hidden">
+    <!-- Barra decorativa normativa superior -->
+    <div class="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-rose-700 via-rose-600 to-amber-500"></div>
+
+    <!-- Icono y Código de Estado -->
+    <div class="inline-flex flex-col items-center gap-3">
+      <div class="w-16 h-16 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 flex items-center justify-center shadow-2xs">
+        <span class="material-symbols-outlined text-3xl" aria-hidden="true">gpp_maybe</span>
+      </div>
+      <span class="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-3 py-1 font-['Geist_Mono'] text-[11px] font-bold uppercase tracking-widest text-rose-800">
+        Error 403 · Acceso Denegado
+      </span>
+    </div>
+
+    <!-- Mensaje Principal -->
+    <div class="space-y-2">
+      <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
+        Permisos insuficientes para esta sección
+      </h1>
+      <p class="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-md mx-auto">
+        {{#if errorMessage}}
+          {{errorMessage}}
+        {{else}}
+          Tu cuenta actual no cuenta con los privilegios o el rol institucional requerido por la gobernanza RBAC de Agrosystem INIFAP para realizar esta operación.
+        {{/if}}
+      </p>
+    </div>
+
+    {{#if user}}
+    <div class="rounded-xl bg-slate-50 border border-slate-200/80 px-4 py-3 text-left flex flex-wrap items-center justify-between gap-2 text-xs">
+      <div class="flex items-center gap-2">
+        <span class="text-[10px] font-['Geist_Mono'] font-bold uppercase tracking-wider text-slate-400">Sesión actual:</span>
+        <strong class="font-semibold text-slate-800">{{user.full_name}}</strong>
+      </div>
+      <span class="rounded-md border border-slate-200 bg-white px-2 py-0.5 font-['Geist_Mono'] text-[10px] font-bold uppercase text-slate-700">
+        Rol: {{user.role}}
+      </span>
+    </div>
+    {{/if}}
+
+    <!-- Acciones de Retorno -->
+    <div class="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+      <a
+        href="/"
+        class="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-[#1b4332] px-5 py-2.5 text-xs font-bold text-white shadow-xs transition-all hover:bg-[#143326] active:scale-95"
+      >
+        <span class="material-symbols-outlined text-base" aria-hidden="true">home</span>
+        <span>Volver al Sitio Público</span>
+      </a>
+
+      {{#if (canAccessPanel user)}}
+      <a
+        href="/dashboard"
+        class="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-xs font-bold text-slate-700 transition-all hover:bg-slate-50 hover:border-slate-300"
+      >
+        <span class="material-symbols-outlined text-base text-[#1b4332]" aria-hidden="true">space_dashboard</span>
+        <span>Ir al Dashboard INIFAP</span>
+      </a>
+      {{else if user}}
+      <a
+        href="/auth/inifap-upgrade"
+        class="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50/70 px-5 py-2.5 text-xs font-bold text-[#1b4332] transition-all hover:bg-emerald-100"
+      >
+        <span class="material-symbols-outlined text-base" aria-hidden="true">verified_user</span>
+        <span>Solicitar Ascenso INIFAP</span>
+      </a>
+      {{/if}}
+    </div>
+  </div>
+</section>

@@ -1,9 +1,12 @@
 import { describe, expect, it } from '@jest/globals';
 
 import {
+  buildExistingProductImageSourceUpdates,
+  buildProductImageRecords,
   buildProductImageUpdatePlan,
   parsePrimaryProductImageId,
   parseRemovedProductImageIds,
+  sanitizeImageSource,
 } from '../../src/services/productImageService.js';
 
 describe('servicio de galería de productos', () => {
@@ -82,5 +85,32 @@ describe('servicio de galería de productos', () => {
         newFileCount: 3,
       }).error,
     ).toMatch(/máximo 10/i);
+  });
+
+  it('procesa créditos asignados y fuentes predeterminadas en productos', () => {
+    expect(sanitizeImageSource('  Etiqueta Oficial  ')).toBe(
+      'Etiqueta Oficial',
+    );
+
+    const records = buildProductImageRecords({
+      productId: 50,
+      files: [{ filename: 'p1.png', originalname: 'p1.png' }],
+      startOrder: 0,
+      hasPrimary: true,
+      sources: ['Envase comercial'],
+      defaultSource: null,
+    });
+
+    expect(records[0].source).toBe('Envase comercial');
+
+    const updates = buildExistingProductImageSourceUpdates({
+      existingImages: [{ id: 4, source: null }],
+      removedImageIds: [],
+      rawIds: ['4'],
+      rawSources: [''],
+      defaultSource: 'Archivo INIFAP',
+    });
+
+    expect(updates).toEqual([{ id: 4, source: 'Archivo INIFAP' }]);
   });
 });

@@ -136,6 +136,53 @@ describe('controladores editoriales de cultivos', () => {
     expect(crop.update).not.toHaveBeenCalled();
   });
 
+  it('aplica edición controlada en fichas publicadas bloqueando campos sensibles y regresando a revisión', async () => {
+    crop.workflow_status = 'published';
+    crop.name = 'Maíz';
+    crop.scientific_name = 'Zea mays';
+    crop.category = 'Granos y Cereales';
+
+    const missingReasonReq = {
+      params: { id: '18' },
+      body: { ...validBody, controlled_edit: '1', edit_reason: 'Corto' },
+      files: [],
+      user: { id: 27, role: 'inifap', full_name: 'Dr. Revisor' },
+    };
+    const missingReasonRes = buildResponse();
+    await updateCrop(missingReasonReq, missingReasonRes);
+    expect(missingReasonRes.status).toHaveBeenCalledWith(400);
+
+    const controlledReq = {
+      params: { id: '18' },
+      body: {
+        ...validBody,
+        name: 'Intento Alterar Nombre',
+        scientific_name: 'Alterado sp',
+        description: 'Actualización agronómica validada para ciclo PV 2026',
+        controlled_edit: '1',
+        edit_reason: 'Actualización de parámetros hídricos regionales 2026',
+      },
+      files: [],
+      user: { id: 27, role: 'inifap', full_name: 'Dr. Revisor' },
+    };
+    const controlledRes = buildResponse();
+    await updateCrop(controlledReq, controlledRes);
+
+    expect(crop.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Maíz',
+        scientific_name: 'Zea mays',
+        category: 'Granos y Cereales',
+        workflow_status: 'in_review',
+        status: 'pendiente',
+        review_notes: expect.stringContaining(
+          'Actualización de parámetros hídricos regionales 2026',
+        ),
+      }),
+      { transaction },
+    );
+  });
+
   it('publica dentro de una transacción y registra auditoría', async () => {
     const req = {
       params: { id: '18' },

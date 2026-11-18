@@ -90,6 +90,10 @@ const getOrCreateErrorEl = (field) => {
 const VALIDITY_RULES = [
   [(v) => v.valueMissing, (label) => `${label} es obligatorio.`],
   [
+    (v) => v.tooShort,
+    (label, f) => `${label} debe tener al menos ${f.minLength} caracteres.`,
+  ],
+  [
     (v) => v.rangeUnderflow,
     (label, f) => `${label} debe ser al menos ${f.min}.`,
   ],
@@ -121,6 +125,10 @@ const renderFieldError = (field, message) => {
 
 const validateSingleControl = (field) => {
   field.setCustomValidity('');
+  if (field.disabled) {
+    renderFieldError(field, '');
+    return '';
+  }
   const message = buildNativeErrorMessage(field);
   field.setCustomValidity(message);
   renderFieldError(field, message);
@@ -149,6 +157,47 @@ const applyServerFieldErrors = (form, fieldErrors = {}) => {
     field.setCustomValidity(message);
     renderFieldError(field, message);
   });
+};
+
+const LOCKED_PRODUCT_IDENTITY_FIELDS = [
+  'name',
+  'registration_code',
+  'active_ingredient',
+  'category',
+];
+
+const toggleProductEditControlMode = (form, isEdit) => {
+  LOCKED_PRODUCT_IDENTITY_FIELDS.forEach((fieldName) => {
+    const field = form.elements.namedItem(fieldName);
+    if (!(field instanceof HTMLElement)) return;
+    if (field.tagName === 'SELECT') {
+      field.classList.toggle('pointer-events-none', isEdit);
+      field.tabIndex = isEdit ? -1 : 0;
+    } else {
+      field.readOnly = isEdit;
+    }
+    field.setAttribute('aria-readonly', String(isEdit));
+    field.classList.toggle('bg-muted/60', isEdit);
+    field.classList.toggle('cursor-not-allowed', isEdit);
+  });
+
+  form.querySelectorAll('[data-identity-lock-badge]').forEach((badge) => {
+    badge.classList.toggle('hidden', !isEdit);
+    badge.classList.toggle('inline-flex', isEdit);
+  });
+
+  const banner = document.getElementById('product-edit-control-banner');
+  banner?.classList.toggle('hidden', !isEdit);
+
+  const controlledInput = document.getElementById('product-controlled-edit');
+  if (controlledInput) controlledInput.value = isEdit ? '1' : '0';
+
+  const reasonField = document.getElementById('product-edit-reason');
+  if (reasonField) {
+    reasonField.disabled = !isEdit;
+    reasonField.required = isEdit;
+    if (!isEdit) reasonField.value = '';
+  }
 };
 
 const populateProductFields = (form, product) => {
@@ -252,6 +301,7 @@ export const initializeProductForm = ({ onAfterSave } = {}) => {
     form.action = '/private/products/create';
     if (titleEl) titleEl.textContent = 'Nuevo Producto Agroquímico';
     setSaveButtonLabel(saveBtn, 'Guardar producto');
+    toggleProductEditControlMode(form, false);
     validatableControls.forEach((field) => {
       field.setCustomValidity('');
       renderFieldError(field, '');
@@ -297,6 +347,7 @@ export const initializeProductForm = ({ onAfterSave } = {}) => {
       }
 
       resetAll();
+      toggleProductEditControlMode(form, true);
       populateProductFields(form, result.product);
       relationControls.select('crop_ids', result.product.crops);
       relationControls.select('plague_ids', result.product.plagues);

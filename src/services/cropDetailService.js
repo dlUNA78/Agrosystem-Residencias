@@ -122,6 +122,7 @@ const mapCropImage = (img) => ({
   url: normalizeUrl(img.image_url),
   image_url: normalizeUrl(img.image_url),
   originalName: img.original_name || null,
+  source: img.source || null,
   isPrimary: Boolean(img.is_primary),
   displayOrder: Number(img.display_order) || 0,
 });

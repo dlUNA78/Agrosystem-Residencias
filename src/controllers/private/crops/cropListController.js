@@ -22,10 +22,70 @@ const privateLayout = path.join(
   currentDirectory,
   '../../../views/layouts/private',
 );
-const { Crop, CropImage } = db;
+const { Crop, CropImage, Plague, Product, User } = db;
+
+const loadCropFormRelationOptions = async () => {
+  const [plagues, products] = await Promise.all([
+    Plague?.findAll
+      ? Plague.findAll({
+          where: { status: true, workflow_status: 'published' },
+          attributes: ['id', 'name', 'scientific_name', 'category'],
+          order: [['name', 'ASC']],
+          raw: true,
+        })
+      : [],
+    Product?.findAll
+      ? Product.findAll({
+          where: { status: true, workflow_status: 'published' },
+          attributes: ['id', 'name', 'active_ingredient', 'category'],
+          order: [['name', 'ASC']],
+          raw: true,
+        })
+      : [],
+  ]);
+  return { plagues, products };
+};
 
 const normalizeImageUrl = (value) =>
   value ? `/${String(value).replace(/^\/+/, '')}` : null;
+
+const buildCropListIncludes = () => {
+  const includes = [
+    {
+      model: CropImage,
+      as: 'images',
+      required: false,
+      separate: true,
+      order: [
+        ['is_primary', 'DESC'],
+        ['display_order', 'ASC'],
+      ],
+    },
+  ];
+  if (User) {
+    includes.push({
+      model: User,
+      as: 'createdBy',
+      attributes: ['id', 'full_name', 'role'],
+      required: false,
+    });
+  }
+  return includes;
+};
+
+const isControlledCropStage = (status) =>
+  status === CROP_WORKFLOW_STATUSES.VERIFIED ||
+  status === CROP_WORKFLOW_STATUSES.PUBLISHED;
+
+const resolveCropEditFlags = (permissions, status, role) => {
+  const isDraftEditable = permissions.canEdit && isCropEditable(status);
+  const canControlledEdit =
+    ['admin', 'inifap'].includes(role) && isControlledCropStage(status);
+  return {
+    canEditRecord: isDraftEditable || canControlledEdit,
+    isControlledEdit: !isDraftEditable && canControlledEdit,
+  };
+};
 
 const buildListItem = (record, user) => {
   const crop = record.toJSON();
@@ -37,13 +97,22 @@ const buildListItem = (record, user) => {
     userId: user.id,
     createdByUserId: crop.created_by_user_id,
   });
+  const editFlags = resolveCropEditFlags(
+    permissions,
+    crop.workflow_status,
+    user.role,
+  );
 
   return {
     ...crop,
     image_url: normalizeImageUrl(primaryImage?.image_url),
     imageCount: images.length,
-    canEditRecord: permissions.canEdit && isCropEditable(crop.workflow_status),
-    canDeleteRecord: permissions.canDelete,
+    authorName: crop.createdBy?.full_name || 'Sistema INIFAP',
+    authorRole: crop.createdBy?.role || 'inifap',
+    ...editFlags,
+    canDeleteRecord:
+      permissions.canDelete &&
+      crop.workflow_status === CROP_WORKFLOW_STATUSES.DRAFT,
   };
 };
 
@@ -75,31 +144,22 @@ export const cropsPrivate = async (req, res) => {
       where,
       limit: PRIVATE_CROP_PAGE_SIZE,
       offset: (pagination.currentPage - 1) * PRIVATE_CROP_PAGE_SIZE,
-      include: [
-        {
-          model: CropImage,
-          as: 'images',
-          required: false,
-          separate: true,
-          order: [
-            ['is_primary', 'DESC'],
-            ['display_order', 'ASC'],
-          ],
-        },
-      ],
+      include: buildCropListIncludes(),
       order: [['createdAt', 'DESC']],
     });
-    const [published, inReview, changesRequested] = await Promise.all([
-      Crop.count({
-        where: { workflow_status: CROP_WORKFLOW_STATUSES.PUBLISHED },
-      }),
-      Crop.count({
-        where: { workflow_status: CROP_WORKFLOW_STATUSES.IN_REVIEW },
-      }),
-      Crop.count({
-        where: { workflow_status: CROP_WORKFLOW_STATUSES.CHANGES_REQUESTED },
-      }),
-    ]);
+    const [published, inReview, changesRequested, relationOptions] =
+      await Promise.all([
+        Crop.count({
+          where: { workflow_status: CROP_WORKFLOW_STATUSES.PUBLISHED },
+        }),
+        Crop.count({
+          where: { workflow_status: CROP_WORKFLOW_STATUSES.IN_REVIEW },
+        }),
+        Crop.count({
+          where: { workflow_status: CROP_WORKFLOW_STATUSES.CHANGES_REQUESTED },
+        }),
+        loadCropFormRelationOptions(),
+      ]);
 
     return res.render('private/catalog/crops', {
       layout: privateLayout,
@@ -108,6 +168,7 @@ export const cropsPrivate = async (req, res) => {
       isAdmin: req.user?.role === 'admin',
       isInifap: req.user?.role === 'inifap',
       crops: records.map((record) => buildListItem(record, req.user)),
+      relationOptions,
       filters: query,
       pagination,
       permissions,

@@ -48,8 +48,10 @@ describe('acceso al módulo privado de terrenos', () => {
     expect(owner.canView).toBe(true);
     expect(owner.canEdit).toBe(true);
     expect(owner.canArchive).toBe(true);
+    expect(owner.canDelete).toBe(false);
     expect(other.canView).toBe(false);
     expect(other.canEdit).toBe(false);
+    expect(other.canDelete).toBe(false);
   });
 
   it('mantiene aislamiento estricto incluso para rol admin si no es propietario', () => {
@@ -63,6 +65,22 @@ describe('acceso al módulo privado de terrenos', () => {
     expect(permissions.canView).toBe(false);
     expect(permissions.canEdit).toBe(false);
     expect(permissions.canRestore).toBe(false);
+    expect(permissions.canDelete).toBe(false);
+  });
+
+  it('permite restaurar y eliminar definitivamente únicamente terrenos archivados de su propiedad', () => {
+    const archivedOwner = getContextualLandPermissions({
+      role: 'inifap',
+      userId: 12,
+      ownerUserId: 12,
+      isActive: false,
+    });
+
+    expect(archivedOwner.canView).toBe(true);
+    expect(archivedOwner.canEdit).toBe(false);
+    expect(archivedOwner.canArchive).toBe(false);
+    expect(archivedOwner.canRestore).toBe(true);
+    expect(archivedOwner.canDelete).toBe(true);
   });
 
   it.each([['unknown'], [undefined]])(

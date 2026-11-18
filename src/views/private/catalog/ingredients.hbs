@@ -246,4 +246,50 @@
 
 {{> private/ingredients/form-modal}}
 
+<!-- Modal Solicitud Justificada de Baja para Ingrediente Activo -->
+<div id="modal-request-archive-ingredient" role="dialog" aria-modal="true" class="fixed inset-0 z-100 hidden items-center justify-center p-4 font-['Geist']">
+    <div id="modal-request-archive-ingredient-backdrop" class="absolute inset-0 bg-black/40 backdrop-blur-xs"></div>
+    <div class="relative z-10 w-full max-w-lg bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden">
+        <div class="p-6 border-b border-slate-200">
+            <div class="flex items-start gap-4">
+                <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+                    <i data-lucide="shield-alert" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <h3 class="text-base font-bold text-slate-900">Solicitud de Baja de Molécula Activa</h3>
+                    <p class="mt-0.5 text-xs text-slate-500">
+                        Principio de los 4 ojos: Para dar de baja un ingrediente activo normativo, debes capturar la justificación técnica. La solicitud requerirá la aprobación de otro especialista antes de archivarse.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <form id="form-request-archive-ingredient" method="POST" action="" class="p-6 space-y-4">
+            <input type="hidden" name="action" value="request_archive" />
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1.5">Motivo / Causa de la baja <span class="text-rose-500">*</span></label>
+                <select name="archive_reason_category" required class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-[#1b4332] focus:outline-none">
+                    <option value="cambio_normativo">Prohibición Regulatoria (CICOPLAFEST / OMS / Convenio de Róterdam)</option>
+                    <option value="riesgo_sanitario">Riesgo Toxicológico o Fitosanitario Extremo</option>
+                    <option value="obsolescencia_tecnica">Obsolescencia Técnica / Reemplazo por Nuevas Moléculas</option>
+                    <option value="duplicado_invalido">Registro Duplicado o Error de Nomenclatura</option>
+                    <option value="otro">Otro motivo técnico justificado</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1.5">Justificación técnica detallada <span class="text-rose-500">* (mínimo 20 caracteres)</span></label>
+                <textarea name="archive_reason" required minlength="20" maxlength="1000" rows="4" placeholder="Describe detalladamente los fundamentos normativos o agronómicos que justifican la baja de esta molécula..." class="w-full rounded-xl border border-slate-200 bg-white p-3 text-xs text-slate-800 focus:border-[#1b4332] focus:outline-none placeholder:text-slate-400"></textarea>
+            </div>
+            <div class="pt-2 border-t border-slate-200 flex justify-end gap-2">
+                <button type="button" id="btn-cancel-request-archive-ingredient" class="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer">
+                    Cancelar
+                </button>
+                <button type="submit" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-600 text-white text-xs font-bold hover:bg-amber-700 transition-colors shadow-2xs cursor-pointer">
+                    <i data-lucide="send" class="w-3.5 h-3.5"></i>
+                    <span>Tramitar Solicitud de Baja</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script type="module" src="/js/private/ingredients.js"></script>

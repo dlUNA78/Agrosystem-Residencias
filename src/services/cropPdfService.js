@@ -53,26 +53,37 @@ const ensureVerticalSpace = (doc, neededHeight = 72) => {
 
 const drawSectionHeading = (doc, stepNumber, title) => {
   ensureVerticalSpace(doc, 54);
-  doc.moveDown(0.7);
+  doc.moveDown(0.65);
   const startX = doc.page.margins.left;
   const contentWidth =
     doc.page.width - doc.page.margins.left - doc.page.margins.right;
   const topY = doc.y;
 
   doc.save();
-  doc.roundedRect(startX, topY, contentWidth, 22, 4).fill(COLORS.brandSoft);
+  doc.rect(startX, topY, 3, 16).fill(COLORS.brand);
   doc
     .fillColor(COLORS.brand)
     .font('Helvetica-Bold')
     .fontSize(9.5)
     .text(
       `${stepNumber}. ${sanitizePdfText(title).toUpperCase()}`,
-      startX + 10,
-      topY + 6,
-      { width: contentWidth - 20 },
+      startX + 9,
+      topY + 3,
+      { width: contentWidth - 12 },
     );
+  doc
+    .moveTo(startX, topY + 19)
+    .lineTo(startX + contentWidth, topY + 19)
+    .strokeColor(COLORS.border)
+    .lineWidth(0.6)
+    .stroke();
   doc.restore();
-  doc.y = topY + 28;
+  doc.y = topY + 26;
+};
+
+const resolveCropStatusLabel = (crop, isPrivate) => {
+  if (crop?.isVerified) return 'AVAL TECNICO INIFAP';
+  return isPrivate ? 'EXPEDIENTE INTERNO' : 'CATALOGO OFICIAL';
 };
 
 const drawInstitutionalHeader = (doc, detail, isPrivate) => {
@@ -83,54 +94,60 @@ const drawInstitutionalHeader = (doc, detail, isPrivate) => {
   const bannerY = doc.page.margins.top;
 
   doc.save();
-  doc.roundedRect(startX, bannerY, contentWidth, 58, 6).fill(COLORS.brand);
+  doc.rect(startX, bannerY, contentWidth, 3).fill(COLORS.brand);
   doc
-    .fillColor('#a7f3d0')
+    .fillColor(COLORS.brand)
     .font('Courier-Bold')
-    .fontSize(8)
+    .fontSize(7.8)
     .text(
-      'INIFAP · SISTEMA NACIONAL DE INFORMACIÓN AGRONÓMICA',
-      startX + 14,
-      bannerY + 12,
-      { width: contentWidth - 150 },
+      'INIFAP · SISTEMA NACIONAL DE INFORMACION AGRONOMICA · MONOGRAFIA DE CULTIVO',
+      startX,
+      bannerY + 10,
+      { width: contentWidth - 155 },
     );
   doc
-    .fillColor('#ffffff')
+    .fillColor(COLORS.ink)
     .font('Helvetica-Bold')
-    .fontSize(14)
+    .fontSize(15)
     .text(
       sanitizePdfText(crop.commonName || crop.name, 'Ficha técnica de cultivo'),
-      startX + 14,
-      bannerY + 25,
+      startX,
+      bannerY + 23,
       { width: contentWidth - 155, lineBreak: false, ellipsis: true },
     );
 
   const folioLabel = `EXPEDIENTE #${sanitizePdfText(crop.id, 'S/N')}`;
-  const statusLabel = crop.isVerified
-    ? 'AVAL INIFAP'
-    : isPrivate
-      ? 'USO INTERNO'
-      : 'CATÁLOGO OFICIAL';
+  const statusLabel = resolveCropStatusLabel(crop, isPrivate);
+  const boxX = startX + contentWidth - 146;
 
   doc
-    .fillColor('#ffffff')
+    .roundedRect(boxX, bannerY + 9, 146, 38, 4)
+    .fillAndStroke(COLORS.surface, COLORS.border);
+  doc
+    .fillColor(COLORS.ink)
     .font('Courier-Bold')
     .fontSize(8.5)
-    .text(folioLabel, startX + contentWidth - 140, bannerY + 14, {
-      width: 126,
+    .text(folioLabel, boxX + 8, bannerY + 16, {
+      width: 130,
       align: 'right',
     });
   doc
-    .fillColor('#d1fae5')
+    .fillColor(COLORS.brand)
     .font('Helvetica-Bold')
-    .fontSize(8)
-    .text(statusLabel, startX + contentWidth - 140, bannerY + 30, {
-      width: 126,
+    .fontSize(7.5)
+    .text(statusLabel, boxX + 8, bannerY + 30, {
+      width: 130,
       align: 'right',
     });
+  doc
+    .moveTo(startX, bannerY + 54)
+    .lineTo(startX + contentWidth, bannerY + 54)
+    .strokeColor(COLORS.border)
+    .lineWidth(0.75)
+    .stroke();
   doc.restore();
 
-  doc.y = bannerY + 68;
+  doc.y = bannerY + 64;
 };
 
 const drawIdentitySummary = (doc, detail) => {
@@ -613,11 +630,13 @@ const stampPageFooters = (doc, cropId) => {
   const totalPages = range.count;
 
   for (let i = 0; i < totalPages; i += 1) {
-    doc.switchToPage(i);
+    doc.switchToPage(range.start + i);
+    const prevBottom = doc.page.margins.bottom;
+    doc.page.margins.bottom = 0;
     const startX = doc.page.margins.left;
     const contentWidth =
       doc.page.width - doc.page.margins.left - doc.page.margins.right;
-    const footerY = doc.page.height - doc.page.margins.bottom + 18;
+    const footerY = doc.page.height - 34;
 
     doc.save();
     doc
@@ -652,6 +671,7 @@ const stampPageFooters = (doc, cropId) => {
         },
       );
     doc.restore();
+    doc.page.margins.bottom = prevBottom;
   }
 };
 

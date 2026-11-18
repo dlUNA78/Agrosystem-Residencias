@@ -275,13 +275,14 @@
                     class="delete-user-form inline"
                     data-user-name="{{full_name}}"
                   >
+                    <input type="hidden" name="mode" value="suspend" />
                     <button
                       type="submit"
                       class="rounded-lg p-1.5 text-slate-500 transition-colors hover:bg-rose-50 hover:text-rose-600 cursor-pointer"
-                      title="Eliminar usuario"
-                      aria-label="Eliminar usuario {{full_name}}"
+                      title="Suspender / Desactivar cuenta"
+                      aria-label="Suspender usuario {{full_name}}"
                     >
-                      <i data-lucide="trash-2" class="h-4 w-4"></i>
+                      <i data-lucide="user-x" class="h-4 w-4"></i>
                     </button>
                   </form>
                 </div>
@@ -418,13 +419,14 @@
               class="delete-user-form inline"
               data-user-name="{{full_name}}"
             >
+              <input type="hidden" name="mode" value="suspend" />
               <button
                 type="submit"
                 class="rounded-lg p-1.5 text-slate-500 transition-colors hover:bg-rose-50 hover:text-rose-600 cursor-pointer"
-                title="Eliminar usuario"
-                aria-label="Eliminar usuario {{full_name}}"
+                title="Suspender / Desactivar cuenta"
+                aria-label="Suspender usuario {{full_name}}"
               >
-                <i data-lucide="trash-2" class="h-4 w-4"></i>
+                <i data-lucide="user-x" class="h-4 w-4"></i>
               </button>
             </form>
           </div>
@@ -857,6 +859,16 @@
     </div>
 
     <form id="form-user" action="/private/users/create" method="POST" class="space-y-3.5 px-6 py-5">
+      <input type="hidden" id="user-form-mode" name="mode" value="" />
+      <div
+        id="user-identity-readonly-notice"
+        class="hidden rounded-xl border border-amber-200 bg-amber-50/70 px-3.5 py-2.5 text-[11px] font-medium text-amber-900"
+      >
+        <p class="font-semibold">Gobernanza de identidad personal</p>
+        <p class="mt-0.5 text-amber-800">
+          Nombre, correo y teléfono pertenecen al titular y solo pueden modificarse desde su Perfil personal. Aquí puedes gestionar sus atribuciones institucionales.
+        </p>
+      </div>
       <div>
         <label for="user-nombre" class="mb-1 block font-['Geist_Mono'] text-[10px] font-semibold uppercase tracking-wider text-slate-600">
           Nombre Completo *

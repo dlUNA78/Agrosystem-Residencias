@@ -156,15 +156,64 @@ const resolveActionLabel = (actionKey, rawAction) =>
 const resolveToxicityLabel = (toxicityKey, rawTox) =>
   TOXICITY_LABELS[toxicityKey] || rawTox || 'No clasificado';
 
+const resolveArchivePermissions = (currentUser, status, isArchiveRequester) => {
+  if (!currentUser) {
+    return {
+      canRequestArchive: false,
+      canApproveArchive: false,
+      canRestore: false,
+    };
+  }
+  const isPrivileged = ['admin', 'inifap'].includes(currentUser.role);
+  return {
+    canRequestArchive: isPrivileged && status === 'active',
+    canApproveArchive:
+      isPrivileged && status === 'archive_pending' && !isArchiveRequester,
+    canRestore: currentUser.role === 'admin' && status === 'archived',
+  };
+};
+
+const resolveArchiveAuditMeta = (plain) => ({
+  archive_reason: plain.archive_reason || null,
+  archive_reason_category: plain.archive_reason_category || null,
+  archive_requested_at: plain.archive_requested_at || null,
+  archive_approval_notes: plain.archive_approval_notes || null,
+  archiveRequestedByName: plain.archiveRequestedBy?.full_name || null,
+  archivedByName: plain.archivedBy?.full_name || null,
+});
+
+const resolveIngredientWorkflowState = (plain, currentUser) => {
+  const workflowStatus = plain.workflow_status || 'active';
+  const requesterId = plain.archive_requested_by_user_id;
+  const isArchiveRequester = Boolean(
+    currentUser?.id &&
+    requesterId &&
+    Number(currentUser.id) === Number(requesterId),
+  );
+  return {
+    workflow_status: workflowStatus,
+    isArchivePending: workflowStatus === 'archive_pending',
+    isArchived: workflowStatus === 'archived',
+    isActive: workflowStatus === 'active',
+    ...resolveArchiveAuditMeta(plain),
+    ...resolveArchivePermissions(
+      currentUser,
+      workflowStatus,
+      isArchiveRequester,
+    ),
+  };
+};
+
 /**
  * Serializa un registro de ActiveIngredient para el renderizado
  */
-export const serializeIngredient = (raw) => {
+export const serializeIngredient = (raw, currentUser = null) => {
   const plain = toPlainIngredient(raw);
   const actionKey = (plain.action_type || '').toLowerCase();
   const toxicityKey = (plain.toxicological_category || '').toLowerCase();
   const toxicityTheme = TOXICITY_THEMES[toxicityKey] || DEFAULT_TOXICITY_THEME;
   const regulatory = resolveRegulatoryBadge(toxicityKey);
+  const workflowState = resolveIngredientWorkflowState(plain, currentUser);
 
   return {
     id: plain.id,
@@ -185,6 +234,7 @@ export const serializeIngredient = (raw) => {
     toxicityBadgeClass: toxicityTheme.badgeClass,
     toxicityDotClass: toxicityTheme.dotClass,
     ...regulatory,
+    ...workflowState,
     createdAt: plain.createdAt,
     updatedAt: plain.updatedAt,
   };
