@@ -67,47 +67,68 @@ export const NON_LOADTEST_DB_NAMES = Object.freeze([
   'agrosystem_test',
 ]);
 
+export const FORBIDDEN_SEED_DB_NAMES = Object.freeze([
+  'agrosystem_db',
+  'agrosystem_test',
+  'postgres',
+]);
+
+const normalizeDbToken = (value) => String(value ?? '').trim();
+
 export const isTestDatabaseName = (dbName) =>
-  String(dbName || '')
-    .trim()
-    .toLowerCase() === 'agrosystem_test';
+  normalizeDbToken(dbName).toLowerCase() === 'agrosystem_test';
 
-export const resolveLoadTestDbName = (env = process.env) => {
-  const explicitLoadDb = String(env?.LOADTEST_DB_NAME || '').trim();
-  if (explicitLoadDb) {
-    return explicitLoadDb;
-  }
+export const isAllowedLoadTestDbName = (dbName, env = process.env) => {
+  const normalized = normalizeDbToken(dbName);
+  if (!normalized) return false;
+  if (FORBIDDEN_SEED_DB_NAMES.includes(normalized.toLowerCase())) return false;
+  if (/^agrosystem_load/i.test(normalized)) return true;
 
-  const rawDbName = String(env?.DB_NAME || '').trim();
-  if (!rawDbName) {
-    return '';
+  return normalizeDbToken(env?.LOADTEST_DB_NAME) === normalized;
+};
+
+const notifyDbRedirect = (rawDbName, options) => {
+  const logger = options?.logger ?? console;
+  if (options?.logRedirect && typeof logger?.warn === 'function') {
+    logger.warn(
+      `[seedLoadTestData] Redirigiendo base de datos de "${rawDbName}" a "${DEFAULT_LOADTEST_DB_NAME}" (define LOADTEST_DB_NAME para usar otra base).`,
+    );
   }
+};
+
+export const resolveLoadTestDbName = (env = process.env, options = {}) => {
+  const explicitLoadDb = normalizeDbToken(env?.LOADTEST_DB_NAME);
+  if (explicitLoadDb) return explicitLoadDb;
+
+  const rawDbName = normalizeDbToken(env?.DB_NAME);
+  if (!rawDbName) return '';
 
   if (NON_LOADTEST_DB_NAMES.includes(rawDbName.toLowerCase())) {
+    notifyDbRedirect(rawDbName, options);
     return DEFAULT_LOADTEST_DB_NAME;
   }
 
   return rawDbName;
 };
 
-export const assertAllowedSeedTarget = (env = process.env) => {
+export const assertAllowedSeedTarget = (env = process.env, options = {}) => {
   if (isProductionEnv(env)) {
     throw new Error(
       'Operación bloqueada: seedLoadTestData.js no puede ejecutarse cuando NODE_ENV=production.',
     );
   }
 
-  const targetDb = resolveLoadTestDbName(env);
-  if (isTestDatabaseName(targetDb)) {
+  const targetDb = resolveLoadTestDbName(env, options);
+  if (targetDb && !isAllowedLoadTestDbName(targetDb, env)) {
     throw new Error(
-      'Operación bloqueada: seedLoadTestData.js no puede ejecutarse sobre agrosystem_test. Usa una base separada (por ejemplo agrosystem_load).',
+      `Operación bloqueada: seedLoadTestData.js no puede ejecutarse sobre "${targetDb}". Solo se permite una base cuyo nombre inicie con "agrosystem_load" o coincida con LOADTEST_DB_NAME explícito (nunca agrosystem_test ni agrosystem_db).`,
     );
   }
   return targetDb;
 };
 
-export const assertSafeEnvironment = (env = process.env) => {
-  const targetDb = assertAllowedSeedTarget(env);
+export const assertSafeEnvironment = (env = process.env, options = {}) => {
+  const targetDb = assertAllowedSeedTarget(env, options);
   const missing = REQUIRED_DB_VARS.filter((key) =>
     key === 'DB_NAME' ? !targetDb : !env?.[key],
   );
@@ -116,6 +137,20 @@ export const assertSafeEnvironment = (env = process.env) => {
       `Faltan variables de entorno de base de datos: ${missing.join(', ')}.`,
     );
   }
+  return targetDb;
+};
+
+export const formatMissingLoadDatabaseError = (
+  error,
+  dbName = DEFAULT_LOADTEST_DB_NAME,
+) => {
+  const msg = String(error?.message || '');
+  if (error?.code === '3D000' || /database .* does not exist/i.test(msg)) {
+    return new Error(
+      `La base de datos "${dbName}" no existe (${msg}). Consulta loadtests/README.md ("Base de datos de carga (agrosystem_load)") para crearla y migrarla: CREATE DATABASE ${dbName}; luego ejecuta DB_NAME=${dbName} pnpm exec sequelize-cli db:migrate y DB_NAME=${dbName} pnpm exec sequelize-cli db:seed:all.`,
+    );
+  }
+  return error;
 };
 
 const parseCountValue = (
@@ -207,12 +242,15 @@ Opciones:
   --append           Conserva los datos sintéticos existentes en lugar de reiniciar antes de sembrar
   --help, -h         Muestra esta ayuda`;
 
-export const createDbPool = (env = process.env) => {
-  assertSafeEnvironment(env);
+export const createDbPool = (
+  env = process.env,
+  { logRedirect = true, logger = console } = {},
+) => {
+  const targetDb = assertSafeEnvironment(env, { logRedirect, logger });
   return new pg.Pool({
     host: env.DB_HOST,
     port: Number(env.DB_PORT),
-    database: resolveLoadTestDbName(env),
+    database: targetDb,
     user: env.DB_USER,
     password: env.DB_PASS,
   });
@@ -651,6 +689,8 @@ export const runCli = async (
     }
     console.log(JSON.stringify(result, null, 2));
     return 0;
+  } catch (error) {
+    throw formatMissingLoadDatabaseError(error, resolveLoadTestDbName(env));
   } finally {
     await pool.end();
   }

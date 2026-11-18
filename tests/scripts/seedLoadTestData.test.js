@@ -6,6 +6,8 @@ import {
   buildHelpText,
   DEFAULT_LOADTEST_DB_NAME,
   DEFAULT_OPTIONS,
+  formatMissingLoadDatabaseError,
+  isAllowedLoadTestDbName,
   isProductionEnv,
   isTestDatabaseName,
   LOADTEST_PREFIX,
@@ -86,13 +88,51 @@ describe('seedLoadTestData CLI & guard', () => {
       }),
     ).toThrow(/agrosystem_test/);
 
+    expect(() =>
+      assertSafeEnvironment({
+        ...validDbEnv,
+        LOADTEST_DB_NAME: 'agrosystem_db',
+      }),
+    ).toThrow(/agrosystem_db/);
+
+    expect(() =>
+      assertSafeEnvironment({
+        ...validDbEnv,
+        DB_NAME: 'sistema_plagas',
+      }),
+    ).toThrow(/sistema_plagas/);
+
     expect(isTestDatabaseName('agrosystem_test')).toBe(true);
     expect(isTestDatabaseName('AGROSYSTEM_TEST')).toBe(true);
     expect(isTestDatabaseName('agrosystem_load')).toBe(false);
 
-    expect(resolveLoadTestDbName({ DB_NAME: 'agrosystem_db' })).toBe(
-      'agrosystem_load',
+    expect(isAllowedLoadTestDbName('agrosystem_load', {})).toBe(true);
+    expect(isAllowedLoadTestDbName('agrosystem_loadtest', {})).toBe(true);
+    expect(isAllowedLoadTestDbName('sistema_plagas', {})).toBe(false);
+    expect(
+      isAllowedLoadTestDbName('custom_bench_db', {
+        LOADTEST_DB_NAME: 'custom_bench_db',
+      }),
+    ).toBe(true);
+    expect(
+      isAllowedLoadTestDbName('agrosystem_test', {
+        LOADTEST_DB_NAME: 'agrosystem_test',
+      }),
+    ).toBe(false);
+
+    const logger = { warn: jest.fn() };
+    expect(
+      resolveLoadTestDbName(
+        { DB_NAME: 'agrosystem_db' },
+        { logRedirect: true, logger },
+      ),
+    ).toBe('agrosystem_load');
+    expect(logger.warn).toHaveBeenCalledWith(
+      expect.stringContaining(
+        'Redirigiendo base de datos de "agrosystem_db" a "agrosystem_load"',
+      ),
     );
+
     expect(resolveLoadTestDbName({ DB_NAME: 'agrosystem_test' })).toBe(
       'agrosystem_load',
     );
@@ -106,12 +146,31 @@ describe('seedLoadTestData CLI & guard', () => {
       }),
     ).toBe('agrosystem_load');
 
+    const missingDbErr = Object.assign(
+      new Error('database "agrosystem_load" does not exist'),
+      { code: '3D000' },
+    );
+    const formattedErr = formatMissingLoadDatabaseError(
+      missingDbErr,
+      'agrosystem_load',
+    );
+    expect(formattedErr.message).toContain('loadtests/README.md');
+    expect(formattedErr.message).toContain('CREATE DATABASE agrosystem_load');
+    expect(formattedErr.message).toContain('sequelize-cli db:migrate');
+
     expect(() => assertSafeEnvironment(validDbEnv)).not.toThrow();
     expect(() =>
       assertSafeEnvironment({
         ...validDbEnv,
         DB_NAME: 'agrosystem_test',
         LOADTEST_DB_NAME: 'agrosystem_load',
+      }),
+    ).not.toThrow();
+    expect(() =>
+      assertSafeEnvironment({
+        ...validDbEnv,
+        DB_NAME: 'agrosystem_test',
+        LOADTEST_DB_NAME: 'custom_bench_db',
       }),
     ).not.toThrow();
   });

@@ -15,7 +15,7 @@ import {
 
 const { User, Notification } = db;
 const TEST_USER_EMAIL = 'notif_test@inifap.gob.mx';
-const FIXED_ADMIN_EMAIL = 'admin@agrosystem.com';
+const TEST_ADMIN_EMAIL = 'admin_notif@inifap.gob.mx';
 
 describe('🔔 Centro de Notificaciones Híbrido', () => {
   let testUser = null;
@@ -25,13 +25,14 @@ describe('🔔 Centro de Notificaciones Híbrido', () => {
   beforeAll(async () => {
     const passwordHash = await bcrypt.hash('TestUser@1234', 10);
 
-    const staleUser = await User.findOne({
-      where: { email: TEST_USER_EMAIL },
+    const staleUsers = await User.findAll({
+      where: { email: [TEST_USER_EMAIL, TEST_ADMIN_EMAIL] },
       order: [['id', 'ASC']],
     });
-    if (staleUser) {
-      await Notification.destroy({ where: { user_id: staleUser.id } });
-      await staleUser.destroy();
+    if (staleUsers.length > 0) {
+      const staleIds = staleUsers.map((u) => u.id);
+      await Notification.destroy({ where: { user_id: staleIds } });
+      await User.destroy({ where: { id: staleIds } });
     }
 
     testUser = await User.create({
@@ -42,30 +43,28 @@ describe('🔔 Centro de Notificaciones Híbrido', () => {
       status: 'activo',
     });
 
+    await User.create({
+      full_name: 'Admin Notif Test',
+      email: TEST_ADMIN_EMAIL,
+      password_hash: passwordHash,
+      role: 'admin',
+      status: 'activo',
+    });
+
     adminUser = await User.findOne({
       where: {
-        email: FIXED_ADMIN_EMAIL,
+        email: TEST_ADMIN_EMAIL,
         role: 'admin',
         status: 'activo',
       },
       order: [['id', 'ASC']],
     });
-    if (!adminUser) {
-      adminUser = await User.create({
-        full_name: 'Admin Notif Test',
-        email: FIXED_ADMIN_EMAIL,
-        password_hash: passwordHash,
-        role: 'admin',
-        status: 'activo',
-      });
-    }
   });
 
   afterAll(async () => {
     if (adminUser) {
-      await Notification.destroy({
-        where: { user_id: adminUser.id, title: 'Alerta Administrativa' },
-      });
+      await Notification.destroy({ where: { user_id: adminUser.id } });
+      await adminUser.destroy();
     }
     if (testUser) {
       await Notification.destroy({ where: { user_id: testUser.id } });

@@ -17,6 +17,9 @@ import {
 } from '../../src/services/sessionManagementService.js';
 
 const { User, Farm, AuditLog } = db;
+const TEST_INIFAP_EMAIL = 'investigador_perfil@inifap.gob.mx';
+const TEST_FARMER_EMAIL = 'agricultor_perfil@test.com';
+const TEST_ADMIN_EMAIL = 'admin_perfil@inifap.gob.mx';
 
 describe('👤 Módulo de Perfil Avanzado y Control de Sesiones', () => {
   let testUser = null;
@@ -27,10 +30,23 @@ describe('👤 Módulo de Perfil Avanzado y Control de Sesiones', () => {
   beforeAll(async () => {
     const passwordHash = await bcrypt.hash('SecurePass@123', 10);
 
+    const staleUsers = await User.findAll({
+      where: {
+        email: [TEST_INIFAP_EMAIL, TEST_FARMER_EMAIL, TEST_ADMIN_EMAIL],
+      },
+      order: [['id', 'ASC']],
+    });
+    if (staleUsers.length > 0) {
+      const staleIds = staleUsers.map((u) => u.id);
+      await Farm.destroy({ where: { user_id: staleIds } });
+      await AuditLog.destroy({ where: { user_id: staleIds } });
+      await User.destroy({ where: { id: staleIds } });
+    }
+
     // 1. Crear usuario de prueba institucional
     testUser = await User.create({
       full_name: 'Investigador Perfil Test',
-      email: 'investigador_perfil@inifap.gob.mx',
+      email: TEST_INIFAP_EMAIL,
       password_hash: passwordHash,
       role: 'inifap',
       status: 'activo',
@@ -44,7 +60,7 @@ describe('👤 Módulo de Perfil Avanzado y Control de Sesiones', () => {
     // 2. Crear usuario agricultor
     farmerUser = await User.create({
       full_name: 'Agricultor Perfil Test',
-      email: 'agricultor_perfil@test.com',
+      email: TEST_FARMER_EMAIL,
       password_hash: passwordHash,
       role: 'agricultor',
       status: 'activo',
@@ -60,17 +76,22 @@ describe('👤 Módulo de Perfil Avanzado y Control de Sesiones', () => {
       status: true,
     });
 
-    // 4. Crear admin
-    adminUser = await User.findOne({ where: { role: 'admin' } });
-    if (!adminUser) {
-      adminUser = await User.create({
-        full_name: 'Admin Global Test',
-        email: 'admin_perfil@inifap.gob.mx',
-        password_hash: passwordHash,
+    // 4. Crear admin propio con correo fijo y ORDER BY
+    await User.create({
+      full_name: 'Admin Global Test',
+      email: TEST_ADMIN_EMAIL,
+      password_hash: passwordHash,
+      role: 'admin',
+      status: 'activo',
+    });
+    adminUser = await User.findOne({
+      where: {
+        email: TEST_ADMIN_EMAIL,
         role: 'admin',
         status: 'activo',
-      });
-    }
+      },
+      order: [['id', 'ASC']],
+    });
 
     // 5. Inyectar registros simulados en la tabla "session" para probar el servicio
     const expireDate = new Date(Date.now() + 1000 * 60 * 60 * 24);
@@ -124,6 +145,10 @@ describe('👤 Módulo de Perfil Avanzado y Control de Sesiones', () => {
     if (farmerUser) {
       await AuditLog.destroy({ where: { user_id: farmerUser.id } });
       await farmerUser.destroy();
+    }
+    if (adminUser) {
+      await AuditLog.destroy({ where: { user_id: adminUser.id } });
+      await adminUser.destroy();
     }
     await closeAppResources();
   });
