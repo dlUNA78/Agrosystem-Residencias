@@ -17,6 +17,7 @@ import pg from 'pg';
 
 export const LOADTEST_PREFIX = '[LOADTEST]';
 export const LOADTEST_SESSION_PREFIX = 'loadtest:';
+export const DEFAULT_LOADTEST_DB_NAME = 'agrosystem_load';
 
 export const DEFAULT_OPTIONS = Object.freeze({
   farms: 50000,
@@ -61,14 +62,55 @@ export const isProductionEnv = (env = process.env) =>
     .trim()
     .toLowerCase() === 'production';
 
-export const assertSafeEnvironment = (env = process.env) => {
+export const NON_LOADTEST_DB_NAMES = Object.freeze([
+  'agrosystem_db',
+  'agrosystem_test',
+]);
+
+export const isTestDatabaseName = (dbName) =>
+  String(dbName || '')
+    .trim()
+    .toLowerCase() === 'agrosystem_test';
+
+export const resolveLoadTestDbName = (env = process.env) => {
+  const explicitLoadDb = String(env?.LOADTEST_DB_NAME || '').trim();
+  if (explicitLoadDb) {
+    return explicitLoadDb;
+  }
+
+  const rawDbName = String(env?.DB_NAME || '').trim();
+  if (!rawDbName) {
+    return '';
+  }
+
+  if (NON_LOADTEST_DB_NAMES.includes(rawDbName.toLowerCase())) {
+    return DEFAULT_LOADTEST_DB_NAME;
+  }
+
+  return rawDbName;
+};
+
+export const assertAllowedSeedTarget = (env = process.env) => {
   if (isProductionEnv(env)) {
     throw new Error(
       'Operación bloqueada: seedLoadTestData.js no puede ejecutarse cuando NODE_ENV=production.',
     );
   }
 
-  const missing = REQUIRED_DB_VARS.filter((key) => !env?.[key]);
+  const targetDb = resolveLoadTestDbName(env);
+  if (isTestDatabaseName(targetDb)) {
+    throw new Error(
+      'Operación bloqueada: seedLoadTestData.js no puede ejecutarse sobre agrosystem_test. Usa una base separada (por ejemplo agrosystem_load).',
+    );
+  }
+  return targetDb;
+};
+
+export const assertSafeEnvironment = (env = process.env) => {
+  const targetDb = assertAllowedSeedTarget(env);
+  const missing = REQUIRED_DB_VARS.filter((key) =>
+    key === 'DB_NAME' ? !targetDb : !env?.[key],
+  );
   if (missing.length > 0) {
     throw new Error(
       `Faltan variables de entorno de base de datos: ${missing.join(', ')}.`,
@@ -170,7 +212,7 @@ export const createDbPool = (env = process.env) => {
   return new pg.Pool({
     host: env.DB_HOST,
     port: Number(env.DB_PORT),
-    database: env.DB_NAME,
+    database: resolveLoadTestDbName(env),
     user: env.DB_USER,
     password: env.DB_PASS,
   });
@@ -511,11 +553,7 @@ export const seedLoadTestData = async (
   rawOptions = {},
   { env = process.env, manageTransaction = true } = {},
 ) => {
-  if (isProductionEnv(env)) {
-    throw new Error(
-      'Operación bloqueada: seedLoadTestData.js no puede ejecutarse cuando NODE_ENV=production.',
-    );
-  }
+  assertAllowedSeedTarget(env);
 
   const options = { ...DEFAULT_OPTIONS, ...rawOptions };
   const startedAt = Date.now();
@@ -604,6 +642,13 @@ export const runCli = async (
   const pool = createDbPool(env);
   try {
     const result = await seedLoadTestData(pool, options, { env });
+    if (!options.reset || options.seed) {
+      await pool
+        .query(
+          'VACUUM ANALYZE "Farms", "FarmCrops", "AuditLogs", "Notifications", "session"',
+        )
+        .catch(() => {});
+    }
     console.log(JSON.stringify(result, null, 2));
     return 0;
   } finally {

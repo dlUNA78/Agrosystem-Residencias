@@ -74,6 +74,11 @@ describe('rutas privadas del workflow de cultivos', () => {
       ),
     );
 
+    admin = await User.findOne({
+      where: { email: testEmails[2], role: 'admin', status: 'activo' },
+      order: [['id', 'ASC']],
+    });
+
     [authorAgent, reviewerAgent, adminAgent, farmerAgent] = await Promise.all([
       login(author),
       login(reviewer),
@@ -155,6 +160,7 @@ describe('rutas privadas del workflow de cultivos', () => {
     expect(response.status).toBe(302);
     const createdCrop = await Crop.findOne({
       where: { name: 'Cultivo Creado por Ruta' },
+      order: [['id', 'DESC']],
     });
 
     try {

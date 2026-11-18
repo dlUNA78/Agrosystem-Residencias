@@ -14,6 +14,8 @@ import {
 } from '../../src/services/notificationService.js';
 
 const { User, Notification } = db;
+const TEST_USER_EMAIL = 'notif_test@inifap.gob.mx';
+const FIXED_ADMIN_EMAIL = 'admin@agrosystem.com';
 
 describe('🔔 Centro de Notificaciones Híbrido', () => {
   let testUser = null;
@@ -23,21 +25,35 @@ describe('🔔 Centro de Notificaciones Híbrido', () => {
   beforeAll(async () => {
     const passwordHash = await bcrypt.hash('TestUser@1234', 10);
 
+    const staleUser = await User.findOne({
+      where: { email: TEST_USER_EMAIL },
+      order: [['id', 'ASC']],
+    });
+    if (staleUser) {
+      await Notification.destroy({ where: { user_id: staleUser.id } });
+      await staleUser.destroy();
+    }
+
     testUser = await User.create({
       full_name: 'Usuario Notif Test',
-      email: 'notif_test@inifap.gob.mx',
+      email: TEST_USER_EMAIL,
       password_hash: passwordHash,
       role: 'inifap',
       status: 'activo',
     });
 
     adminUser = await User.findOne({
-      where: { role: 'admin', status: 'activo' },
+      where: {
+        email: FIXED_ADMIN_EMAIL,
+        role: 'admin',
+        status: 'activo',
+      },
+      order: [['id', 'ASC']],
     });
     if (!adminUser) {
       adminUser = await User.create({
         full_name: 'Admin Notif Test',
-        email: 'admin_notif@inifap.gob.mx',
+        email: FIXED_ADMIN_EMAIL,
         password_hash: passwordHash,
         role: 'admin',
         status: 'activo',
@@ -46,6 +62,11 @@ describe('🔔 Centro de Notificaciones Híbrido', () => {
   });
 
   afterAll(async () => {
+    if (adminUser) {
+      await Notification.destroy({
+        where: { user_id: adminUser.id, title: 'Alerta Administrativa' },
+      });
+    }
     if (testUser) {
       await Notification.destroy({ where: { user_id: testUser.id } });
       await testUser.destroy();

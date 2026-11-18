@@ -68,6 +68,10 @@ describe('rutas privadas de productos', () => {
         }),
       ),
     );
+    admin = await User.findOne({
+      where: { email: emails[2], role: 'admin', status: 'activo' },
+      order: [['id', 'ASC']],
+    });
     [authorAgent, reviewerAgent, adminAgent] = await Promise.all([
       login(author),
       login(reviewer),
@@ -152,7 +156,10 @@ describe('rutas privadas de productos', () => {
       validation_status: 'Aprobado',
       status: true,
     });
-    const created = await Product.findOne({ where: { name } });
+    const created = await Product.findOne({
+      where: { name },
+      order: [['id', 'DESC']],
+    });
     try {
       expect(response.status).toBe(302);
       expect(created.workflow_status).toBe('draft');

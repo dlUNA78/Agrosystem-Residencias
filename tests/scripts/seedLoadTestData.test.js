@@ -4,12 +4,15 @@ import pg from 'pg';
 import {
   assertSafeEnvironment,
   buildHelpText,
+  DEFAULT_LOADTEST_DB_NAME,
   DEFAULT_OPTIONS,
   isProductionEnv,
+  isTestDatabaseName,
   LOADTEST_PREFIX,
   LOADTEST_SESSION_PREFIX,
   parseCliArgs,
   resetSyntheticData,
+  resolveLoadTestDbName,
   seedLoadTestData,
 } from '../../src/scripts/seedLoadTestData.js';
 
@@ -17,7 +20,7 @@ const validDbEnv = {
   NODE_ENV: 'test',
   DB_HOST: 'localhost',
   DB_PORT: '5432',
-  DB_NAME: 'agrosystem_test',
+  DB_NAME: DEFAULT_LOADTEST_DB_NAME,
   DB_USER: 'postgres',
   DB_PASS: 'secret',
 };
@@ -76,7 +79,41 @@ describe('seedLoadTestData CLI & guard', () => {
       assertSafeEnvironment({ NODE_ENV: 'test', DB_HOST: 'localhost' }),
     ).toThrow(/DB_PORT/);
 
+    expect(() =>
+      assertSafeEnvironment({
+        ...validDbEnv,
+        LOADTEST_DB_NAME: 'agrosystem_test',
+      }),
+    ).toThrow(/agrosystem_test/);
+
+    expect(isTestDatabaseName('agrosystem_test')).toBe(true);
+    expect(isTestDatabaseName('AGROSYSTEM_TEST')).toBe(true);
+    expect(isTestDatabaseName('agrosystem_load')).toBe(false);
+
+    expect(resolveLoadTestDbName({ DB_NAME: 'agrosystem_db' })).toBe(
+      'agrosystem_load',
+    );
+    expect(resolveLoadTestDbName({ DB_NAME: 'agrosystem_test' })).toBe(
+      'agrosystem_load',
+    );
+    expect(resolveLoadTestDbName({ DB_NAME: 'agrosystem_loadtest' })).toBe(
+      'agrosystem_loadtest',
+    );
+    expect(
+      resolveLoadTestDbName({
+        DB_NAME: 'agrosystem_test',
+        LOADTEST_DB_NAME: 'agrosystem_load',
+      }),
+    ).toBe('agrosystem_load');
+
     expect(() => assertSafeEnvironment(validDbEnv)).not.toThrow();
+    expect(() =>
+      assertSafeEnvironment({
+        ...validDbEnv,
+        DB_NAME: 'agrosystem_test',
+        LOADTEST_DB_NAME: 'agrosystem_load',
+      }),
+    ).not.toThrow();
   });
 
   it('parses default volumes and custom CLI overrides cleanly', () => {
@@ -173,11 +210,18 @@ describe('resetSyntheticData & seedLoadTestData orchestration', () => {
     ]);
   });
 
-  it('refuses execution in production before acquiring a DB client', async () => {
+  it('refuses execution in production or on agrosystem_test before acquiring a DB client', async () => {
     const mock = createMockPool();
     await expect(
       seedLoadTestData(mock, { farms: 1 }, { env: { NODE_ENV: 'production' } }),
     ).rejects.toThrow(/NODE_ENV=production/);
+    await expect(
+      seedLoadTestData(
+        mock,
+        { farms: 1 },
+        { env: { ...validDbEnv, LOADTEST_DB_NAME: 'agrosystem_test' } },
+      ),
+    ).rejects.toThrow(/agrosystem_test/);
     expect(mock.connect).not.toHaveBeenCalled();
   });
 
@@ -310,7 +354,14 @@ const shouldRunDbIntegration = /test/i.test(process.env.DB_NAME || '');
             batchSize: 2,
             append: true,
           },
-          { env: process.env, manageTransaction: false },
+          {
+            env: {
+              ...process.env,
+              LOADTEST_DB_NAME:
+                process.env.LOADTEST_DB_NAME || DEFAULT_LOADTEST_DB_NAME,
+            },
+            manageTransaction: false,
+          },
         );
 
         expect(result.inserted).toEqual({
