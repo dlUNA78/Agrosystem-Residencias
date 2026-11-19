@@ -143,7 +143,7 @@
         </span>
         <div>
           <h2 class="font-headline font-bold text-foreground text-sm">Cartografía de Predios Monitoreados</h2>
-          <p class="text-[11px] text-muted-foreground hidden sm:block">Alterna vista estándar o satelital y selecciona cualquier marcador para abrir su expediente.</p>
+          <p class="text-[11px] text-muted-foreground hidden sm:block">Alterna vista estándar o satelital y selecciona cualquier marcador para abrir su expediente. Mostrando en el mapa los predios con GPS de la página actual.</p>
         </div>
       </div>
       <div class="flex items-center gap-2">
@@ -313,8 +313,13 @@
   <div id="lands-results-region" class="space-y-5">
     <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground" role="status">
       <p>
-        Mostrando <strong class="text-foreground font-mono">{{farmsCount}}</strong>
-        {{#if hasActiveFilters}}de <strong class="text-foreground font-mono">{{totalScopeCount}}</strong>{{/if}}
+        {{#if pagination}}
+          Mostrando <strong class="text-foreground font-mono">{{pagination.startRecord}}–{{pagination.endRecord}}</strong>
+          de <strong class="text-foreground font-mono">{{farmsCount}}</strong>
+        {{else}}
+          Mostrando <strong class="text-foreground font-mono">{{farmsCount}}</strong>
+        {{/if}}
+        {{#if hasActiveFilters}}(de <strong class="text-foreground font-mono">{{totalScopeCount}}</strong> en alcance){{/if}}
         predio(s) registrado(s).
       </p>
       {{#if hasActiveFilters}}
@@ -571,6 +576,42 @@
           </table>
         </div>
       </div>
+
+      {{#if pagination.hasMultiplePages}}
+        <nav
+          aria-label="Paginación de terrenos"
+          class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/80 bg-card px-5 py-3.5 text-xs shadow-2xs"
+        >
+          <p class="text-muted-foreground">
+            Página
+            <span aria-current="page" class="font-mono font-bold text-foreground">{{pagination.currentPage}}</span>
+            de
+            <strong class="font-mono text-foreground">{{pagination.totalPages}}</strong>
+          </p>
+          <div class="flex items-center gap-2">
+            {{#if pagination.hasPrevPage}}
+              <a
+                href="{{pagination.prevUrl}}"
+                data-lands-async-link
+                class="inline-flex items-center gap-1.5 rounded-xl border border-border bg-card px-3.5 py-1.5 font-semibold text-foreground transition-colors hover:bg-muted"
+              >
+                <i data-lucide="chevron-left" class="h-3.5 w-3.5"></i>
+                <span>Anterior</span>
+              </a>
+            {{/if}}
+            {{#if pagination.hasNextPage}}
+              <a
+                href="{{pagination.nextUrl}}"
+                data-lands-async-link
+                class="inline-flex items-center gap-1.5 rounded-xl bg-[#1b4332] px-3.5 py-1.5 font-semibold text-white shadow-2xs transition-colors hover:bg-[#2d6a4f]"
+              >
+                <span>Siguiente</span>
+                <i data-lucide="chevron-right" class="h-3.5 w-3.5"></i>
+              </a>
+            {{/if}}
+          </div>
+        </nav>
+      {{/if}}
     {{else}}
       <section class="rounded-2xl border border-dashed border-border bg-card py-16 px-6 text-center">
         <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-muted text-muted-foreground mb-4">

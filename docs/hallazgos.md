@@ -49,3 +49,13 @@ Problemas detectados durante la ejecución y perfilado de la **Fase 0 (`0.A1`, `
 - **Qué se observó**:
   - El HTML sin comprimir de `/` (`250,500 B`), `/crops/1` (`216,033 B`) y `/plagues/1` (`238,447 B`) dedica **`56%–63%`** (`136–141 KB`) a repetir el mapa SVG completo de los 32 estados de México inline en el servidor, duplicando el trabajo de Handlebars (`13.45%` CPU en detalle vs `7.82%` en listado), generación de ETag MD5 / `Buffer.from` (`4.76%` CPU en detalle) y compresión en cada solicitud.
   - En `GET /crops/1`, `formatDate` en [cropDetailService.js](../src/services/cropDetailService.js#L52) fue el 2.º consumidor individual más alto del perfil `--cpu-prof` (`3.20%` del tiempo activo), mientras que la hidratación de modelos Sequelize (`_groupJoinData`, `baseClone`, `__defNormalProp`) consumió `21.87%–26.10%` de CPU JS en peticiones públicas.
+
+## 8. Exportaciones CSV/GeoJSON de `/private/lands` con miles de predios y mapa paginado (`1.A12` / `1.A12b`)
+
+- **Ubicación**: [landsController.js](../src/controllers/private/landsController.js#L62-L90), [landExportService.js](../src/services/landExportService.js) y [list.hbs](../src/views/private/lands/list.hbs#L138-L172).
+- **Qué se observó**:
+  - **Medición de exportaciones con `8,335` predios activos del usuario administrador sobre `agrosystem_load`** (sin cambios en `1.A12`):
+    - `GET /private/lands?format=csv`: **`1,299.57–1,305.26 ms`**, tamaño **`1,081,408 B` (`1.031 MB`)**, incremento de heap **`+38.49 a +39.38 MB`** (`heapUsed` `62.53 -> 101.02 MB` antes / `37.64 -> 77.02 MB` después; RSS `156.18–297.65 MB`).
+    - `GET /private/lands?format=geojson`: **`1,160.92–1,349.93 ms`**, tamaño **`2,644,673 B` (`2.522 MB`)**, incremento de heap **`+34.12 a +47.47 MB`** (`heapUsed` `64.68 -> 112.14 MB` antes / `39.89 -> 74.01 MB` después; RSS `155.73–305.41 MB`).
+    - Ambas exportaciones cargan y serializan todas las instancias Sequelize en memoria en una sola respuesta; si el padrón por usuario sigue creciendo o concurren descargas simultáneas, convendrá transmitir por cursor/stream o limitar el rango exportado.
+  - **Tarea futura `1.A12b` (Mapa completo con endpoint JSON mínimo + clustering)**: tras paginar `/private/lands` a `12` predios por página en `1.A12`, el mapa interactivo Leaflet muestra únicamente los pines con GPS de la página actual para mantener el HTML en `~143 KB`. Si se requiere explorar simultáneamente todos los predios georreferenciados del usuario en el mapa, se propone como tarea futura **`1.A12b`** exponer un endpoint JSON ligero (`id, name, location_lat, location_lng`) acotado y con clustering en cliente (`Leaflet.markercluster` o equivalente).

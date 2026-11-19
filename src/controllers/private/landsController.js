@@ -2,15 +2,21 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 import db from '../../models/index.js';
-import {
-  getContextualLandPermissions,
-  getLandListWhere,
-  getLandPermissions,
-} from '../../services/landAuthorizationService.js';
+import { getLandPermissions } from '../../services/landAuthorizationService.js';
 import {
   buildLandListCsv,
   buildLandListGeoJson,
 } from '../../services/landExportService.js';
+import {
+  buildFilteredLandWhere,
+  buildLandsPaginationState,
+  computeLandStatsInMemory,
+  DEFAULT_LANDS_PAGE_SIZE,
+  FARMING_TYPES,
+  fetchLandScopeStats,
+  normalizeLandListQuery,
+  serializeFarm,
+} from '../../services/landListQueryService.js';
 import { validateLandInput } from '../../services/landValidationService.js';
 import { createRegionalBulletinRecord } from '../../services/regionalBulletinService.js';
 
@@ -20,14 +26,10 @@ const privateLayout = path.join(__dirname, '../../views/layouts/private');
 
 const { AuditLog, Farm, Region, User, sequelize } = db;
 
-const FARMING_TYPES = Object.freeze([
-  'Temporal',
-  'Riego',
-  'Mixto',
-  'Tecnificado',
-  'Orgánico',
-  'Hidroponía',
-]);
+const STABLE_LANDS_ORDER = [
+  ['createdAt', 'DESC'],
+  ['id', 'DESC'],
+];
 
 const regionInclude = {
   model: Region,
@@ -54,97 +56,6 @@ const sendInputError = (req, res, fieldErrors) => {
   return res.status(400).send(errors.join(' '));
 };
 
-const getRequestedListStatus = (value) =>
-  value === 'archived' || value === 'all' ? value : 'active';
-
-const normalizeFilterQuery = (rawQuery = {}) => ({
-  status: getRequestedListStatus(rawQuery.status),
-  search: String(rawQuery.search || '')
-    .trim()
-    .slice(0, 100),
-  region: String(rawQuery.region || '').trim(),
-  farmingType: String(rawQuery.farmingType || '').trim(),
-});
-
-const hasFarmCoords = (farm) => {
-  const lat = Number(farm.location_lat);
-  const lng = Number(farm.location_lng);
-  return (
-    farm.location_lat !== null &&
-    farm.location_lat !== undefined &&
-    farm.location_lat !== '' &&
-    Number.isFinite(lat) &&
-    Number.isFinite(lng)
-  );
-};
-
-const serializeFarm = (farm, user) => {
-  const value = farm.toJSON();
-  return {
-    ...value,
-    codeLabel: `#PRD-${String(value.id).padStart(4, '0')}`,
-    hasCoords: hasFarmCoords(value),
-    formattedHectares: value.size_hectares
-      ? Number(value.size_hectares).toLocaleString('es-MX', {
-          maximumFractionDigits: 2,
-        })
-      : null,
-    permissions: getContextualLandPermissions({
-      role: user.role,
-      userId: user.id,
-      ownerUserId: value.user_id,
-      isActive: value.status,
-    }),
-  };
-};
-
-const matchesFarmSearch = (farm, normalizedSearch) => {
-  if (!normalizedSearch) return true;
-  const haystack = [
-    farm.name,
-    farm.municipality,
-    farm.farming_type,
-    farm.region?.name,
-    farm.user?.full_name,
-    farm.codeLabel,
-  ]
-    .filter(Boolean)
-    .join(' ')
-    .toLowerCase();
-  return haystack.includes(normalizedSearch);
-};
-
-const filterFarmsInMemory = (farms, query) => {
-  const searchLower = query.search.toLowerCase();
-  return farms.filter((farm) => {
-    const byRegion =
-      !query.region ||
-      String(farm.region_id || farm.region?.id || '') === query.region;
-    const byType =
-      !query.farmingType ||
-      String(farm.farming_type || '') === query.farmingType;
-    return byRegion && byType && matchesFarmSearch(farm, searchLower);
-  });
-};
-
-const computeLandStats = (farms) => {
-  const totalHectaresRaw = farms.reduce(
-    (acc, farm) => acc + (Number(farm.size_hectares) || 0),
-    0,
-  );
-  const regionIds = new Set(
-    farms.map((f) => f.region_id || f.region?.id).filter(Boolean),
-  );
-  return {
-    total: farms.length,
-    totalHectares: totalHectaresRaw.toLocaleString('es-MX', {
-      maximumFractionDigits: 2,
-    }),
-    georeferenced: farms.filter((f) => f.hasCoords).length,
-    regionsCovered: regionIds.size,
-  };
-};
-
 const handleExportResponse = (res, format, filteredFarms) => {
   if (format === 'csv') {
     const csv = buildLandListCsv(filteredFarms);
@@ -167,75 +78,166 @@ const handleExportResponse = (res, format, filteredFarms) => {
   return null;
 };
 
+const exportFilteredLands = async (req, res, filteredWhere) => {
+  const format = String(req.query?.format || '').toLowerCase();
+  if (format !== 'csv' && format !== 'geojson') return null;
+
+  const rows = await Farm.findAll({
+    where: filteredWhere,
+    include: [regionInclude, ownerInclude],
+    order: STABLE_LANDS_ORDER,
+    subQuery: false,
+  });
+  const serialized = rows.map((farm) => serializeFarm(farm, req.user));
+  return handleExportResponse(res, format, serialized);
+};
+
+const countFilteredFarms = async (filteredWhere, query, scopeStats) => {
+  const hasFilters = Boolean(query.search || query.region || query.farmingType);
+  if (!hasFilters && scopeStats) {
+    return scopeStats.total;
+  }
+  if (typeof Farm.count === 'function') {
+    return Farm.count({ where: filteredWhere });
+  }
+  return scopeStats ? scopeStats.total : null;
+};
+
+const loadPaginatedLandsData = async (user, query) => {
+  const [regions, scopeStats] = await Promise.all([
+    Region.findAll({
+      attributes: ['id', 'name'],
+      order: [['name', 'ASC']],
+      raw: true,
+    }),
+    fetchLandScopeStats(sequelize, user, query.status),
+  ]);
+
+  const filteredWhere = buildFilteredLandWhere(user, query, { regions });
+  const filteredTotal = await countFilteredFarms(
+    filteredWhere,
+    query,
+    scopeStats,
+  );
+  const prePagination = buildLandsPaginationState(
+    filteredTotal ?? DEFAULT_LANDS_PAGE_SIZE,
+    query.requestedPage,
+    DEFAULT_LANDS_PAGE_SIZE,
+    query,
+  );
+
+  const pageRows = await Farm.findAll({
+    where: filteredWhere,
+    include: [regionInclude, ownerInclude],
+    order: STABLE_LANDS_ORDER,
+    limit: prePagination.pageSize,
+    offset: filteredTotal !== null ? prePagination.offset : 0,
+    subQuery: false,
+  });
+
+  const farms = pageRows.map((farm) => serializeFarm(farm, user));
+  const stats = scopeStats || computeLandStatsInMemory(farms);
+  const pagination = buildLandsPaginationState(
+    filteredTotal ?? farms.length,
+    query.requestedPage,
+    DEFAULT_LANDS_PAGE_SIZE,
+    query,
+  );
+
+  return { regions, farms, stats, pagination };
+};
+
+const buildLandsViewModel = ({
+  user,
+  permissions,
+  query,
+  regions,
+  farms,
+  stats,
+  pagination,
+}) => {
+  const role = user?.role || '';
+  const hasActiveFilters = Boolean(
+    query.search || query.region || query.farmingType,
+  );
+
+  return {
+    layout: privateLayout,
+    pageTitle: permissions.canViewAll ? 'Terrenos' : 'Mis Terrenos',
+    activePage: 'lands',
+    isAdmin: role === 'admin',
+    isInifap: role === 'inifap',
+    farms,
+    pageFarmsCount: farms.length,
+    pageGeoCount: farms.filter((f) => f.hasCoords).length,
+    regions: regions.map((r) => ({
+      ...r,
+      selected: String(r.id) === query.region,
+    })),
+    farmingTypes: FARMING_TYPES.map((value) => ({
+      value,
+      selected: value === query.farmingType,
+    })),
+    farmsCount: pagination.totalCount,
+    totalScopeCount: stats.total,
+    stats,
+    pagination,
+    permissions,
+    hasActiveFilters,
+    filters: {
+      status: query.status,
+      search: query.search,
+      region: query.region,
+      farmingType: query.farmingType,
+      isActive: query.status === 'active',
+      isArchived: query.status === 'archived',
+      isAll: query.status === 'all',
+    },
+    extraHead: '<link rel="stylesheet" href="/vendor/leaflet/leaflet.css" />',
+    extraScripts: `
+      <script src="/vendor/leaflet/leaflet.js"></script>
+      <script type="module" src="/js/private/lands.js"></script>
+    `,
+  };
+};
+
 export const renderLandsPrivate = async (req, res) => {
   try {
     const permissions = getLandPermissions(req.user.role);
-    const query = normalizeFilterQuery(req.query);
-    const [regions, farms] = await Promise.all([
-      Region.findAll({
-        attributes: ['id', 'name'],
-        order: [['name', 'ASC']],
-        raw: true,
-      }),
-      Farm.findAll({
-        where: getLandListWhere(req.user, { status: query.status }),
-        include: [regionInclude, ownerInclude],
-        order: [['createdAt', 'DESC']],
-      }),
-    ]);
-
-    const allScopeFarms = farms.map((farm) => serializeFarm(farm, req.user));
-    const filteredFarms = filterFarmsInMemory(allScopeFarms, query);
+    const query = normalizeLandListQuery(req.query);
 
     if (req.query?.format) {
-      const exported = handleExportResponse(
-        res,
-        req.query.format,
-        filteredFarms,
-      );
+      const regions = query.search
+        ? await Region.findAll({
+            attributes: ['id', 'name'],
+            order: [['name', 'ASC']],
+            raw: true,
+          })
+        : null;
+      const filteredWhere = buildFilteredLandWhere(req.user, query, {
+        regions,
+      });
+      const exported = await exportFilteredLands(req, res, filteredWhere);
       if (exported) return exported;
     }
 
-    const stats = computeLandStats(allScopeFarms);
-    const role = req.user?.role || '';
+    const { regions, farms, stats, pagination } = await loadPaginatedLandsData(
+      req.user,
+      query,
+    );
 
-    return res.render('private/lands/list', {
-      layout: privateLayout,
-      pageTitle: permissions.canViewAll ? 'Terrenos' : 'Mis Terrenos',
-      activePage: 'lands',
-      isAdmin: role === 'admin',
-      isInifap: role === 'inifap',
-      farms: filteredFarms,
-      regions: regions.map((r) => ({
-        ...r,
-        selected: String(r.id) === query.region,
-      })),
-      farmingTypes: FARMING_TYPES.map((value) => ({
-        value,
-        selected: value === query.farmingType,
-      })),
-      farmsCount: filteredFarms.length,
-      totalScopeCount: allScopeFarms.length,
-      stats,
-      permissions,
-      hasActiveFilters: Boolean(
-        query.search || query.region || query.farmingType,
-      ),
-      filters: {
-        status: query.status,
-        search: query.search,
-        region: query.region,
-        farmingType: query.farmingType,
-        isActive: query.status === 'active',
-        isArchived: query.status === 'archived',
-        isAll: query.status === 'all',
-      },
-      extraHead: '<link rel="stylesheet" href="/vendor/leaflet/leaflet.css" />',
-      extraScripts: `
-        <script src="/vendor/leaflet/leaflet.js"></script>
-        <script type="module" src="/js/private/lands.js"></script>
-      `,
-    });
+    return res.render(
+      'private/lands/list',
+      buildLandsViewModel({
+        user: req.user,
+        permissions,
+        query,
+        regions,
+        farms,
+        stats,
+        pagination,
+      }),
+    );
   } catch (error) {
     console.error('Error al cargar los terrenos:', error);
     return res.status(500).send('Error al cargar los terrenos');
