@@ -2,13 +2,21 @@ import fs from 'fs/promises';
 import path from 'path';
 import { Sequelize, DataTypes } from 'sequelize';
 import { fileURLToPath, pathToFileURL } from 'url';
-import configData from '../config/config.js'; // Importamos la config moderna
+import configData, {
+  resolveSequelizeLogging,
+  resolveSequelizePool,
+} from '../config/config.js'; // Importamos la config moderna
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const basename = path.basename(__filename);
 const env = process.env.NODE_ENV || 'development';
-const config = configData[env];
+const baseConfig = configData[env] || configData.development;
+const config = {
+  ...baseConfig,
+  logging: baseConfig.logging ?? resolveSequelizeLogging(),
+  pool: baseConfig.pool || resolveSequelizePool(),
+};
 
 const db = {};
 

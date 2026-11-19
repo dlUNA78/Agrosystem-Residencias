@@ -1,5 +1,6 @@
 import { Sequelize } from 'sequelize';
 import 'dotenv/config';
+import { resolveSequelizeLogging, resolveSequelizePool } from './config.js';
 
 const sequelize = new Sequelize(
   process.env.DB_NAME,
@@ -9,7 +10,8 @@ const sequelize = new Sequelize(
     host: process.env.DB_HOST,
     port: process.env.DB_PORT,
     dialect: process.env.DB_DIALECT || 'postgres',
-    logging: false, // Desactivar logueo de queries o cambiar a console.log para debugear
+    logging: resolveSequelizeLogging(),
+    pool: resolveSequelizePool(),
   },
 );
 
