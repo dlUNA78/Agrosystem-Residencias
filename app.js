@@ -96,13 +96,29 @@ app.use(
 // En vez de duplicar credenciales manualmente, construimos un Pool una sola
 // vez aquí, usando las mismas variables de entorno que Sequelize. Si la
 // contraseña de BD cambia, sólo se edita el .env.
-const pgPool = new pg.Pool({
-  host: process.env.DB_HOST,
-  port: process.env.DB_PORT,
-  database: process.env.DB_NAME,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASS,
+const parsePoolOptionInt = (raw, fallback) => {
+  const parsed = Number.parseInt(String(raw ?? ''), 10);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
+};
+
+export const buildPgPoolConfig = (env = process.env) => ({
+  host: env.DB_HOST,
+  port: env.DB_PORT,
+  database: env.DB_NAME,
+  user: env.DB_USER,
+  password: env.DB_PASS,
+  max: parsePoolOptionInt(
+    env.DB_SESSION_POOL_MAX,
+    env.NODE_ENV === 'test' ? 2 : 10,
+  ),
+  idleTimeoutMillis: parsePoolOptionInt(env.DB_SESSION_POOL_IDLE_MS, 10000),
+  connectionTimeoutMillis: parsePoolOptionInt(
+    env.DB_SESSION_POOL_ACQUIRE_MS,
+    30000,
+  ),
 });
+
+export const pgPool = new pg.Pool(buildPgPoolConfig());
 
 let closeAppResourcesPromise;
 
