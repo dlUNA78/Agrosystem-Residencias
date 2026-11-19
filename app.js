@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import fs from 'fs';
+import fsPromises from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import express from 'express';
@@ -266,17 +266,97 @@ hbs.registerHelper('hasPermission', function (perm, options) {
   return perms.includes(perm);
 });
 
-// Resolución resiliente de imágenes estáticas (compatibilidad de extensiones .webp/.jpg y fallbacks locales)
+// Resolución resiliente de imágenes estáticas sin I/O síncrono por petición (1.A9)
 const publicDir = path.join(__dirname, 'public');
 const supportedImageExtensions = ['.webp', '.jpg', '.jpeg', '.png'];
+const defaultFallbackUrl = '/images/test/default.png';
 const defaultFallbackPath = path.join(
   publicDir,
   'images',
   'test',
   'default.png',
 );
+const fallbackEligiblePrefixes = [
+  '/images/cultivos/',
+  '/images/crops/',
+  '/images/products/',
+  '/images/plagas/',
+];
+const MAX_IMAGE_FALLBACK_CACHE_SIZE = 500;
+const imageFallbackCache = new Map();
 
-app.use((req, res, next) => {
+export const clearImageFallbackCache = () => {
+  imageFallbackCache.clear();
+};
+
+const fileExistsAsync = (targetPath) =>
+  fsPromises.access(targetPath).then(
+    () => true,
+    () => false,
+  );
+
+const rememberImageFallback = (cacheKey, resolvedUrl) => {
+  if (imageFallbackCache.size >= MAX_IMAGE_FALLBACK_CACHE_SIZE) {
+    const oldestKey = imageFallbackCache.keys().next().value;
+    imageFallbackCache.delete(oldestKey);
+  }
+  imageFallbackCache.set(cacheKey, resolvedUrl);
+  return resolvedUrl;
+};
+
+const isEligibleForDefaultImage = (reqPath) =>
+  reqPath.includes('/default.') ||
+  fallbackEligiblePrefixes.some((prefix) => reqPath.startsWith(prefix));
+
+const findAlternativeExtensionUrl = async (requestedFile, reqUrl, ext) => {
+  if (!supportedImageExtensions.includes(ext)) {
+    return null;
+  }
+  const basePath = requestedFile.slice(0, -ext.length);
+  const candidateExtensions = supportedImageExtensions.filter((e) => e !== ext);
+  for (const altExt of candidateExtensions) {
+    if (await fileExistsAsync(`${basePath}${altExt}`)) {
+      return reqUrl.slice(0, -ext.length) + altExt;
+    }
+  }
+  return null;
+};
+
+export const resolveFallbackImageUrl = async (reqPath, reqUrl = reqPath) => {
+  if (imageFallbackCache.has(reqPath)) {
+    return imageFallbackCache.get(reqPath);
+  }
+
+  const requestedFile = path.resolve(publicDir, `.${reqPath}`);
+  if (!requestedFile.startsWith(publicDir)) {
+    return null;
+  }
+
+  const ext = path.extname(reqPath).toLowerCase();
+  const altUrl = await findAlternativeExtensionUrl(requestedFile, reqUrl, ext);
+  if (altUrl) {
+    return rememberImageFallback(reqPath, altUrl);
+  }
+
+  if (
+    isEligibleForDefaultImage(reqPath) &&
+    (await fileExistsAsync(defaultFallbackPath))
+  ) {
+    return rememberImageFallback(reqPath, defaultFallbackUrl);
+  }
+
+  return null;
+};
+
+// Archivos estáticos primero (sirve imágenes existentes de forma asíncrona sin entrar al fallback)
+const staticPublicMiddleware = express.static(publicDir, {
+  maxAge: process.env.NODE_ENV === 'production' ? '1y' : 0,
+  etag: true,
+});
+
+app.use(staticPublicMiddleware);
+
+app.use(async (req, res, next) => {
   if (
     (req.method !== 'GET' && req.method !== 'HEAD') ||
     !req.path.startsWith('/images/')
@@ -284,46 +364,14 @@ app.use((req, res, next) => {
     return next();
   }
 
-  const requestedFile = path.join(publicDir, req.path);
-  if (fs.existsSync(requestedFile)) {
+  const fallbackUrl = await resolveFallbackImageUrl(req.path, req.url);
+  if (!fallbackUrl) {
     return next();
   }
 
-  const ext = path.extname(req.path).toLowerCase();
-  if (supportedImageExtensions.includes(ext)) {
-    const basePath = requestedFile.slice(0, -ext.length);
-    const candidateExtensions = supportedImageExtensions.filter(
-      (e) => e !== ext,
-    );
-    for (const altExt of candidateExtensions) {
-      if (fs.existsSync(`${basePath}${altExt}`)) {
-        req.url = req.url.slice(0, -ext.length) + altExt;
-        return next();
-      }
-    }
-  }
-
-  if (
-    fs.existsSync(defaultFallbackPath) &&
-    (req.path.includes('/default.') ||
-      req.path.startsWith('/images/cultivos/') ||
-      req.path.startsWith('/images/crops/') ||
-      req.path.startsWith('/images/products/') ||
-      req.path.startsWith('/images/plagas/'))
-  ) {
-    req.url = '/images/test/default.png';
-  }
-
-  next();
+  req.url = fallbackUrl;
+  return staticPublicMiddleware(req, res, next);
 });
-
-// Archivos estáticos y Middlewares base con política de caché
-app.use(
-  express.static(publicDir, {
-    maxAge: process.env.NODE_ENV === 'production' ? '1y' : 0,
-    etag: true,
-  }),
-);
 app.use(
   '/vendor/leaflet',
   express.static(path.join(__dirname, 'node_modules/leaflet/dist')),
