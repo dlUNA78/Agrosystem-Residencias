@@ -31,6 +31,34 @@ Ningún script guarda credenciales ni secretos en el repositorio. Pásalos en ti
 | `PDF_CROP_SCOPE`                       | `public` (`/crops/:id`) o `private` (`/private/crops/:id`) en `pdf.js` | `public`                            |
 | `REPORT_PERIOD`                        | `semanal`, `mensual`, `trimestral` o `anual` en `pdf.js`               | `mensual`                           |
 
+## Base de datos de carga (`agrosystem_load`)
+
+El script `src/scripts/seedLoadTestData.js` trabaja sobre una base de datos separada (`agrosystem_load` por defecto, o la definida en `LOADTEST_DB_NAME`) para que `agrosystem_test` permanezca limpia para Jest. Si `.env` apunta a `agrosystem_db` o `agrosystem_test`, el script redirige automáticamente a `agrosystem_load` y lo informa en consola; cualquier otro nombre que no inicie con `agrosystem_load` (salvo `LOADTEST_DB_NAME` explícito) se rechaza.
+
+Antes de sembrar volumen local por primera vez, crea y migra `agrosystem_load`:
+
+```bash
+# 1) Crear la base de datos de carga en PostgreSQL local
+psql -U postgres -h localhost -c "CREATE DATABASE agrosystem_load;"
+
+# 2) Aplicar migraciones y catálogos base en agrosystem_load
+DB_NAME=agrosystem_load pnpm exec sequelize-cli db:migrate
+DB_NAME=agrosystem_load pnpm exec sequelize-cli db:seed:all
+
+# 3) Sembrar el volumen sintético (50k terrenos, 50k ciclos, 500k logs, 50k notificaciones, 100k sesiones)
+node src/scripts/seedLoadTestData.js
+```
+
+En PowerShell:
+
+```powershell
+$env:DB_NAME = "agrosystem_load"
+pnpm exec sequelize-cli db:migrate
+pnpm exec sequelize-cli db:seed:all
+Remove-Item Env:DB_NAME
+node src/scripts/seedLoadTestData.js
+```
+
 ## Comandos de ejecución
 
 1. Levanta el servidor local apuntando a tu base de datos local o de pruebas (sin producción):
