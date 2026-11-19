@@ -44,6 +44,10 @@ personal autorizado.
 
 La aplicación estará disponible normalmente en `http://localhost:3000`.
 
+### Proxy inverso (`TRUST_PROXY`)
+
+Si la app corre detrás de Nginx, un balanceador o un servicio en la nube, define `TRUST_PROXY=1`; si recibe tráfico directo, déjala sin definir.
+
 ## Verificaciones
 
 Ejecuta únicamente la prueba del módulo en el que estés trabajando durante el
