@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import { afterAll, describe, expect, it } from '@jest/globals';
 import { buildPgPoolConfig, closeAppResources, pgPool } from '../../app.js';
 import configData, {
@@ -5,11 +7,9 @@ import configData, {
   resolveSequelizeLogging,
   resolveSequelizePool,
 } from '../../src/config/config.js';
-import legacySequelize from '../../src/config/database.js';
 import db from '../../src/models/index.js';
 
 afterAll(async () => {
-  await legacySequelize.close();
   await closeAppResources();
 });
 
@@ -93,10 +93,7 @@ describe('1.A2 Configuración de pools de conexión y logging SQL', () => {
       acquire: 30000,
       idle: 10000,
     });
-    expect(legacySequelize.options.pool).toMatchObject({
-      acquire: 30000,
-      idle: 10000,
-    });
+    expect(fs.existsSync(path.resolve('src/config/database.js'))).toBe(false);
   });
 
   it('define límites explícitos en el pg.Pool de sesiones (max=10 en production/development, max=2 en test, idleTimeoutMillis=10000, connectionTimeoutMillis=30000)', () => {
@@ -120,5 +117,15 @@ describe('1.A2 Configuración de pools de conexión y logging SQL', () => {
     // Regla de capacidad: instancias_node * (pool_sequelize + pool_sesiones) < max_connections (100)
     expect(configData.production.pool.max + prodPgCfg.max).toBeLessThan(100);
     expect(7 * (configData.test.pool.max + testPgCfg.max)).toBeLessThan(100);
+  });
+
+  it('define scripts de producción start y build:css en package.json (1.A10)', () => {
+    const pkg = JSON.parse(
+      fs.readFileSync(path.resolve('package.json'), 'utf8'),
+    );
+    expect(pkg.scripts?.start).toBe('node app.js');
+    expect(pkg.scripts?.['build:css']).toBe(
+      'pnpm exec tailwindcss -i ./public/css/input.css -o ./public/css/style.css --minify',
+    );
   });
 });

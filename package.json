@@ -10,6 +10,8 @@
   "description": "La idea principal del proyecto es pasar del papel, a un sistema automatizado, actualmente el INIFAP hace sus registros en papel, llevando a mano, la lista de plagas, cultivos, terrenos, productos validados por el inifap, entre otras cosas.",
   "main": "app.js",
   "scripts": {
+    "start": "node app.js",
+    "build:css": "pnpm exec tailwindcss -i ./public/css/input.css -o ./public/css/style.css --minify",
     "dev": "concurrently -n css,server -c cyan,green \"pnpm dev:css\" \"pnpm dev:server\"",
     "dev:css": "pnpm exec tailwindcss -i ./public/css/input.css -o ./public/css/style.css --watch",
     "dev:server": "nodemon app.js",
