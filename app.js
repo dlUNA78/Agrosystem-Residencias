@@ -79,7 +79,8 @@ export const configureTrustProxy = (appInstance, env = process.env) => {
 configureTrustProxy(app);
 
 // ─── RENDIMIENTO: COMPRESIÓN GZIP/BROTLI DE RESPUESTAS ─────────────────────
-app.use(compression());
+export const COMPRESSION_OPTIONS = Object.freeze({ threshold: 1024 });
+app.use(compression(COMPRESSION_OPTIONS));
 
 // ─── SEGURIDAD: ENCABEZADOS HTTP CON HELMET ──────────────────────────────
 app.use(
