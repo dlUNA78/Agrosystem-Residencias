@@ -196,6 +196,31 @@ const buildFilterUrlFromForm = () => {
   return url.pathname + url.search;
 };
 
+const syncFormControlsFromUrl = (targetUrl) => {
+  try {
+    const parsed = new URL(targetUrl, window.location.origin);
+    const statusInput = document.getElementById('lands-filter-status');
+    const searchInput = document.getElementById('lands-search');
+    const regionSelect = document.getElementById('lands-filter-region');
+    const typeSelect = document.getElementById('lands-filter-type');
+
+    if (statusInput) {
+      statusInput.value = parsed.searchParams.get('status') || 'active';
+    }
+    if (searchInput) {
+      searchInput.value = parsed.searchParams.get('search') || '';
+    }
+    if (regionSelect) {
+      regionSelect.value = parsed.searchParams.get('region') || '';
+    }
+    if (typeSelect) {
+      typeSelect.value = parsed.searchParams.get('farmingType') || '';
+    }
+  } catch {
+    /* ignore malformed URL */
+  }
+};
+
 const refreshLandsFromUrl = async (targetUrl, pushState = true) => {
   const resultsRegion = document.getElementById('lands-results-region');
   setRegionLoading(resultsRegion, true, 'Actualizando predios...');
@@ -209,11 +234,12 @@ const refreshLandsFromUrl = async (targetUrl, pushState = true) => {
     '#lands-status-pills',
     '#lands-results-region',
   ]);
+  syncFormControlsFromUrl(targetUrl);
   applyLandsView(getPreferredView());
   syncLandsMapMarkers(false);
   updateActiveFilterBadge();
 
-  if (pushState) window.history.replaceState({}, '', targetUrl);
+  if (pushState) window.history.pushState({}, '', targetUrl);
 };
 
 const initFilterControls = () => {
@@ -331,11 +357,10 @@ const handleStatusPillClick = (statusPill) => {
 };
 
 const handleAsyncLinkClick = (asyncLink) => {
-  ['lands-search', 'lands-filter-region', 'lands-filter-type'].forEach((id) => {
-    const el = document.getElementById(id);
-    if (el) el.value = '';
-  });
-  refreshLandsFromUrl(asyncLink.getAttribute('href'));
+  const href = asyncLink.getAttribute('href');
+  if (!href) return;
+  syncFormControlsFromUrl(href);
+  refreshLandsFromUrl(href);
 };
 
 const focusFarmOnMap = (focusBtn) => {
@@ -380,6 +405,13 @@ const handleLandsDocumentClick = (event) => {
 
 const initDelegatedClicksAndForms = () => {
   document.addEventListener('click', handleLandsDocumentClick);
+
+  window.addEventListener('popstate', () => {
+    refreshLandsFromUrl(
+      window.location.pathname + window.location.search,
+      false,
+    );
+  });
 
   document.addEventListener('submit', (event) => {
     const statusForm = event.target.closest('form[data-land-status-form]');
