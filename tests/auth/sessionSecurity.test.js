@@ -1,8 +1,11 @@
 import { afterAll, jest, describe, it, expect } from '@jest/globals';
+import express from 'express';
 import request from 'supertest';
 import app, {
   closeAppResources,
+  configureTrustProxy,
   resolveSessionCookieSecure,
+  resolveTrustProxy,
 } from '../../app.js';
 import {
   authLimiter,
@@ -105,5 +108,44 @@ describe('🛡️ Pruebas de Seguridad de Sesión y Rate Limiting (Pasos 3 y 4)'
         { NODE_ENV: 'production', DISABLE_RATE_LIMIT: 'true' },
       ),
     ).toBe(false);
+  });
+
+  it('5. Deja trust proxy sin activar por defecto y lo configura condicionalmente con TRUST_PROXY (1.A1)', async () => {
+    expect(resolveTrustProxy({})).toBeNull();
+    expect(resolveTrustProxy({ TRUST_PROXY: '' })).toBeNull();
+    expect(resolveTrustProxy({ TRUST_PROXY: '0' })).toBeNull();
+    expect(resolveTrustProxy({ TRUST_PROXY: 'false' })).toBeNull();
+    expect(resolveTrustProxy({ TRUST_PROXY: '1' })).toBe(1);
+    expect(resolveTrustProxy({ TRUST_PROXY: '2' })).toBe(2);
+    expect(resolveTrustProxy({ TRUST_PROXY: 'true' })).toBe(1);
+
+    const directApp = express();
+    configureTrustProxy(directApp, {});
+    directApp.get('/probe', (req, res) => {
+      res.json({ ip: req.ip, secure: req.secure, protocol: req.protocol });
+    });
+
+    const directRes = await request(directApp)
+      .get('/probe')
+      .set('X-Forwarded-For', '203.0.113.195')
+      .set('X-Forwarded-Proto', 'https');
+    expect(directApp.get('trust proxy')).toBeFalsy();
+    expect(directRes.body.ip).not.toBe('203.0.113.195');
+    expect(directRes.body.secure).toBe(false);
+
+    const proxiedApp = express();
+    configureTrustProxy(proxiedApp, { TRUST_PROXY: '1' });
+    proxiedApp.get('/probe', (req, res) => {
+      res.json({ ip: req.ip, secure: req.secure, protocol: req.protocol });
+    });
+
+    const proxiedRes = await request(proxiedApp)
+      .get('/probe')
+      .set('X-Forwarded-For', '203.0.113.195')
+      .set('X-Forwarded-Proto', 'https');
+    expect(proxiedApp.get('trust proxy')).toBe(1);
+    expect(proxiedRes.body.ip).toBe('203.0.113.195');
+    expect(proxiedRes.body.secure).toBe(true);
+    expect(proxiedRes.body.protocol).toBe('https');
   });
 });

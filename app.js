@@ -59,6 +59,25 @@ if (missingEnvVars.length > 0) {
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+export const resolveTrustProxy = (env = process.env) => {
+  const raw = typeof env.TRUST_PROXY === 'string' ? env.TRUST_PROXY.trim() : '';
+  if (!raw || raw === '0' || raw.toLowerCase() === 'false') {
+    return null;
+  }
+  const parsed = Number(raw);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : 1;
+};
+
+export const configureTrustProxy = (appInstance, env = process.env) => {
+  const trustProxyValue = resolveTrustProxy(env);
+  if (trustProxyValue !== null) {
+    appInstance.set('trust proxy', trustProxyValue);
+  }
+  return trustProxyValue;
+};
+
+configureTrustProxy(app);
+
 // ─── RENDIMIENTO: COMPRESIÓN GZIP/BROTLI DE RESPUESTAS ─────────────────────
 app.use(compression());
 
