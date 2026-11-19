@@ -1,11 +1,20 @@
+const NON_PUBLIC_READONLY_PREFIXES = [
+  '/private',
+  '/dashboard',
+  '/auth',
+  '/profile',
+  '/notifications',
+  '/api/notifications',
+  '/suggestions',
+];
+
 export const publicReadOnlyGuard = (req, res, next) => {
-  // Ignorar rutas privadas, de autenticación, de perfil de usuario o de notificaciones
+  // Ignorar rutas privadas, de autenticación, de perfil de usuario, sugerencias o notificaciones
+  const reqPath = req.path || '';
   if (
-    req.path.startsWith('/private') ||
-    req.path.startsWith('/auth') ||
-    req.path.startsWith('/profile') ||
-    req.path.startsWith('/notifications') ||
-    req.path.startsWith('/api/notifications')
+    NON_PUBLIC_READONLY_PREFIXES.some(
+      (prefix) => reqPath === prefix || reqPath.startsWith(`${prefix}/`),
+    )
   ) {
     return next();
   }

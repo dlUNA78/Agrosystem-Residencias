@@ -83,6 +83,7 @@ services:
       FARMER_EMAIL: ${FARMER_EMAIL:-agricultor@agrosystem.com}
       FARMER_PASSWORD: ${FARMER_PASSWORD:?Define FARMER_PASSWORD en .env.loadtest}
       COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      LOADTEST_MODE: ${LOADTEST_MODE:-true}
       DISABLE_RATE_LIMIT: ${DISABLE_RATE_LIMIT:-true}
     ports:
       - '${APP_PORT:-3000}:3000'

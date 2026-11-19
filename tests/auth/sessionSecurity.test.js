@@ -101,11 +101,25 @@ describe('🛡️ Pruebas de Seguridad de Sesión y Rate Limiting (Pasos 3 y 4)'
         {},
         { NODE_ENV: 'production', DISABLE_RATE_LIMIT: 'true' },
       ),
+    ).toBe(false);
+    expect(
+      isRateLimitBypassed(
+        {},
+        {
+          NODE_ENV: 'production',
+          DISABLE_RATE_LIMIT: 'true',
+          LOADTEST_MODE: 'true',
+        },
+      ),
     ).toBe(true);
     expect(
       isRateLimitBypassed(
         { query: { rateLimitTest: '1' } },
-        { NODE_ENV: 'production', DISABLE_RATE_LIMIT: 'true' },
+        {
+          NODE_ENV: 'production',
+          DISABLE_RATE_LIMIT: 'true',
+          LOADTEST_MODE: 'true',
+        },
       ),
     ).toBe(false);
   });
