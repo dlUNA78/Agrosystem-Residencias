@@ -310,4 +310,40 @@ describe('1.A12 Paginación, KPIs agregados y aislamiento de /private/lands', ()
     expect(geoNames).toContain('Parcela Paginada A-01');
     expect(geoNames).not.toContain('Predio Exclusivo Usuario B-01');
   });
+
+  it('filtra correctamente en /private/lands por nombre de región (?search=<región>), por código #PRD-00XX y documenta que un número puro coincide con el id del predio', async () => {
+    const targetFarm = await Farm.findOne({
+      where: {
+        user_id: userA.id,
+        name: 'Parcela Paginada A-03',
+        status: true,
+      },
+    });
+    expect(targetFarm).not.toBeNull();
+
+    // 1. Búsqueda por nombre de región (?search=<regionA.name>)
+    const byRegionName = await agentA.get(
+      `/private/lands?search=${encodeURIComponent(regionA.name)}`,
+    );
+    expect(byRegionName.status).toBe(200);
+    expect(byRegionName.text).toContain('Parcela Paginada A-03');
+    expect(byRegionName.text).not.toContain('Predio Exclusivo Usuario B-01');
+
+    // 2. Búsqueda por código formateado ?search=%23PRD-00XX
+    const prdCode = `#PRD-${String(targetFarm.id).padStart(4, '0')}`;
+    const byPrdCode = await agentA.get(
+      `/private/lands?search=${encodeURIComponent(prdCode)}`,
+    );
+    expect(byPrdCode.status).toBe(200);
+    expect(byPrdCode.text).toContain('Parcela Paginada A-03');
+    expect(byPrdCode.text).not.toContain('Parcela Paginada A-02');
+
+    // 3. Nota documentada: parsePrdCodeId(/^#?(?:prd-?)?0*(\d+)$/i) también acepta un número puro
+    // y lo compara contra Farm.id del usuario en sesión (sin exponer predios de otros usuarios).
+    const byPureNumericId = await agentA.get(
+      `/private/lands?search=${targetFarm.id}`,
+    );
+    expect(byPureNumericId.status).toBe(200);
+    expect(byPureNumericId.text).toContain('Parcela Paginada A-03');
+  });
 });
