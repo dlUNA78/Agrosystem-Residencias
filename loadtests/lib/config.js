@@ -1,6 +1,20 @@
 /* global __ENV */
 
 export const DEFAULT_BASE_URL = 'http://localhost:3000';
+export const DEFAULT_ACCEPT_ENCODING = 'gzip';
+
+export const buildRequestHeaders = (
+  extraHeaders = {},
+  env = getRuntimeEnv(),
+) => {
+  const encoding = String(
+    env?.K6_ACCEPT_ENCODING || DEFAULT_ACCEPT_ENCODING,
+  ).trim();
+  return {
+    ...(encoding ? { 'Accept-Encoding': encoding } : {}),
+    ...extraHeaders,
+  };
+};
 
 export const getRuntimeEnv = (customEnv) => {
   if (customEnv && typeof customEnv === 'object') {

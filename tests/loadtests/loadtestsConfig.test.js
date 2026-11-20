@@ -2,7 +2,9 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
+  buildRequestHeaders,
   buildWorkloadOptions,
+  DEFAULT_ACCEPT_ENCODING,
   DEFAULT_BASE_URL,
   extractCookieValue,
   getContentTypeHeader,
@@ -179,6 +181,22 @@ describe('loadtests/lib/config', () => {
     expect(handleSanitizedSummary(withCookie)).toBeUndefined();
     expect(withCookie.setup_data).not.toHaveProperty('cookieHeader');
   });
+
+  it('includes Accept-Encoding: gzip by default and merges extra request headers', () => {
+    expect(DEFAULT_ACCEPT_ENCODING).toBe('gzip');
+    expect(buildRequestHeaders({}, {})).toEqual({
+      'Accept-Encoding': 'gzip',
+    });
+    expect(buildRequestHeaders({ Cookie: 'connect.sid=abc' }, {})).toEqual({
+      'Accept-Encoding': 'gzip',
+      Cookie: 'connect.sid=abc',
+    });
+    expect(buildRequestHeaders({}, { K6_ACCEPT_ENCODING: 'identity' })).toEqual(
+      {
+        'Accept-Encoding': 'identity',
+      },
+    );
+  });
 });
 
 describe('loadtests k6 scripts contract & secret hygiene', () => {
@@ -186,12 +204,13 @@ describe('loadtests k6 scripts contract & secret hygiene', () => {
   const rootDir = path.resolve(__dirname, '../..');
 
   it.each(scriptFiles)(
-    '%s defines thresholds, handleSummary sanitization, and no hardcoded credentials',
+    '%s defines thresholds, gzip headers, handleSummary sanitization, and no hardcoded credentials',
     async (fileName) => {
       const content = await fs.readFile(
         path.join(loadtestsDir, fileName),
         'utf8',
       );
+      expect(content).toContain('buildRequestHeaders');
       expect(content).toContain('thresholds:');
       expect(content).toContain('http_req_failed');
       expect(content).toContain('http_req_duration');
