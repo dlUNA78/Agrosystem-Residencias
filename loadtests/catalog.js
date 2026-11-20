@@ -2,6 +2,7 @@ import http from 'k6/http';
 import { check, group, sleep } from 'k6';
 import { Trend } from 'k6/metrics';
 import {
+  buildRequestHeaders,
   buildWorkloadOptions,
   getRuntimeEnv,
   handleSanitizedSummary,
@@ -42,6 +43,7 @@ export const options = buildWorkloadOptions(env, {
 
 const fetchFirstPublicId = (endpoint, collectionKey) => {
   const res = http.get(`${BASE_URL}${endpoint}`, {
+    headers: buildRequestHeaders({}, env),
     tags: { name: `setup_${collectionKey}` },
   });
   if (res.status !== 200) {
@@ -78,7 +80,10 @@ export function setup() {
 }
 
 const verifyHtmlRoute = (url, tagName, metricTrend, expectedSnippet) => {
-  const res = http.get(url, { tags: { name: tagName } });
+  const res = http.get(url, {
+    headers: buildRequestHeaders({}, env),
+    tags: { name: tagName },
+  });
   metricTrend.add(res.timings.duration);
 
   check(res, {

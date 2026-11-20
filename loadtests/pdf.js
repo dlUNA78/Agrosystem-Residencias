@@ -2,6 +2,7 @@ import http from 'k6/http';
 import { check, group, sleep } from 'k6';
 import { Trend } from 'k6/metrics';
 import {
+  buildRequestHeaders,
   buildWorkloadOptions,
   extractCookieValue,
   getContentTypeHeader,
@@ -54,6 +55,7 @@ const resolveCropId = () => {
   if (configured) return configured;
 
   const res = http.get(`${BASE_URL}/api/crops`, {
+    headers: buildRequestHeaders({}, env),
     tags: { name: 'setup_crops_lookup' },
   });
   if (res.status !== 200) {
@@ -102,7 +104,7 @@ export function setup() {
 
 const verifyPdfDownload = (url, tagName, headers, metricTrend) => {
   const res = http.get(url, {
-    headers,
+    headers: buildRequestHeaders(headers, env),
     responseType: 'binary',
     tags: { name: tagName },
   });

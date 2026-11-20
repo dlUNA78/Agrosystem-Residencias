@@ -27,6 +27,7 @@ Ningún script guarda credenciales ni secretos en el repositorio. Pásalos en ti
 | `K6_P95_MS` / `K6_P99_MS`              | Sobreescribe el umbral `p(95)` / `p(99)` en ms de cada script          | Según script                        |
 | `K6_ERROR_RATE` / `K6_CHECK_RATE`      | Sobreescribe `http_req_failed` (`rate<...`) y `checks` (`rate>...`)    | `0.01` / `0.99`                     |
 | `K6_SLEEP`                             | Pausa entre iteraciones en segundos                                    | `0.2`                               |
+| `K6_ACCEPT_ENCODING`                   | Cabecera `Accept-Encoding` enviada por k6 (negocia compresión HTTP)    | `gzip`                              |
 | `CROP_ID` / `PLAGUE_ID` / `PRODUCT_ID` | IDs específicos de catálogo (si se omiten, se resuelven vía `/api/*`)  | _(auto)_                            |
 | `PDF_CROP_SCOPE`                       | `public` (`/crops/:id`) o `private` (`/private/crops/:id`) en `pdf.js` | `public`                            |
 | `REPORT_PERIOD`                        | `semanal`, `mensual`, `trimestral` o `anual` en `pdf.js`               | `mensual`                           |

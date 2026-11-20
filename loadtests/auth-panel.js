@@ -2,6 +2,7 @@ import http from 'k6/http';
 import { check, group, sleep } from 'k6';
 import { Trend } from 'k6/metrics';
 import {
+  buildRequestHeaders,
   buildWorkloadOptions,
   extractCookieValue,
   getCredentials,
@@ -48,6 +49,7 @@ export function setup() {
   const { email, password } = getCredentials(env, { required: true });
 
   const loginPageRes = http.get(`${BASE_URL}/auth/login`, {
+    headers: buildRequestHeaders({}, env),
     tags: { name: 'auth_login_page' },
   });
   check(loginPageRes, {
@@ -88,7 +90,7 @@ export function setup() {
 
 const getPrivatePage = (url, tagName, cookieHeader, metricTrend) => {
   const res = http.get(url, {
-    headers: { Cookie: cookieHeader },
+    headers: buildRequestHeaders({ Cookie: cookieHeader }, env),
     tags: { name: tagName },
   });
   metricTrend.add(res.timings.duration);
@@ -138,10 +140,13 @@ export default function (data) {
 
   group('Notificaciones privadas JSON', () => {
     const notifRes = http.get(`${data.baseUrl}/api/notifications`, {
-      headers: {
-        Cookie: data.cookieHeader,
-        Accept: 'application/json',
-      },
+      headers: buildRequestHeaders(
+        {
+          Cookie: data.cookieHeader,
+          Accept: 'application/json',
+        },
+        env,
+      ),
       tags: { name: 'api_notifications' },
     });
     listDuration.add(notifRes.timings.duration);
