@@ -4,6 +4,162 @@ import db from '../models/index.js';
 const { Notification, User, Crop, Plague, Product, Farm, FarmHealthReport } =
   db;
 
+const PANEL_ROLES = new Set(['admin', 'inifap']);
+const ADMIN_ONLY_PRIVATE_PREFIXES = Object.freeze([
+  '/private/users',
+  '/private/audit',
+  '/private/rbac',
+  '/private/codes',
+]);
+
+const CATALOG_ROUTE_PATTERNS = Object.freeze([
+  {
+    regex: /^\/private\/(?:catalog\/)?crops(?:\/(\d+))?\/?$/,
+    publicBase: '/crops',
+  },
+  {
+    regex: /^\/private\/(?:catalog\/)?plagues(?:\/(\d+))?\/?$/,
+    publicBase: '/plagues',
+  },
+  {
+    regex: /^\/private\/(?:catalog\/)?products(?:\/(\d+))?\/?$/,
+    publicBase: '/products',
+  },
+]);
+
+const INTERNAL_URL_BASE = 'http://agrosystem.internal';
+
+const getDefaultActionUrlForRole = (userRole) =>
+  PANEL_ROLES.has(userRole) ? '/dashboard' : '/profile';
+
+const hasControlCharacters = (value) => {
+  for (let i = 0; i < value.length; i += 1) {
+    const code = value.charCodeAt(i);
+    if (code <= 31 || code === 127) {
+      return true;
+    }
+  }
+  return false;
+};
+
+const parseSafeInternalUrl = (rawUrl) => {
+  if (!rawUrl || typeof rawUrl !== 'string') return null;
+  const trimmed = rawUrl.trim();
+  if (
+    !trimmed.startsWith('/') ||
+    trimmed.startsWith('//') ||
+    trimmed.includes('\\') ||
+    hasControlCharacters(trimmed)
+  ) {
+    return null;
+  }
+
+  try {
+    const parsed = new URL(trimmed, INTERNAL_URL_BASE);
+    if (parsed.origin !== INTERNAL_URL_BASE) {
+      return null;
+    }
+    return {
+      pathname: parsed.pathname,
+      suffix: `${parsed.search}${parsed.hash}`,
+      normalized: `${parsed.pathname}${parsed.search}${parsed.hash}`,
+    };
+  } catch {
+    return null;
+  }
+};
+
+const isPathPrefixMatch = (lowerPathname, prefix) =>
+  lowerPathname === prefix || lowerPathname.startsWith(`${prefix}/`);
+
+const mapPrivateCatalogPathForPublic = (lowerPathname, workflowStatus) => {
+  for (const { regex, publicBase } of CATALOG_ROUTE_PATTERNS) {
+    const match = lowerPathname.match(regex);
+    if (match) {
+      const entityId = match[1];
+      if (entityId && workflowStatus === 'published') {
+        return `${publicBase}/${entityId}`;
+      }
+      return publicBase;
+    }
+  }
+  return null;
+};
+
+const resolveNonPanelActionUrl = (parsed, workflowStatus) => {
+  const lowerPathname = parsed.pathname.toLowerCase();
+  const isRestrictedPanelPath =
+    isPathPrefixMatch(lowerPathname, '/private') ||
+    isPathPrefixMatch(lowerPathname, '/dashboard');
+  if (!isRestrictedPanelPath) {
+    return parsed.normalized;
+  }
+
+  if (
+    lowerPathname === '/private/profile' ||
+    lowerPathname === '/private/profile/'
+  ) {
+    return `/profile${parsed.suffix}`;
+  }
+
+  if (
+    isPathPrefixMatch(lowerPathname, '/private/lands') ||
+    isPathPrefixMatch(lowerPathname, '/private/bulletins')
+  ) {
+    return '/lands';
+  }
+
+  const mappedCatalog = mapPrivateCatalogPathForPublic(
+    lowerPathname,
+    workflowStatus,
+  );
+  return mappedCatalog || '/profile';
+};
+
+const isAdminOnlyPrivatePath = (lowerPathname) =>
+  ADMIN_ONLY_PRIVATE_PREFIXES.some((prefix) =>
+    isPathPrefixMatch(lowerPathname, prefix),
+  );
+
+export const resolveNotificationActionUrl = (
+  actionUrl,
+  userRole,
+  options = {},
+) => {
+  const fallback = getDefaultActionUrlForRole(userRole);
+  const parsed = parseSafeInternalUrl(actionUrl);
+  if (!parsed) {
+    return fallback;
+  }
+
+  if (!PANEL_ROLES.has(userRole)) {
+    return resolveNonPanelActionUrl(parsed, options.workflowStatus);
+  }
+
+  const lowerPathname = parsed.pathname.toLowerCase();
+  if (userRole !== 'admin' && isAdminOnlyPrivatePath(lowerPathname)) {
+    return '/dashboard';
+  }
+
+  return parsed.normalized;
+};
+
+const lookupUserRole = async (userId) => {
+  if (!User || typeof User.findByPk !== 'function' || !userId) return null;
+  try {
+    const user = await User.findByPk(Number(userId), {
+      attributes: ['id', 'role'],
+    });
+    return user?.role || null;
+  } catch (error) {
+    console.warn(
+      '[notificationService] Error al consultar rol del destinatario:',
+      error.message,
+    );
+    return null;
+  }
+};
+
 const sanitizeNotificationInput = ({
   userId,
   actorId = null,
@@ -46,6 +202,7 @@ export const createNotification = async (payload) => {
 
 export const notifyAuthorOnWorkflowChange = async ({
   authorId,
+  authorRole = null,
   actorId,
   entityName,
   moduleTitle,
@@ -53,6 +210,14 @@ export const notifyAuthorOnWorkflowChange = async ({
   actionUrl,
 }) => {
   if (!authorId || Number(authorId) === Number(actorId)) return;
+  const resolvedRole = authorRole || (await lookupUserRole(authorId));
+  const resolvedActionUrl =
+    actionUrl && resolvedRole
+      ? resolveNotificationActionUrl(actionUrl, resolvedRole, {
+          workflowStatus,
+        })
+      : actionUrl;
+
   await createNotification({
     userId: authorId,
     actorId,
@@ -60,7 +225,7 @@ export const notifyAuthorOnWorkflowChange = async ({
     severity: workflowStatus === 'published' ? 'success' : 'info',
     title: `Actualización de ${moduleTitle}`,
     message: `La ficha "${entityName}" ha cambiado a estado "${workflowStatus}".`,
-    actionUrl,
+    actionUrl: resolvedActionUrl,
   });
 };
 
@@ -144,12 +309,22 @@ export const getUserNotifications = async (
 };
 
 export const markNotificationAsRead = async (notificationId, userId) => {
-  if (!Notification || !notificationId || !userId) return null;
+  const numericNotificationId = Number(notificationId);
+  const numericUserId = Number(userId);
+  if (
+    !Notification ||
+    !Number.isInteger(numericNotificationId) ||
+    numericNotificationId <= 0 ||
+    !Number.isInteger(numericUserId) ||
+    numericUserId <= 0
+  ) {
+    return null;
+  }
 
   const notification = await Notification.findOne({
     where: {
-      id: Number(notificationId),
-      user_id: Number(userId),
+      id: numericNotificationId,
+      user_id: numericUserId,
     },
   });
 
