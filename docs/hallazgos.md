@@ -59,3 +59,11 @@ Problemas detectados durante la ejecución y perfilado de la **Fase 0 (`0.A1`, `
     - `GET /private/lands?format=geojson`: **`1,160.92–1,349.93 ms`**, tamaño **`2,644,673 B` (`2.522 MB`)**, incremento de heap **`+34.12 a +47.47 MB`** (`heapUsed` `64.68 -> 112.14 MB` antes / `39.89 -> 74.01 MB` después; RSS `155.73–305.41 MB`).
     - Ambas exportaciones cargan y serializan todas las instancias Sequelize en memoria en una sola respuesta; si el padrón por usuario sigue creciendo o concurren descargas simultáneas, convendrá transmitir por cursor/stream o limitar el rango exportado.
   - **Tarea futura `1.A12b` (Mapa completo con endpoint JSON mínimo + clustering)**: tras paginar `/private/lands` a `12` predios por página en `1.A12`, el mapa interactivo Leaflet muestra únicamente los pines con GPS de la página actual para mantener el HTML en `~143 KB`. Si se requiere explorar simultáneamente todos los predios georreferenciados del usuario en el mapa, se propone como tarea futura **`1.A12b`** exponer un endpoint JSON ligero (`id, name, location_lat, location_lng`) acotado y con clustering en cliente (`Leaflet.markercluster` o equivalente).
+
+## 9. Compromiso del tope por cuenta en `authLimiter` (`1.A4`)
+
+- **Ubicación**: [rateLimiter.js](../src/middlewares/rateLimiter.js#L350-L460).
+- **Compromiso aceptado para Fase 1**:
+  - La capa 3 de `authLimiter` fija un tope de **`25` intentos fallidos cada `15` minutos** por cuenta (`AUTH_ACCOUNT_RATE_LIMIT_MAX=25`) sin retraso progresivo (para evitar conexiones abiertas como vector de DoS).
+  - Si un atacante distribuye 25 intentos fallidos desde múltiples IPs contra un correo específico, el propietario legítimo de esa cuenta quedará bloqueado temporalmente con HTTP `429` (`Retry-After`) durante hasta **15 minutos** hasta que expire la ventana.
+  - **Seguimiento con usuarios reales**: una vez desplegado el sistema con tráfico real, monitorear incidencias de `429` por cuenta y evaluar alternativas sin bloqueo al dueño legítimo (p. ej., reto CAPTCHA adaptativo o desbloqueo por enlace de un solo uso por correo) si aparecen ataques dirigidos.

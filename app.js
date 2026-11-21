@@ -399,9 +399,15 @@ export const resolveSessionCookieSecure = (env = process.env) => {
 
 const logLoadTestModeWarnings = (env = process.env) => {
   if (env.DISABLE_RATE_LIMIT === 'true') {
-    console.warn(
-      '⚠️ MODO CARGA CONTROLADA: DISABLE_RATE_LIMIT=true desactiva rate limiting en memoria.',
-    );
+    if (env.NODE_ENV === 'production' && env.LOADTEST_MODE !== 'true') {
+      console.warn(
+        '⚠️ [SEGURIDAD] DISABLE_RATE_LIMIT=true ignorado en NODE_ENV=production porque LOADTEST_MODE no es "true".',
+      );
+    } else {
+      console.warn(
+        '⚠️ MODO CARGA CONTROLADA: DISABLE_RATE_LIMIT=true desactiva rate limiting en memoria.',
+      );
+    }
   }
   if (env.NODE_ENV === 'production' && env.COOKIE_SECURE === 'false') {
     console.warn(

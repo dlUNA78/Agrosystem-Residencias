@@ -18,15 +18,21 @@ router.post('/login', authLimiter, (req, res, next) => {
   passport.authenticate('local', (err, user, info) => {
     if (err) return next(err);
     if (!user) {
+      const preservedEmail =
+        typeof req.body?.email === 'string'
+          ? req.body.email.trim().slice(0, 254)
+          : '';
       return res.status(401).render('auth/login', {
         title: 'Iniciar Sesión',
         error: info?.message || 'Credenciales incorrectas.',
+        email: preservedEmail,
       });
     }
 
     const completeLogin = () => {
       req.logIn(user, (err) => {
         if (err) return next(err);
+        res.locals.loginSucceeded = true;
         return res.redirect('/');
       });
     };
