@@ -27,6 +27,7 @@ router.post('/login', authLimiter, (req, res, next) => {
     const completeLogin = () => {
       req.logIn(user, (err) => {
         if (err) return next(err);
+        res.locals.loginSucceeded = true;
         return res.redirect('/');
       });
     };

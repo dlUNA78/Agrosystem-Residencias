@@ -9,6 +9,9 @@ const NON_PUBLIC_PATH_PREFIXES = Object.freeze([
 ]);
 
 const DEFAULT_MAX_KEYS = 10000;
+export const MAX_EMAIL_KEY_LENGTH = 254;
+export const AUTH_SECURITY_NOTIFICATION_TITLE =
+  'Múltiples intentos fallidos de inicio de sesión';
 const AUTH_LIMIT_ERROR_MESSAGE =
   'Demasiados intentos de inicio de sesión. Por razones de seguridad, espera unos minutos antes de reintentar; si no reconoces esta actividad, cambia tu contraseña desde tu perfil.';
 
@@ -97,10 +100,12 @@ const extractClientIp = (req) =>
   req?.socket?.remoteAddress ||
   '127.0.0.1';
 
-export const normalizeLoginEmail = (rawEmail) =>
-  String(rawEmail || '')
-    .trim()
-    .toLowerCase();
+export const normalizeLoginEmail = (rawEmail) => {
+  if (typeof rawEmail !== 'string') {
+    return '';
+  }
+  return rawEmail.trim().toLowerCase().slice(0, MAX_EMAIL_KEY_LENGTH);
+};
 
 export const resolveAuthRateLimitKeys = (req) => {
   const ip = extractClientIp(req);
@@ -240,6 +245,7 @@ const defaultNotifyExistingAccountThreshold = async (normalizedEmail) => {
     import('../services/notificationService.js'),
   ]);
   const UserModel = db?.User;
+  const NotificationModel = db?.Notification;
   if (!UserModel || typeof UserModel.findOne !== 'function') return;
 
   const user = await UserModel.findOne({
@@ -248,11 +254,24 @@ const defaultNotifyExistingAccountThreshold = async (normalizedEmail) => {
   });
   if (!user) return;
 
+  if (NotificationModel && typeof NotificationModel.findOne === 'function') {
+    const existingUnread = await NotificationModel.findOne({
+      where: {
+        user_id: user.id,
+        category: 'seguridad',
+        title: AUTH_SECURITY_NOTIFICATION_TITLE,
+        is_read: false,
+      },
+      attributes: ['id'],
+    });
+    if (existingUnread) return;
+  }
+
   await createNotification({
     userId: user.id,
     category: 'seguridad',
     severity: 'warning',
-    title: 'Múltiples intentos fallidos de inicio de sesión',
+    title: AUTH_SECURITY_NOTIFICATION_TITLE,
     message:
       'Detectamos múltiples intentos fallidos recientes en tu cuenta. Si no reconoces esta actividad, cambia tu contraseña desde tu perfil.',
     actionUrl:
@@ -375,12 +394,29 @@ const evaluateAuthLayers = (stores, keys, windowMs, now, limits) => {
   return { blocked: false, layer: null, retryAfterSeconds: 0 };
 };
 
-const attachAuthSuccessRollback = (res, stores, keys, recordedAt) => {
+const isExplicitLoginSuccess = (req, res, wasAuthenticatedBefore) => {
+  if (!(res.statusCode > 0 && res.statusCode < 400)) {
+    return false;
+  }
+  if (res.locals?.loginSucceeded === true) {
+    return true;
+  }
+  return !wasAuthenticatedBefore && isAuthenticatedRequest(req);
+};
+
+const attachAuthSuccessRollback = (
+  req,
+  res,
+  stores,
+  keys,
+  recordedAt,
+  wasAuthenticatedBefore,
+) => {
   if (typeof res?.on !== 'function') {
     return;
   }
   res.on('finish', () => {
-    if (res.statusCode > 0 && res.statusCode < 400) {
+    if (isExplicitLoginSuccess(req, res, wasAuthenticatedBefore)) {
       rollbackHitFromStore(stores.ip, keys.ipKey, recordedAt);
       rollbackHitFromStore(stores.ipEmail, keys.ipEmailKey, recordedAt);
       if (keys.accountKey) {
@@ -489,12 +525,20 @@ export const createAuthRateLimiter = (options = {}) => {
       );
     }
 
+    const wasAuthenticatedBefore = isAuthenticatedRequest(req);
     appendHitToStore(stores.ip, keys.ipKey, windowMs, now, maxKeys);
     appendHitToStore(stores.ipEmail, keys.ipEmailKey, windowMs, now, maxKeys);
     if (keys.accountKey) {
       appendHitToStore(stores.account, keys.accountKey, windowMs, now, maxKeys);
     }
-    attachAuthSuccessRollback(res, stores, keys, now);
+    attachAuthSuccessRollback(
+      req,
+      res,
+      stores,
+      keys,
+      now,
+      wasAuthenticatedBefore,
+    );
 
     return next();
   };
@@ -514,6 +558,22 @@ export const createAuthRateLimiter = (options = {}) => {
     account: stores.account.size,
     notifiedAccounts: notifiedAccounts.size,
   });
+  middleware.getLayerHitCountsForReq = (req, now = Date.now()) => {
+    const keys = resolveAuthRateLimitKeys(req);
+    return {
+      ip: getActiveTimestamps(stores.ip, keys.ipKey, windowMs, now).length,
+      ipEmail: getActiveTimestamps(
+        stores.ipEmail,
+        keys.ipEmailKey,
+        windowMs,
+        now,
+      ).length,
+      account: keys.accountKey
+        ? getActiveTimestamps(stores.account, keys.accountKey, windowMs, now)
+            .length
+        : 0,
+    };
+  };
 
   return middleware;
 };
