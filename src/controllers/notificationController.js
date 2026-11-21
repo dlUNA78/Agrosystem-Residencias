@@ -2,6 +2,7 @@ import {
   getUserNotifications,
   markNotificationAsRead,
   markAllNotificationsAsRead,
+  resolveNotificationActionUrl,
   resolveOperationalSummary,
 } from '../services/notificationService.js';
 
@@ -66,17 +67,8 @@ export const markAllAsRead = async (req, res) => {
   }
 };
 
-const resolveSafeRedirectUrl = (url, userRole) => {
-  if (
-    url &&
-    typeof url === 'string' &&
-    url.startsWith('/') &&
-    !url.startsWith('//')
-  ) {
-    return url;
-  }
-  return userRole === 'agricultor' ? '/profile' : '/dashboard';
-};
+export const resolveSafeRedirectUrl = (url, userRole) =>
+  resolveNotificationActionUrl(url, userRole);
 
 export const openNotification = async (req, res) => {
   try {
@@ -95,6 +87,6 @@ export const openNotification = async (req, res) => {
     return res.redirect(redirectUrl);
   } catch (error) {
     console.error('Error al abrir notificación:', error);
-    return res.redirect('/dashboard');
+    return res.redirect(resolveSafeRedirectUrl(null, req.user?.role));
   }
 };

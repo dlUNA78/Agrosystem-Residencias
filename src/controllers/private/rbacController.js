@@ -6,7 +6,10 @@ import {
   revokeInifapCode,
 } from '../../services/inifapCodeService.js';
 import { canModifyUserRoleOrStatus } from '../../services/rbacService.js';
-import { createNotification } from '../../services/notificationService.js';
+import {
+  createNotification,
+  resolveNotificationActionUrl,
+} from '../../services/notificationService.js';
 
 const { RbacRole, User, AuditLog } = db;
 
@@ -214,7 +217,7 @@ export const updateUserPermissions = async (req, res) => {
       title: 'Permisos Actualizados',
       message:
         'Tu perfil institucional o capacidades delegadas han sido actualizadas por la administración.',
-      actionUrl: '/private/profile',
+      actionUrl: resolveNotificationActionUrl('/private/profile', user.role),
     });
 
     return res.redirect(
