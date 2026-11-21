@@ -81,3 +81,103 @@ export const sendNotFoundResponse = (req, res, message) => {
 
   return res.status(404).send(safeMessage);
 };
+
+export const formatRetryAfterWaitLabel = (retryAfterSeconds) => {
+  const safeSeconds = Math.max(1, Math.ceil(Number(retryAfterSeconds) || 60));
+  const minutes = Math.max(1, Math.ceil(safeSeconds / 60));
+  return minutes === 1
+    ? 'aproximadamente 1 minuto'
+    : `aproximadamente ${minutes} minutos`;
+};
+
+const isApiEndpointRequest = (req) =>
+  Boolean(
+    req?.xhr ||
+    req?.path?.startsWith('/api/') ||
+    req?.originalUrl?.startsWith('/api/'),
+  );
+
+const resolveAcceptsHeaderFallback = (acceptHeader) => {
+  const accept = String(acceptHeader || '');
+  if (accept.includes('application/json') && !accept.includes('text/html')) {
+    return 'json';
+  }
+  return accept.includes('text/html') ? 'html' : 'text';
+};
+
+const resolvePreferredContentType = (req) => {
+  if (isApiEndpointRequest(req)) {
+    return 'json';
+  }
+  if (typeof req?.accepts === 'function') {
+    const preferred = req.accepts(['html', 'json']);
+    return preferred === 'json' || preferred === 'html' ? preferred : 'text';
+  }
+  return resolveAcceptsHeaderFallback(req?.headers?.accept);
+};
+
+const normalizeRetryAfterSeconds = (retryAfterSeconds) =>
+  Math.max(1, Math.ceil(Number(retryAfterSeconds) || 1));
+
+const applyRetryAfterHeader = (res, retryAfterSeconds) => {
+  const value = String(normalizeRetryAfterSeconds(retryAfterSeconds));
+  if (typeof res?.setHeader === 'function') {
+    res.setHeader('Retry-After', value);
+  } else if (typeof res?.set === 'function') {
+    res.set('Retry-After', value);
+  }
+};
+
+const canRenderAppView = (req, res) =>
+  typeof res?.render === 'function' && Boolean(req?.app?.get?.('view engine'));
+
+const renderTooManyRequestsHtml = (
+  req,
+  res,
+  { safeMessage, safeRetryAfter, view, viewLocals },
+) => {
+  const layout = resolveErrorLayout(req);
+  if (view) {
+    return res.status(429).render(view, {
+      layout,
+      ...(viewLocals || {}),
+    });
+  }
+  return res.status(429).render('errors/429', {
+    layout,
+    pageTitle: 'Demasiadas solicitudes (429)',
+    errorMessage: safeMessage,
+    retryAfterSeconds: safeRetryAfter,
+    retryAfterLabel: formatRetryAfterWaitLabel(safeRetryAfter),
+    requestedPath: req.originalUrl || req.path || '/',
+  });
+};
+
+export const sendTooManyRequestsResponse = (req, res, options = {}) => {
+  const safeMessage =
+    options.message ||
+    'Has superado el límite temporal de solicitudes. Espera unos minutos e inténtalo de nuevo.';
+  const safeRetryAfter = normalizeRetryAfterSeconds(
+    options.retryAfterSeconds ?? 60,
+  );
+  applyRetryAfterHeader(res, safeRetryAfter);
+
+  const preferred = resolvePreferredContentType(req);
+  if (preferred === 'json') {
+    return res.status(429).json({
+      error: 'Too Many Requests',
+      message: safeMessage,
+    });
+  }
+
+  if (preferred === 'html' && canRenderAppView(req, res)) {
+    return renderTooManyRequestsHtml(req, res, {
+      safeMessage,
+      safeRetryAfter,
+      view: options.view || null,
+      viewLocals: options.viewLocals || null,
+    });
+  }
+
+  return res.status(429).send(safeMessage);
+};

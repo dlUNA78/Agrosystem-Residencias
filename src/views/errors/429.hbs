@@ -1,0 +1,65 @@
+<!-- Vista Institucional 429: Demasiadas Solicitudes · Geist Design System -->
+<section class="min-h-[75vh] flex items-center justify-center px-4 py-16 font-['Geist'] antialiased">
+  <div class="max-w-xl w-full bg-white rounded-3xl border border-amber-200/90 shadow-sm p-8 sm:p-10 text-center space-y-6 relative overflow-hidden">
+    <!-- Barra decorativa superior -->
+    <div class="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-amber-600 via-amber-500 to-[#1b4332]"></div>
+
+    <!-- Icono y Código de Estado -->
+    <div class="inline-flex flex-col items-center gap-3">
+      <div class="w-16 h-16 rounded-2xl bg-amber-50 border border-amber-200 text-amber-700 flex items-center justify-center shadow-2xs">
+        <span class="material-symbols-outlined text-3xl" aria-hidden="true">hourglass_top</span>
+      </div>
+      <span class="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 font-['Geist_Mono'] text-[11px] font-bold uppercase tracking-widest text-amber-800">
+        Error 429 · Límite Temporal Alcanzado
+      </span>
+    </div>
+
+    <!-- Mensaje Principal -->
+    <div class="space-y-2">
+      <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
+        Demasiadas solicitudes en poco tiempo
+      </h1>
+      <p role="alert" class="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-md mx-auto">
+        {{#if errorMessage}}
+          {{errorMessage}}
+        {{else}}
+          Has superado temporalmente el límite de solicitudes permitidas. Espera un momento e inténtalo de nuevo.
+        {{/if}}
+      </p>
+      {{#if retryAfterLabel}}
+      <p class="font-['Geist_Mono'] text-[11px] font-semibold text-amber-800">
+        Tiempo estimado de espera: {{retryAfterLabel}}
+      </p>
+      {{/if}}
+    </div>
+
+    <!-- Acciones de Retorno -->
+    <div class="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+      <a
+        href="/"
+        class="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-[#1b4332] px-5 py-2.5 text-xs font-bold text-white shadow-xs transition-all hover:bg-[#143326] active:scale-95"
+      >
+        <span class="material-symbols-outlined text-base" aria-hidden="true">home</span>
+        <span>Volver al Inicio</span>
+      </a>
+
+      {{#if user}}
+      <a
+        href="/profile"
+        class="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-xs font-bold text-slate-700 transition-all hover:bg-slate-50 hover:border-slate-300"
+      >
+        <span class="material-symbols-outlined text-base text-[#1b4332]" aria-hidden="true">person</span>
+        <span>Ir a Mi Perfil</span>
+      </a>
+      {{else}}
+      <a
+        href="/auth/login"
+        class="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-xs font-bold text-slate-700 transition-all hover:bg-slate-50 hover:border-slate-300"
+      >
+        <span class="material-symbols-outlined text-base text-[#1b4332]" aria-hidden="true">login</span>
+        <span>Iniciar Sesión</span>
+      </a>
+      {{/if}}
+    </div>
+  </div>
+</section>

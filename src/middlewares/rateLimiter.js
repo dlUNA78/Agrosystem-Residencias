@@ -1,3 +1,8 @@
+import {
+  formatRetryAfterWaitLabel,
+  sendTooManyRequestsResponse,
+} from '../utils/errorRenderer.js';
+
 const NON_PUBLIC_PATH_PREFIXES = Object.freeze([
   '/private',
   '/dashboard',
@@ -12,8 +17,9 @@ const DEFAULT_MAX_KEYS = 10000;
 export const MAX_EMAIL_KEY_LENGTH = 254;
 export const AUTH_SECURITY_NOTIFICATION_TITLE =
   'Múltiples intentos fallidos de inicio de sesión';
-const AUTH_LIMIT_ERROR_MESSAGE =
-  'Demasiados intentos de inicio de sesión. Por razones de seguridad, espera unos minutos antes de reintentar; si no reconoces esta actividad, cambia tu contraseña desde tu perfil.';
+
+export const formatAuthRateLimitMessage = (retryAfterSeconds) =>
+  `Demasiados intentos de inicio de sesión. Espera ${formatRetryAfterWaitLabel(retryAfterSeconds)} e inténtalo de nuevo. Si no reconoces esta actividad, cambia tu contraseña una vez que ingreses.`;
 
 let productionBypassWarned = false;
 let productionIgnoredWarned = false;
@@ -118,31 +124,30 @@ export const resolveAuthRateLimitKeys = (req) => {
   };
 };
 
-const isJsonLikeRequest = (req) =>
-  Boolean(
-    req?.xhr ||
-    req?.path?.startsWith('/api/') ||
-    req?.headers?.accept?.includes('application/json'),
-  );
+const extractPreservedEmail = (req) =>
+  typeof req?.body?.email === 'string'
+    ? req.body.email.trim().slice(0, MAX_EMAIL_KEY_LENGTH)
+    : '';
 
-const applyRetryAfterHeader = (res, retryAfterSeconds) => {
-  const value = String(Math.max(1, Math.ceil(retryAfterSeconds)));
-  if (typeof res?.setHeader === 'function') {
-    res.setHeader('Retry-After', value);
-  } else if (typeof res?.set === 'function') {
-    res.set('Retry-After', value);
-  }
-};
-
-const sendRateLimitExceeded = (req, res, errorMessage, retryAfterSeconds) => {
-  applyRetryAfterHeader(res, retryAfterSeconds);
-  if (isJsonLikeRequest(req)) {
-    return res.status(429).json({
-      error: 'Too Many Requests',
-      message: errorMessage,
-    });
-  }
-  return res.status(429).send(errorMessage);
+const sendRateLimitExceeded = (
+  req,
+  res,
+  errorMessage,
+  retryAfterSeconds,
+  renderOptions = null,
+) => {
+  const message =
+    typeof errorMessage === 'function'
+      ? errorMessage(retryAfterSeconds)
+      : errorMessage;
+  return sendTooManyRequestsResponse(req, res, {
+    message,
+    retryAfterSeconds,
+    view: renderOptions?.view || null,
+    viewLocals: renderOptions?.buildLocals
+      ? renderOptions.buildLocals(req, message, retryAfterSeconds)
+      : null,
+  });
 };
 
 export const pruneExpiredRateLimitEntries = (
@@ -474,7 +479,16 @@ export const createAuthRateLimiter = (options = {}) => {
     options.maxKeys ?? process.env.RATE_LIMIT_MAX_KEYS,
     DEFAULT_MAX_KEYS,
   );
-  const errorMessage = options.errorMessage || AUTH_LIMIT_ERROR_MESSAGE;
+  const errorMessage = options.errorMessage || formatAuthRateLimitMessage;
+  const authRenderOptions = {
+    view: 'auth/login',
+    buildLocals: (req, message, retryAfterSeconds) => ({
+      title: 'Iniciar Sesión',
+      error: message,
+      email: extractPreservedEmail(req),
+      retryAfterSeconds,
+    }),
+  };
   const notifyFn =
     options.onAccountThresholdReached || defaultNotifyExistingAccountThreshold;
 
@@ -522,6 +536,7 @@ export const createAuthRateLimiter = (options = {}) => {
         res,
         errorMessage,
         verdict.retryAfterSeconds,
+        authRenderOptions,
       );
     }
 

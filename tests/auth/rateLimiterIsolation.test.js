@@ -19,6 +19,7 @@ import {
   authLimiter,
   createAuthRateLimiter,
   createRateLimiter,
+  formatAuthRateLimitMessage,
   isRateLimitBypassed,
   MAX_EMAIL_KEY_LENGTH,
   normalizeLoginEmail,
@@ -26,6 +27,7 @@ import {
   resetRateLimitWarningState,
   resolveAuthRateLimitKeys,
   shouldSkipPublicRateLimiter,
+  upgradeLimiter,
 } from '../../src/middlewares/rateLimiter.js';
 
 const { User, Notification } = db;
@@ -75,6 +77,7 @@ describe('1.A4 Rate limiting en 3 capas, solo fallidos, Retry-After, tope duro y
   beforeEach(() => {
     publicRateLimiter.reset();
     authLimiter.reset();
+    upgradeLimiter.reset();
     resetRateLimitWarningState();
   });
 
@@ -629,5 +632,181 @@ describe('1.A4 Rate limiting en 3 capas, solo fallidos, Retry-After, tope duro y
     );
     expect(composeContent).toContain('LOADTEST_MODE:');
     expect(composeContent).toContain('DISABLE_RATE_LIMIT:');
+  });
+
+  it('negocia contenido en 429 de login: renderiza auth/login con mensaje, Retry-After y correo conservado (sin contraseña) en HTML, conserva JSON en API y muestra mensaje idéntico para correos existentes e inexistentes', async () => {
+    expect(formatAuthRateLimitMessage(900)).toBe(
+      'Demasiados intentos de inicio de sesión. Espera aproximadamente 15 minutos e inténtalo de nuevo. Si no reconoces esta actividad, cambia tu contraseña una vez que ingreses.',
+    );
+    expect(formatAuthRateLimitMessage(45)).toBe(
+      'Demasiados intentos de inicio de sesión. Espera aproximadamente 1 minuto e inténtalo de nuevo. Si no reconoces esta actividad, cambia tu contraseña una vez que ingreses.',
+    );
+
+    const wrongPassword = 'SuperSecretWrongPassword!99';
+
+    // 1) Correo existente: 5 fallos (401) + 6to en HTML -> 429 con vista de login
+    for (let i = 0; i < 5; i += 1) {
+      const r = await request(app)
+        .post('/auth/login?rateLimitTest=1')
+        .set('Accept', 'text/html')
+        .type('form')
+        .send({ email: LOGIN_TEST_EMAIL, password: wrongPassword });
+      expect(r.status).toBe(401);
+    }
+
+    const existingHtml429 = await request(app)
+      .post('/auth/login?rateLimitTest=1')
+      .set('Accept', 'text/html')
+      .type('form')
+      .send({ email: LOGIN_TEST_EMAIL, password: wrongPassword });
+
+    expect(existingHtml429.status).toBe(429);
+    expect(existingHtml429.headers['content-type']).toContain('text/html');
+    expect(
+      Number(existingHtml429.headers['retry-after']),
+    ).toBeGreaterThanOrEqual(1);
+    expect(existingHtml429.text).toContain('<!DOCTYPE');
+    expect(existingHtml429.text).toContain(
+      '<form action="/auth/login" method="POST"',
+    );
+    expect(existingHtml429.text).toContain(
+      'Demasiados intentos de inicio de sesión. Espera aproximadamente 15 minutos e inténtalo de nuevo. Si no reconoces esta actividad, cambia tu contraseña una vez que ingreses.',
+    );
+    expect(existingHtml429.text).toContain(`value="${LOGIN_TEST_EMAIL}"`);
+    expect(existingHtml429.text).not.toContain(wrongPassword);
+
+    // Misma ruta en JSON conserva el formato JSON + Retry-After
+    const existingJson429 = await request(app)
+      .post('/auth/login?rateLimitTest=1')
+      .set('Accept', 'application/json')
+      .send({ email: LOGIN_TEST_EMAIL, password: wrongPassword });
+    expect(existingJson429.status).toBe(429);
+    expect(existingJson429.headers['content-type']).toContain(
+      'application/json',
+    );
+    expect(
+      Number(existingJson429.headers['retry-after']),
+    ).toBeGreaterThanOrEqual(1);
+    expect(existingJson429.body).toEqual({
+      error: 'Too Many Requests',
+      message:
+        'Demasiados intentos de inicio de sesión. Espera aproximadamente 15 minutos e inténtalo de nuevo. Si no reconoces esta actividad, cambia tu contraseña una vez que ingreses.',
+    });
+
+    // 2) Correo inexistente: el mensaje 429 en HTML y en JSON es idéntico al de un correo existente
+    const nonexistentEmail = 'no_existe_html_429@agrosystem.test';
+    for (let i = 0; i < 5; i += 1) {
+      const r = await request(app)
+        .post('/auth/login?rateLimitTest=1')
+        .set('Accept', 'text/html')
+        .type('form')
+        .send({ email: nonexistentEmail, password: wrongPassword });
+      expect(r.status).toBe(401);
+    }
+
+    const missingHtml429 = await request(app)
+      .post('/auth/login?rateLimitTest=1')
+      .set('Accept', 'text/html')
+      .type('form')
+      .send({ email: nonexistentEmail, password: wrongPassword });
+    const missingJson429 = await request(app)
+      .post('/auth/login?rateLimitTest=1')
+      .set('Accept', 'application/json')
+      .send({ email: nonexistentEmail, password: wrongPassword });
+
+    expect(missingHtml429.status).toBe(429);
+    expect(missingHtml429.text).toContain(existingJson429.body.message);
+    expect(missingHtml429.text).toContain(`value="${nonexistentEmail}"`);
+    expect(missingHtml429.text).not.toContain(wrongPassword);
+    expect(missingJson429.status).toBe(429);
+    expect(missingJson429.body).toEqual(existingJson429.body);
+  });
+
+  it('publicRateLimiter y upgradeLimiter renderizan página amigable 429 con layout en HTML y conservan JSON en API/JSON', async () => {
+    // A) publicRateLimiter sobre vista HTML (/crops) y sobre API (/api/crops)
+    for (let i = 0; i < 30; i += 1) {
+      const ok = await request(app)
+        .get('/api/crops?rateLimitTest=1')
+        .set('Accept', 'application/json');
+      expect(ok.status).toBe(200);
+    }
+
+    const publicHtml429 = await request(app)
+      .get('/crops?rateLimitTest=1')
+      .set('Accept', 'text/html');
+    expect(publicHtml429.status).toBe(429);
+    expect(publicHtml429.headers['content-type']).toContain('text/html');
+    expect(Number(publicHtml429.headers['retry-after'])).toBeGreaterThanOrEqual(
+      1,
+    );
+    expect(publicHtml429.text).toContain('<!DOCTYPE');
+    expect(publicHtml429.text).toContain(
+      'Error 429 · Límite Temporal Alcanzado',
+    );
+    expect(publicHtml429.text).toContain(
+      'Ha superado el límite de peticiones permitidas',
+    );
+
+    const publicJson429 = await request(app)
+      .get('/api/crops?rateLimitTest=1')
+      .set('Accept', 'application/json');
+    expect(publicJson429.status).toBe(429);
+    expect(publicJson429.headers['content-type']).toContain('application/json');
+    expect(Number(publicJson429.headers['retry-after'])).toBeGreaterThanOrEqual(
+      1,
+    );
+    expect(publicJson429.body).toEqual({
+      error: 'Too Many Requests',
+      message: expect.stringContaining(
+        'Ha superado el límite de peticiones permitidas',
+      ),
+    });
+
+    // B) upgradeLimiter sobre sesión autenticada en HTML y en JSON
+    const farmerAgent = request.agent(app);
+    const loginRes = await farmerAgent
+      .post('/auth/login')
+      .send({ email: LOGIN_TEST_EMAIL, password: LOGIN_TEST_PASSWORD });
+    expect(loginRes.status).toBe(302);
+
+    for (let i = 0; i < 3; i += 1) {
+      await farmerAgent
+        .post('/auth/inifap-upgrade?rateLimitTest=1')
+        .set('Accept', 'text/html')
+        .type('form')
+        .send({ secret_code: 'AGS-FAKE-0000-0000' });
+    }
+
+    const upgradeHtml429 = await farmerAgent
+      .post('/auth/inifap-upgrade?rateLimitTest=1')
+      .set('Accept', 'text/html')
+      .type('form')
+      .send({ secret_code: 'AGS-FAKE-0000-0000' });
+    expect(upgradeHtml429.status).toBe(429);
+    expect(upgradeHtml429.headers['content-type']).toContain('text/html');
+    expect(
+      Number(upgradeHtml429.headers['retry-after']),
+    ).toBeGreaterThanOrEqual(1);
+    expect(upgradeHtml429.text).toContain('<!DOCTYPE');
+    expect(upgradeHtml429.text).toContain(
+      'Error 429 · Límite Temporal Alcanzado',
+    );
+    expect(upgradeHtml429.text).toContain('Demasiados intentos de canje');
+
+    const upgradeJson429 = await farmerAgent
+      .post('/auth/inifap-upgrade?rateLimitTest=1')
+      .set('Accept', 'application/json')
+      .send({ secret_code: 'AGS-FAKE-0000-0000' });
+    expect(upgradeJson429.status).toBe(429);
+    expect(upgradeJson429.headers['content-type']).toContain(
+      'application/json',
+    );
+    expect(
+      Number(upgradeJson429.headers['retry-after']),
+    ).toBeGreaterThanOrEqual(1);
+    expect(upgradeJson429.body).toEqual({
+      error: 'Too Many Requests',
+      message: expect.stringContaining('Demasiados intentos de canje'),
+    });
   });
 });

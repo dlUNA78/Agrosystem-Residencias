@@ -18,9 +18,14 @@ router.post('/login', authLimiter, (req, res, next) => {
   passport.authenticate('local', (err, user, info) => {
     if (err) return next(err);
     if (!user) {
+      const preservedEmail =
+        typeof req.body?.email === 'string'
+          ? req.body.email.trim().slice(0, 254)
+          : '';
       return res.status(401).render('auth/login', {
         title: 'Iniciar Sesión',
         error: info?.message || 'Credenciales incorrectas.',
+        email: preservedEmail,
       });
     }
 
