@@ -238,3 +238,24 @@ Para confirmar si el límite de `~130–142 req/s` del catálogo correspondía a
 1. **Confirmación de cuello en CPU de un solo proceso Node (`1 -> 2` réplicas)**: duplicar de `1` a `2` procesos incrementó el rendimiento en **`+47.4%`** (`117.14 -> 172.70 req/s`), redujo el promedio en **`-32.2%`** (`1,642.43 -> 1,112.95 ms`) y recortó la mediana en **`-46.2%`** (`1,595.21 -> 858.14 ms`), mientras PostgreSQL pasó de `34.5–37.1%` a `62.8–69.2%` de uso de 1 core sin saturarse. El salto Nginx agregó sobrecarga ligera respecto al baseline directo sin proxy (`141.89 req/s` / `p95 2,471.45 ms` en `0.A4` vs `117.14 req/s` / `p95 2,978.97 ms` en `N=1` con proxy en la misma VM).
 2. **Rendimiento decreciente en `4` réplicas por techo físico de `4` vCPUs**: subir a `4` réplicas aportó solo `+12.0%` adicional sobre `2` réplicas (`193.36 req/s`), bajó la mediana a **`202.17 ms`** (`-87.3%` vs `N=1`), pero amplió el `p95` a **`4,421.21 ms`**. En `N=4`, la suma de `4` workers Node (`65–83%` c/u) + PostgreSQL (`89.7–91.6%`) + Nginx (`11.2%`) + `k6.exe` agotó los **`4` vCPUs** del entorno (`~390%` solo dentro de WSL2), generando contención de planificación CPU y una distribución bimodal en la cola `p90`/`p95`.
 3. **Comportamiento del limitador de tasa por instancia**: durante el experimento `DISABLE_RATE_LIMIT=true` estuvo activo (`0.A5`), evitando rechazos `429`. Sin embargo, si se activaran los limitadores actuales sin modificar código ([rateLimiter.js](../src/middlewares/rateLimiter.js#L9-L54)), cada réplica mantendría su propio `Map` en memoria (`requestCounts`), por lo que la cuota sería independiente por instancia (`N x 30 req/min` efectivos y contando contra la IP del proxy Nginx al no haber almacén compartido); no se modificó en esta fase por alcance.
+
+---
+
+## 8. Metodología de comparación para el cierre de la Fase 1 (dataset ampliado)
+
+Como en `1.A3` se amplió [seedLoadTestData.js](../src/scripts/seedLoadTestData.js) para poblar también `FarmLots` (`50,000`), `FarmHealthReports` (`50,000`) y `FarmApplications` (`100,000`) junto con `Farms` (`50,002`), `FarmCrops` (`50,000`), `AuditLogs` (`500,000`), `Notifications` (`50,000`) y `session` (`100,000`), el cierre de la Fase 1 comparará ambos estados exactamente sobre **el mismo dataset físico, el mismo hardware y la misma duración**:
+
+1. **Clonar la base de carga con el dataset ampliado mediante `TEMPLATE`**:
+   ```sql
+   CREATE DATABASE agrosystem_load_fase0 TEMPLATE agrosystem_load;
+   ```
+2. **Revertir en la copia únicamente las migraciones de la Fase 1 hasta la última migración de la Fase 0 (`20261111000001-add-dual-approval-deactivation-workflow.js`)**:
+   ```bash
+   DB_NAME=agrosystem_load_fase0 pnpm exec sequelize-cli db:migrate:undo:all --to 20261118000001-add-farms-user-status-created-id-index.js
+   ```
+   _(En `sequelize-cli`, `--to <migración>` revierte inclusive la migración indicada, dejando la base exactamente en `20261111000001-add-dual-approval-deactivation-workflow.js`.)_
+3. **Ejecutar el baseline de Fase 0 sobre la copia**:
+   - Levantar un `git worktree` en el commit de la Fase 0 (`654570042f5fff13281be201447e4c0a8cfc385f`) apuntando a `agrosystem_load_fase0` y ejecutar las corridas de `k6` (`catalog.js`, `pdf.js`, `auth-panel.js`).
+4. **Ejecutar el cierre de Fase 1 sobre `agrosystem_load`**:
+   - Correr exactamente los mismos scripts, escalones de VUs y duración desde el commit final de la Fase 1 apuntando a `agrosystem_load` (con todas las migraciones de Fase 1 aplicadas).
+   - Al concluir la corrida final de `k6`, consultar `pg_stat_user_indexes` y reportar cualquier índice con `idx_scan = 0`.
