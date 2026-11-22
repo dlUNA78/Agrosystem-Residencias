@@ -561,72 +561,83 @@ describe('🔔 Centro de Notificaciones Híbrido', () => {
       }
     });
 
-    it('valida API y redirección de notificaciones para agricultor, inifap (con y sin sub-rol), roles RBAC personalizados y admin', async () => {
-      const otherUsersNotif = await createNotification({
-        userId: adminUser.id,
-        title: 'Privada de admin',
-        message: 'No accesible por otros usuarios',
-        actionUrl: '/private/users',
-      });
+    const buildRoleScenarios = () => [
+      {
+        label: 'agricultor',
+        user: farmerUser,
+        email: FARMER_EMAIL,
+        actionUrl: '/private/crops/1',
+        expectedLocation: '/crops',
+        adminActionExpected: '/profile',
+        expectOtherRead404: true,
+      },
+      {
+        label: 'agricultor con rol RBAC personalizado',
+        user: farmerCustomRoleUser,
+        email: FARMER_CUSTOM_ROLE_EMAIL,
+        actionUrl: '/dashboard',
+        expectedLocation: '/profile',
+        adminActionExpected: '/profile',
+        expectOtherRead404: true,
+      },
+      {
+        label: 'inifap sin sub-rol RBAC',
+        user: testUser,
+        email: TEST_USER_EMAIL,
+        actionUrl: '/private/crops',
+        expectedLocation: '/private/crops',
+        adminActionExpected: '/dashboard',
+        expectOtherRead404: true,
+      },
+      {
+        label: 'inifap con sub-rol RBAC de sistema',
+        user: inifapSubRoleUser,
+        email: INIFAP_SUBROLE_EMAIL,
+        actionUrl: '/private/crops',
+        expectedLocation: '/private/crops',
+        adminActionExpected: '/dashboard',
+        expectOtherRead404: true,
+      },
+      {
+        label: 'inifap con rol RBAC personalizado',
+        user: inifapCustomRoleUser,
+        email: INIFAP_CUSTOM_ROLE_EMAIL,
+        actionUrl: '/private/crops',
+        expectedLocation: '/private/crops',
+        adminActionExpected: '/dashboard',
+        expectOtherRead404: true,
+      },
+      {
+        label: 'admin',
+        user: adminUser,
+        email: TEST_ADMIN_EMAIL,
+        actionUrl: '/private/crops',
+        expectedLocation: '/private/crops',
+        adminActionExpected: '/private/users',
+        expectOtherRead404: false,
+      },
+    ];
 
-      const roleScenarios = [
-        {
-          label: 'agricultor',
-          user: farmerUser,
-          email: FARMER_EMAIL,
-          actionUrl: '/private/crops/1',
-          expectedLocation: '/crops',
-          adminActionExpected: '/profile',
-          expectOtherRead404: true,
-        },
-        {
-          label: 'agricultor con rol RBAC personalizado',
-          user: farmerCustomRoleUser,
-          email: FARMER_CUSTOM_ROLE_EMAIL,
-          actionUrl: '/dashboard',
-          expectedLocation: '/profile',
-          adminActionExpected: '/profile',
-          expectOtherRead404: true,
-        },
-        {
-          label: 'inifap sin sub-rol RBAC',
-          user: testUser,
-          email: TEST_USER_EMAIL,
-          actionUrl: '/private/crops',
-          expectedLocation: '/private/crops',
-          adminActionExpected: '/dashboard',
-          expectOtherRead404: true,
-        },
-        {
-          label: 'inifap con sub-rol RBAC de sistema',
-          user: inifapSubRoleUser,
-          email: INIFAP_SUBROLE_EMAIL,
-          actionUrl: '/private/crops',
-          expectedLocation: '/private/crops',
-          adminActionExpected: '/dashboard',
-          expectOtherRead404: true,
-        },
-        {
-          label: 'inifap con rol RBAC personalizado',
-          user: inifapCustomRoleUser,
-          email: INIFAP_CUSTOM_ROLE_EMAIL,
-          actionUrl: '/private/crops',
-          expectedLocation: '/private/crops',
-          adminActionExpected: '/dashboard',
-          expectOtherRead404: true,
-        },
-        {
-          label: 'admin',
-          user: adminUser,
-          email: TEST_ADMIN_EMAIL,
-          actionUrl: '/private/crops',
-          expectedLocation: '/private/crops',
-          adminActionExpected: '/private/users',
-          expectOtherRead404: false,
-        },
-      ];
+    it.each([
+      'agricultor',
+      'agricultor con rol RBAC personalizado',
+      'inifap sin sub-rol RBAC',
+      'inifap con sub-rol RBAC de sistema',
+      'inifap con rol RBAC personalizado',
+      'admin',
+    ])(
+      'valida API y redirección de notificaciones para rol: %s',
+      async (scenarioLabel) => {
+        const otherUsersNotif = await createNotification({
+          userId: adminUser.id,
+          title: 'Privada de admin',
+          message: 'No accesible por otros usuarios',
+          actionUrl: '/private/users',
+        });
 
-      for (const scenario of roleScenarios) {
+        const scenario = buildRoleScenarios().find(
+          (item) => item.label === scenarioLabel,
+        );
         const agent = await loginAs(scenario.email);
         const ownNotif = await createNotification({
           userId: scenario.user.id,
@@ -694,8 +705,8 @@ describe('🔔 Centro de Notificaciones Híbrido', () => {
         const readAllRes = await agent.post('/api/notifications/read-all');
         expect(readAllRes.status).toBe(200);
         expect(readAllRes.body.success).toBe(true);
-      }
-    });
+      },
+    );
 
     it('genera action_url acorde al rol en notifyAuthorOnWorkflowChange y rbacController', async () => {
       await notifyAuthorOnWorkflowChange({

@@ -31,31 +31,48 @@ const createMockPool = ({
   users = [{ id: 1 }],
   regions = [{ id: 10 }],
   crops = [{ id: 20 }],
+  plagues = [{ id: 30, name: 'Gusano cogollero' }],
+  products = [
+    { id: 40, name: 'Fungicida Base', active_ingredient: 'Azoxistrobina' },
+  ],
   failOnSql = null,
 } = {}) => {
   const queries = [];
+  const selectMap = [
+    ['FROM "Users"', users],
+    ['FROM "Regions"', regions],
+    ['FROM "Crops"', crops],
+    ['FROM "Plagues"', plagues],
+    ['FROM "Products"', products],
+    ['FROM "FarmCrops"', [{ id: 500 }]],
+  ];
+
+  const resolveMockQuery = (text, params) => {
+    if (text.startsWith('DELETE FROM')) {
+      return { rowCount: 3, rows: [] };
+    }
+    if (text.includes('RETURNING id')) {
+      const rows = [];
+      for (let id = params[1]; id <= params[2]; id += 1) {
+        rows.push({ id: 1000 + id });
+      }
+      return { rows, rowCount: rows.length };
+    }
+    if (text.startsWith('SELECT')) {
+      const match = selectMap.find(([pattern]) => text.includes(pattern));
+      if (match) return { rows: match[1] };
+    }
+    return { rows: [], rowCount: 0 };
+  };
+
   const client = {
     query: jest.fn(async (sql, params) => {
-      queries.push({ sql: String(sql), params });
-      if (failOnSql && String(sql).includes(failOnSql)) {
+      const text = String(sql);
+      queries.push({ sql: text, params });
+      if (failOnSql && text.includes(failOnSql)) {
         throw new Error('Injected SQL failure');
       }
-      if (String(sql).includes('FROM "Users"')) return { rows: users };
-      if (String(sql).includes('FROM "Regions"')) return { rows: regions };
-      if (String(sql).includes('FROM "Crops"')) return { rows: crops };
-      if (String(sql).includes('RETURNING id')) {
-        const start = params[1];
-        const end = params[2];
-        const rows = [];
-        for (let id = start; id <= end; id += 1) {
-          rows.push({ id: 1000 + id });
-        }
-        return { rows, rowCount: rows.length };
-      }
-      if (String(sql).startsWith('DELETE FROM')) {
-        return { rowCount: 3, rows: [] };
-      }
-      return { rows: [], rowCount: 0 };
+      return resolveMockQuery(text, params);
     }),
     release: jest.fn(),
   };
@@ -183,6 +200,9 @@ describe('seedLoadTestData CLI & guard', () => {
         '--farms',
         '100',
         '--cycles=50',
+        '--lots=40',
+        '--health-reports=30',
+        '--applications=60',
         '--audit',
         '0',
         '--notifications=20',
@@ -194,6 +214,9 @@ describe('seedLoadTestData CLI & guard', () => {
     ).toEqual({
       farms: 100,
       cycles: 50,
+      lots: 40,
+      healthReports: 30,
+      applications: 60,
       audit: 0,
       notifications: 20,
       sessions: 15,
@@ -222,6 +245,9 @@ describe('seedLoadTestData CLI & guard', () => {
     const help = buildHelpText();
     expect(help).toContain('--reset');
     expect(help).toContain('--farms');
+    expect(help).toContain('--lots');
+    expect(help).toContain('--health-reports');
+    expect(help).toContain('--applications');
     expect(help).toContain('--audit');
     expect(help).toContain('--sessions');
     expect(help).toContain('NODE_ENV=production');
@@ -234,6 +260,9 @@ describe('resetSyntheticData & seedLoadTestData orchestration', () => {
     const deleted = await resetSyntheticData(mock.client);
 
     expect(deleted).toEqual({
+      farmApplications: 3,
+      farmHealthReports: 3,
+      farmLots: 3,
       farmCrops: 3,
       farms: 3,
       auditLogs: 3,
@@ -242,13 +271,28 @@ describe('resetSyntheticData & seedLoadTestData orchestration', () => {
     });
 
     const sqlStatements = mock.queries.map((q) => q.sql);
+    const appsIdx = sqlStatements.findIndex((s) =>
+      s.includes('DELETE FROM "FarmApplications"'),
+    );
+    const healthIdx = sqlStatements.findIndex((s) =>
+      s.includes('DELETE FROM "FarmHealthReports"'),
+    );
+    const lotsIdx = sqlStatements.findIndex((s) =>
+      s.includes('DELETE FROM "FarmLots"'),
+    );
     const cyclesIdx = sqlStatements.findIndex((s) =>
       s.includes('DELETE FROM "FarmCrops"'),
     );
     const farmsIdx = sqlStatements.findIndex((s) =>
       s.includes('DELETE FROM "Farms"'),
     );
+    expect(appsIdx).toBeGreaterThanOrEqual(0);
+    expect(healthIdx).toBeGreaterThanOrEqual(0);
+    expect(lotsIdx).toBeGreaterThanOrEqual(0);
     expect(cyclesIdx).toBeGreaterThanOrEqual(0);
+    expect(farmsIdx).toBeGreaterThan(appsIdx);
+    expect(farmsIdx).toBeGreaterThan(healthIdx);
+    expect(farmsIdx).toBeGreaterThan(lotsIdx);
     expect(farmsIdx).toBeGreaterThan(cyclesIdx);
 
     expect(mock.queries[cyclesIdx].params).toEqual([`${LOADTEST_PREFIX}%`]);
@@ -296,6 +340,9 @@ describe('resetSyntheticData & seedLoadTestData orchestration', () => {
     expect(res.inserted).toEqual({
       farms: 0,
       cycles: 0,
+      lots: 0,
+      healthReports: 0,
+      applications: 0,
       audit: 0,
       notifications: 0,
       sessions: 0,
@@ -316,6 +363,9 @@ describe('resetSyntheticData & seedLoadTestData orchestration', () => {
       {
         farms: 5,
         cycles: 4,
+        lots: 3,
+        healthReports: 4,
+        applications: 5,
         audit: 7,
         notifications: 3,
         sessions: 6,
@@ -329,6 +379,9 @@ describe('resetSyntheticData & seedLoadTestData orchestration', () => {
     expect(seedRes.inserted).toEqual({
       farms: 5,
       cycles: 4,
+      lots: 3,
+      healthReports: 4,
+      applications: 5,
       audit: 7,
       notifications: 3,
       sessions: 6,
@@ -340,6 +393,9 @@ describe('resetSyntheticData & seedLoadTestData orchestration', () => {
       {
         farms: 2,
         cycles: 0,
+        lots: 0,
+        healthReports: 0,
+        applications: 0,
         audit: 0,
         notifications: 0,
         sessions: 2,
@@ -407,6 +463,9 @@ const shouldRunDbIntegration = /test/i.test(process.env.DB_NAME || '');
           {
             farms: 2,
             cycles: 3,
+            lots: 2,
+            healthReports: 3,
+            applications: 4,
             audit: 4,
             notifications: 3,
             sessions: 4,
@@ -426,6 +485,9 @@ const shouldRunDbIntegration = /test/i.test(process.env.DB_NAME || '');
         expect(result.inserted).toEqual({
           farms: 2,
           cycles: 3,
+          lots: 2,
+          healthReports: 3,
+          applications: 4,
           audit: 4,
           notifications: 3,
           sessions: 4,
