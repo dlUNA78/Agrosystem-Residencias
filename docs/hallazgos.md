@@ -67,3 +67,32 @@ Problemas detectados durante la ejecución y perfilado de la **Fase 0 (`0.A1`, `
   - La capa 3 de `authLimiter` fija un tope de **`25` intentos fallidos cada `15` minutos** por cuenta (`AUTH_ACCOUNT_RATE_LIMIT_MAX=25`) sin retraso progresivo (para evitar conexiones abiertas como vector de DoS).
   - Si un atacante distribuye 25 intentos fallidos desde múltiples IPs contra un correo específico, el propietario legítimo de esa cuenta quedará bloqueado temporalmente con HTTP `429` (`Retry-After`) durante hasta **15 minutos** hasta que expire la ventana.
   - **Seguimiento con usuarios reales**: una vez desplegado el sistema con tráfico real, monitorear incidencias de `429` por cuenta y evaluar alternativas sin bloqueo al dueño legítimo (p. ej., reto CAPTCHA adaptativo o desbloqueo por enlace de un solo uso por correo) si aparecen ataques dirigidos.
+
+## 10. Tareas futuras identificadas fuera de la Fase 1
+
+Las siguientes mejoras fueron detectadas al validar la Fase 1 y quedan registradas como **tareas futuras fuera del alcance de la Fase 1** (sin implementar todavía).
+
+### F-1: Contenido útil en notificaciones editoriales y sección "Mis sugerencias" en `/profile`
+
+- **Ubicación**: [notificationService.js](../src/services/notificationService.js#L203-L230), [cropWorkflowService.js](../src/services/cropWorkflowService.js#L115-L120), [plagueWorkflowService.js](../src/services/plagueWorkflowService.js#L110-L118), [productWorkflowService.js](../src/services/productWorkflowService.js#L98-L108), [profileService.js](../src/services/profileService.js#L38-L61), [profile.hbs](../src/views/shared/profile.hbs#L561-L651), [notifications-hub.js](../public/js/shared/notifications-hub.js#L85-L121).
+- **Problema observado**:
+  - Hoy el rol `agricultor` no tiene ninguna vista ni pestaña donde consultar el estado de sus sugerencias enviadas (`POST /suggestions/:catalog`) ni leer el motivo cuando un revisor solicita cambios o rechaza/archiva la ficha; al abrir la notificación, solo es redirigido al catálogo o ficha correspondiente.
+  - **Verificación del flujo editorial**: los tres servicios de workflow (`cropWorkflowService.js`, `plagueWorkflowService.js`, `productWorkflowService.js`) **sí exigen y persisten el motivo en BD** (`review_notes` obligatorio en `request_changes` bajo error `REVIEW_NOTES_REQUIRED`, `archive_reason` en `request_archive`, `archive_approval_notes` en `approve_archive` y `review_notes` en `reject_archive`), pero `notifyAuthorOnWorkflowChange` hoy no recibe ni incluye ese motivo y muestra el código interno (`changes_requested`, `verified`, etc.) sin etiqueta legible.
+- **Alcance propuesto para F-1**:
+  1. **Enriquecer las notificaciones editoriales**: incluir explícitamente el catálogo y nombre de la ficha, el nuevo estado en español legible (p. ej. _En revisión_, _Cambios solicitados_, _Verificada_, _Publicada_, _Archivada_) y el motivo/observaciones (`review_notes` o `archive_reason`) cuando existan.
+  2. **Agregar pestaña/sección "Mis sugerencias" en `/profile`**: listar las propuestas enviadas por el usuario (`Crops`, `Plagues` y `Products` filtrados por `created_by_user_id = user.id`) con estado actual, fecha de actualización, observaciones de revisión/rechazo si existen y enlace directo a la ficha pública cuando esté publicada.
+  3. **Ajustar redirección en `resolveNotificationActionUrl`**: una vez exista `/profile#tab-suggestions` (o ruta equivalente), redirigir allí las notificaciones de sugerencias no publicadas del agricultor en lugar del listado general del catálogo.
+
+### F-2: Alinear contraseñas de usuarios por defecto con la política de seguridad y revisar pruebas
+
+- **Ubicación**: [seedDefaultUsers.js](../src/scripts/seedDefaultUsers.js#L9-L93), [20260615190144-demo-users.js](../src/seeders/20260615190144-demo-users.js#L7-L8), [validators.js](../src/utils/validators.js#L77-L101), [app.js](../app.js#L499).
+- **Problema observado**:
+  - La política de contraseñas en `validatePasswordPolicy` ([validators.js](../src/utils/validators.js#L77-L101)) exige **8–72 caracteres, al menos 1 mayúscula, 1 minúscula y 1 número** (y `profileService.js` exige ≥8 caracteres).
+  - En `main`, tanto `seedDefaultUsers.js` como el seeder `20260615190144-demo-users.js` crean 5 cuentas demo (`investigador@agrosystem.com`, `tecnico@agrosystem.com`, `juan@agricultor.com`, `agricultor@agrosystem.com`, `farmer_expediente@agrosystem.com`) con contraseña `'123456'` (6 caracteres, sin letras) y `admin@agrosystem.com` con `'admin123'` (8 caracteres sin mayúscula).
+  - Además, `seedDefaultUsers()` sobrescribe `password_hash` en cada arranque para los correos sembrados y hoy `app.js` lo ejecuta cuando `NODE_ENV !== 'test'` (incluyendo `production`).
+- **Verificación preliminar de tests existentes**:
+  - Ninguna suite de Jest depende de `'123456'` ni `'admin123'`: [rbacManagement.test.js](../tests/private/rbacManagement.test.js#L31-L107) y [usersManagement.test.js](../tests/users/usersManagement.test.js#L19-L80) reemplazan explícitamente el hash en `beforeAll` con `'Admin@1234'` y `'Farmer@1234'`, y [loadtestsConfig.test.js](../tests/loadtests/loadtestsConfig.test.js#L220) prohíbe `admin123|123456` en `loadtests/`.
+- **Alcance propuesto para F-2**:
+  1. Cambiar todas las contraseñas demo en `seedDefaultUsers.js` y `20260615190144-demo-users.js` para que cumplan `validatePasswordPolicy` (≥8 caracteres, mayúscula, minúscula y número) y añadir prueba unitaria que valide las credenciales de desarrollo contra dicha política.
+  2. Revisar tests, scripts y documentación local (`docs/`) por si algún flujo manual o automatizado asume las contraseñas anteriores.
+  3. Confirmar en coordinación con **`1.A8`** que `seedDefaultUsers()` nunca corre en `NODE_ENV=production` ni sobrescribe contraseñas ya existentes.
