@@ -22,6 +22,9 @@ export const DEFAULT_LOADTEST_DB_NAME = 'agrosystem_load';
 export const DEFAULT_OPTIONS = Object.freeze({
   farms: 50000,
   cycles: 50000,
+  lots: 50000,
+  healthReports: 50000,
+  applications: 100000,
   audit: 500000,
   notifications: 50000,
   sessions: 100000,
@@ -35,6 +38,9 @@ export const DEFAULT_OPTIONS = Object.freeze({
 const NUMERIC_FLAG_MAP = Object.freeze({
   '--farms': 'farms',
   '--cycles': 'cycles',
+  '--lots': 'lots',
+  '--health-reports': 'healthReports',
+  '--applications': 'applications',
   '--audit': 'audit',
   '--notifications': 'notifications',
   '--sessions': 'sessions',
@@ -231,16 +237,19 @@ export const buildHelpText = () =>
 Genera datos sintéticos repetibles para pruebas de rendimiento (bloqueado si NODE_ENV=production).
 
 Opciones:
-  --farms N          Terrenos sintéticos a generar (default: ${DEFAULT_OPTIONS.farms})
-  --cycles N         Ciclos de cultivo sintéticos a generar (default: ${DEFAULT_OPTIONS.cycles})
-  --audit N          Registros de auditoría sintéticos (default: ${DEFAULT_OPTIONS.audit})
-  --notifications N  Notificaciones sintéticas (default: ${DEFAULT_OPTIONS.notifications})
-  --sessions N       Sesiones sintéticas en "session" (default: ${DEFAULT_OPTIONS.sessions})
-  --batch-size N     Tamaño de lote SQL por consulta (default: ${DEFAULT_OPTIONS.batchSize})
-  --reset            Elimina únicamente los datos sintéticos previos y termina
-  --seed             Combinado con --reset: limpia primero y luego genera el lote
-  --append           Conserva los datos sintéticos existentes en lugar de reiniciar antes de sembrar
-  --help, -h         Muestra esta ayuda`;
+  --farms N           Terrenos sintéticos a generar (default: ${DEFAULT_OPTIONS.farms})
+  --cycles N          Ciclos de cultivo sintéticos a generar (default: ${DEFAULT_OPTIONS.cycles})
+  --lots N            Lotes de terreno sintéticos en "FarmLots" (default: ${DEFAULT_OPTIONS.lots})
+  --health-reports N  Reportes sanitarios en "FarmHealthReports" (default: ${DEFAULT_OPTIONS.healthReports})
+  --applications N    Aplicaciones en "FarmApplications" (default: ${DEFAULT_OPTIONS.applications})
+  --audit N           Registros de auditoría sintéticos (default: ${DEFAULT_OPTIONS.audit})
+  --notifications N   Notificaciones sintéticas (default: ${DEFAULT_OPTIONS.notifications})
+  --sessions N        Sesiones sintéticas en "session" (default: ${DEFAULT_OPTIONS.sessions})
+  --batch-size N      Tamaño de lote SQL por consulta (default: ${DEFAULT_OPTIONS.batchSize})
+  --reset             Elimina únicamente los datos sintéticos previos y termina
+  --seed              Combinado con --reset: limpia primero y luego genera el lote
+  --append            Conserva los datos sintéticos existentes en lugar de reiniciar antes de sembrar
+  --help, -h          Muestra esta ayuda`;
 
 export const createDbPool = (
   env = process.env,
@@ -261,6 +270,27 @@ const countRows = (res) => res.rowCount || 0;
 export const resetSyntheticData = async (client, { vacuum = false } = {}) => {
   const farmPattern = `${LOADTEST_PREFIX}%`;
   const sessionPattern = `${LOADTEST_SESSION_PREFIX}%`;
+
+  const deletedApplications = await client.query(
+    `DELETE FROM "FarmApplications"
+     WHERE notes LIKE $1
+        OR farm_id IN (SELECT id FROM "Farms" WHERE name LIKE $1)`,
+    [farmPattern],
+  );
+
+  const deletedHealthReports = await client.query(
+    `DELETE FROM "FarmHealthReports"
+     WHERE description LIKE $1
+        OR farm_id IN (SELECT id FROM "Farms" WHERE name LIKE $1)`,
+    [farmPattern],
+  );
+
+  const deletedLots = await client.query(
+    `DELETE FROM "FarmLots"
+     WHERE name LIKE $1
+        OR farm_id IN (SELECT id FROM "Farms" WHERE name LIKE $1)`,
+    [farmPattern],
+  );
 
   const deletedCycles = await client.query(
     `DELETE FROM "FarmCrops"
@@ -294,6 +324,9 @@ export const resetSyntheticData = async (client, { vacuum = false } = {}) => {
 
   if (vacuum) {
     const deletedTables = [
+      ['FarmApplications', deletedApplications],
+      ['FarmHealthReports', deletedHealthReports],
+      ['FarmLots', deletedLots],
       ['FarmCrops', deletedCycles],
       ['Farms', deletedFarms],
       ['AuditLogs', deletedAudit],
@@ -310,6 +343,9 @@ export const resetSyntheticData = async (client, { vacuum = false } = {}) => {
   }
 
   return {
+    farmApplications: countRows(deletedApplications),
+    farmHealthReports: countRows(deletedHealthReports),
+    farmLots: countRows(deletedLots),
     farmCrops: countRows(deletedCycles),
     farms: countRows(deletedFarms),
     auditLogs: countRows(deletedAudit),
@@ -324,10 +360,25 @@ export const fetchReferenceIds = async (client) => {
     'SELECT id FROM "Regions" ORDER BY id ASC',
   );
   const cropsRes = await client.query('SELECT id FROM "Crops" ORDER BY id ASC');
+  const plaguesRes = await client.query(
+    'SELECT id, name FROM "Plagues" ORDER BY id ASC',
+  );
+  const productsRes = await client.query(
+    'SELECT id, name, active_ingredient FROM "Products" ORDER BY id ASC',
+  );
 
   const userIds = usersRes.rows.map((r) => r.id);
   const regionIds = regionsRes.rows.map((r) => r.id);
   const cropIds = cropsRes.rows.map((r) => r.id);
+  const plagueIds = plaguesRes.rows.map((r) => r.id);
+  const plagueNames = plaguesRes.rows.map((r) => r.name || 'Plaga sintética');
+  const productIds = productsRes.rows.map((r) => r.id);
+  const productNames = productsRes.rows.map(
+    (r) => r.name || 'Producto sintético',
+  );
+  const activeIngredients = productsRes.rows.map(
+    (r) => r.active_ingredient || 'Ingrediente sintético',
+  );
 
   if (userIds.length === 0) {
     throw new Error(
@@ -335,7 +386,16 @@ export const fetchReferenceIds = async (client) => {
     );
   }
 
-  return { userIds, regionIds, cropIds };
+  return {
+    userIds,
+    regionIds,
+    cropIds,
+    plagueIds,
+    plagueNames,
+    productIds,
+    productNames,
+    activeIngredients,
+  };
 };
 
 const runBatches = async (total, batchSize, executor) => {
@@ -438,6 +498,185 @@ const insertCycles = async (
          NOW() - ((gs % 15) * interval '1 day')
        FROM generate_series($2::int, $3::int) AS gs`,
       [LOADTEST_PREFIX, start, end, candidateFarms, refs.cropIds, runTag],
+    );
+  });
+};
+
+const resolveCandidateCycleIds = async (client) => {
+  const existing = await client.query(
+    'SELECT id FROM "FarmCrops" ORDER BY id ASC LIMIT 50000',
+  );
+  return existing.rows.map((r) => r.id);
+};
+
+const insertFarmLots = async (client, count, batchSize, farmIds, runTag) => {
+  if (count <= 0) return 0;
+
+  const candidateFarms = await resolveCandidateFarmIds(client, farmIds);
+  if (candidateFarms.length === 0) {
+    throw new Error(
+      'No hay terrenos disponibles para asociar lotes sintéticos en "FarmLots".',
+    );
+  }
+
+  return runBatches(count, batchSize, async (start, end) => {
+    await client.query(
+      `INSERT INTO "FarmLots" (
+         farm_id, name, size_hectares, description, status,
+         "createdAt", "updatedAt"
+       )
+       SELECT
+         ($4::int[])[1 + ((gs - 1) % array_length($4::int[], 1))],
+         $1 || ' Lote ' || $5 || '-' || gs,
+         ROUND((1 + (gs % 45))::numeric, 2),
+         $1 || ' Subdivisión sintética #' || gs,
+         (gs % 20) <> 0,
+         NOW() - ((gs % 300) * interval '1 day'),
+         NOW() - ((gs % 30) * interval '1 day')
+       FROM generate_series($2::int, $3::int) AS gs`,
+      [LOADTEST_PREFIX, start, end, candidateFarms, runTag],
+    );
+  });
+};
+
+const insertFarmHealthReports = async (
+  client,
+  count,
+  batchSize,
+  refs,
+  farmIds,
+  cycleIds,
+  runTag,
+) => {
+  if (count <= 0) return 0;
+
+  const candidateFarms = await resolveCandidateFarmIds(client, farmIds);
+  if (candidateFarms.length === 0) {
+    throw new Error(
+      'No hay terrenos disponibles para asociar reportes sanitarios en "FarmHealthReports".',
+    );
+  }
+
+  const cycleArray = cycleIds.length > 0 ? cycleIds : null;
+  const plagueIdArray = refs.plagueIds.length > 0 ? refs.plagueIds : null;
+  const plagueNameArray =
+    refs.plagueNames.length > 0
+      ? refs.plagueNames
+      : ['Gusano cogollero', 'Mosca blanca', 'Roya del café'];
+
+  return runBatches(count, batchSize, async (start, end) => {
+    await client.query(
+      `INSERT INTO "FarmHealthReports" (
+         farm_id, farm_crop_id, plague_id, plague_name, severity,
+         description, observed_at, status, created_by_user_id,
+         "createdAt", "updatedAt"
+       )
+       SELECT
+         ($4::int[])[1 + ((gs - 1) % array_length($4::int[], 1))],
+         CASE
+           WHEN $5::int[] IS NULL THEN NULL
+           ELSE ($5::int[])[1 + ((gs - 1) % array_length($5::int[], 1))]
+         END,
+         CASE
+           WHEN $6::int[] IS NULL THEN NULL
+           ELSE ($6::int[])[1 + ((gs - 1) % array_length($6::int[], 1))]
+         END,
+         ($7::text[])[1 + ((gs - 1) % array_length($7::text[], 1))],
+         (ARRAY['low', 'low', 'medium', 'medium', 'low', 'high', 'critical'])[1 + (gs % 7)],
+         $1 || ' Reporte sanitario ' || $9 || '-' || gs,
+         (CURRENT_DATE - (gs % 367)),
+         CASE
+           WHEN (gs % 10) = 0 THEN 'open'
+           WHEN (gs % 10) IN (1, 2) THEN 'closed'
+           ELSE 'resolved'
+         END,
+         ($8::int[])[1 + ((gs - 1) % array_length($8::int[], 1))],
+         NOW() - ((gs % 367) * interval '1 day') - ((gs % 86400) * interval '1 second'),
+         NOW() - ((gs % 31) * interval '1 day')
+       FROM generate_series($2::int, $3::int) AS gs`,
+      [
+        LOADTEST_PREFIX,
+        start,
+        end,
+        candidateFarms,
+        cycleArray,
+        plagueIdArray,
+        plagueNameArray,
+        refs.userIds,
+        runTag,
+      ],
+    );
+  });
+};
+
+const insertFarmApplications = async (
+  client,
+  count,
+  batchSize,
+  refs,
+  farmIds,
+  cycleIds,
+  runTag,
+) => {
+  if (count <= 0) return 0;
+
+  const candidateFarms = await resolveCandidateFarmIds(client, farmIds);
+  if (candidateFarms.length === 0) {
+    throw new Error(
+      'No hay terrenos disponibles para asociar aplicaciones en "FarmApplications".',
+    );
+  }
+
+  const cycleArray = cycleIds.length > 0 ? cycleIds : null;
+  const productIdArray = refs.productIds.length > 0 ? refs.productIds : null;
+  const productNameArray =
+    refs.productNames.length > 0
+      ? refs.productNames
+      : ['Fungicida Base', 'Insecticida Foliar', 'Bioinsumo Agrícola'];
+  const ingredientArray =
+    refs.activeIngredients.length > 0
+      ? refs.activeIngredients
+      : ['Azoxistrobina', 'Imidacloprid', 'Bacillus thuringiensis'];
+
+  return runBatches(count, batchSize, async (start, end) => {
+    await client.query(
+      `INSERT INTO "FarmApplications" (
+         farm_id, farm_crop_id, product_id, product_name, active_ingredient,
+         dose_value, dose_unit, applied_at, notes, created_by_user_id,
+         "createdAt", "updatedAt"
+       )
+       SELECT
+         ($4::int[])[1 + ((gs - 1) % array_length($4::int[], 1))],
+         CASE
+           WHEN $5::int[] IS NULL THEN NULL
+           ELSE ($5::int[])[1 + ((gs - 1) % array_length($5::int[], 1))]
+         END,
+         CASE
+           WHEN $6::int[] IS NULL THEN NULL
+           ELSE ($6::int[])[1 + ((gs - 1) % array_length($6::int[], 1))]
+         END,
+         ($7::text[])[1 + ((gs - 1) % array_length($7::text[], 1))],
+         ($8::text[])[1 + ((gs - 1) % array_length($8::text[], 1))],
+         ROUND((0.25 + ((gs % 40) * 0.125))::numeric, 3),
+         (ARRAY['L/ha', 'kg/ha', 'mL/ha', 'g/L'])[1 + (gs % 4)],
+         (CURRENT_DATE - (gs % 365)),
+         $1 || ' Aplicación fitosanitaria ' || $10 || '-' || gs,
+         ($9::int[])[1 + ((gs - 1) % array_length($9::int[], 1))],
+         NOW() - ((gs % 365) * interval '1 day') - ((gs % 86400) * interval '1 second'),
+         NOW() - ((gs % 30) * interval '1 day')
+       FROM generate_series($2::int, $3::int) AS gs`,
+      [
+        LOADTEST_PREFIX,
+        start,
+        end,
+        candidateFarms,
+        cycleArray,
+        productIdArray,
+        productNameArray,
+        ingredientArray,
+        refs.userIds,
+        runTag,
+      ],
     );
   });
 };
@@ -579,6 +818,9 @@ const executeResetOnly = async (pool, manageTransaction, startedAt) => {
     inserted: {
       farms: 0,
       cycles: 0,
+      lots: 0,
+      healthReports: 0,
+      applications: 0,
       audit: 0,
       notifications: 0,
       sessions: 0,
@@ -627,6 +869,35 @@ export const seedLoadTestData = async (
       farmIds,
       runTag,
     );
+    const lots = await insertFarmLots(
+      client,
+      options.lots,
+      options.batchSize,
+      farmIds,
+      runTag,
+    );
+    const cycleIds =
+      options.healthReports > 0 || options.applications > 0
+        ? await resolveCandidateCycleIds(client)
+        : [];
+    const healthReports = await insertFarmHealthReports(
+      client,
+      options.healthReports,
+      options.batchSize,
+      refs,
+      farmIds,
+      cycleIds,
+      runTag,
+    );
+    const applications = await insertFarmApplications(
+      client,
+      options.applications,
+      options.batchSize,
+      refs,
+      farmIds,
+      cycleIds,
+      runTag,
+    );
     const audit = await insertAuditLogs(
       client,
       options.audit,
@@ -657,6 +928,9 @@ export const seedLoadTestData = async (
       inserted: {
         farms: farmIds.length,
         cycles,
+        lots,
+        healthReports,
+        applications,
         audit,
         notifications,
         sessions,
@@ -683,7 +957,7 @@ export const runCli = async (
     if (!options.reset || options.seed) {
       await pool
         .query(
-          'VACUUM ANALYZE "Farms", "FarmCrops", "AuditLogs", "Notifications", "session"',
+          'VACUUM ANALYZE "Farms", "FarmCrops", "FarmLots", "FarmHealthReports", "FarmApplications", "AuditLogs", "Notifications", "session"',
         )
         .catch(() => {});
     }

@@ -96,3 +96,14 @@ Las siguientes mejoras fueron detectadas al validar la Fase 1 y quedan registrad
   1. Cambiar todas las contraseñas demo en `seedDefaultUsers.js` y `20260615190144-demo-users.js` para que cumplan `validatePasswordPolicy` (≥8 caracteres, mayúscula, minúscula y número) y añadir prueba unitaria que valide las credenciales de desarrollo contra dicha política.
   2. Revisar tests, scripts y documentación local (`docs/`) por si algún flujo manual o automatizado asume las contraseñas anteriores.
   3. Confirmar en coordinación con **`1.A8`** que `seedDefaultUsers()` nunca corre en `NODE_ENV=production` ni sobrescribe contraseñas ya existentes.
+
+## 11. Verificación de índices de `1.A3` al cierre de la Fase 1
+
+- **Ubicación**: [20261121000001-add-core-performance-indexes.js](../src/migrations/20261121000001-add-core-performance-indexes.js), [concurrentIndexHelper.js](../src/utils/concurrentIndexHelper.js).
+- **Auditoría pendiente al cierre de Fase 1**:
+  - Después de ejecutar la corrida final de `k6` de cierre de Fase 1 contra la BD migrada, consultar `pg_stat_user_indexes` y **reportar explícitamente cualquier índice con `idx_scan = 0`** para confirmar que ningún índice creado en Fase 1 queda sin uso bajo carga real (distinguiendo rutas de administración/baja poco frecuentes como `getPlagueDeactivationImpact` o `getProductDeactivationImpact`).
+- **Índices descartados/diferidos en `1.A3` con evidencia**:
+  - `AuditLogs (table_name, "createdAt" DESC)`: descartado porque el planificador de PostgreSQL no lo eligió en la consulta real `table_name IN (7 valores) ORDER BY "createdAt" DESC` (ya resuelta en `0.05–1.03 ms` con `idx_audit_logs_created_at_desc`, evitando `6.5 MB` extra y sobrecarga de escritura).
+  - `FarmLots (farm_id)`: no requerido porque la restricción única existente `farm_lots_farm_id_name_unique (farm_id, name)` ya cubre la FK `FarmLots_farm_id_fkey` y resuelve `WHERE farm_id = $1 AND status = true` sobre `50k` lotes en `0.02–0.05 ms` (`4` buffers).
+  - `Plagues` (`workflow_status`, `created_by_user_id`): diferidos al Grupo B (tabla con `8` filas).
+  - FKs restantes sin índice en tablas grandes (`> 1 MB`) tras `1.A3` (sin consultas de lectura medidas que los justifiquen aún): `FarmApplications (farm_crop_id, created_by_user_id)`, `FarmHealthReports (farm_crop_id, created_by_user_id)`, `Notifications (actor_id)` y `Farms (region_id)`. Se reevaluarán si aparecen borrados masivos de `Users`/`FarmCrops`/`Regions` o consultas por esas columnas.
