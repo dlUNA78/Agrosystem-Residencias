@@ -1,5 +1,9 @@
 import 'dotenv/config';
+import fs from 'node:fs';
+import path from 'node:path';
 import { afterAll, describe, expect, it, jest } from '@jest/globals';
+import session from 'express-session';
+import connectPgSimple from 'connect-pg-simple';
 import db from '../../src/models/index.js';
 import {
   dropConcurrentIndex,
@@ -7,8 +11,9 @@ import {
   getIndexValidityState,
 } from '../../src/utils/concurrentIndexHelper.js';
 import { CORE_PERFORMANCE_INDEXES } from '../../src/migrations/20261121000001-add-core-performance-indexes.js';
+import { REMOVED_REDUNDANT_INDEXES } from '../../src/migrations/20261122000001-remove-duplicate-and-redundant-indexes.js';
 
-const { sequelize } = db;
+const { sequelize, InifapCode, RbacRole } = db;
 
 describe('concurrentIndexHelper (detección y recuperación de índices INVALID)', () => {
   it('omite la recreación si el índice ya existe y es válido (indisvalid = true)', async () => {
@@ -109,6 +114,9 @@ describe('Esquema de índices de rendimiento (1.A3 + 1.A12)', () => {
         table: spec.table,
       })),
       { name: 'idx_farms_user_status_created_id_desc', table: 'Farms' },
+      { name: 'InifapCodes_code_key', table: 'InifapCodes' },
+      { name: 'RbacRoles_slug_key', table: 'RbacRoles' },
+      { name: 'idx_notifications_created_at', table: 'Notifications' },
     ];
 
     const [rows] = await sequelize.query(
@@ -160,7 +168,7 @@ describe('Esquema de índices de rendimiento (1.A3 + 1.A12)', () => {
     expect(invalidRows).toEqual([]);
   });
 
-  it('mantiene la migración aditiva, sin duplicar 1.A12 ni crear índices descartados', async () => {
+  it('elimina los 4 índices redundantes (1.A15), conserva idx_notifications_created_at y no duplica 1.A12', async () => {
     const [allRows] = await sequelize.query(`
       SELECT tablename, indexname
       FROM pg_indexes
@@ -177,15 +185,97 @@ describe('Esquema de índices de rendimiento (1.A3 + 1.A12)', () => {
       'idx_farms_user_status_created_id_desc',
     ]);
 
-    // Índices descartados/diferidos por evidencia no deben existir
+    // Índices descartados/diferidos por evidencia en 1.A3 no deben existir
     expect(indexNames.has('idx_audit_logs_table_created_at_desc')).toBe(false);
     expect(indexNames.has('idx_plagues_workflow_status')).toBe(false);
     expect(indexNames.has('idx_plagues_created_by_user')).toBe(false);
     expect(indexNames.has('idx_farm_lots_farm_id')).toBe(false);
 
-    // Migración aditiva: conserva índices previos de Notifications (limpieza queda para 1.A15)
-    expect(indexNames.has('idx_notifications_user_id')).toBe(true);
-    expect(indexNames.has('idx_notifications_user_unread')).toBe(true);
+    // 1.A15: los 4 índices redundantes fueron eliminados
+    for (const removed of REMOVED_REDUNDANT_INDEXES) {
+      expect(indexNames.has(removed.name)).toBe(false);
+    }
+
+    // 1.A15: se conservan los índices autoritativos y idx_notifications_created_at (para 3.A8)
+    expect(indexNames.has('InifapCodes_code_key')).toBe(true);
+    expect(indexNames.has('RbacRoles_slug_key')).toBe(true);
+    expect(indexNames.has('idx_notifications_user_read_created_desc')).toBe(
+      true,
+    );
     expect(indexNames.has('idx_notifications_created_at')).toBe(true);
+  });
+
+  it('mantiene la restricción UNIQUE activa al insertar code duplicado en InifapCodes y slug duplicado en RbacRoles (1.A15)', async () => {
+    const uniqueCode = `AGS-1A15-${Date.now()}`;
+    const uniqueSlug = `rol-1a15-${Date.now()}`;
+
+    try {
+      await InifapCode.create({
+        code: uniqueCode,
+        is_used: false,
+      });
+
+      await expect(
+        InifapCode.create({
+          code: uniqueCode,
+          is_used: false,
+        }),
+      ).rejects.toMatchObject({
+        name: 'SequelizeUniqueConstraintError',
+      });
+
+      await RbacRole.create({
+        slug: uniqueSlug,
+        name: 'Rol Prueba Unicidad 1.A15',
+        base_role: 'inifap',
+        badge_color: 'emerald',
+        permissions: [],
+        is_system: false,
+      });
+
+      await expect(
+        RbacRole.create({
+          slug: uniqueSlug,
+          name: 'Rol Duplicado 1.A15',
+          base_role: 'inifap',
+          badge_color: 'emerald',
+          permissions: [],
+          is_system: false,
+        }),
+      ).rejects.toMatchObject({
+        name: 'SequelizeUniqueConstraintError',
+      });
+    } finally {
+      await InifapCode.destroy({ where: { code: uniqueCode } });
+      await RbacRole.destroy({ where: { slug: uniqueSlug } });
+    }
+  });
+
+  it('confirma que PgSession mantiene activa la poda automática de sesiones expiradas (pruneSessionInterval por defecto)', async () => {
+    const appPath = path.resolve(process.cwd(), 'app.js');
+    const appContent = fs.readFileSync(appPath, 'utf8');
+
+    expect(appContent).toContain('new PgSession(');
+    expect(appContent).not.toMatch(/pruneSessionInterval\s*:\s*false/);
+
+    const PgSession = connectPgSimple(session);
+    const mockPool = {
+      query: jest.fn((_sql, _params, cb) => {
+        if (typeof cb === 'function') cb(null, { rows: [] });
+      }),
+    };
+    const store = new PgSession({
+      pool: mockPool,
+      createTableIfMissing: false,
+    });
+
+    try {
+      await new Promise((resolve) => {
+        store.get('sid-check-prune-timer', () => resolve());
+      });
+      expect(store.pruneTimer).toBeDefined();
+    } finally {
+      await store.close();
+    }
   });
 });
