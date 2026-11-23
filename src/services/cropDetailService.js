@@ -665,7 +665,10 @@ const assembleCropRecord = (cropData, mainImageUrl, ranges) => {
   };
 };
 
-export const buildCropDetailView = (cropData = {}) => {
+const resolveNonNegativeCount = (candidate, fallback) =>
+  Number.isInteger(candidate) && candidate >= 0 ? candidate : fallback;
+
+export const buildCropDetailView = (cropData = {}, options = {}) => {
   const carouselImages = buildCropImages(cropData.images, cropData.image_url);
   const primaryImage = carouselImages[0] || null;
   const mainImageUrl = primaryImage ? primaryImage.url : null;
@@ -673,6 +676,16 @@ export const buildCropDetailView = (cropData = {}) => {
   const plagues = buildAssociatedPlagues(cropData.plagues);
   const products = buildAssociatedProducts(cropData.products);
   const farms = buildAssociatedFarms(cropData.farms);
+
+  const displayedFarmsCount = farms.length;
+  const farmsCount = resolveNonNegativeCount(
+    options.farmsCount,
+    displayedFarmsCount,
+  );
+  const ownFarmsCount = resolveNonNegativeCount(
+    options.ownFarmsCount,
+    displayedFarmsCount,
+  );
 
   const seasonString = resolveCropSeason(cropData);
   const calendar = buildAgriculturalCalendar(seasonString);
@@ -698,6 +711,10 @@ export const buildCropDetailView = (cropData = {}) => {
     mexicoMap,
     plaguesCount: plagues.length,
     productsCount: products.length,
-    farmsCount: farms.length,
+    farmsCount,
+    ownFarmsCount,
+    displayedFarmsCount,
+    hasOwnFarms: displayedFarmsCount > 0,
+    hasMoreOwnFarms: ownFarmsCount > displayedFarmsCount,
   };
 };

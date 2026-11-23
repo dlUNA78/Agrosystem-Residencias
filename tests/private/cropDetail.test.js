@@ -208,6 +208,46 @@ describe('cropDetailService - Rigor de datos y armado de vista de cultivos', () 
       expect(detail.mexicoMap.markers[0].name).toBe('Predio El Encanto');
       expect(detail.mexicoMap.markers[0].x).toBeGreaterThan(0);
       expect(detail.mexicoMap.markers[0].y).toBeGreaterThan(0);
+      expect(detail.farmsCount).toBe(1);
+      expect(detail.ownFarmsCount).toBe(1);
+      expect(detail.displayedFarmsCount).toBe(1);
+      expect(detail.hasOwnFarms).toBe(true);
+      expect(detail.hasMoreOwnFarms).toBe(false);
+    });
+
+    it('soporta conteo nacional agregado y tope de predios propios en modo privado (1.A11)', () => {
+      const ownSample = Array.from({ length: 12 }, (_, index) => ({
+        id: index + 1,
+        name: `Predio Propio ${index + 1}`,
+        municipality: 'Morelia',
+        location_lat: 19.7 + index * 0.01,
+        location_lng: -101.2 - index * 0.01,
+        size_hectares: 10 + index,
+      }));
+
+      const withOwn = buildCropDetailView(
+        { id: 10, name: 'Maíz', state: 'Michoacán', farms: ownSample },
+        { farmsCount: 5714, ownFarmsCount: 25 },
+      );
+
+      expect(withOwn.farmsCount).toBe(5714);
+      expect(withOwn.ownFarmsCount).toBe(25);
+      expect(withOwn.displayedFarmsCount).toBe(12);
+      expect(withOwn.hasOwnFarms).toBe(true);
+      expect(withOwn.hasMoreOwnFarms).toBe(true);
+      expect(withOwn.mexicoMap.markers).toHaveLength(12);
+
+      const withoutOwn = buildCropDetailView(
+        { id: 10, name: 'Maíz', state: 'Michoacán', farms: [] },
+        { farmsCount: 5714, ownFarmsCount: 0 },
+      );
+
+      expect(withoutOwn.farmsCount).toBe(5714);
+      expect(withoutOwn.ownFarmsCount).toBe(0);
+      expect(withoutOwn.displayedFarmsCount).toBe(0);
+      expect(withoutOwn.hasOwnFarms).toBe(false);
+      expect(withoutOwn.hasMoreOwnFarms).toBe(false);
+      expect(withoutOwn.mexicoMap.markers).toHaveLength(0);
     });
   });
 });
