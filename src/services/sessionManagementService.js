@@ -1,4 +1,18 @@
 import db from '../models/index.js';
+import { extractClientIp } from '../utils/clientIp.js';
+
+/**
+ * Intervalo mínimo entre escrituras de actividad de sesión (`lastActive` y renovación de `expire` en BD).
+ *
+ * Nota operativa (1.A6):
+ * - Con `resave: false`, `rolling: false` y `disableTouch: true` en `PgSession`, las peticiones autenticadas
+ *   que ocurren dentro de esta ventana sin cambiar IP ni User-Agent no mutan `req.session` y generan
+ *   0 escrituras en `"session"`.
+ * - En consecuencia, tanto "última actividad" (`lastActive`) como la expiración en BD (`expire`) y el
+ *   `Max-Age`/`Expires` de la cookie se renuevan juntos con una granularidad máxima de 5 minutos (puede
+ *   existir hasta 5 minutos de retraso en `lastActive`).
+ */
+export const SESSION_ACTIVITY_THROTTLE_MS = 5 * 60 * 1000;
 
 const parseDeviceOs = (ua) => {
   if (/windows/i.test(ua)) return 'Windows';
@@ -59,6 +73,7 @@ const mapSessionRow = (row, normalizedUserId, currentSessionId) => {
     clientIp: parsedSess.clientIp || '127.0.0.1',
     userAgent,
     deviceSummary: formatUserAgentSummary(userAgent),
+    // Nota: `lastActive` puede tener hasta 5 minutos de retraso por el throttling de escritura (SESSION_ACTIVITY_THROTTLE_MS).
     lastActive: parsedSess.lastActive || row.expire,
   };
 };
@@ -71,7 +86,14 @@ export const listUserActiveSessions = async (
   const normalizedUserId = String(userId);
 
   const [rows] = await db.sequelize.query(
-    'SELECT sid, sess, expire FROM "session" WHERE expire > NOW() ORDER BY expire DESC',
+    `SELECT sid, sess, expire
+     FROM "session"
+     WHERE (sess -> 'passport' ->> 'user') = :userId
+       AND expire > NOW()
+     ORDER BY expire DESC`,
+    {
+      replacements: { userId: normalizedUserId },
+    },
   );
 
   const userSessions = [];
@@ -87,54 +109,89 @@ export const listUserActiveSessions = async (
 
 export const revokeOtherSessions = async (userId, currentSessionId) => {
   if (!userId) return { revokedCount: 0 };
-  const sessions = await listUserActiveSessions(userId, currentSessionId);
-  const sidsToRevoke = sessions
-    .filter((s) => !currentSessionId || s.sid !== currentSessionId)
-    .map((s) => s.sid);
+  const normalizedUserId = String(userId);
 
-  if (sidsToRevoke.length === 0) {
-    return { revokedCount: 0 };
-  }
+  const hasCurrentSid =
+    typeof currentSessionId === 'string' && currentSessionId.length > 0;
+  const sql = hasCurrentSid
+    ? `DELETE FROM "session"
+       WHERE (sess -> 'passport' ->> 'user') = :userId
+         AND expire > NOW()
+         AND sid <> :currentSessionId
+       RETURNING sid`
+    : `DELETE FROM "session"
+       WHERE (sess -> 'passport' ->> 'user') = :userId
+         AND expire > NOW()
+       RETURNING sid`;
 
-  const [result] = await db.sequelize.query(
-    'DELETE FROM "session" WHERE sid IN (:sids)',
-    {
-      replacements: { sids: sidsToRevoke },
-    },
-  );
+  const replacements = hasCurrentSid
+    ? { userId: normalizedUserId, currentSessionId }
+    : { userId: normalizedUserId };
 
-  return { revokedCount: sidsToRevoke.length, details: result };
+  const [deletedRows] = await db.sequelize.query(sql, { replacements });
+  const rows = Array.isArray(deletedRows) ? deletedRows : [];
+
+  return { revokedCount: rows.length, details: rows };
 };
 
 export const revokeAllUserSessions = async (userId) => {
   if (!userId) return { revokedCount: 0 };
-  const sessions = await listUserActiveSessions(userId);
-  const sidsToRevoke = sessions.map((s) => s.sid);
+  const normalizedUserId = String(userId);
 
-  if (sidsToRevoke.length === 0) {
-    return { revokedCount: 0 };
-  }
-
-  const [result] = await db.sequelize.query(
-    'DELETE FROM "session" WHERE sid IN (:sids)',
+  const [deletedRows] = await db.sequelize.query(
+    `DELETE FROM "session"
+     WHERE (sess -> 'passport' ->> 'user') = :userId
+       AND expire > NOW()
+     RETURNING sid`,
     {
-      replacements: { sids: sidsToRevoke },
+      replacements: { userId: normalizedUserId },
     },
   );
+  const rows = Array.isArray(deletedRows) ? deletedRows : [];
 
-  return { revokedCount: sidsToRevoke.length, details: result };
+  return { revokedCount: rows.length, details: rows };
 };
 
-export const enrichSessionActivity = (req) => {
-  if (!req?.session || !req?.user) return;
-  const ipHeader = req.headers['x-forwarded-for'];
-  const clientIp =
-    (typeof ipHeader === 'string' ? ipHeader.split(',')[0].trim() : null) ||
-    req.socket?.remoteAddress ||
-    '127.0.0.1';
-  const userAgent = req.headers['user-agent'] || 'Navegador Web';
+const isWithinActivityThrottleWindow = (
+  session,
+  { clientIp, userAgent, now, throttleMs },
+) => {
+  if (session.clientIp !== clientIp || session.userAgent !== userAgent) {
+    return false;
+  }
+  const lastActiveMs = session.lastActive
+    ? Date.parse(session.lastActive)
+    : Number.NaN;
+  return (
+    Number.isFinite(lastActiveMs) &&
+    now >= lastActiveMs &&
+    now - lastActiveMs < throttleMs
+  );
+};
+
+const resolveRequestUserAgent = (req) =>
+  req.headers?.['user-agent'] || 'Navegador Web';
+
+export const enrichSessionActivity = (req, options = {}) => {
+  if (!req || !req.session || !req.user) return false;
+  const now = options.now ?? Date.now();
+  const throttleMs = options.throttleMs ?? SESSION_ACTIVITY_THROTTLE_MS;
+  const clientIp = extractClientIp(req);
+  const userAgent = resolveRequestUserAgent(req);
+
+  if (
+    isWithinActivityThrottleWindow(req.session, {
+      clientIp,
+      userAgent,
+      now,
+      throttleMs,
+    })
+  ) {
+    return false;
+  }
 
   req.session.clientIp = clientIp;
   req.session.userAgent = userAgent;
-  req.session.lastActive = new Date().toISOString();
+  req.session.lastActive = new Date(now).toISOString();
+  return true;
 };

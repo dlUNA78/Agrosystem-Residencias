@@ -2,6 +2,7 @@ import {
   formatRetryAfterWaitLabel,
   sendTooManyRequestsResponse,
 } from '../utils/errorRenderer.js';
+import { extractClientIp } from '../utils/clientIp.js';
 
 const NON_PUBLIC_PATH_PREFIXES = Object.freeze([
   '/private',
@@ -99,12 +100,6 @@ export const shouldSkipPublicRateLimiter = (req) => {
 
   return reqPath.startsWith('/api/') && isAuthenticatedRequest(req);
 };
-
-const extractClientIp = (req) =>
-  req?.ip ||
-  req?.headers?.['x-forwarded-for'] ||
-  req?.socket?.remoteAddress ||
-  '127.0.0.1';
 
 export const normalizeLoginEmail = (rawEmail) => {
   if (typeof rawEmail !== 'string') {

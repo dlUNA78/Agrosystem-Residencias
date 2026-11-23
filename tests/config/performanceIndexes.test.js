@@ -12,6 +12,7 @@ import {
 } from '../../src/utils/concurrentIndexHelper.js';
 import { CORE_PERFORMANCE_INDEXES } from '../../src/migrations/20261121000001-add-core-performance-indexes.js';
 import { REMOVED_REDUNDANT_INDEXES } from '../../src/migrations/20261122000001-remove-duplicate-and-redundant-indexes.js';
+import { SESSION_USER_EXPIRE_INDEX_NAME } from '../../src/migrations/20261123000001-add-session-user-expire-index.js';
 import {
   normalizeAuditQuery,
   buildAuditWhere,
@@ -121,6 +122,7 @@ describe('Esquema de índices de rendimiento (1.A3 + 1.A12)', () => {
       { name: 'InifapCodes_code_key', table: 'InifapCodes' },
       { name: 'RbacRoles_slug_key', table: 'RbacRoles' },
       { name: 'idx_notifications_created_at', table: 'Notifications' },
+      { name: SESSION_USER_EXPIRE_INDEX_NAME, table: 'session' },
     ];
 
     const [rows] = await sequelize.query(
@@ -255,12 +257,22 @@ describe('Esquema de índices de rendimiento (1.A3 + 1.A12)', () => {
     }
   });
 
-  it('confirma que PgSession mantiene activa la poda automática de sesiones expiradas (pruneSessionInterval por defecto)', async () => {
+  it('confirma que PgSession mantiene pruneSessionInterval activo, disableTouch: true, resave/rolling en false y sess sigue siendo JSON (1.A15 + 1.A6)', async () => {
     const appPath = path.resolve(process.cwd(), 'app.js');
     const appContent = fs.readFileSync(appPath, 'utf8');
 
     expect(appContent).toContain('new PgSession(');
     expect(appContent).not.toMatch(/pruneSessionInterval\s*:\s*false/);
+    expect(appContent).toMatch(/disableTouch\s*:\s*true/);
+    expect(appContent).toMatch(/resave\s*:\s*false/);
+    expect(appContent).toMatch(/saveUninitialized\s*:\s*false/);
+    expect(appContent).toMatch(/rolling\s*:\s*false/);
+
+    const [[sessColumn]] = await sequelize.query(
+      `SELECT data_type FROM information_schema.columns
+       WHERE table_schema = 'public' AND table_name = 'session' AND column_name = 'sess'`,
+    );
+    expect(sessColumn?.data_type).toBe('json');
 
     const PgSession = connectPgSimple(session);
     const mockPool = {
@@ -271,6 +283,7 @@ describe('Esquema de índices de rendimiento (1.A3 + 1.A12)', () => {
     const store = new PgSession({
       pool: mockPool,
       createTableIfMissing: false,
+      disableTouch: true,
     });
 
     try {
@@ -278,6 +291,12 @@ describe('Esquema de índices de rendimiento (1.A3 + 1.A12)', () => {
         store.get('sid-check-prune-timer', () => resolve());
       });
       expect(store.pruneTimer).toBeDefined();
+
+      mockPool.query.mockClear();
+      await new Promise((resolve) => {
+        store.touch('sid-check-touch', { cookie: {} }, () => resolve());
+      });
+      expect(mockPool.query).not.toHaveBeenCalled();
     } finally {
       await store.close();
     }

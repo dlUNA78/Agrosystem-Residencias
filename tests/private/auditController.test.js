@@ -1,12 +1,20 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import {
   normalizeAuditQuery,
   buildAuditWhere,
   escapeLikePattern,
   resolveMatchingAuditCatalogValues,
+  KNOWN_AUDIT_TABLES,
+  KNOWN_AUDIT_ACTIONS,
   serializeAuditLog,
   generateAuditCsv,
 } from '../../src/services/auditQueryService.js';
+import { CROP_WORKFLOW_ACTIONS } from '../../src/services/cropWorkflowService.js';
+import { PLAGUE_WORKFLOW_ACTIONS } from '../../src/services/plagueWorkflowService.js';
+import { PRODUCT_WORKFLOW_ACTIONS } from '../../src/services/productWorkflowService.js';
+import { INGREDIENT_WORKFLOW_ACTIONS } from '../../src/services/ingredientWorkflowService.js';
 
 const mockLog = {
   id: 1,
@@ -252,6 +260,76 @@ describe('módulo privado de auditoría', () => {
 
       const csv = generateAuditCsv([serialized]);
       expect(csv).toContain('"Sistema"');
+    });
+
+    it('cubre en KNOWN_AUDIT_TABLES y KNOWN_AUDIT_ACTIONS todos los valores reales emitidos en src/', () => {
+      const srcRoot = path.resolve(process.cwd(), 'src');
+      const skipDirs = new Set(['migrations', 'seeders', 'scripts', 'views']);
+      const jsFiles = [];
+
+      const walk = (dir) => {
+        for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+          if (entry.isDirectory()) {
+            if (!skipDirs.has(entry.name)) {
+              walk(path.join(dir, entry.name));
+            }
+          } else if (entry.name.endsWith('.js')) {
+            jsFiles.push(path.join(dir, entry.name));
+          }
+        }
+      };
+      walk(srcRoot);
+
+      const discoveredTables = new Set();
+      const discoveredActions = new Set();
+
+      const auditCallPattern =
+        /(?:AuditLog\.create|recordUserAudit|recordRbacAudit|recordSupplierAudit|recordIngredientAudit|createLandAudit|recordSafeAuditLog|changeFarmStatus)\s*\(\s*\{([\s\S]*?)\}\s*(?:,|\))/g;
+
+      for (const filePath of jsFiles) {
+        const content = fs.readFileSync(filePath, 'utf8');
+        let match;
+        while ((match = auditCallPattern.exec(content)) !== null) {
+          const block = match[1];
+          const tableMatch = block.match(
+            /\b(?:table_name|tableName)\s*:\s*['"]([^'"]+)['"]/,
+          );
+          if (tableMatch) {
+            discoveredTables.add(tableMatch[1]);
+          }
+          const actionMatch = block.match(/\baction\s*:\s*['"]([^'"]+)['"]/);
+          if (actionMatch) {
+            discoveredActions.add(actionMatch[1]);
+          }
+        }
+      }
+
+      // Acciones dinámicas de los flujos editoriales prefijados (`crop.${action}`, `plague.${action}`, `product.${action}`, `workflow.${action}`)
+      for (const action of Object.values(CROP_WORKFLOW_ACTIONS)) {
+        discoveredActions.add(`crop.${action}`);
+      }
+      for (const action of Object.values(PLAGUE_WORKFLOW_ACTIONS)) {
+        discoveredActions.add(`plague.${action}`);
+      }
+      for (const action of Object.values(PRODUCT_WORKFLOW_ACTIONS)) {
+        discoveredActions.add(`product.${action}`);
+      }
+      for (const action of Object.values(INGREDIENT_WORKFLOW_ACTIONS)) {
+        discoveredActions.add(`workflow.${action}`);
+      }
+
+      expect(discoveredTables.size).toBeGreaterThanOrEqual(8);
+      expect(discoveredActions.size).toBeGreaterThanOrEqual(20);
+
+      const missingTables = [...discoveredTables].filter(
+        (t) => !KNOWN_AUDIT_TABLES.includes(t),
+      );
+      const missingActions = [...discoveredActions].filter(
+        (a) => !KNOWN_AUDIT_ACTIONS.includes(a),
+      );
+
+      expect(missingTables).toEqual([]);
+      expect(missingActions).toEqual([]);
     });
   });
 
