@@ -2,6 +2,8 @@ import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import {
   normalizeAuditQuery,
   buildAuditWhere,
+  escapeLikePattern,
+  resolveMatchingAuditCatalogValues,
   serializeAuditLog,
   generateAuditCsv,
 } from '../../src/services/auditQueryService.js';
@@ -26,16 +28,21 @@ const mockDb = {
   Sequelize: {
     Op: {
       in: Symbol('in'),
+      notIn: Symbol('notIn'),
       gte: Symbol('gte'),
+      lte: Symbol('lte'),
       like: Symbol('like'),
       or: Symbol('or'),
+      and: Symbol('and'),
     },
     fn: jest.fn((name, arg) => ({ fn: name, arg })),
     col: jest.fn((name) => ({ col: name })),
     where: jest.fn((left, right) => ({ left, right })),
+    literal: jest.fn((sql) => ({ val: sql })),
   },
   AuditLog: {
     count: jest.fn(),
+    findAll: jest.fn(),
     findAndCountAll: jest.fn(),
   },
   User: {},
@@ -89,28 +96,75 @@ describe('módulo privado de auditoría', () => {
       expect(valid.format).toBe('csv');
     });
 
-    it('construye cláusula WHERE de Sequelize filtrando por tablas del módulo y grupo de acción', () => {
+    it('construye cláusula WHERE de Sequelize resolviendo table_name, action y subconsulta de Users', () => {
       const mockOp = {
         in: Symbol('in'),
+        notIn: Symbol('notIn'),
         like: Symbol('like'),
         or: Symbol('or'),
+        and: Symbol('and'),
       };
       const mockSequelize = {
         Op: mockOp,
-        fn: jest.fn((name, arg) => ({ fn: name, arg })),
-        col: jest.fn((name) => ({ col: name })),
-        where: jest.fn((left, right) => ({ left, right })),
+        literal: jest.fn((sql) => ({ val: sql })),
       };
 
-      const where = buildAuditWhere(mockSequelize, {
+      const whereMatching = buildAuditWhere(mockSequelize, {
         module: 'terrenos',
         action: 'crear',
-        search: 'Norte',
+        search: 'farm',
       });
 
-      expect(where.table_name).toBeDefined();
-      expect(where.action).toBeDefined();
-      expect(where[mockOp.or]).toHaveLength(4);
+      expect(whereMatching.table_name).toBeDefined();
+      expect(whereMatching.action).toBeDefined();
+      expect(whereMatching[mockOp.or]).toHaveLength(3);
+      expect(whereMatching[mockOp.or][0].table_name[mockOp.in]).toEqual(
+        expect.arrayContaining(['Farms', 'Farm', 'FarmCrops']),
+      );
+      expect(whereMatching[mockOp.or][1].action[mockOp.in]).toEqual(
+        expect.arrayContaining(['create_farm_lot']),
+      );
+
+      const whereOnlyUser = buildAuditWhere(mockSequelize, {
+        search: 'Norte',
+      });
+      expect(whereOnlyUser[mockOp.or]).toHaveLength(1);
+      expect(whereOnlyUser[mockOp.or][0][mockOp.and]).toHaveLength(2);
+    });
+
+    it('escapa comodines %, _ y \\ en escapeLikePattern y en la subconsulta de Users', () => {
+      expect(escapeLikePattern('100%_test\\path')).toBe(
+        '100\\%\\_test\\\\path',
+      );
+
+      const { matchingTables, matchingActions } =
+        resolveMatchingAuditCatalogValues('create_crop');
+      expect(matchingTables).toEqual([]);
+      expect(matchingActions).toContain('create_crop_cycle');
+
+      const wildcardAttempt = resolveMatchingAuditCatalogValues('create%crop');
+      expect(wildcardAttempt.matchingActions).toEqual([]);
+
+      const mockOp = {
+        in: Symbol('in'),
+        notIn: Symbol('notIn'),
+        or: Symbol('or'),
+        and: Symbol('and'),
+      };
+      const literals = [];
+      const mockSequelize = {
+        Op: mockOp,
+        literal: (sql) => {
+          literals.push(sql);
+          return { val: sql };
+        },
+      };
+
+      buildAuditWhere(mockSequelize, { search: "100%_admin\\test's" });
+      expect(literals.length).toBeGreaterThan(0);
+      for (const sql of literals) {
+        expect(sql).toContain("LIKE '%100\\%\\_admin\\\\test''s%' ESCAPE '\\'");
+      }
     });
 
     it('serializa un registro de auditoría con insignias, iniciales y fechas legibles', () => {
@@ -204,14 +258,11 @@ describe('módulo privado de auditoría', () => {
   describe('controlador auditPrivate', () => {
     beforeEach(() => {
       jest.clearAllMocks();
-      mockDb.AuditLog.count.mockResolvedValue(15);
-      mockDb.AuditLog.findAndCountAll.mockResolvedValue({
-        count: 1,
-        rows: [mockLog],
-      });
+      mockDb.AuditLog.count.mockResolvedValueOnce(15).mockResolvedValueOnce(1);
+      mockDb.AuditLog.findAll.mockResolvedValue([mockLog]);
     });
 
-    it('renderiza la vista de auditoría con datos consultados desde la base de datos', async () => {
+    it('renderiza la vista de auditoría separando count sin include/distinct y findAll', async () => {
       const req = { query: {} };
       const res = {
         render: jest.fn(),
@@ -220,7 +271,17 @@ describe('módulo privado de auditoría', () => {
 
       await auditPrivate(req, res);
 
-      expect(mockDb.AuditLog.findAndCountAll).toHaveBeenCalledTimes(1);
+      expect(mockDb.AuditLog.findAndCountAll).not.toHaveBeenCalled();
+      expect(mockDb.AuditLog.count).toHaveBeenCalledTimes(2);
+      const totalCountArgs = mockDb.AuditLog.count.mock.calls[1][0];
+      expect(totalCountArgs.include).toBeUndefined();
+      expect(totalCountArgs.distinct).toBeUndefined();
+
+      expect(mockDb.AuditLog.findAll).toHaveBeenCalledTimes(1);
+      const findAllArgs = mockDb.AuditLog.findAll.mock.calls[0][0];
+      expect(findAllArgs.include).toHaveLength(1);
+      expect(findAllArgs.distinct).toBeUndefined();
+
       expect(res.render).toHaveBeenCalledWith(
         'private/admin/audit',
         expect.objectContaining({
@@ -253,7 +314,7 @@ describe('módulo privado de auditoría', () => {
     });
 
     it('maneja errores internos de base de datos respondiendo 500 y vista degradada', async () => {
-      mockDb.AuditLog.findAndCountAll.mockRejectedValueOnce(
+      mockDb.AuditLog.findAll.mockRejectedValueOnce(
         new Error('DB connection failed'),
       );
 

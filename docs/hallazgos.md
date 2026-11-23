@@ -97,6 +97,16 @@ Las siguientes mejoras fueron detectadas al validar la Fase 1 y quedan registrad
   2. Revisar tests, scripts y documentación local (`docs/`) por si algún flujo manual o automatizado asume las contraseñas anteriores.
   3. Confirmar en coordinación con **`1.A8`** que `seedDefaultUsers()` nunca corre en `NODE_ENV=production` ni sobrescribe contraseñas ya existentes.
 
+### R-1: Autobloqueo en el `down()` de `20261111000001` (`describeTable` fuera de la transacción)
+
+- **Ubicación**: [20261111000001-add-dual-approval-deactivation-workflow.js](../src/migrations/20261111000001-add-dual-approval-deactivation-workflow.js#L128-L144).
+- **Problema observado**:
+  - En el bloque `down()` de la migración `20261111000001-add-dual-approval-deactivation-workflow.js` (última migración de la Fase 0), se abre una transacción explícita (`const transaction = await queryInterface.sequelize.transaction()`), se ejecutan llamadas `removeColumn('ActiveIngredients', ..., { transaction })` que adquieren un bloqueo `ACCESS EXCLUSIVE` sobre `"ActiveIngredients"` en la conexión de la transacción y, a continuación, en la línea 144 se invoca `await queryInterface.describeTable('ActiveIngredients')` **sin pasar `{ transaction }`**.
+  - Eso hace que Sequelize solicite una segunda conexión del pool para consultar los metadatos de `"ActiveIngredients"`, quedando bloqueada indefinidamente esperando el lock `ACCESS EXCLUSIVE` retenido por la primera conexión.
+  - No afecta la reversión de las migraciones de la Fase 1 (`db:migrate:undo:all --to 20261118000001-add-farms-user-status-created-id-index.js`, tras lo cual `SequelizeMeta` termina en `20261111000001-add-dual-approval-deactivation-workflow.js`).
+- **Alcance propuesto para R-1 (tarea aparte)**:
+  - Pasar `{ transaction }` a `queryInterface.describeTable('ActiveIngredients', { transaction })` (o consultar las columnas antes de iniciar los `removeColumn`) en `20261111000001-add-dual-approval-deactivation-workflow.js` y verificar `db:migrate:undo:all` completo desde la última migración hasta cero.
+
 ## 11. Verificación de índices de `1.A3` al cierre de la Fase 1
 
 - **Ubicación**: [20261121000001-add-core-performance-indexes.js](../src/migrations/20261121000001-add-core-performance-indexes.js), [concurrentIndexHelper.js](../src/utils/concurrentIndexHelper.js).

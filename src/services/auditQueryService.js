@@ -38,6 +38,101 @@ const ACTION_GROUPS = {
   aprobar: ['verify', 'publish', 'request_changes', 'submit_review'],
 };
 
+const EXTRA_AUDIT_TABLES = [
+  'FarmLots',
+  'CropRelations',
+  'PlagueRelations',
+  'ProductRelations',
+  'RBAC',
+  'RbacRoles',
+  'Reports',
+  'Notifications',
+  'Regions',
+];
+
+const WORKFLOW_ACTION_SUFFIXES = [
+  'create',
+  'update',
+  'delete',
+  'relations.update',
+  'submit_review',
+  'request_changes',
+  'verify',
+  'publish',
+  'request_archive',
+  'approve_archive',
+  'reject_archive',
+  'archive',
+  'restore',
+];
+
+const PREFIXED_WORKFLOW_ACTIONS = [
+  'crop',
+  'plague',
+  'product',
+  'workflow',
+].flatMap((prefix) =>
+  WORKFLOW_ACTION_SUFFIXES.map((suffix) => `${prefix}.${suffix}`),
+);
+
+const EXTRA_AUDIT_ACTIONS = [
+  'request_archive',
+  'approve_archive',
+  'reject_archive',
+  'archive_crop_cycle',
+  'restore_crop_cycle',
+  'create_farm_lot',
+  'update_farm_lot',
+  'delete_farm_lot',
+  'suspend',
+  'export',
+  'create_role',
+  'update_role',
+  'delete_role',
+  'update_user_permissions',
+  'generate_codes',
+  'revoke_code',
+  'PASSWORD_CHANGE',
+  'AVATAR_UPDATE',
+  'AVATAR_REMOVE',
+  'PROFILE_UPDATE',
+  ...PREFIXED_WORKFLOW_ACTIONS,
+];
+
+export const KNOWN_AUDIT_TABLES = Object.freeze([
+  ...new Set([...Object.values(MODULE_TABLES).flat(), ...EXTRA_AUDIT_TABLES]),
+]);
+
+export const KNOWN_AUDIT_ACTIONS = Object.freeze([
+  ...new Set([...Object.values(ACTION_GROUPS).flat(), ...EXTRA_AUDIT_ACTIONS]),
+]);
+
+export const escapeLikePattern = (value) =>
+  String(value ?? '').replace(/[\\%_]/g, '\\$&');
+
+const toSqlStringLiteral = (value) =>
+  `'${String(value ?? '')
+    .replaceAll('\0', '')
+    .replaceAll("'", "''")}'`;
+
+export const resolveMatchingAuditCatalogValues = (search) => {
+  const raw = String(search ?? '')
+    .trim()
+    .toLowerCase();
+  if (!raw) {
+    return { matchingTables: [], matchingActions: [] };
+  }
+
+  const matchingTables = KNOWN_AUDIT_TABLES.filter((tableName) =>
+    tableName.toLowerCase().includes(raw),
+  );
+  const matchingActions = KNOWN_AUDIT_ACTIONS.filter((actionName) =>
+    actionName.toLowerCase().includes(raw),
+  );
+
+  return { matchingTables, matchingActions };
+};
+
 const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
 const normalizeText = (value, maxLength = 120) =>
@@ -88,29 +183,44 @@ const buildCreatedAtRange = (Op, dateFrom, dateTo) => {
 
 const buildSearchOrConditions = (Sequelize, search) => {
   const { Op } = Sequelize;
-  const term = `%${search.toLowerCase()}%`;
-  return [
-    Sequelize.where(Sequelize.fn('lower', Sequelize.col('table_name')), {
-      [Op.like]: term,
-    }),
-    Sequelize.where(Sequelize.fn('lower', Sequelize.col('action')), {
-      [Op.like]: term,
-    }),
-    Sequelize.where(
-      Sequelize.fn(
-        'lower',
-        Sequelize.fn('coalesce', Sequelize.col('user.full_name'), ''),
-      ),
-      { [Op.like]: term },
-    ),
-    Sequelize.where(
-      Sequelize.fn(
-        'lower',
-        Sequelize.fn('coalesce', Sequelize.col('user.email'), ''),
-      ),
-      { [Op.like]: term },
-    ),
-  ];
+  const rawLower = String(search ?? '')
+    .trim()
+    .toLowerCase();
+  const escapedTerm = escapeLikePattern(rawLower);
+  const patternLiteral = toSqlStringLiteral(`%${escapedTerm}%`);
+  const literalFn =
+    typeof Sequelize.literal === 'function'
+      ? (sql) => Sequelize.literal(sql)
+      : (sql) => ({ val: sql });
+
+  const { matchingTables, matchingActions } =
+    resolveMatchingAuditCatalogValues(rawLower);
+
+  const conditions = [];
+  if (matchingTables.length > 0) {
+    conditions.push({ table_name: { [Op.in]: matchingTables } });
+  }
+  if (matchingActions.length > 0) {
+    conditions.push({ action: { [Op.in]: matchingActions } });
+  }
+
+  const userFilterSql = `lower("full_name") LIKE ${patternLiteral} ESCAPE '\\' OR lower("email") LIKE ${patternLiteral} ESCAPE '\\'`;
+  const userIdsSubquery = literalFn(
+    `(SELECT "id" FROM "Users" WHERE ${userFilterSql})`,
+  );
+
+  if (Op.and) {
+    conditions.push({
+      [Op.and]: [
+        literalFn(`EXISTS (SELECT 1 FROM "Users" WHERE ${userFilterSql})`),
+        { user_id: { [Op.in]: userIdsSubquery } },
+      ],
+    });
+  } else {
+    conditions.push({ user_id: { [Op.in]: userIdsSubquery } });
+  }
+
+  return conditions;
 };
 
 export const buildAuditWhere = (Sequelize, query) => {
