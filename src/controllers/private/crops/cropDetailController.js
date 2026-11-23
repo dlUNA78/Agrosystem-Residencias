@@ -7,6 +7,10 @@ import {
   getCropPermissions,
 } from '../../../services/cropAuthorizationService.js';
 import { buildCropDetailView } from '../../../services/cropDetailService.js';
+import {
+  countNationalActiveFarmsForCrop,
+  loadPrivateCropFarmSummary,
+} from '../../../services/cropFarmSummaryService.js';
 import { sendCropPdfResponse } from '../../../services/cropPdfService.js';
 import { buildCropPublicationReadiness } from '../../../services/cropReadinessService.js';
 import { buildCropRelationEditor } from '../../../services/cropRelationService.js';
@@ -21,17 +25,12 @@ const privateLayout = path.join(
   '../../../views/layouts/private',
 );
 
-const {
-  Crop,
-  CropImage,
-  Farm,
-  Plague,
-  PlagueImage,
-  Product,
-  ProductImage,
-  User,
-} = db;
+const { Crop, CropImage, Plague, PlagueImage, Product, ProductImage, User } =
+  db;
 
+// Nota 1.A11: se separó únicamente la carga de predios (FarmCrops/Farms) en
+// cropFarmSummaryService.js. Plagas y productos se mantienen inline porque sus
+// catálogos tienen < 10 filas y separarlos duplicaba consultas/latencia sin ganancia.
 const cropDetailIncludes = [
   {
     model: CropImage,
@@ -55,7 +54,6 @@ const cropDetailIncludes = [
     required: false,
     include: [{ model: ProductImage, as: 'images', required: false }],
   },
-  { model: Farm, as: 'farms', required: false },
   {
     model: User,
     as: 'verifiedBy',
@@ -208,13 +206,6 @@ const sendHtmlDetail = async (req, res, options) => {
   const { cropData, detail, editState, images, primaryImage, readiness } =
     options;
 
-  if (req.query?.format === 'pdf') {
-    return await sendCropPdfResponse(res, detail, {
-      download: req.query.download === '1',
-      isPrivate: true,
-    });
-  }
-
   const [relationEditor, relationOptions] = await Promise.all([
     editState.canEditRelations ? loadRelationEditor(cropData) : null,
     loadCropFormRelationOptions(),
@@ -241,44 +232,111 @@ const sendHtmlDetail = async (req, res, options) => {
   });
 };
 
+const loadCropWithContext = async (cropId, userId, { wantsJson, wantsPdf }) => {
+  const cropPromise = Crop.findByPk(cropId, { include: cropDetailIncludes });
+
+  if (wantsPdf) {
+    const cropRecord = await cropPromise;
+    return {
+      cropRecord,
+      farmSummary: { farmsCount: 0, ownFarmsCount: 0, farms: [] },
+    };
+  }
+
+  if (wantsJson) {
+    const [cropRecord, farmsCount] = await Promise.all([
+      cropPromise,
+      countNationalActiveFarmsForCrop(cropId),
+    ]);
+    return {
+      cropRecord,
+      farmSummary: { farmsCount, ownFarmsCount: 0, farms: [] },
+    };
+  }
+
+  const [cropRecord, farmSummary] = await Promise.all([
+    cropPromise,
+    loadPrivateCropFarmSummary(cropId, userId),
+  ]);
+  return { cropRecord, farmSummary };
+};
+
+const resolveDetailResponseMode = (req) => {
+  const wantsJson = Boolean(
+    req.xhr || req.headers.accept?.includes('application/json'),
+  );
+  const wantsPdf = !wantsJson && req.query?.format === 'pdf';
+  return { wantsJson, wantsPdf };
+};
+
+const findPrimaryImage = (images) =>
+  images.find((img) => img.is_primary === true) || images[0] || null;
+
+const sendJsonDetail = (
+  res,
+  { cropData, farmsCount, images, primaryImage, editState, readiness },
+) =>
+  res.json({
+    success: true,
+    crop: {
+      ...cropData,
+      farmsCount,
+      images,
+      image_url: primaryImage?.image_url,
+      canEditRecord: editState.canEditRecord,
+      isControlledEdit: editState.isControlledEdit,
+    },
+    farmsCount,
+    permissions: editState.permissions,
+    readiness,
+  });
+
 export const getCropDetail = async (req, res) => {
   const cropId = parseCropId(req.params.id);
   if (!cropId) return res.status(400).send('ID de cultivo no válido');
 
   try {
-    const cropRecord = await Crop.findByPk(cropId, {
-      include: cropDetailIncludes,
-    });
+    const mode = resolveDetailResponseMode(req);
+    const { cropRecord, farmSummary } = await loadCropWithContext(
+      cropId,
+      req.user?.id,
+      mode,
+    );
 
     if (!cropRecord) return res.status(404).send('Cultivo no encontrado');
 
     const cropData = cropRecord.toJSON();
     const images = normalizeImages(cropData.images);
-    const primaryImage =
-      images.find((img) => img.is_primary === true) || images[0] || null;
+    const primaryImage = findPrimaryImage(images);
     const editState = resolveDetailEditState(req.user, cropData);
     const readiness = buildCropPublicationReadiness({ ...cropData, images });
-    const viewCrop = {
-      ...cropData,
-      images,
-      image_url: primaryImage?.image_url,
-      canEditRecord: editState.canEditRecord,
-      isControlledEdit: editState.isControlledEdit,
-    };
 
-    const wantsJson =
-      req.xhr || req.headers.accept?.includes('application/json');
-
-    if (wantsJson) {
-      return res.json({
-        success: true,
-        crop: viewCrop,
-        permissions: editState.permissions,
+    if (mode.wantsJson) {
+      return sendJsonDetail(res, {
+        cropData,
+        farmsCount: farmSummary.farmsCount,
+        images,
+        primaryImage,
+        editState,
         readiness,
       });
     }
 
-    const detail = buildCropDetailView(cropData);
+    if (mode.wantsPdf) {
+      const detail = buildCropDetailView(cropData);
+      return await sendCropPdfResponse(res, detail, {
+        download: req.query.download === '1',
+        isPrivate: true,
+      });
+    }
+
+    const detail = buildCropDetailView(
+      { ...cropData, farms: farmSummary.farms },
+      {
+        farmsCount: farmSummary.farmsCount,
+        ownFarmsCount: farmSummary.ownFarmsCount,
+      },
+    );
 
     return await sendHtmlDetail(req, res, {
       cropData,

@@ -97,6 +97,14 @@ Las siguientes mejoras fueron detectadas al validar la Fase 1 y quedan registrad
   2. Revisar tests, scripts y documentación local (`docs/`) por si algún flujo manual o automatizado asume las contraseñas anteriores.
   3. Confirmar en coordinación con **`1.A8`** que `seedDefaultUsers()` nunca corre en `NODE_ENV=production` ni sobrescribe contraseñas ya existentes.
 
+### F-3: Vista agregada por estado o región de distribución de cultivos sin exponer predios individuales
+
+- **Ubicación**: [cropDetailController.js](../src/controllers/private/crops/cropDetailController.js), [cropFarmSummaryService.js](../src/services/cropFarmSummaryService.js), [cropDetailService.js](../src/services/cropDetailService.js) y [crop-detail.hbs](../src/views/shared/crop-detail.hbs#L855-L1025).
+- **Contexto**:
+  - En **`1.A11`** se aplicó la misma política de privacidad de [landAuthorizationService.js](../src/services/landAuthorizationService.js#L10-L28): en `/private/crops/:id`, `admin` e `inifap` ven el conteo nacional agregado (`farmsCount`), pero las tarjetas y pines SVG muestran únicamente los predios propios del usuario autenticado (tope `12`).
+- **Alcance propuesto para F-3**:
+  - Añadir una vista agregada por **entidad federativa o región** (p. ej., conteo de predios activos y superficie total agrupados por `Regions.name` / estado, con umbral mínimo de anonimización si aplica) que permita a investigadores INIFAP y administradores ver dónde se siembra un cultivo a nivel territorial sin exponer nombres, propietarios ni coordenadas exactas de predios individuales.
+
 ### R-1: Autobloqueo en el `down()` de `20261111000001` (`describeTable` fuera de la transacción)
 
 - **Ubicación**: [20261111000001-add-dual-approval-deactivation-workflow.js](../src/migrations/20261111000001-add-dual-approval-deactivation-workflow.js#L128-L144).
@@ -106,6 +114,15 @@ Las siguientes mejoras fueron detectadas al validar la Fase 1 y quedan registrad
   - No afecta la reversión de las migraciones de la Fase 1 (`db:migrate:undo:all --to 20261118000001-add-farms-user-status-created-id-index.js`, tras lo cual `SequelizeMeta` termina en `20261111000001-add-dual-approval-deactivation-workflow.js`).
 - **Alcance propuesto para R-1 (tarea aparte)**:
   - Pasar `{ transaction }` a `queryInterface.describeTable('ActiveIngredients', { transaction })` (o consultar las columnas antes de iniciar los `removeColumn`) en `20261111000001-add-dual-approval-deactivation-workflow.js` y verificar `db:migrate:undo:all` completo desde la última migración hasta cero.
+
+### R-2: Regresión de la tarjeta "Sesiones Activas" en `profile.hbs` (eliminada en `397c9b2`)
+
+- **Ubicación**: [profile.hbs](../src/views/shared/profile.hbs#L446-L551), [profileController.js](../src/controllers/private/profileController.js#L65-L66), [privateRoutes.js](../src/routes/privateRoutes.js#L33-L49), [profile.js](../public/js/shared/profile.js#L180-L192).
+- **Problema observado (auditoría de `397c9b2`)**:
+  - La tarjeta **`Tarjeta B: Sesiones Activas en PostgreSQL`** (introducida en `c0a2cf3`) y el badge `{{sessionCount}}` de la pestaña de seguridad fueron eliminados en `397c9b2`, dejando huérfanos en el backend/JS `activeSessions`, `sessionCount`, las rutas `POST /profile/sessions/revoke-others` y `POST /private/profile/sessions/revoke-others`, el listener `initRevokeConfirmation()` (`#revoke-sessions-form`) y el mensaje flash `sesiones_cerradas`.
+  - **Otras eliminaciones revisadas en `397c9b2`** (sin restaurar sin aprobación): en [profileService.js](../src/services/profileService.js#L146-L170) se eliminó la llamada `recordSafeAuditLog({ action: 'PROFILE_UPDATE', ... })` dentro de `updateUserProfileDetails` (el helper `recordSafeAuditLog` sigue activo para `PASSWORD_CHANGE` y `AVATAR_UPDATE`). En el resto de vistas modificadas en `397c9b2`, las ocultaciones (`code`/`job_title`/`shift` para `agricultor` y enlace `Ascenso INIFAP` para no autenticados) sí se alinearon con el backend.
+- **Alcance propuesto para R-2 (PR aparte)**:
+  - Restaurar la tarjeta de sesiones activas en [profile.hbs](../src/views/shared/profile.hbs) adaptada a **`1.A6`** (sin copiar a ciegas el bloque de `c0a2cf3`): con nota visible de retraso de hasta 5 minutos en última actividad/expiración, datos coherentes con la nueva granularidad, formulario `#revoke-sessions-form` para `/profile` y `/private/profile`, y test de renderizado que falle si la tarjeta vuelve a desaparecer.
 
 ## 11. Verificación de índices de `1.A3` al cierre de la Fase 1
 
@@ -117,3 +134,11 @@ Las siguientes mejoras fueron detectadas al validar la Fase 1 y quedan registrad
   - `FarmLots (farm_id)`: no requerido porque la restricción única existente `farm_lots_farm_id_name_unique (farm_id, name)` ya cubre la FK `FarmLots_farm_id_fkey` y resuelve `WHERE farm_id = $1 AND status = true` sobre `50k` lotes en `0.02–0.05 ms` (`4` buffers).
   - `Plagues` (`workflow_status`, `created_by_user_id`): diferidos al Grupo B (tabla con `8` filas).
   - FKs restantes sin índice en tablas grandes (`> 1 MB`) tras `1.A3` (sin consultas de lectura medidas que los justifiquen aún): `FarmApplications (farm_crop_id, created_by_user_id)`, `FarmHealthReports (farm_crop_id, created_by_user_id)`, `Notifications (actor_id)` y `Farms (region_id)`. Se reevaluarán si aparecen borrados masivos de `Users`/`FarmCrops`/`Regions` o consultas por esas columnas.
+
+## 12. Riesgo latente de producto cartesiano en `landDetailController.js` (`GET /private/lands/:id/expediente`)
+
+- **Ubicación**: [landDetailController.js](../src/controllers/private/lands/landDetailController.js#L38-L84).
+- **Qué se observó y midió en `agrosystem_load`**:
+  - `landDetail` ejecuta un único `Farm.findOne` con cuatro `hasMany` encadenados sin `separate: true`: `farmCrops` (con `stages`), `healthReports`, `applications` y `lots`.
+  - **Medición actual sobre `agrosystem_load`**: en el dataset de carga actual cada predio tiene pocos registros operativos propios; el predio con mayor producto (`id = 6`: `1` ciclo × `2` reportes sanitarios × `3` aplicaciones × `2` lotes = **`12` filas**) se resolvió en **`27.19 ms` totales** (`24.71 ms` SQL), por lo que hoy no es un cuello de botella real y se dejó fuera de `1.A11`.
+  - **Riesgo a futuro**: si un predio de larga trayectoria acumula múltiples ciclos, etapas fenológicas, decenas de reportes y aplicaciones (p. ej. `10 × 5 × 20 × 30 × 10`), el join único sin `separate: true` crecerá de forma multiplicativa. Cuando se atienda en optimizaciones posteriores (`3.A4`), separar esas asociaciones en `separate: true` o consultas paralelas acotadas eliminará el riesgo.
