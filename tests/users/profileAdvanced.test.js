@@ -93,13 +93,17 @@ describe('👤 Módulo de Perfil Avanzado y Control de Sesiones', () => {
       order: [['id', 'ASC']],
     });
 
-    // 5. Inyectar registros simulados en la tabla "session" para probar el servicio
+    // 5. Inyectar registros simulados en la tabla "session" para probar aislamiento multiusuario (2 usuarios con varias sesiones + 1 expirada)
     const expireDate = new Date(Date.now() + 1000 * 60 * 60 * 24);
+    const expiredDate = new Date(Date.now() - 1000 * 60 * 60);
     await db.sequelize.query(
       `INSERT INTO "session" (sid, sess, expire) VALUES 
        (:sid1, :sess1, :expire),
        (:sid2, :sess2, :expire),
-       (:sid3, :sess3, :expire)
+       (:sid3, :sess3, :expire),
+       (:sid4, :sess4, :expire),
+       (:sid5, :sess5, :expire),
+       (:sid6, :sess6, :expired)
        ON CONFLICT (sid) DO UPDATE SET sess = EXCLUDED.sess, expire = EXCLUDED.expire`,
       {
         replacements: {
@@ -126,7 +130,29 @@ describe('👤 Módulo de Perfil Avanzado y Control de Sesiones', () => {
             userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)',
             lastActive: new Date().toISOString(),
           }),
+          sid4: 'session_prf_remote2',
+          sess4: JSON.stringify({
+            passport: { user: testUser.id },
+            clientIp: '198.51.100.44',
+            userAgent: 'Mozilla/5.0 (Linux; Android 14) Firefox/122.0',
+            lastActive: new Date().toISOString(),
+          }),
+          sid5: 'session_prf_other_user_2',
+          sess5: JSON.stringify({
+            passport: { user: farmerUser.id },
+            clientIp: '189.200.1.2',
+            userAgent: 'Mozilla/5.0 (Windows NT 10.0) Edge/121.0',
+            lastActive: new Date().toISOString(),
+          }),
+          sid6: 'session_prf_expired',
+          sess6: JSON.stringify({
+            passport: { user: testUser.id },
+            clientIp: '10.0.0.5',
+            userAgent: 'Mozilla/5.0 Chrome/118.0',
+            lastActive: expiredDate.toISOString(),
+          }),
           expire: expireDate,
+          expired: expiredDate,
         },
       },
     );
@@ -135,7 +161,14 @@ describe('👤 Módulo de Perfil Avanzado y Control de Sesiones', () => {
   afterAll(async () => {
     // Limpieza de datos creados en pruebas
     await db.sequelize.query(
-      `DELETE FROM "session" WHERE sid IN ('session_prf_current', 'session_prf_remote1', 'session_prf_other_user')`,
+      `DELETE FROM "session" WHERE sid IN (
+        'session_prf_current',
+        'session_prf_remote1',
+        'session_prf_remote2',
+        'session_prf_other_user',
+        'session_prf_other_user_2',
+        'session_prf_expired'
+      )`,
     );
     if (testFarm) await testFarm.destroy();
     if (testUser) {
@@ -168,12 +201,22 @@ describe('👤 Módulo de Perfil Avanzado y Control de Sesiones', () => {
       expect(formatUserAgentSummary(null)).toBe('Navegador Web');
     });
 
-    it('lista todas las sesiones activas asociadas a un usuario e identifica la actual', async () => {
+    it('lista todas las sesiones activas asociadas a un usuario e identifica la actual (excluyendo expiradas y de otros usuarios)', async () => {
       const sessions = await listUserActiveSessions(
         testUser.id,
         'session_prf_current',
       );
-      expect(sessions.length).toBeGreaterThanOrEqual(2);
+      expect(sessions.map((s) => s.sid)).toEqual(
+        expect.arrayContaining([
+          'session_prf_current',
+          'session_prf_remote1',
+          'session_prf_remote2',
+        ]),
+      );
+      expect(sessions.some((s) => s.sid === 'session_prf_expired')).toBe(false);
+      expect(sessions.some((s) => s.sid === 'session_prf_other_user')).toBe(
+        false,
+      );
 
       const current = sessions.find((s) => s.sid === 'session_prf_current');
       expect(current).toBeDefined();
@@ -185,12 +228,12 @@ describe('👤 Módulo de Perfil Avanzado y Control de Sesiones', () => {
       expect(remote.isCurrent).toBe(false);
     });
 
-    it('revoca únicamente las otras sesiones del usuario preservando la actual', async () => {
+    it('revoca únicamente las otras sesiones del usuario preservando la actual y sin tocar las sesiones de otros usuarios', async () => {
       const { revokedCount } = await revokeOtherSessions(
         testUser.id,
         'session_prf_current',
       );
-      expect(revokedCount).toBeGreaterThanOrEqual(1);
+      expect(revokedCount).toBeGreaterThanOrEqual(2);
 
       const remaining = await listUserActiveSessions(
         testUser.id,
@@ -199,19 +242,36 @@ describe('👤 Módulo de Perfil Avanzado y Control de Sesiones', () => {
       expect(remaining.some((s) => s.sid === 'session_prf_remote1')).toBe(
         false,
       );
+      expect(remaining.some((s) => s.sid === 'session_prf_remote2')).toBe(
+        false,
+      );
       expect(remaining.some((s) => s.sid === 'session_prf_current')).toBe(true);
 
-      // La sesión del agricultor no debe ser afectada
+      // Ninguna de las 2 sesiones activas del agricultor debe verse afectada
       const farmerSessions = await listUserActiveSessions(farmerUser.id);
-      expect(
-        farmerSessions.some((s) => s.sid === 'session_prf_other_user'),
-      ).toBe(true);
+      expect(farmerSessions.map((s) => s.sid)).toEqual(
+        expect.arrayContaining([
+          'session_prf_other_user',
+          'session_prf_other_user_2',
+        ]),
+      );
     });
 
-    it('revoca todas las sesiones de un usuario cuando se solicita', async () => {
-      await revokeAllUserSessions(farmerUser.id);
+    it('revoca todas las sesiones de un usuario sin afectar las sesiones de otros usuarios', async () => {
+      const { revokedCount } = await revokeAllUserSessions(farmerUser.id);
+      expect(revokedCount).toBeGreaterThanOrEqual(2);
+
       const remainingFarmer = await listUserActiveSessions(farmerUser.id);
       expect(remainingFarmer).toHaveLength(0);
+
+      // La sesión actual del primer usuario sigue intacta
+      const remainingInifap = await listUserActiveSessions(
+        testUser.id,
+        'session_prf_current',
+      );
+      expect(remainingInifap.some((s) => s.sid === 'session_prf_current')).toBe(
+        true,
+      );
     });
   });
 
@@ -422,6 +482,88 @@ describe('👤 Módulo de Perfil Avanzado y Control de Sesiones', () => {
       expect(res.headers.location).toContain(
         '/private/profile?success=sesiones_cerradas',
       );
+    });
+
+    it('no reescribe "session" dentro de la ventana de 5 min y mantiene coherentes cookie Expires y expire en BD al renovar (1.A6)', async () => {
+      const ua = 'AgroCoherenceAgent/1.0';
+      // Primera petición autenticada con este UA: actualiza clientIp, userAgent y lastActive
+      const initialRes = await authAgent
+        .get('/api/notifications')
+        .set('User-Agent', ua);
+      expect(initialRes.status).toBe(200);
+
+      const [[sessionRowBefore]] = await db.sequelize.query(
+        `SELECT sid, sess, expire
+         FROM "session"
+         WHERE (sess -> 'passport' ->> 'user') = :uid
+           AND sid <> 'session_prf_current'
+           AND expire > NOW()
+         ORDER BY expire DESC
+         LIMIT 1`,
+        { replacements: { uid: String(testUser.id) } },
+      );
+      expect(sessionRowBefore).toBeDefined();
+      const initialLastActive = sessionRowBefore.sess.lastActive;
+      const initialExpireMs = new Date(sessionRowBefore.expire).getTime();
+
+      // 5 peticiones seguidas dentro de la ventana de 5 min: sin Set-Cookie y sin escrituras en BD
+      for (let i = 0; i < 5; i += 1) {
+        const res = await authAgent
+          .get('/api/notifications')
+          .set('User-Agent', ua);
+        expect(res.status).toBe(200);
+        expect(res.headers['set-cookie']).toBeUndefined();
+      }
+
+      const [[sessionRowThrottled]] = await db.sequelize.query(
+        'SELECT sess, expire FROM "session" WHERE sid = :sid',
+        { replacements: { sid: sessionRowBefore.sid } },
+      );
+      expect(sessionRowThrottled.sess.lastActive).toBe(initialLastActive);
+      expect(new Date(sessionRowThrottled.expire).getTime()).toBe(
+        initialExpireMs,
+      );
+
+      // Envejecemos lastActive > 5 min y expire en BD para verificar renovación conjunta de cookie + BD
+      const agedLastActive = new Date(Date.now() - 6 * 60 * 1000).toISOString();
+      const agedExpire = new Date(Date.now() + 12 * 60 * 60 * 1000);
+      const agedSess = {
+        ...sessionRowThrottled.sess,
+        lastActive: agedLastActive,
+      };
+      await db.sequelize.query(
+        'UPDATE "session" SET sess = :sess::json, expire = :expire WHERE sid = :sid',
+        {
+          replacements: {
+            sid: sessionRowBefore.sid,
+            sess: JSON.stringify(agedSess),
+            expire: agedExpire,
+          },
+        },
+      );
+
+      const renewedRes = await authAgent
+        .get('/api/notifications')
+        .set('User-Agent', ua);
+      expect(renewedRes.status).toBe(200);
+
+      const setCookies = renewedRes.headers['set-cookie'] || [];
+      const sidCookie = setCookies.find((c) => c.startsWith('connect.sid='));
+      expect(sidCookie).toBeDefined();
+      const expiresMatch = sidCookie.match(/Expires=([^;]+)/i);
+      expect(expiresMatch).not.toBeNull();
+      const cookieExpiresMs = Date.parse(expiresMatch[1]);
+
+      const [[sessionRowAfter]] = await db.sequelize.query(
+        'SELECT sess, expire FROM "session" WHERE sid = :sid',
+        { replacements: { sid: sessionRowBefore.sid } },
+      );
+      const dbExpireMs = new Date(sessionRowAfter.expire).getTime();
+
+      expect(sessionRowAfter.sess.lastActive).not.toBe(agedLastActive);
+      expect(dbExpireMs).toBeGreaterThan(agedExpire.getTime());
+      // La expiración de la cookie (maxAge 24h) y el campo expire guardado en PostgreSQL quedan alineados (<= 2s)
+      expect(Math.abs(cookieExpiresMs - dbExpireMs)).toBeLessThanOrEqual(2000);
     });
   });
 });

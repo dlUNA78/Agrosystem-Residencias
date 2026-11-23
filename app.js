@@ -425,12 +425,17 @@ app.use(
       // El esquema de sesiones se administra mediante migración para evitar
       // carreras cuando varias instancias arrancan al mismo tiempo.
       createTableIfMissing: false,
+      // 1.A6: desactiva UPDATE "session" SET expire=... en cada petición GET no modificada.
+      // Tanto `expire` en BD como `lastActive` y la cookie se renuevan juntos cada 5 min
+      // cuando `enrichSessionActivity` actualiza la sesión (o al cambiar IP / User-Agent).
+      disableTouch: true,
     }),
     // Ya no hay fallback hardcoded: si SESSION_SECRET falta, el proceso
     // ya se detuvo arriba en la validación de entorno.
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
+    rolling: false,
     cookie: {
       httpOnly: true,
       secure: resolveSessionCookieSecure(),
