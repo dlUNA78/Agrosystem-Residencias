@@ -86,11 +86,12 @@ const fetchAuditRecords = async (where, query) => {
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
 
-  return Promise.all([
+  const [todayCount, totalCount, rows] = await Promise.all([
     AuditLog.count({
       where: { createdAt: { [Sequelize.Op.gte]: todayStart } },
     }),
-    AuditLog.findAndCountAll({
+    AuditLog.count({ where }),
+    AuditLog.findAll({
       where,
       include: [
         {
@@ -104,9 +105,10 @@ const fetchAuditRecords = async (where, query) => {
       limit: isCsv ? 1000 : query.limit,
       offset: isCsv ? 0 : (query.page - 1) * query.limit,
       subQuery: false,
-      distinct: true,
     }),
   ]);
+
+  return [todayCount, { count: totalCount, rows }];
 };
 
 export const auditPrivate = async (req, res) => {

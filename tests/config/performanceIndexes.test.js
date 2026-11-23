@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import fs from 'node:fs';
 import path from 'node:path';
-import { afterAll, describe, expect, it, jest } from '@jest/globals';
+import { afterAll, beforeAll, describe, expect, it, jest } from '@jest/globals';
 import session from 'express-session';
 import connectPgSimple from 'connect-pg-simple';
 import db from '../../src/models/index.js';
@@ -12,8 +12,16 @@ import {
 } from '../../src/utils/concurrentIndexHelper.js';
 import { CORE_PERFORMANCE_INDEXES } from '../../src/migrations/20261121000001-add-core-performance-indexes.js';
 import { REMOVED_REDUNDANT_INDEXES } from '../../src/migrations/20261122000001-remove-duplicate-and-redundant-indexes.js';
+import {
+  normalizeAuditQuery,
+  buildAuditWhere,
+  escapeLikePattern,
+  serializeAuditLog,
+} from '../../src/services/auditQueryService.js';
+import { auditPrivate } from '../../src/controllers/private/auditController.js';
 
-const { sequelize, InifapCode, RbacRole } = db;
+const { sequelize, Sequelize, AuditLog, User, InifapCode, RbacRole } = db;
+const { Op } = Sequelize;
 
 describe('concurrentIndexHelper (detección y recuperación de índices INVALID)', () => {
   it('omite la recreación si el índice ya existe y es válido (indisvalid = true)', async () => {
@@ -103,10 +111,6 @@ describe('concurrentIndexHelper (detección y recuperación de índices INVALID)
 });
 
 describe('Esquema de índices de rendimiento (1.A3 + 1.A12)', () => {
-  afterAll(async () => {
-    await sequelize.close();
-  });
-
   it('verifica que todos los índices de 1.A3 y 1.A12 existen y tienen indisvalid = true en pg_index', async () => {
     const expectedIndexes = [
       ...CORE_PERFORMANCE_INDEXES.map((spec) => ({
@@ -277,5 +281,336 @@ describe('Esquema de índices de rendimiento (1.A3 + 1.A12)', () => {
     } finally {
       await store.close();
     }
+  });
+});
+
+const buildLegacyAuditWhere = (query, extraRecordFilter) => {
+  const baseWhere = { ...extraRecordFilter };
+  const excludedLowImpactActions = [
+    'AVATAR_UPDATE',
+    'AVATAR_REMOVE',
+    'PROFILE_UPDATE',
+  ];
+
+  const MODULE_TABLES = {
+    plagas: ['Plagues', 'Plague', 'PlagueImages', 'PlagueRegions'],
+    cultivos: ['Crops', 'Crop', 'CropImages'],
+    productos: ['Products', 'Product', 'ProductImages'],
+    terrenos: [
+      'Farms',
+      'Farm',
+      'FarmCrops',
+      'FarmCropStages',
+      'FarmHealthReports',
+      'FarmApplications',
+      'FarmBlocks',
+    ],
+    usuarios: ['Users', 'User', 'InifapCodes'],
+    proveedores: ['Suppliers', 'Supplier'],
+    ingredientes: ['ActiveIngredients', 'ActiveIngredient'],
+  };
+
+  const ACTION_GROUPS = {
+    crear: [
+      'create',
+      'create_crop_cycle',
+      'create_health_report',
+      'create_application',
+      'create_block',
+    ],
+    editar: [
+      'update',
+      'advance_crop_stage',
+      'revert_crop_stage',
+      'finish_crop_cycle',
+      'update_workflow',
+      'manage_relations',
+    ],
+    eliminar: ['delete', 'destroy', 'deactivate_block'],
+    archivar: ['archive'],
+    restaurar: ['restore'],
+    aprobar: ['verify', 'publish', 'request_changes', 'submit_review'],
+  };
+
+  if (query.module && MODULE_TABLES[query.module]) {
+    baseWhere.table_name = { [Op.in]: MODULE_TABLES[query.module] };
+  }
+  if (query.action && ACTION_GROUPS[query.action]) {
+    baseWhere.action = { [Op.in]: ACTION_GROUPS[query.action] };
+  } else {
+    baseWhere.action = { [Op.notIn]: excludedLowImpactActions };
+  }
+
+  if (query.search) {
+    const escaped = `%${escapeLikePattern(query.search.toLowerCase())}%`;
+    baseWhere[Op.or] = [
+      Sequelize.where(Sequelize.fn('lower', Sequelize.col('table_name')), {
+        [Op.like]: escaped,
+      }),
+      Sequelize.where(Sequelize.fn('lower', Sequelize.col('action')), {
+        [Op.like]: escaped,
+      }),
+      Sequelize.where(
+        Sequelize.fn(
+          'lower',
+          Sequelize.fn('coalesce', Sequelize.col('user.full_name'), ''),
+        ),
+        { [Op.like]: escaped },
+      ),
+      Sequelize.where(
+        Sequelize.fn(
+          'lower',
+          Sequelize.fn('coalesce', Sequelize.col('user.email'), ''),
+        ),
+        { [Op.like]: escaped },
+      ),
+    ];
+  }
+
+  return baseWhere;
+};
+
+describe('paridad real de conteo y búsqueda en AuditLogs (1.A14)', () => {
+  const uniqueSuffix = `${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+  const markerRecordId = 900000 + Math.floor(Math.random() * 90000);
+  const createdLogIds = [];
+  const createdUserIds = [];
+  let activeUser;
+  let wildcardUser;
+  let deletedUser;
+
+  beforeAll(async () => {
+    activeUser = await User.create({
+      full_name: `Auditor Activo ${uniqueSuffix}`,
+      email: `auditor.activo.${uniqueSuffix}@agrosystem.test`,
+      password_hash: '$2b$10$testhash0000000000000000000000000000000000000',
+      role: 'inifap',
+      status: 'activo',
+    });
+    createdUserIds.push(activeUser.id);
+
+    wildcardUser = await User.create({
+      full_name: `Inspector 100%_Especial\\Ruta ${uniqueSuffix}`,
+      email: `inspector_100%.especial.${uniqueSuffix}@agrosystem.test`,
+      password_hash: '$2b$10$testhash0000000000000000000000000000000000000',
+      role: 'inifap',
+      status: 'activo',
+    });
+    createdUserIds.push(wildcardUser.id);
+
+    deletedUser = await User.create({
+      full_name: `Usuario Eliminado ${uniqueSuffix}`,
+      email: `eliminado.${uniqueSuffix}@agrosystem.test`,
+      password_hash: '$2b$10$testhash0000000000000000000000000000000000000',
+      role: 'agricultor',
+      status: 'activo',
+    });
+
+    const logsToCreate = [
+      {
+        user_id: activeUser.id,
+        action: 'create',
+        table_name: 'Farms',
+        record_id: markerRecordId,
+        new_values: { name: `Parcela ${uniqueSuffix}` },
+      },
+      {
+        user_id: activeUser.id,
+        action: 'create_crop_cycle',
+        table_name: 'FarmCrops',
+        record_id: markerRecordId,
+        new_values: { name: `Ciclo ${uniqueSuffix}` },
+      },
+      {
+        user_id: null,
+        action: 'update',
+        table_name: 'Crops',
+        record_id: markerRecordId,
+        new_values: { name: `Log Sistema sin usuario ${uniqueSuffix}` },
+      },
+      {
+        user_id: deletedUser.id,
+        action: 'delete',
+        table_name: 'Plagues',
+        record_id: markerRecordId,
+        old_values: {
+          name: `Log de usuario que será eliminado ${uniqueSuffix}`,
+        },
+      },
+      {
+        user_id: wildcardUser.id,
+        action: 'verify',
+        table_name: 'Products',
+        record_id: markerRecordId,
+        new_values: { name: `Producto Especial ${uniqueSuffix}` },
+      },
+    ];
+
+    for (const payload of logsToCreate) {
+      const log = await AuditLog.create(payload);
+      createdLogIds.push(log.id);
+    }
+
+    await deletedUser.destroy();
+  });
+
+  afterAll(async () => {
+    if (createdLogIds.length > 0) {
+      await AuditLog.destroy({ where: { id: { [Op.in]: createdLogIds } } });
+    }
+    if (createdUserIds.length > 0) {
+      await User.destroy({ where: { id: { [Op.in]: createdUserIds } } });
+    }
+    await sequelize.close();
+  });
+
+  it('conserva el log con user_id = NULL cuando el usuario asociado es eliminado', async () => {
+    const logs = await AuditLog.findAll({
+      where: { record_id: markerRecordId },
+      include: [{ model: User, as: 'user', required: false }],
+      order: [['id', 'ASC']],
+    });
+
+    expect(logs).toHaveLength(5);
+    const nullLogs = logs.filter((l) => l.user_id === null);
+    expect(nullLogs).toHaveLength(2);
+
+    for (const log of nullLogs) {
+      const serialized = serializeAuditLog(log);
+      expect(serialized.user.name).toBe('Sistema');
+      expect(serialized.user.role).toBe('SISTEMA');
+    }
+  });
+
+  it('mantiene paridad exacta de count y IDs entre legacy DISTINCT+JOIN y count separado en todos los filtros (search, module, action, user_id NULL y eliminado)', async () => {
+    const cases = [
+      ['sin filtros (incluye user_id NULL y usuario eliminado)', {}],
+      ['filtro module=cultivos (user_id NULL)', { module: 'cultivos' }],
+      ['filtro module=plagas (usuario eliminado)', { module: 'plagas' }],
+      ['filtro action=crear', { action: 'crear' }],
+      ['búsqueda por table_name (Farms)', { search: 'Farms' }],
+      ['búsqueda por action (create_crop)', { search: 'create_crop' }],
+      [
+        'búsqueda por usuario activo (nombre/correo)',
+        { search: `auditor.activo.${uniqueSuffix}` },
+      ],
+      [
+        'búsqueda sin coincidencias (PredioInexistente)',
+        { search: 'PredioInexistenteXYZ999' },
+      ],
+    ];
+
+    const scopeFilter = { record_id: markerRecordId };
+
+    for (const [, rawQuery] of cases) {
+      const query = normalizeAuditQuery(rawQuery);
+      const newWhere = {
+        ...buildAuditWhere(Sequelize, query),
+        ...scopeFilter,
+      };
+      const legacyWhere = buildLegacyAuditWhere(query, scopeFilter);
+
+      const [newCount, newRows, legacyResult] = await Promise.all([
+        AuditLog.count({ where: newWhere }),
+        AuditLog.findAll({
+          where: newWhere,
+          include: [
+            {
+              model: User,
+              as: 'user',
+              attributes: ['id', 'full_name', 'email', 'role'],
+              required: false,
+            },
+          ],
+          order: [
+            ['createdAt', 'DESC'],
+            ['id', 'DESC'],
+          ],
+          subQuery: false,
+        }),
+        AuditLog.findAndCountAll({
+          where: legacyWhere,
+          include: [
+            {
+              model: User,
+              as: 'user',
+              attributes: ['id', 'full_name', 'email', 'role'],
+              required: false,
+            },
+          ],
+          order: [
+            ['createdAt', 'DESC'],
+            ['id', 'DESC'],
+          ],
+          subQuery: false,
+          distinct: true,
+        }),
+      ]);
+
+      expect(newCount).toBe(legacyResult.count);
+      expect(newRows.map((r) => r.id)).toEqual(
+        legacyResult.rows.map((r) => r.id),
+      );
+    }
+  });
+
+  it('escapa %, _ y \\ en búsquedas contra PostgreSQL sin tratarlos como comodines', async () => {
+    const scopeFilter = { record_id: markerRecordId };
+
+    const exactWildcardQuery = normalizeAuditQuery({
+      search: `100%_Especial\\Ruta ${uniqueSuffix}`,
+    });
+    const exactCount = await AuditLog.count({
+      where: {
+        ...buildAuditWhere(Sequelize, exactWildcardQuery),
+        ...scopeFilter,
+      },
+    });
+    expect(exactCount).toBe(1);
+
+    const unescapedPercentQuery = normalizeAuditQuery({
+      search: `Auditor%Activo ${uniqueSuffix}`,
+    });
+    const percentCount = await AuditLog.count({
+      where: {
+        ...buildAuditWhere(Sequelize, unescapedPercentQuery),
+        ...scopeFilter,
+      },
+    });
+    expect(percentCount).toBe(0);
+
+    const underscoreQuery = normalizeAuditQuery({ search: 'create_crop' });
+    const underscoreCount = await AuditLog.count({
+      where: {
+        ...buildAuditWhere(Sequelize, underscoreQuery),
+        ...scopeFilter,
+      },
+    });
+    expect(underscoreCount).toBe(1);
+  });
+
+  it('exporta CSV desde auditPrivate incluyendo registros filtrados y serializa user_id NULL / usuario eliminado como Sistema', async () => {
+    const req = {
+      query: {
+        format: 'csv',
+        search: `Auditor Activo ${uniqueSuffix}`,
+      },
+    };
+    const res = {
+      setHeader: jest.fn(),
+      send: jest.fn(),
+      status: jest.fn().mockReturnThis(),
+      render: jest.fn(),
+    };
+
+    await auditPrivate(req, res);
+
+    expect(res.setHeader).toHaveBeenCalledWith(
+      'Content-Type',
+      'text/csv; charset=utf-8',
+    );
+    const csvPayload = res.send.mock.calls[0][0];
+    expect(csvPayload).toContain(`Parcela ${uniqueSuffix}`);
+    expect(csvPayload).toContain(`Ciclo ${uniqueSuffix}`);
   });
 });
