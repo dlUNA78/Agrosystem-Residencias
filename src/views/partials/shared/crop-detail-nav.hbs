@@ -42,13 +42,11 @@
         <span>Distribución</span>
       </a>
       {{#if isPrivate}}
-        {{#if farmsCount}}
-          <a href="#predios" data-spy-link="predios" class="px-2.5 py-1 text-[11px] sm:text-xs rounded-md sm:rounded-lg border border-transparent hover:text-foreground hover:bg-muted transition-all flex items-center gap-1 sm:gap-1.5">
-            <span class="material-symbols-outlined text-xs sm:text-sm">pin_drop</span>
-            <span>Predios</span>
-            <span class="px-1.5 py-0.2 text-[9px] sm:text-[10px] font-mono bg-emerald-100 text-[#1b4332] rounded-full font-bold">{{farmsCount}}</span>
-          </a>
-        {{/if}}
+        <a href="#predios" data-spy-link="predios" class="px-2.5 py-1 text-[11px] sm:text-xs rounded-md sm:rounded-lg border border-transparent hover:text-foreground hover:bg-muted transition-all flex items-center gap-1 sm:gap-1.5">
+          <span class="material-symbols-outlined text-xs sm:text-sm">pin_drop</span>
+          <span>Predios</span>
+          <span class="px-1.5 py-0.2 text-[9px] sm:text-[10px] font-mono bg-emerald-100 text-[#1b4332] rounded-full font-bold">{{farmsCount}}</span>
+        </a>
         <a href="#relaciones-tecnicas" data-spy-link="relaciones-tecnicas" class="px-2.5 py-1 text-[11px] sm:text-xs rounded-md sm:rounded-lg border border-transparent hover:text-foreground hover:bg-muted transition-all flex items-center gap-1 sm:gap-1.5">
           <span class="material-symbols-outlined text-xs sm:text-sm">hub</span>
           <span>Relaciones</span>

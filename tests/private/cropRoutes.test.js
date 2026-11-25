@@ -584,6 +584,49 @@ describe('rutas privadas del workflow de cultivos', () => {
       expect(html).not.toContain('Predio Ajeno Agricultor 1');
     });
 
+    it('muestra siempre la pestaña y sección Predios en modo privado incluso con farmsCount = 0 y sin enlaces rotos', async () => {
+      const zeroCrop = await Crop.create({
+        ...completeCropData,
+        name: 'Cultivo Sin Ciclos Activos 1A11',
+        status: 'aprobado',
+        workflow_status: 'published',
+        created_by_user_id: author.id,
+        updated_by_user_id: author.id,
+      });
+
+      try {
+        const res = await adminAgent.get(`/private/crops/${zeroCrop.id}`);
+        expect(res.status).toBe(200);
+
+        const html = res.text;
+        expect(html).toContain('href="#predios"');
+        expect(html).toContain('data-spy-link="predios"');
+        expect(html).toContain('id="predios"');
+        expect(html).toContain('data-national-farms-count="0"');
+        expect(html).toContain('data-own-farms-empty');
+        expect(html).toContain(
+          '0 predios activos con este cultivo a nivel nacional',
+        );
+        expect(html).toContain(
+          'Ninguno de tus predios tiene un ciclo activo de este cultivo. Registra un ciclo desde el expediente del predio.',
+        );
+        expect(html).toContain('/private/lands');
+        expect([...html.matchAll(/data-own-farm-card="/g)]).toHaveLength(0);
+
+        const subNavMatch = html.match(/<nav id="sub-nav"[\s\S]*?<\/nav>/);
+        expect(subNavMatch).not.toBeNull();
+        const anchorIds = [
+          ...subNavMatch[0].matchAll(/href="#([a-z0-9-]+)"/g),
+        ].map((m) => m[1]);
+        expect(anchorIds).toContain('predios');
+        for (const anchorId of anchorIds) {
+          expect(html).toContain(`id="${anchorId}"`);
+        }
+      } finally {
+        await zeroCrop.destroy();
+      }
+    });
+
     it('JSON devuelve farmsCount numérico sin array farms y PDF responde sin requerir predios', async () => {
       const jsonRes = await adminAgent
         .get(`/private/crops/${crop.id}`)
