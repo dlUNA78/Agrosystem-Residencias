@@ -956,82 +956,84 @@
       </div>
     </section>
 
-    {{! ── PREDIOS ACTIVOS (Solo Modo Privado con Predios) ──────────────────── }}
+    {{! ── PREDIOS ACTIVOS (Siempre visible en Modo Privado) ───────────────── }}
     {{#if isPrivate}}
-      {{#if farmsCount}}
-        <section id="predios" class="scroll-mt-28 md:scroll-mt-32 mb-12">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
-            <div>
-              <h2 class="text-xl font-headline font-black text-foreground flex items-center gap-2">
-                <span class="material-symbols-outlined text-emerald-700">pin_drop</span> Predios y Terrenos con este Cultivo
-              </h2>
-              <p class="text-xs text-muted-foreground">Conteo nacional agregado de predios activos; por privacidad, solo se despliegan tus predios propios.</p>
-            </div>
-            <span data-national-farms-count="{{farmsCount}}" class="px-2.5 py-1 bg-emerald-50 text-emerald-800 text-xs font-mono font-bold rounded-lg border border-emerald-200 self-start sm:self-auto">
-              {{farmsCount}} Predios activos (nacional)
-            </span>
+      <section id="predios" class="scroll-mt-28 md:scroll-mt-32 mb-12">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+          <div>
+            <h2 class="text-xl font-headline font-black text-foreground flex items-center gap-2">
+              <span class="material-symbols-outlined text-emerald-700">pin_drop</span> Predios y Terrenos con este Cultivo
+            </h2>
+            <p class="text-xs text-muted-foreground">Conteo nacional agregado de predios activos; por privacidad, solo se despliegan tus predios propios.</p>
+          </div>
+          <span data-national-farms-count="{{farmsCount}}" class="px-2.5 py-1 bg-emerald-50 text-emerald-800 text-xs font-mono font-bold rounded-lg border border-emerald-200 self-start sm:self-auto">
+            {{farmsCount}} Predios activos (nacional)
+          </span>
+        </div>
+
+        {{#if hasOwnFarms}}
+          <div class="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2 rounded-xl border border-emerald-200/70 bg-emerald-50/40 px-4 py-2.5 text-xs text-muted-foreground">
+            <p>
+              {{#if hasMoreOwnFarms}}
+                <strong class="text-foreground">Mostrando {{displayedFarmsCount}} de {{ownFarmsCount}}</strong> de tus predios activos más recientes con este cultivo.
+              {{else}}
+                Mostrando tus <strong class="text-foreground">{{displayedFarmsCount}}</strong> predios activos con este cultivo.
+              {{/if}}
+            </p>
+            <a href="/private/lands" class="inline-flex items-center gap-1 font-bold text-[#1b4332] hover:underline shrink-0">
+              <span>Ver mi cartera de predios</span>
+              <span class="material-symbols-outlined text-xs">arrow_forward</span>
+            </a>
           </div>
 
-          {{#if hasOwnFarms}}
-            <div class="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2 rounded-xl border border-emerald-200/70 bg-emerald-50/40 px-4 py-2.5 text-xs text-muted-foreground">
-              <p>
-                {{#if hasMoreOwnFarms}}
-                  <strong class="text-foreground">Mostrando {{displayedFarmsCount}} de {{ownFarmsCount}}</strong> de tus predios activos más recientes con este cultivo.
-                {{else}}
-                  Mostrando tus <strong class="text-foreground">{{displayedFarmsCount}}</strong> predios activos con este cultivo.
-                {{/if}}
-              </p>
-              <a href="/private/lands" class="inline-flex items-center gap-1 font-bold text-[#1b4332] hover:underline shrink-0">
-                <span>Ver mi cartera de predios</span>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {{#each farms}}
+              <article data-own-farm-card="{{this.id}}" class="bg-card p-5 rounded-2xl border border-border shadow-2xs flex flex-col justify-between">
+                <div>
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200">
+                      {{this.farmingType}}
+                    </span>
+                    {{#if this.sizeHectares}}
+                      <span class="font-mono text-xs font-bold text-muted-foreground">{{this.sizeHectares}} Ha</span>
+                    {{/if}}
+                  </div>
+                  <h3 class="font-headline font-bold text-base text-foreground mb-1">{{this.name}}</h3>
+                  <p class="text-xs text-muted-foreground flex items-center gap-1">
+                    <span class="material-symbols-outlined text-xs">location_on</span> {{this.municipality}}
+                  </p>
+                </div>
+                <div class="mt-4 pt-3 border-t border-border">
+                  <a href="/private/lands/{{this.id}}/expediente" class="w-full py-2 bg-card hover:bg-secondary text-[#1b4332] font-bold text-xs rounded-xl transition-colors border border-border inline-flex items-center justify-center gap-1.5 shadow-2xs">
+                    <span>Ver expediente del predio</span>
+                    <span class="material-symbols-outlined text-xs">map</span>
+                  </a>
+                </div>
+              </article>
+            {{/each}}
+          </div>
+        {{else}}
+          <div data-own-farms-empty class="bg-card p-6 rounded-2xl border border-dashed border-border text-center text-xs text-muted-foreground space-y-2">
+            <span class="material-symbols-outlined text-3xl text-emerald-700/60">shield_person</span>
+            <p class="font-bold text-foreground">
+              Ninguno de tus predios tiene un ciclo activo de este cultivo. Registra un ciclo desde el expediente del predio.
+            </p>
+            <p class="text-[11px] text-muted-foreground max-w-xl mx-auto">
+              {{#if farmsCount}}
+                Existen <strong class="text-foreground">{{farmsCount}}</strong> predios activos con este cultivo a nivel nacional. Por política de privacidad no se muestran predios de otros usuarios; el detalle de tus predios se consulta en tu cartera.
+              {{else}}
+                Hay <strong class="text-foreground">0 predios activos con este cultivo a nivel nacional</strong>. Puedes registrar un ciclo productivo desde el expediente de tus predios en tu cartera.
+              {{/if}}
+            </p>
+            <div class="pt-2">
+              <a href="/private/lands" class="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-[#1b4332] font-bold text-xs rounded-xl transition-colors border border-emerald-200">
+                <span>Consultar mi cartera de predios</span>
                 <span class="material-symbols-outlined text-xs">arrow_forward</span>
               </a>
             </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-              {{#each farms}}
-                <article data-own-farm-card="{{this.id}}" class="bg-card p-5 rounded-2xl border border-border shadow-2xs flex flex-col justify-between">
-                  <div>
-                    <div class="flex items-center justify-between mb-2">
-                      <span class="text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200">
-                        {{this.farmingType}}
-                      </span>
-                      {{#if this.sizeHectares}}
-                        <span class="font-mono text-xs font-bold text-muted-foreground">{{this.sizeHectares}} Ha</span>
-                      {{/if}}
-                    </div>
-                    <h3 class="font-headline font-bold text-base text-foreground mb-1">{{this.name}}</h3>
-                    <p class="text-xs text-muted-foreground flex items-center gap-1">
-                      <span class="material-symbols-outlined text-xs">location_on</span> {{this.municipality}}
-                    </p>
-                  </div>
-                  <div class="mt-4 pt-3 border-t border-border">
-                    <a href="/private/lands/{{this.id}}/expediente" class="w-full py-2 bg-card hover:bg-secondary text-[#1b4332] font-bold text-xs rounded-xl transition-colors border border-border inline-flex items-center justify-center gap-1.5 shadow-2xs">
-                      <span>Ver expediente del predio</span>
-                      <span class="material-symbols-outlined text-xs">map</span>
-                    </a>
-                  </div>
-                </article>
-              {{/each}}
-            </div>
-          {{else}}
-            <div data-own-farms-empty class="bg-card p-6 rounded-2xl border border-dashed border-border text-center text-xs text-muted-foreground space-y-2">
-              <span class="material-symbols-outlined text-3xl text-emerald-700/60">shield_person</span>
-              <p class="font-bold text-foreground">
-                Ninguno de tus predios tiene un ciclo activo de este cultivo. Registra un ciclo desde el expediente del predio.
-              </p>
-              <p class="text-[11px] text-muted-foreground max-w-xl mx-auto">
-                Existen <strong class="text-foreground">{{farmsCount}}</strong> predios activos con este cultivo a nivel nacional. Por política de privacidad no se muestran predios de otros usuarios; el detalle de tus predios se consulta en tu cartera.
-              </p>
-              <div class="pt-2">
-                <a href="/private/lands" class="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-[#1b4332] font-bold text-xs rounded-xl transition-colors border border-emerald-200">
-                  <span>Consultar mi cartera de predios</span>
-                  <span class="material-symbols-outlined text-xs">arrow_forward</span>
-                </a>
-              </div>
-            </div>
-          {{/if}}
-        </section>
-      {{/if}}
+          </div>
+        {{/if}}
+      </section>
     {{/if}}
 
     {{! ── RELACIONES TÉCNICAS (Solo Modo Privado con Permiso) ─────────────── }}
