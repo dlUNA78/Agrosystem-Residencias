@@ -142,3 +142,15 @@ Las siguientes mejoras fueron detectadas al validar la Fase 1 y quedan registrad
   - `landDetail` ejecuta un único `Farm.findOne` con cuatro `hasMany` encadenados sin `separate: true`: `farmCrops` (con `stages`), `healthReports`, `applications` y `lots`.
   - **Medición actual sobre `agrosystem_load`**: en el dataset de carga actual cada predio tiene pocos registros operativos propios; el predio con mayor producto (`id = 6`: `1` ciclo × `2` reportes sanitarios × `3` aplicaciones × `2` lotes = **`12` filas**) se resolvió en **`27.19 ms` totales** (`24.71 ms` SQL), por lo que hoy no es un cuello de botella real y se dejó fuera de `1.A11`.
   - **Riesgo a futuro**: si un predio de larga trayectoria acumula múltiples ciclos, etapas fenológicas, decenas de reportes y aplicaciones (p. ej. `10 × 5 × 20 × 30 × 10`), el join único sin `separate: true` crecerá de forma multiplicativa. Cuando se atienda en optimizaciones posteriores (`3.A4`), separar esas asociaciones en `separate: true` o consultas paralelas acotadas eliminará el riesgo.
+
+## 13. H-1: `seedDefaultUsers()` sobrescribe rol, contraseña y perfil de usuarios existentes en cada reinicio
+
+- **Ubicación**: [app.js](../app.js#L496-L505) y [seedDefaultUsers.js](../src/scripts/seedDefaultUsers.js#L102-L149).
+- **Qué se observó (reproducido en BD real)**:
+  - Al iniciar el servidor, [app.js](../app.js#L496-L505) ejecuta `await seedDefaultUsers()` siempre que `process.env.NODE_ENV !== 'test'` (incluye tanto `development` como **`production`**). No existe otro código de arranque que modifique `Users`.
+  - En [seedDefaultUsers.js](../src/scripts/seedDefaultUsers.js#L112-L127), cuando el correo ya existe en `"Users"`, ejecuta `existing.update({...})` sobrescribiendo **incondicionalmente** `role`, `password_hash`, `full_name`, `code`, `phone`, `address`, `job_title`, `shift`, `photo_url` y `status` con los valores de `DEFAULT_USERS` (sin tocar `rbac_role_id`).
+  - **Consecuencia reproducida**: al ascender a `agricultor@agrosystem.com` (`id = 270`) a INIFAP mediante `/auth/inifap-upgrade` (canje de código `InifapCodes.id = 317` con `rbac_role_id = 3`), el siguiente reinicio del servidor revirtió `role` de `'inifap'` a `'agricultor'` (dejando `rbac_role_id = 3` huérfano) y restableció `password_hash` y los campos de perfil al seed. En producción, además, restablecería la contraseña del administrador y los roles modificados en cada reinicio.
+- **Arreglo propuesto (coordinar con `1.A8` y `F-2`)**:
+  1. En `seedDefaultUsers()`, cambiar el comportamiento a **solo creación si no existe** (`if (existing) continue;` o `findOrCreate`), sin sobrescribir jamás `role`, `rbac_role_id`, `password_hash` ni datos de perfil de usuarios ya existentes.
+  2. En [app.js](../app.js#L496-L505), **no ejecutar `seedDefaultUsers()` en `NODE_ENV=production`** (restringirlo a entorno de desarrollo o ejecución manual explícita por CLI/variable dedicada, en coordinación con `1.A8`).
+  3. Añadir prueba automatizada que verifique que re-ejecutar `seedDefaultUsers()` tras un ascenso a `inifap` o un cambio de contraseña **preserva intactos** `role`, `rbac_role_id` y `password_hash`.
