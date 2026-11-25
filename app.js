@@ -18,7 +18,10 @@ import publicRoutes from './src/routes/publicRoutes.js';
 import privateRoutes from './src/routes/privateRoutes.js';
 import authRoutes from './src/routes/auth.js';
 import notificationRoutes from './src/routes/notificationRoutes.js';
-import { seedDefaultUsers } from './src/scripts/seedDefaultUsers.js';
+import {
+  seedDefaultUsers,
+  shouldRunDefaultUsersSeed,
+} from './src/scripts/seedDefaultUsers.js';
 import {
   resolveEffectivePermissions,
   getUserRoleSummary,
@@ -500,8 +503,10 @@ if (process.env.NODE_ENV !== 'test') {
       '✅ Conexión a la base de datos PostgreSQL establecida exitosamente.',
     );
 
-    // Crear usuarios por defecto si no existen (admin/inifap y agricultor)
-    await seedDefaultUsers();
+    // Crear usuarios por defecto solo en entornos no productivos y únicamente si no existen
+    if (shouldRunDefaultUsersSeed(process.env)) {
+      await seedDefaultUsers();
+    }
     logLoadTestModeWarnings();
 
     app.listen(PORT, () => {
