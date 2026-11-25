@@ -574,6 +574,9 @@ describe('rutas privadas del workflow de cultivos', () => {
       const html = res.text;
       expect(html).toContain('data-national-farms-count="16"');
       expect(html).toContain('data-own-farms-empty');
+      expect(html).toContain(
+        'Ninguno de tus predios tiene un ciclo activo de este cultivo. Registra un ciclo desde el expediente del predio.',
+      );
       expect(html).toContain('/private/lands');
       expect([...html.matchAll(/data-own-farm-card="/g)]).toHaveLength(0);
       expect([...html.matchAll(/data-map-marker="/g)]).toHaveLength(0);
