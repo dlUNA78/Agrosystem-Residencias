@@ -94,38 +94,31 @@ const DEFAULT_USERS = [
 
 const SALT_ROUNDS = 10;
 
-/**
- * Crea los usuarios por defecto si aún no existen en la base de datos.
- * Es completamente idempotente: si los usuarios ya existen, actualiza sus contraseñas y datos.
- * Se llama automáticamente al iniciar el servidor.
- */
-export async function seedDefaultUsers() {
-  console.log('🌱 Verificando usuarios por defecto...');
+export const shouldRunDefaultUsersSeed = (env = process.env) => {
+  const nodeEnv = String(env?.NODE_ENV || '')
+    .trim()
+    .toLowerCase();
+  return nodeEnv !== 'production' && nodeEnv !== 'test';
+};
 
-  let createdCount = 0;
-  let updatedCount = 0;
+const isProductionEnvironment = (env = process.env) =>
+  String(env?.NODE_ENV || '')
+    .trim()
+    .toLowerCase() === 'production';
 
-  for (const userData of DEFAULT_USERS) {
-    const existing = await User.findOne({ where: { email: userData.email } });
-    const password_hash = await bcrypt.hash(userData.password, SALT_ROUNDS);
+const createUserIfMissing = async (userData) => {
+  const existing = await User.findOne({
+    where: { email: userData.email },
+    attributes: ['id'],
+  });
 
-    if (existing) {
-      await existing.update({
-        code: userData.code || existing.code,
-        full_name: userData.full_name,
-        password_hash,
-        role: userData.role,
-        phone: userData.phone || existing.phone,
-        address: userData.address || existing.address,
-        job_title: userData.job_title || existing.job_title,
-        shift: userData.shift || existing.shift,
-        photo_url: userData.photo_url || existing.photo_url,
-        status: userData.status || existing.status || 'activo',
-      });
-      updatedCount++;
-      continue;
-    }
+  if (existing) {
+    return false;
+  }
 
+  const password_hash = await bcrypt.hash(userData.password, SALT_ROUNDS);
+
+  try {
     await User.create({
       code: userData.code,
       full_name: userData.full_name,
@@ -139,12 +132,49 @@ export async function seedDefaultUsers() {
       photo_url: userData.photo_url,
       status: userData.status || 'activo',
     });
-
     console.log(`   🆕 Usuario '${userData.role}' creado: ${userData.email}`);
-    createdCount++;
+    return true;
+  } catch (error) {
+    if (error?.name === 'SequelizeUniqueConstraintError') {
+      return false;
+    }
+    throw error;
+  }
+};
+
+/**
+ * Crea los usuarios por defecto ÚNICAMENTE si aún no existen en la base de datos.
+ * Nunca sobrescribe rol, sub-rol RBAC, contraseña, estado ni perfil de usuarios existentes.
+ * No se ejecuta en NODE_ENV=production.
+ */
+export async function seedDefaultUsers({
+  env = process.env,
+  users = DEFAULT_USERS,
+} = {}) {
+  if (isProductionEnvironment(env)) {
+    console.log(
+      '🌱 Seeding de usuarios por defecto omitido en NODE_ENV=production.',
+    );
+    return { createdCount: 0, skippedCount: 0, skippedEnvironment: true };
+  }
+
+  console.log('🌱 Verificando usuarios por defecto...');
+
+  let createdCount = 0;
+  let skippedCount = 0;
+
+  for (const userData of users) {
+    const created = await createUserIfMissing(userData);
+    if (created) {
+      createdCount += 1;
+    } else {
+      skippedCount += 1;
+    }
   }
 
   console.log(
-    `🌱 Seeding de usuarios completado: ${createdCount} creado(s), ${updatedCount} actualizado(s).`,
+    `🌱 Seeding de usuarios completado: ${createdCount} creado(s), ${skippedCount} existente(s) preservado(s).`,
   );
+
+  return { createdCount, skippedCount, skippedEnvironment: false };
 }
