@@ -142,16 +142,23 @@ Todas las cuentas usan el dominio ficticio `@demo.agrosystem.invalid`, cero dato
      - **Resultado esperado:** **`Clorpirifos Etil`** cambia a etiqueta **`Baja en trámite`** (`archive_pending`). Comprobar que `curador.demo` **no ve el botón de aprobar su propia solicitud** (principio de los 4 ojos / aprobación dual).
    - Mostrar también **`/private/suppliers`** (4 proveedores) y cerrar sesión.
 
-### Bloque E — Predios, ciclos fenológicos y bitácora operativa (3 min)
+### Bloque E — Privacidad de predios por propietario, ciclos fenológicos y bitácora operativa (3 min)
 
-1. Desde el panel privado (con `curador.demo` o `admin.demo`), navegar a **`/private/lands`**.
-   - **Pantalla esperada:** Padrón de **10 predios** distribuidos en Sinaloa, Michoacán, Sonora, El Bajío, Colima, Veracruz, Puebla, Estado de México y Chiapas, con estadísticas de hectáreas y exportación CSV/GeoJSON.
-2. Abrir el expediente de **`Parcela Valle Verde Norte`** (`/private/lands/<id>/expediente`).
+> **Regla de privacidad estricta (`landAuthorizationService.js`):** En `/private/lands`, cada usuario autenticado con acceso al panel (incluyendo `admin`) **ve y administra únicamente sus propios predios** (`where.user_id = req.user.id`). Los 10 predios del entorno demo están distribuidos entre las 4 cuentas (3 de `productor.demo`, 3 de `tecnico.demo`, 2 de `curador.demo` y 2 de `admin.demo`). Intentar abrir directamente el expediente de un predio de otro propietario (por ejemplo `Parcela Valle Verde Norte`, propiedad de `productor.demo`) responde `404`.
+
+1. Aún con sesión de **`curador.demo@demo.agrosystem.invalid`**, navegar a **`/private/lands`**.
+   - **Pantalla esperada:** Muestra exclusivamente sus **2 predios propios** (**`Huerto Centinela Colima Costa`** y **`Parcela Citricola Veracruz Golfo`**) con indicadores de hectáreas y exportación CSV/GeoJSON.
+2. Abrir el expediente de **`Huerto Centinela Colima Costa`** (`/private/lands/<id>/expediente`).
    - **Mostrar:**
-     - **Lotes (`FarmLots`):** `Lote A - Maíz Grano` y `Lote B - Hortaliza`.
-     - **Ciclos activos (`FarmCrops`):** Maíz y Jitomate con barra de progreso y **5 etapas fenológicas (`FarmCropStages`)**.
-     - **Reportes sanitarios (`FarmHealthReports`):** alerta alta abierta por _Gusano Cogollero_.
-     - **Aplicaciones (`FarmApplications`):** aplicación registrada de _Coragen_ (`125 mL/ha`).
+     - **Lotes (`FarmLots`):** `Cuadro Limón 1` (18 ha) y `Cuadro Limón 2` (12 ha).
+     - **Ciclo activo (`FarmCrops`):** _Limón Mexicano_ con barra de progreso y **5 etapas fenológicas (`FarmCropStages`)**.
+     - **Reporte sanitario (`FarmHealthReports`):** seguimiento de _Psílido Asiático de los Cítricos_ (estado `resolved`).
+     - **Aplicación (`FarmApplications`):** registro fitosanitario de _Confidor 350 SC_ (`0.85 L/ha`).
+3. _(En el Bloque F, con **`admin.demo`**)_ Abrir **`/private/lands`** para mostrar el aislamiento entre usuarios (ve solo sus **2 predios**: **`Campo Valles Altos Metepec`** y **`Estación Frontera Sur Soconusco`**) e ingresar al expediente de **`Campo Valles Altos Metepec`** (`/private/lands/<id>/expediente`):
+   - **Lotes (`FarmLots`):** `Lote Papa Alpha 1` y `Lote Semilla`.
+   - **Ciclos (`FarmCrops`):** ciclo activo de _Papa_ + ciclo finalizado de _Trigo_, cada uno con **5 etapas fenológicas (`FarmCropStages`)**.
+   - **Reporte sanitario (`FarmHealthReports`):** alerta abierta de severidad alta por _Tizón Tardío_ (reflejada también en el KPI de alertas críticas de `/dashboard`).
+   - **Aplicación (`FarmApplications`):** aplicación preventiva de _Ridomil Gold Bravo_ (`2.0 L/ha`).
 
 ### Bloque F — Gobernanza administrativa, aprobación dual y auditoría (3 min)
 
@@ -205,7 +212,7 @@ El script valida los guardrails (`agrosystem_demo*` y no producción), cierra co
 - [ ] **Prueba negativa de auditoría (`403`):** confirmar que tanto `tecnico.demo` como `curador.demo` (`Curador de Insumos y Proveedores`) reciben **`403 Forbidden`** en `/private/audit` y `/private/users`.
 - [ ] **Flujo de aprobación dual de ingrediente + Hallazgo H-7:** confirmar que `curador.demo` ve **`Solicitar baja justificada`** en `/private/ingredients` (y **NO** ve botones de añadir/editar/eliminar por H-7), tramita la baja de **`Clorpirifos Etil`** (`POST /private/ingredients/<id>/workflow` con `action=request_archive`), no puede auto-aprobarla, y `admin.demo` aprueba la baja (`action=approve_archive`) dejándola en `Archivado` y visible en `/private/audit`.
 - [ ] **Re-verificación post-merge (`H-2` y `1.A5`):** confirmar nuevamente login, permisos de `tecnico.demo` (sin subrol) vs `curador.demo` (subrol `Curador de Insumos y Proveedores`), bloqueo `403` de `agricultor` en `/private/...` y tarjetas de rol sobre `agrosystem_demo` después de integrar ambos PRs en `main`.
-- [ ] Flujo editorial probado: `Barrenador del Tallo de Maíz` verificado por `curador.demo` y publicado por `admin.demo`; sugerencias `Mosca Blanca del Algodonero` y `Aguacate Hass (Propuesta Ciudadana)` visibles en bandeja `in_review`.
-- [ ] Expediente de predio probado (`/private/lands/<id>/expediente`): lotes, ciclos activos con etapas fenológicas, reportes sanitarios y aplicaciones visibles.
+- [ ] Flujo editorial probado: `Barrenador del Tallo de Maíz` (ficha completa con 4 etapas de ciclo biológico, hospedero `Maíz` y regiones `Sinaloa`/`El Bajío`) verificado (`in_review` → `verified`) por `curador.demo` y publicado (`verified` → `published`) por `admin.demo`; sugerencias `Mosca Blanca del Algodonero` y `Aguacate Hass (Propuesta Ciudadana)` visibles en bandeja `in_review`.
+- [ ] Privacidad y expediente de predios probados (`/private/lands` y `/private/lands/<id>/expediente`): confirmar que cada cuenta ve únicamente sus propios predios (`curador.demo` abre `Huerto Centinela Colima Costa`; `admin.demo` abre `Campo Valles Altos Metepec` con lotes, ciclos activos/finalizados con etapas fenológicas, reporte abierto de `Tizón Tardío` y aplicación de `Ridomil Gold Bravo`; el intento de abrir un predio de otro usuario responde `404`).
 - [ ] Canje de código INIFAP (`AGS-DEMO-2026-INIF-AP01`) probado en `/auth/inifap-upgrade` y revertido exitosamente con `restoreDemoDb.js --latest`.
 - [ ] Antes de cerrar la presentación o hacer commit, verificar `git status` limpio (sin `.env.demo` ni archivos `.dump` rastreados).
