@@ -10,6 +10,7 @@ import passport from 'passport';
 import pg from 'pg';
 import connectPgSimple from 'connect-pg-simple';
 import helmet from 'helmet';
+import { validateEnv } from './src/config/env.js';
 import configurePassport from './src/config/passport.js';
 
 // Reutilizar la misma instancia de Sequelize que utilizan los modelos.
@@ -37,27 +38,7 @@ const __dirname = path.dirname(__filename);
 
 // ─── VALIDACIÓN DE ENTORNO ────────────────────────────────────────────────
 // Si falta una variable crítica, el servidor NO debe arrancar.
-// Un fallback "silencioso" en producción es peor que un crash explícito:
-// preferimos un error claro en el log a una sesión firmada con un secreto
-// público o a una caída de sesiones en producción.
-const requiredEnvVars = [
-  'SESSION_SECRET',
-  'DB_HOST',
-  'DB_PORT',
-  'DB_NAME',
-  'DB_USER',
-  'DB_PASS',
-];
-
-const missingEnvVars = requiredEnvVars.filter((key) => !process.env[key]);
-
-if (missingEnvVars.length > 0) {
-  console.error(
-    `❌ Faltan variables de entorno requeridas: ${missingEnvVars.join(', ')}`,
-  );
-  console.error('   Revisa tu archivo .env antes de continuar.');
-  process.exit(1);
-}
+validateEnv(process.env, { exitOnError: process.env.NODE_ENV !== 'test' });
 
 const app = express();
 const PORT = process.env.PORT || 3000;
