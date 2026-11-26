@@ -64,6 +64,8 @@ export const renderProfile = async (req, res) => {
       error: req.query.error,
       activeSessions: enriched.activeSessions,
       sessionCount: enriched.sessionCount,
+      displayedSessionCount: enriched.displayedSessionCount,
+      hasMoreSessions: enriched.hasMoreSessions,
       farmerData: enriched.farmerData,
       inifapData: enriched.inifapData,
       adminData: enriched.adminData,

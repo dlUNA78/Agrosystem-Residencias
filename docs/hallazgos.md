@@ -105,6 +105,14 @@ Las siguientes mejoras fueron detectadas al validar la Fase 1 y quedan registrad
 - **Alcance propuesto para F-3**:
   - Añadir una vista agregada por **entidad federativa o región** (p. ej., conteo de predios activos y superficie total agrupados por `Regions.name` / estado, con umbral mínimo de anonimización si aplica) que permita a investigadores INIFAP y administradores ver dónde se siembra un cultivo a nivel territorial sin exponer nombres, propietarios ni coordenadas exactas de predios individuales.
 
+### F-4: Script CLI explícito `bootstrap:admin` para producción (baja prioridad)
+
+- **Ubicación**: [seedDefaultUsers.js](../src/scripts/seedDefaultUsers.js) y [app.js](../app.js#L506-L509).
+- **Contexto**:
+  - En **`H-1`** se desactivó `seedDefaultUsers()` en `NODE_ENV=production` y pasó a modo insert-only para evitar sobrescribir usuarios existentes.
+- **Alcance propuesto para F-4 (baja prioridad, sin implementar)**:
+  - Crear un comando CLI one-shot (`pnpm run bootstrap:admin` / `node src/scripts/bootstrapAdmin.js`), jamás invocado al arrancar `app.js`, que exija variables explícitas sin contraseñas por defecto (`BOOTSTRAP_ADMIN_EMAIL`, `BOOTSTRAP_ADMIN_PASSWORD` validada con `validatePasswordPolicy`, `BOOTSTRAP_ADMIN_NAME` opcional), aborte si faltan o son inseguras y no sobrescriba si ya existe un administrador activo.
+
 ### R-1: Autobloqueo en el `down()` de `20261111000001` (`describeTable` fuera de la transacción)
 
 - **Ubicación**: [20261111000001-add-dual-approval-deactivation-workflow.js](../src/migrations/20261111000001-add-dual-approval-deactivation-workflow.js#L128-L144).
@@ -120,9 +128,11 @@ Las siguientes mejoras fueron detectadas al validar la Fase 1 y quedan registrad
 - **Ubicación**: [profile.hbs](../src/views/shared/profile.hbs#L446-L551), [profileController.js](../src/controllers/private/profileController.js#L65-L66), [privateRoutes.js](../src/routes/privateRoutes.js#L33-L49), [profile.js](../public/js/shared/profile.js#L180-L192).
 - **Problema observado (auditoría de `397c9b2`)**:
   - La tarjeta **`Tarjeta B: Sesiones Activas en PostgreSQL`** (introducida en `c0a2cf3`) y el badge `{{sessionCount}}` de la pestaña de seguridad fueron eliminados en `397c9b2`, dejando huérfanos en el backend/JS `activeSessions`, `sessionCount`, las rutas `POST /profile/sessions/revoke-others` y `POST /private/profile/sessions/revoke-others`, el listener `initRevokeConfirmation()` (`#revoke-sessions-form`) y el mensaje flash `sesiones_cerradas`.
-  - **Otras eliminaciones revisadas en `397c9b2`** (sin restaurar sin aprobación): en [profileService.js](../src/services/profileService.js#L146-L170) se eliminó la llamada `recordSafeAuditLog({ action: 'PROFILE_UPDATE', ... })` dentro de `updateUserProfileDetails` (el helper `recordSafeAuditLog` sigue activo para `PASSWORD_CHANGE` y `AVATAR_UPDATE`). En el resto de vistas modificadas en `397c9b2`, las ocultaciones (`code`/`job_title`/`shift` para `agricultor` y enlace `Ascenso INIFAP` para no autenticados) sí se alinearon con el backend.
+  - **Otras eliminaciones revisadas en `397c9b2`** (sin restaurar sin aprobación): en [profileService.js](../src/services/profileService.js#L155-L201) se eliminó temporalmente `recordSafeAuditLog({ action: 'PROFILE_UPDATE', ... })` dentro de `updateUserProfileDetails`, aunque fue restaurado en `fd69d0f` (verificado en `R-2` con prueba de auditoría sin contraseñas ni hashes; `AVATAR_UPDATE`/`AVATAR_REMOVE` se omiten intencionalmente por bajo impacto). En el resto de vistas modificadas en `397c9b2`, las ocultaciones (`code`/`job_title`/`shift` para `agricultor` y enlace `Ascenso INIFAP` para no autenticados) sí se alinearon con el backend.
 - **Alcance propuesto para R-2 (PR aparte)**:
   - Restaurar la tarjeta de sesiones activas en [profile.hbs](../src/views/shared/profile.hbs) adaptada a **`1.A6`** (sin copiar a ciegas el bloque de `c0a2cf3`): con nota visible de retraso de hasta 5 minutos en última actividad/expiración, datos coherentes con la nueva granularidad, formulario `#revoke-sessions-form` para `/profile` y `/private/profile`, y test de renderizado que falle si la tarjeta vuelve a desaparecer.
+- **Seguimiento CSRF (`2.A1`)**:
+  - Incluir los formularios `POST /profile/sessions/revoke-others` y `POST /private/profile/sessions/revoke-others` (`#revoke-sessions-form` en [profile.hbs](../src/views/shared/profile.hbs)) dentro del inventario de rutas mutadoras protegidas con token CSRF en la tarea **`2.A1`**.
 
 ## 11. Verificación de índices de `1.A3` al cierre de la Fase 1
 

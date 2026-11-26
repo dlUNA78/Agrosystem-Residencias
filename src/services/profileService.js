@@ -3,7 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import bcrypt from 'bcrypt';
 import db from '../models/index.js';
-import { listUserActiveSessions } from './sessionManagementService.js';
+import { listUserActiveSessionsSummary } from './sessionManagementService.js';
 
 const { User, Farm, AuditLog, RbacRole, InifapCode } = db;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -113,10 +113,18 @@ const resolveAdminProfileData = async () => {
 
 export const getEnrichedProfileData = async (user, sessionID) => {
   if (!user?.id) {
-    return { activeSessions: [], sessionCount: 0 };
+    return {
+      activeSessions: [],
+      sessionCount: 0,
+      displayedSessionCount: 0,
+      hasMoreSessions: false,
+    };
   }
 
-  const activeSessions = await listUserActiveSessions(user.id, sessionID);
+  const sessionSummary = await listUserActiveSessionsSummary(
+    user.id,
+    sessionID,
+  );
 
   let farmerData = null;
   if (user.role === 'agricultor') {
@@ -134,8 +142,10 @@ export const getEnrichedProfileData = async (user, sessionID) => {
   }
 
   return {
-    activeSessions,
-    sessionCount: activeSessions.length,
+    activeSessions: sessionSummary.activeSessions,
+    sessionCount: sessionSummary.sessionCount,
+    displayedSessionCount: sessionSummary.displayedSessionCount,
+    hasMoreSessions: sessionSummary.hasMoreSessions,
     farmerData,
     inifapData,
     adminData,
