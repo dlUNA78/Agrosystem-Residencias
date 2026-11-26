@@ -4,7 +4,7 @@
 **Base de datos dedicada:** `agrosystem_demo` (aislada de `agrosystem_db`, `agrosystem_test*` y `agrosystem_load`)  
 **Puerto recomendado de demo:** `http://localhost:3005`
 
-> **Seguridad crítica:** El archivo `.env.demo` y los respaldos generados en `scripts/demo/backups/*.dump` contienen configuración/estado local y **NUNCA deben commitearse** al repositorio (ambos patrones están protegidos en `.gitignore`).
+> **Seguridad crítica:** El archivo `.env.demo`, los respaldos generados en `scripts/demo/backups/*.dump` y cualquier copia local en `scripts/demo/credenciales.local.txt` contienen configuración/estado local y **NUNCA deben commitearse** al repositorio (todos estos patrones están protegidos en `.gitignore`).
 
 ---
 
@@ -128,12 +128,13 @@ Todas las cuentas usan el dominio ficticio `@demo.agrosystem.invalid`, cero dato
    - Abrir **`/private/suggestions`** (redirige a **`/private/plagues?workflow=in_review`**): mostrar las dos fichas pendientes:
      - **`Barrenador del Tallo de Maíz`** (en revisión editorial técnica, redactada por este técnico).
      - **`Mosca Blanca del Algodonero`** (propuesta ciudadana enviada por el productor).
+   - Abrir **`/private/lands`**: comprobar que ve únicamente sus **3 predios propios** (por ejemplo **`Estación Fitosanitaria Valle del Yaqui`**) y no los predios de otras cuentas.
    - Intentar entrar a **`/private/users`** o **`/private/audit`**: confirmar respuesta **`403 Forbidden`** (exclusivo de administrador).
    - Cerrar sesión.
 2. Iniciar sesión como **`curador.demo@demo.agrosystem.invalid`** / `AgroDemoCurador2026` (`inifap` **con subrol `Curador de Insumos y Proveedores`**).
    - Mostrar la insignia del subrol **`Curador de Insumos y Proveedores`** en cabecera/perfil y las notificaciones en la campana.
    - Confirmar que `/private/audit` y `/private/users` siguen respondiendo **`403 Forbidden`** para este subrol (la bitácora de auditoría y gestión de usuarios son exclusivas de `admin`).
-   - **Verificación técnica editorial:** Abrir **`/private/plagues?workflow=in_review`**, ingresar al detalle de **`Barrenador del Tallo de Maíz`** (autor distinto) y ejecutar **`Verificar`** (pasa a estado `verified`, lista para publicación por `admin`). Revisar también **`/private/crops?workflow=in_review`** donde espera **`Aguacate Hass (Propuesta Ciudadana)`**.
+   - **Verificación técnica editorial:** Abrir **`/private/plagues?workflow=in_review`**, ingresar al detalle de **`Barrenador del Tallo de Maíz`** (autor distinto, ficha completa lista para publicación con 4 etapas de ciclo biológico, cultivo `Maíz` y regiones `Sinaloa`/`El Bajío`) y ejecutar **`Verificar`** (pasa a estado `verified`, lista para publicación por `admin`). También puede revisarse/verificarse **`Mosca Blanca del Algodonero`** (propuesta ciudadana completa con 3 etapas de ciclo biológico, cultivos hospederos y regiones) y **`/private/crops?workflow=in_review`** donde espera **`Aguacate Hass (Propuesta Ciudadana)`** (lista para `Verificar` y `Publicar` sin errores `409`).
    - **Solicitud de baja de ingrediente activo (aprobación dual — Paso 1):**
      - Navegar a **`/private/ingredients`**.
      - **Nota técnica importante (Hallazgo H-7):** En la interfaz de `/private/ingredients`, los botones de **Añadir**, **Editar** y **Eliminar** ingredientes **no aparecen para el subrol `Curador de Insumos y Proveedores`** porque la vista evalúa `canManage: user?.role === 'admin'` (`src/controllers/private/ingredientsController.js`), aunque el servidor sí autoriza el permiso delegado `ingredients.manage` en las rutas de mutación (`src/middlewares/authMiddleware.js`). Explicarlo con transparencia si alguien pregunta durante la sesión.
@@ -215,4 +216,4 @@ El script valida los guardrails (`agrosystem_demo*` y no producción), cierra co
 - [ ] Flujo editorial probado: `Barrenador del Tallo de Maíz` (ficha completa con 4 etapas de ciclo biológico, hospedero `Maíz` y regiones `Sinaloa`/`El Bajío`) verificado (`in_review` → `verified`) por `curador.demo` y publicado (`verified` → `published`) por `admin.demo`; sugerencias `Mosca Blanca del Algodonero` y `Aguacate Hass (Propuesta Ciudadana)` visibles en bandeja `in_review`.
 - [ ] Privacidad y expediente de predios probados (`/private/lands` y `/private/lands/<id>/expediente`): confirmar que cada cuenta ve únicamente sus propios predios (`curador.demo` abre `Huerto Centinela Colima Costa`; `admin.demo` abre `Campo Valles Altos Metepec` con lotes, ciclos activos/finalizados con etapas fenológicas, reporte abierto de `Tizón Tardío` y aplicación de `Ridomil Gold Bravo`; el intento de abrir un predio de otro usuario responde `404`).
 - [ ] Canje de código INIFAP (`AGS-DEMO-2026-INIF-AP01`) probado en `/auth/inifap-upgrade` y revertido exitosamente con `restoreDemoDb.js --latest`.
-- [ ] Antes de cerrar la presentación o hacer commit, verificar `git status` limpio (sin `.env.demo` ni archivos `.dump` rastreados).
+- [ ] Antes de cerrar la presentación o hacer commit, verificar `git status` limpio (sin `.env.demo`, `scripts/demo/credenciales.local.txt` ni archivos `.dump` rastreados).

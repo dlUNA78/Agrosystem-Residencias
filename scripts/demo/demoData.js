@@ -916,7 +916,41 @@ export const DEMO_PLAGUES = Object.freeze([
     control_methods:
       'Mallas antiáfidos en plántulas, eliminación de malezas hospederas y rotación de modos de acción IRAC.',
     biological_control: 'Encarsia formosa, Eretmocerus eremicus.',
-    biological_cycle: [],
+    biological_cycle: [
+      {
+        title: 'Huevo en envés foliar',
+        duration: '5-7 días',
+        plantZone: 'Envés de hojas jóvenes de solanáceas y cucurbitáceas',
+        damageLevel: 'Sin daño directo',
+        isControlWindow: true,
+        description:
+          'Huevecillos pedicelados amarillo pálido insertados en el tejido epidérmico del envés.',
+        recommendedAction:
+          'Inspección temprana de plántulas y barreras físicas con malla antiáfidos.',
+      },
+      {
+        title: 'Ninfa chupadora (N1-N4)',
+        duration: '12-16 días',
+        plantZone: 'Envés foliar y nervaduras',
+        damageLevel: 'Moderado',
+        isControlWindow: true,
+        description:
+          'Estadios sésiles que succionan savia del floema y excretan melaza propiciando fumagina.',
+        recommendedAction:
+          'Liberación de parasitoides Encarsia formosa y aplicación selectiva dirigida al envés.',
+      },
+      {
+        title: 'Adulto alado vector',
+        duration: '14-28 días',
+        plantZone: 'Brotes apicales y dosel superior',
+        damageLevel: 'Severo',
+        isControlWindow: true,
+        description:
+          'Adultos blancos de alta dispersión transmisores persistentes de begomovirus en jitomate.',
+        recommendedAction:
+          'Trampas amarillas pegajosas, eliminación de malezas hospederas y rotación IRAC.',
+      },
+    ],
     verified_by: null,
     workflow_status: 'in_review',
     status: false,
@@ -1095,10 +1129,12 @@ export const DEMO_CROP_PLAGUES = Object.freeze([
   ['Limón Mexicano', 'Mosca del Mediterráneo'],
   ['Jitomate', 'Tizón Tardío'],
   ['Jitomate', 'Trips Oriental'],
+  ['Jitomate', 'Mosca Blanca del Algodonero'],
   ['Papa', 'Tizón Tardío'],
   ['Papa', 'Pulgón Verde'],
   ['Calabacita', 'Cenicilla Polvorienta'],
   ['Calabacita', 'Trips Oriental'],
+  ['Calabacita', 'Mosca Blanca del Algodonero'],
 ]);
 
 export const DEMO_PLAGUE_PRODUCTS = Object.freeze([
@@ -1161,6 +1197,8 @@ export const DEMO_PLAGUE_REGIONS = Object.freeze([
   ['Trips Oriental', 'Michoacán', 'Medio'],
   ['Barrenador del Tallo de Maíz', 'Sinaloa', 'Alto'],
   ['Barrenador del Tallo de Maíz', 'El Bajío', 'Alto'],
+  ['Mosca Blanca del Algodonero', 'Sinaloa', 'Alto'],
+  ['Mosca Blanca del Algodonero', 'El Bajío', 'Medio'],
 ]);
 
 export const DEMO_REGIONAL_BULLETINS = Object.freeze([
