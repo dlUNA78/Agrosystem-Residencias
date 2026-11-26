@@ -10,7 +10,9 @@ import {
   updateUserAvatar,
 } from '../../src/services/profileService.js';
 import {
+  PROFILE_DISPLAYED_SESSIONS_LIMIT,
   listUserActiveSessions,
+  listUserActiveSessionsSummary,
   revokeOtherSessions,
   revokeAllUserSessions,
   formatUserAgentSummary,
@@ -160,15 +162,14 @@ describe('👤 Módulo de Perfil Avanzado y Control de Sesiones', () => {
 
   afterAll(async () => {
     // Limpieza de datos creados en pruebas
+    const testUserIds = [testUser?.id, farmerUser?.id, adminUser?.id]
+      .filter(Boolean)
+      .map(String);
     await db.sequelize.query(
-      `DELETE FROM "session" WHERE sid IN (
-        'session_prf_current',
-        'session_prf_remote1',
-        'session_prf_remote2',
-        'session_prf_other_user',
-        'session_prf_other_user_2',
-        'session_prf_expired'
-      )`,
+      `DELETE FROM "session"
+       WHERE sid LIKE 'session_prf_%'
+          OR (sess -> 'passport' ->> 'user') IN (:userIds)`,
+      { replacements: { userIds: testUserIds.length ? testUserIds : ['-1'] } },
     );
     if (testFarm) await testFarm.destroy();
     if (testUser) {
@@ -273,6 +274,83 @@ describe('👤 Módulo de Perfil Avanzado y Control de Sesiones', () => {
         true,
       );
     });
+
+    it('listUserActiveSessionsSummary limita a 20 sesiones e incluye siempre la sesión actual aunque sea la más antigua (R-2)', async () => {
+      expect(PROFILE_DISPLAYED_SESSIONS_LIMIT).toBe(20);
+      const baseMs = Date.now();
+      const rows = [
+        {
+          sid: 'session_prf_cap_current',
+          sess: JSON.stringify({
+            passport: { user: adminUser.id },
+            clientIp: '203.0.113.77',
+            userAgent: 'Mozilla/5.0 (Windows NT 10.0) Firefox/128.0',
+            lastActive: new Date(baseMs - 4 * 60 * 1000).toISOString(),
+          }),
+          expire: new Date(baseMs + 60 * 60 * 1000),
+        },
+        {
+          sid: 'session_prf_cap_expired',
+          sess: JSON.stringify({
+            passport: { user: adminUser.id },
+            clientIp: '203.0.113.99',
+            userAgent: 'Mozilla/5.0 Chrome/110.0',
+            lastActive: new Date(baseMs - 2 * 60 * 60 * 1000).toISOString(),
+          }),
+          expire: new Date(baseMs - 60 * 60 * 1000),
+        },
+      ];
+
+      for (let i = 1; i <= 24; i += 1) {
+        const padded = String(i).padStart(2, '0');
+        rows.push({
+          sid: `session_prf_cap_${padded}`,
+          sess: JSON.stringify({
+            passport: { user: adminUser.id },
+            clientIp: `198.51.100.${i}`,
+            userAgent: 'Mozilla/5.0 (Linux; Android 14) Chrome/126.0',
+            lastActive: new Date(baseMs - 2 * 60 * 1000).toISOString(),
+          }),
+          expire: new Date(baseMs + (i + 2) * 60 * 60 * 1000),
+        });
+      }
+
+      try {
+        await db.sequelize.query(
+          `INSERT INTO "session" (sid, sess, expire)
+           SELECT x.sid, x.sess::json, x.expire::timestamptz
+           FROM json_to_recordset(:rowsJson) AS x(sid text, sess text, expire text)
+           ON CONFLICT (sid) DO UPDATE SET sess = EXCLUDED.sess, expire = EXCLUDED.expire`,
+          { replacements: { rowsJson: JSON.stringify(rows) } },
+        );
+
+        const summary = await listUserActiveSessionsSummary(
+          adminUser.id,
+          'session_prf_cap_current',
+        );
+
+        expect(summary.sessionCount).toBe(25);
+        expect(summary.displayedSessionCount).toBe(20);
+        expect(summary.hasMoreSessions).toBe(true);
+        expect(summary.activeSessions).toHaveLength(20);
+        expect(summary.activeSessions[0].sid).toBe('session_prf_cap_current');
+        expect(summary.activeSessions[0].isCurrent).toBe(true);
+        expect(summary.activeSessions[0].clientIp).toBe('203.0.113.77');
+        expect(summary.activeSessions[0].lastActiveFormatted).not.toBe('—');
+        expect(summary.activeSessions[0].expireFormatted).not.toBe('—');
+        expect(
+          summary.activeSessions.some(
+            (s) => s.sid === 'session_prf_cap_expired',
+          ),
+        ).toBe(false);
+        expect(summary.activeSessions[1].sid).toBe('session_prf_cap_24');
+        expect(summary.activeSessions[19].sid).toBe('session_prf_cap_06');
+      } finally {
+        await db.sequelize.query(
+          `DELETE FROM "session" WHERE sid LIKE 'session_prf_cap_%'`,
+        );
+      }
+    });
   });
 
   describe('📊 2. Servicio de Perfil Enriquecido Contextual', () => {
@@ -332,6 +410,56 @@ describe('👤 Módulo de Perfil Avanzado y Control de Sesiones', () => {
       });
       expect(log).not.toBeNull();
       expect(log.new_values.shift).toBe('vespertino');
+    });
+
+    it('audita PROFILE_UPDATE sin incluir contraseñas ni password_hash en old_values/new_values (R-2)', async () => {
+      await farmerUser.reload();
+      const currentHash = farmerUser.password_hash;
+
+      await updateUserProfileDetails(farmerUser.id, {
+        full_name: 'Agricultor Perfil Auditado',
+        phone: '5550001122',
+        address: 'Parcela Experimental Norte',
+        password: 'PlainPasswordNoAuditar@99',
+        password_hash: 'FakeHashNoAuditar',
+      });
+
+      const log = await AuditLog.findOne({
+        where: {
+          user_id: farmerUser.id,
+          table_name: 'Users',
+          action: 'PROFILE_UPDATE',
+        },
+        order: [['createdAt', 'DESC']],
+      });
+
+      expect(log).not.toBeNull();
+      expect(log.old_values).toEqual(
+        expect.objectContaining({ full_name: 'Agricultor Perfil Test' }),
+      );
+      expect(log.new_values).toEqual(
+        expect.objectContaining({
+          full_name: 'Agricultor Perfil Auditado',
+          phone: '5550001122',
+          address: 'Parcela Experimental Norte',
+        }),
+      );
+
+      const allKeys = [
+        ...Object.keys(log.old_values || {}),
+        ...Object.keys(log.new_values || {}),
+      ];
+      expect(allKeys.some((k) => /pass/i.test(k))).toBe(false);
+
+      const serialized = JSON.stringify({
+        old_values: log.old_values,
+        new_values: log.new_values,
+      });
+      expect(serialized).not.toContain('password');
+      expect(serialized).not.toContain('password_hash');
+      expect(serialized).not.toContain(currentHash);
+      expect(serialized).not.toContain('PlainPasswordNoAuditar@99');
+      expect(serialized).not.toContain('FakeHashNoAuditar');
     });
   });
 
@@ -435,12 +563,224 @@ describe('👤 Módulo de Perfil Avanzado y Control de Sesiones', () => {
       });
     });
 
-    it('GET /private/profile responde 200 y renderiza vista de perfil institucional', async () => {
+    it('GET /private/profile responde 200 y renderiza vista de perfil institucional con tarjeta de sesiones activas (R-2)', async () => {
       const res = await authAgent.get('/private/profile');
       expect(res.status).toBe(200);
       expect(res.text).toContain('Perfil de Usuario');
       expect(res.text).toContain('Dr. Investigador Actualizado');
       expect(res.text).toContain('Seguridad y Sesiones');
+      expect(res.text).toContain('id="active-sessions-card"');
+      expect(res.text).toContain('Dispositivos y Sesiones Activas');
+      expect(res.text).toContain('data-session-activity-note');
+      expect(res.text).toContain('5 minutos');
+      expect(res.text).toContain('data-current-session="true"');
+      expect(res.text).toContain('Este dispositivo');
+      expect(res.text).toContain('Actividad aprox.');
+      expect(res.text).toContain('Vence aprox.');
+    });
+
+    it('GET /private/profile con >20 sesiones muestra "Mostrando 20 de N" incluyendo siempre la sesión actual y revoca vía SQL (R-2)', async () => {
+      const renderUa = 'AgroProfileCapAgent/1.0';
+      const warmRes = await authAgent
+        .get('/private/profile')
+        .set('User-Agent', renderUa);
+      expect(warmRes.status).toBe(200);
+
+      // Aseguramos solo la sesión actual antes de sembrar 24 sesiones remotas más recientes
+      await authAgent
+        .post('/private/profile/sessions/revoke-others')
+        .set('User-Agent', renderUa);
+
+      const singleRes = await authAgent
+        .get('/private/profile')
+        .set('User-Agent', renderUa);
+      expect(singleRes.status).toBe(200);
+      expect(singleRes.text).toContain('id="active-sessions-card"');
+      expect(singleRes.text).toContain('data-tab-session-count="1"');
+      expect(singleRes.text).toContain('data-active-sessions-count="1"');
+      expect(singleRes.text).not.toContain('id="revoke-sessions-form"');
+      expect(singleRes.text).not.toContain('data-sessions-cap-notice');
+
+      const [[currentSessionRow]] = await db.sequelize.query(
+        `SELECT sid FROM "session"
+         WHERE (sess -> 'passport' ->> 'user') = :uid
+           AND expire > NOW()
+         ORDER BY expire DESC
+         LIMIT 1`,
+        { replacements: { uid: String(testUser.id) } },
+      );
+      expect(currentSessionRow).toBeDefined();
+
+      // Sembramos 24 sesiones remotas con expire > +30h (más recientes que la sesión actual de +24h)
+      const baseMs = Date.now();
+      const remoteRows = [];
+      for (let i = 1; i <= 24; i += 1) {
+        remoteRows.push({
+          sid: `session_prf_http_cap_${String(i).padStart(2, '0')}`,
+          sess: JSON.stringify({
+            passport: { user: testUser.id },
+            clientIp: `198.51.100.${100 + i}`,
+            userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X) Safari/605.1',
+            lastActive: new Date(baseMs).toISOString(),
+          }),
+          expire: new Date(baseMs + (30 + i) * 60 * 60 * 1000),
+        });
+      }
+
+      try {
+        await db.sequelize.query(
+          `INSERT INTO "session" (sid, sess, expire)
+           SELECT x.sid, x.sess::json, x.expire::timestamptz
+           FROM json_to_recordset(:rowsJson) AS x(sid text, sess text, expire text)
+           ON CONFLICT (sid) DO UPDATE SET sess = EXCLUDED.sess, expire = EXCLUDED.expire`,
+          { replacements: { rowsJson: JSON.stringify(remoteRows) } },
+        );
+
+        const capRes = await authAgent
+          .get('/private/profile')
+          .set('User-Agent', renderUa);
+        expect(capRes.status).toBe(200);
+        expect(capRes.text).toContain('id="active-sessions-card"');
+        expect(capRes.text).toContain('data-tab-session-count="25"');
+        expect(capRes.text).toContain('data-active-sessions-count="25"');
+        expect(capRes.text).toContain('data-sessions-cap-notice');
+        expect(capRes.text).toContain('Mostrando 20 de 25');
+        expect(capRes.text).toContain('id="revoke-sessions-form"');
+        expect(capRes.text).toContain(
+          'action="/private/profile/sessions/revoke-others"',
+        );
+
+        const renderedItems = capRes.text.match(/data-session-item/g) || [];
+        const currentMatches =
+          capRes.text.match(/data-current-session="true"/g) || [];
+        expect(renderedItems).toHaveLength(20);
+        expect(currentMatches).toHaveLength(1);
+
+        // Revocación SQL desde /private/profile/sessions/revoke-others elimina las 24 remotas y preserva la actual
+        const revokeRes = await authAgent
+          .post('/private/profile/sessions/revoke-others')
+          .set('User-Agent', renderUa);
+        expect(revokeRes.status).toBe(302);
+        expect(revokeRes.headers.location).toContain(
+          '/private/profile?success=sesiones_cerradas',
+        );
+
+        const [remainingRows] = await db.sequelize.query(
+          `SELECT sid FROM "session"
+           WHERE (sess -> 'passport' ->> 'user') = :uid
+             AND expire > NOW()`,
+          { replacements: { uid: String(testUser.id) } },
+        );
+        expect(remainingRows.map((r) => r.sid)).toEqual([
+          currentSessionRow.sid,
+        ]);
+      } finally {
+        await db.sequelize.query(
+          `DELETE FROM "session" WHERE sid LIKE 'session_prf_http_cap_%'`,
+        );
+      }
+    });
+
+    it('GET /profile y POST /profile/sessions/revoke-others renderizan la tarjeta y revocan sesiones remotas del agricultor (R-2)', async () => {
+      const farmerAgent = request.agent(app);
+      const loginRes = await farmerAgent.post('/auth/login').send({
+        email: TEST_FARMER_EMAIL,
+        password: 'SecurePass@123',
+      });
+      expect(loginRes.status).toBe(302);
+
+      const baseMs = Date.now();
+      const farmerRemotes = [
+        {
+          sid: 'session_prf_farmer_remote_1',
+          sess: JSON.stringify({
+            passport: { user: farmerUser.id },
+            clientIp: '192.0.2.11',
+            userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0) Safari/604.1',
+            lastActive: new Date(baseMs).toISOString(),
+          }),
+          expire: new Date(baseMs + 36 * 60 * 60 * 1000),
+        },
+        {
+          sid: 'session_prf_farmer_remote_2',
+          sess: JSON.stringify({
+            passport: { user: farmerUser.id },
+            clientIp: '192.0.2.12',
+            userAgent: 'Mozilla/5.0 (Linux; Android 14) Chrome/124.0',
+            lastActive: new Date(baseMs).toISOString(),
+          }),
+          expire: new Date(baseMs + 38 * 60 * 60 * 1000),
+        },
+      ];
+
+      try {
+        await db.sequelize.query(
+          `INSERT INTO "session" (sid, sess, expire)
+           SELECT x.sid, x.sess::json, x.expire::timestamptz
+           FROM json_to_recordset(:rowsJson) AS x(sid text, sess text, expire text)
+           ON CONFLICT (sid) DO UPDATE SET sess = EXCLUDED.sess, expire = EXCLUDED.expire`,
+          { replacements: { rowsJson: JSON.stringify(farmerRemotes) } },
+        );
+
+        const profileRes = await farmerAgent.get('/profile');
+        expect(profileRes.status).toBe(200);
+        expect(profileRes.text).toContain('id="active-sessions-card"');
+        expect(profileRes.text).toContain('Seguridad y Sesiones');
+        expect(profileRes.text).toContain('data-session-activity-note');
+        expect(profileRes.text).toContain('5 minutos');
+        expect(profileRes.text).toContain('data-tab-session-count="3"');
+        expect(profileRes.text).toContain('data-active-sessions-count="3"');
+        expect(profileRes.text).toContain('data-current-session="true"');
+        expect(profileRes.text).toContain('Sesión remota');
+        expect(profileRes.text).toContain('id="revoke-sessions-form"');
+        expect(profileRes.text).toContain(
+          'action="/profile/sessions/revoke-others"',
+        );
+
+        const revokeRes = await farmerAgent.post(
+          '/profile/sessions/revoke-others',
+        );
+        expect(revokeRes.status).toBe(302);
+        expect(revokeRes.headers.location).toContain(
+          '/profile?success=sesiones_cerradas',
+        );
+
+        const afterRes = await farmerAgent.get(
+          '/profile?success=sesiones_cerradas',
+        );
+        expect(afterRes.status).toBe(200);
+        expect(afterRes.text).toContain(
+          'Se han cerrado exitosamente todas las demás sesiones activas.',
+        );
+        expect(afterRes.text).toContain('data-active-sessions-count="1"');
+        expect(afterRes.text).not.toContain('id="revoke-sessions-form"');
+
+        // Confirmamos en BD que solo queda la sesión actual del agricultor y que la del investigador no fue afectada
+        const [farmerRemaining] = await db.sequelize.query(
+          `SELECT sid FROM "session"
+           WHERE (sess -> 'passport' ->> 'user') = :uid
+             AND expire > NOW()`,
+          { replacements: { uid: String(farmerUser.id) } },
+        );
+        expect(farmerRemaining).toHaveLength(1);
+        expect(
+          farmerRemaining.some((r) =>
+            r.sid.startsWith('session_prf_farmer_remote_'),
+          ),
+        ).toBe(false);
+
+        const [inifapRemaining] = await db.sequelize.query(
+          `SELECT sid FROM "session"
+           WHERE (sess -> 'passport' ->> 'user') = :uid
+             AND expire > NOW()`,
+          { replacements: { uid: String(testUser.id) } },
+        );
+        expect(inifapRemaining.length).toBeGreaterThanOrEqual(1);
+      } finally {
+        await db.sequelize.query(
+          `DELETE FROM "session" WHERE sid LIKE 'session_prf_farmer_remote_%'`,
+        );
+      }
     });
 
     it('POST /private/profile actualiza datos y redirige con mensaje de éxito', async () => {

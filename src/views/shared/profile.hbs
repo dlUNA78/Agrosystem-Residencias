@@ -270,7 +270,13 @@
             <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
             <path d="M7 11V7a5 5 0 0 1 10 0v4" />
           </svg>
-          <span>Seguridad y Contraseña</span>
+          <span>Seguridad y Sesiones</span>
+          <span
+            data-tab-session-count="{{sessionCount}}"
+            class="rounded-full bg-slate-100 px-1.5 py-0.5 font-['Geist_Mono'] text-[10px] font-bold text-slate-600"
+          >
+            {{sessionCount}}
+          </span>
         </button>
 
         <button
@@ -547,6 +553,119 @@
               </button>
             </div>
           </form>
+        </div>
+
+        <!-- Tarjeta B: Sesiones Activas (R-2 / 1.A6) -->
+        <div
+          id="active-sessions-card"
+          class="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-2xs space-y-4"
+        >
+          <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 pb-3.5">
+            <div class="flex items-center gap-2.5">
+              <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-sky-50 text-sky-700">
+                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+                  <line x1="8" y1="21" x2="16" y2="21" />
+                  <line x1="12" y1="17" x2="12" y2="21" />
+                </svg>
+              </span>
+              <div>
+                <h3 class="text-sm font-bold text-slate-900">Dispositivos y Sesiones Activas</h3>
+                <p class="text-[11px] text-slate-500">Sesiones vigentes asociadas a tu cuenta en PostgreSQL.</p>
+              </div>
+            </div>
+
+            <span
+              data-active-sessions-count="{{sessionCount}}"
+              class="inline-flex items-center rounded-full border border-sky-200 bg-sky-50 px-2.5 py-0.5 font-['Geist_Mono'] text-[10px] font-bold text-sky-700 self-start sm:self-auto"
+            >
+              {{sessionCount}} sesión(es) activa(s)
+            </span>
+          </div>
+
+          <div
+            data-session-activity-note
+            class="rounded-xl border border-slate-200/80 bg-slate-50/70 px-3.5 py-2.5 text-[11px] text-slate-600"
+          >
+            La última actividad y la vigencia de cada sesión pueden tener hasta <strong>5 minutos</strong> de retraso (se actualizan de inmediato si cambia tu IP o navegador).
+          </div>
+
+          {{#if hasMoreSessions}}
+          <p
+            data-sessions-cap-notice
+            class="rounded-xl border border-emerald-200/70 bg-emerald-50/40 px-3.5 py-2 text-[11px] font-medium text-slate-700"
+          >
+            <strong>Mostrando {{displayedSessionCount}} de {{sessionCount}}</strong> sesiones activas (siempre incluye tu sesión actual y las más recientes).
+          </p>
+          {{/if}}
+
+          <div class="space-y-3">
+            {{#if activeSessions.length}}
+              {{#each activeSessions}}
+              <div
+                data-session-item
+                {{#if isCurrent}}data-current-session="true"{{/if}}
+                class="flex flex-col gap-2 rounded-xl border {{#if isCurrent}}border-emerald-200 bg-emerald-50/30{{else}}border-slate-200/80 bg-slate-50/50{{/if}} p-3.5 sm:flex-row sm:items-center sm:justify-between"
+              >
+                <div class="flex items-start gap-3">
+                  <span class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-600 shadow-2xs">
+                    <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                      <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+                      <line x1="8" y1="21" x2="16" y2="21" />
+                      <line x1="12" y1="17" x2="12" y2="21" />
+                    </svg>
+                  </span>
+                  <div>
+                    <div class="flex flex-wrap items-center gap-2">
+                      <span class="text-xs font-bold text-slate-800">{{deviceSummary}}</span>
+                      {{#if isCurrent}}
+                      <span class="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 font-['Geist_Mono'] text-[9px] font-bold text-emerald-700">
+                        Este dispositivo
+                      </span>
+                      {{else}}
+                      <span class="rounded-full border border-slate-200 bg-white px-2 py-0.5 font-['Geist_Mono'] text-[9px] font-medium text-slate-500">
+                        Sesión remota
+                      </span>
+                      {{/if}}
+                    </div>
+                    <div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-slate-500 font-['Geist_Mono']">
+                      <span>IP: {{clientIp}}</span>
+                      <span>•</span>
+                      <span>Actividad aprox.: {{lastActiveFormatted}}</span>
+                      <span>•</span>
+                      <span>Vence aprox.: {{expireFormatted}}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {{/each}}
+            {{else}}
+              <p class="rounded-xl border border-dashed border-slate-200 p-4 text-center text-xs text-slate-500">
+                No se detectaron otras sesiones activas registradas para tu cuenta.
+              </p>
+            {{/if}}
+          </div>
+
+          {{#if (gt sessionCount 1)}}
+          <div class="pt-2 border-t border-slate-100 flex justify-end">
+            <form
+              id="revoke-sessions-form"
+              action="{{#if isPrivatePath}}/private/profile/sessions/revoke-others{{else}}/profile/sessions/revoke-others{{/if}}"
+              method="POST"
+            >
+              <button
+                type="submit"
+                class="inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-xs font-semibold text-rose-700 hover:bg-rose-100 transition-colors cursor-pointer"
+              >
+                <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M18.36 6.64a9 9 0 1 1-12.73 0" />
+                  <line x1="12" y1="2" x2="12" y2="12" />
+                </svg>
+                <span>Cerrar sesión en otros dispositivos</span>
+              </button>
+            </form>
+          </div>
+          {{/if}}
         </div>
       </section>
 

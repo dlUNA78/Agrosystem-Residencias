@@ -13,6 +13,20 @@ import { extractClientIp } from '../utils/clientIp.js';
  *   existir hasta 5 minutos de retraso en `lastActive`).
  */
 export const SESSION_ACTIVITY_THROTTLE_MS = 5 * 60 * 1000;
+export const PROFILE_DISPLAYED_SESSIONS_LIMIT = 20;
+
+const formatSessionTimestamp = (value) => {
+  if (!value) return '—';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value);
+  return date.toLocaleString('es-MX', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+};
 
 const parseDeviceOs = (ua) => {
   if (/windows/i.test(ua)) return 'Windows';
@@ -66,16 +80,30 @@ const mapSessionRow = (row, normalizedUserId, currentSessionId) => {
   }
   const parsedSess = safeParseJson(row.sess) || {};
   const userAgent = parsedSess.userAgent || 'Navegador Web';
+  const lastActive = parsedSess.lastActive || row.expire;
   return {
     sid: row.sid,
     isCurrent: Boolean(currentSessionId && row.sid === currentSessionId),
     expire: row.expire,
+    expireFormatted: formatSessionTimestamp(row.expire),
     clientIp: parsedSess.clientIp || '127.0.0.1',
     userAgent,
     deviceSummary: formatUserAgentSummary(userAgent),
     // Nota: `lastActive` puede tener hasta 5 minutos de retraso por el throttling de escritura (SESSION_ACTIVITY_THROTTLE_MS).
-    lastActive: parsedSess.lastActive || row.expire,
+    lastActive,
+    lastActiveFormatted: formatSessionTimestamp(lastActive),
   };
+};
+
+const mapUserSessionRows = (rows, normalizedUserId, currentSessionId) => {
+  const userSessions = [];
+  for (const row of rows) {
+    const sessionObj = mapSessionRow(row, normalizedUserId, currentSessionId);
+    if (sessionObj) {
+      userSessions.push(sessionObj);
+    }
+  }
+  return userSessions;
 };
 
 export const listUserActiveSessions = async (
@@ -96,15 +124,123 @@ export const listUserActiveSessions = async (
     },
   );
 
-  const userSessions = [];
-  for (const row of rows) {
-    const sessionObj = mapSessionRow(row, normalizedUserId, currentSessionId);
-    if (sessionObj) {
-      userSessions.push(sessionObj);
-    }
+  return mapUserSessionRows(rows, normalizedUserId, currentSessionId);
+};
+
+const normalizeSessionDisplayLimit = (limit) => {
+  const parsed = Number(limit);
+  return Number.isSafeInteger(parsed) && parsed > 0
+    ? parsed
+    : PROFILE_DISPLAYED_SESSIONS_LIMIT;
+};
+
+const fetchBoundedActiveSessionRows = async (
+  normalizedUserId,
+  currentSessionId,
+  safeLimit,
+) => {
+  const hasCurrentSid =
+    typeof currentSessionId === 'string' && currentSessionId.length > 0;
+
+  if (!hasCurrentSid) {
+    const [rows] = await db.sequelize.query(
+      `SELECT sid, sess, expire
+       FROM "session"
+       WHERE (sess -> 'passport' ->> 'user') = :userId
+         AND expire > NOW()
+       ORDER BY expire DESC
+       LIMIT :limit`,
+      { replacements: { userId: normalizedUserId, limit: safeLimit } },
+    );
+    return rows;
   }
 
-  return userSessions;
+  // Incluye siempre la sesión actual (aunque no esté entre las `limit` más recientes)
+  // y completa con las demás sesiones más recientes hasta un máximo exacto de `limit`.
+  const [rows] = await db.sequelize.query(
+    `SELECT sid, sess, expire
+     FROM (
+       (
+         SELECT sid, sess, expire
+         FROM "session"
+         WHERE (sess -> 'passport' ->> 'user') = :userId
+           AND expire > NOW()
+           AND sid = :currentSessionId
+         LIMIT 1
+       )
+       UNION ALL
+       (
+         SELECT sid, sess, expire
+         FROM "session"
+         WHERE (sess -> 'passport' ->> 'user') = :userId
+           AND expire > NOW()
+           AND sid <> :currentSessionId
+         ORDER BY expire DESC
+         LIMIT :limit
+       )
+     ) AS active_subset
+     ORDER BY (sid = :currentSessionId) DESC, expire DESC
+     LIMIT :limit`,
+    {
+      replacements: {
+        userId: normalizedUserId,
+        currentSessionId,
+        limit: safeLimit,
+      },
+    },
+  );
+  return rows;
+};
+
+export const listUserActiveSessionsSummary = async (
+  userId,
+  currentSessionId = null,
+  { limit = PROFILE_DISPLAYED_SESSIONS_LIMIT } = {},
+) => {
+  if (!userId) {
+    return {
+      activeSessions: [],
+      sessionCount: 0,
+      displayedSessionCount: 0,
+      hasMoreSessions: false,
+    };
+  }
+
+  const normalizedUserId = String(userId);
+  const safeLimit = normalizeSessionDisplayLimit(limit);
+
+  const [[countRows], boundedRows] = await Promise.all([
+    db.sequelize.query(
+      `SELECT COUNT(*)::int AS total
+       FROM "session"
+       WHERE (sess -> 'passport' ->> 'user') = :userId
+         AND expire > NOW()`,
+      { replacements: { userId: normalizedUserId } },
+    ),
+    fetchBoundedActiveSessionRows(
+      normalizedUserId,
+      currentSessionId,
+      safeLimit,
+    ),
+  ]);
+
+  const activeSessions = mapUserSessionRows(
+    boundedRows,
+    normalizedUserId,
+    currentSessionId,
+  );
+  const sessionCount = Math.max(
+    Number(countRows?.[0]?.total) || 0,
+    activeSessions.length,
+  );
+  const displayedSessionCount = activeSessions.length;
+
+  return {
+    activeSessions,
+    sessionCount,
+    displayedSessionCount,
+    hasMoreSessions: sessionCount > displayedSessionCount,
+  };
 };
 
 export const revokeOtherSessions = async (userId, currentSessionId) => {
