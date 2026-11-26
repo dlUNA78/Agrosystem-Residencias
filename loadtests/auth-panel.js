@@ -11,6 +11,7 @@ import {
   normalizeBaseUrl,
   parseNonNegativeNumber,
   resolveThresholdConfig,
+  SESSION_COOKIE_NAME,
 } from './lib/config.js';
 
 const env = getRuntimeEnv();
@@ -69,10 +70,11 @@ export function setup() {
     );
   }
 
-  const sessionId = extractCookieValue(loginRes, 'connect.sid');
+  const sessionId = extractCookieValue(loginRes, SESSION_COOKIE_NAME);
   const loginOk = check(loginRes, {
     'POST /auth/login: redirección exitosa (302)': (r) => r.status === 302,
-    'POST /auth/login: emite cookie connect.sid': () => Boolean(sessionId),
+    [`POST /auth/login: emite cookie ${SESSION_COOKIE_NAME}`]: () =>
+      Boolean(sessionId),
   });
 
   if (!loginOk || !sessionId) {
@@ -83,7 +85,7 @@ export function setup() {
 
   return {
     baseUrl: BASE_URL,
-    cookieHeader: `connect.sid=${sessionId}`,
+    cookieHeader: `${SESSION_COOKIE_NAME}=${sessionId}`,
     includeAdminRoutes: ROLE === 'admin',
   };
 }
