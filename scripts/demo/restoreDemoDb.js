@@ -19,6 +19,7 @@ import { pathToFileURL } from 'node:url';
 import {
   assertDemoDatabaseName,
   assertDemoEnvironment,
+  assertNotProductionEnvironment,
   buildPgToolEnv,
   createDemoPool,
   createMaintenanceClient,
@@ -130,7 +131,9 @@ export const restoreDemoDb = async ({
   latest = false,
   env = process.env,
 } = {}) => {
-  loadDemoEnv(envFile);
+  assertNotProductionEnvironment(process.env);
+  assertNotProductionEnvironment(env);
+  loadDemoEnv(envFile, env);
   const dbConfig = assertDemoEnvironment(env);
   const dumpPath = resolveDumpFilePath({ file, latest });
   const pgRestoreBin = resolvePgTool('pg_restore');
