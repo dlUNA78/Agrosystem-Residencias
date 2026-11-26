@@ -130,7 +130,9 @@ export default {
       const tables = ['Crops', 'Plagues', 'Products', 'ActiveIngredients'];
 
       for (const tableName of tables) {
-        const tableDescription = await queryInterface.describeTable(tableName);
+        const tableDescription = await queryInterface.describeTable(tableName, {
+          transaction,
+        });
         for (const col of ARCHIVE_COLUMNS) {
           if (tableDescription[col.name]) {
             await queryInterface.removeColumn(tableName, col.name, {
@@ -140,8 +142,10 @@ export default {
         }
       }
 
-      const ingredientTable =
-        await queryInterface.describeTable('ActiveIngredients');
+      const ingredientTable = await queryInterface.describeTable(
+        'ActiveIngredients',
+        { transaction },
+      );
       if (ingredientTable.workflow_status) {
         await queryInterface.removeColumn(
           'ActiveIngredients',
