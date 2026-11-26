@@ -376,6 +376,16 @@ describe('🛡️ Pruebas de Seguridad de Sesión y Rate Limiting (Pasos 3 y 4)'
     const res = { clearCookie: jest.fn() };
     const next = jest.fn();
 
+    // Petición no autenticada: no muta la sesión ni limpia cookies
+    const anonSession = {};
+    const anonReq = { session: anonSession };
+    const anonRes = { clearCookie: jest.fn(), redirect: jest.fn() };
+    const anonNext = jest.fn();
+    middleware(anonReq, anonRes, anonNext);
+    expect(anonSession).toEqual({});
+    expect(anonRes.clearCookie).not.toHaveBeenCalled();
+    expect(anonNext).toHaveBeenCalledTimes(1);
+
     // Primera petición autenticada: sella sessionCreatedAt
     middleware(req, res, next);
     expect(session.sessionCreatedAt).toBe(t0);
@@ -401,9 +411,31 @@ describe('🛡️ Pruebas de Seguridad de Sesión y Rate Limiting (Pasos 3 y 4)'
       clearOpts,
     );
     expect(next).toHaveBeenCalledTimes(3);
+
+    // Sesión expirada sobre /auth/logout: destruye, limpia cookie y redirige a /auth/login sin invocar next()
+    const logoutSession = {
+      sessionCreatedAt: t0,
+      destroy: jest.fn((cb) => cb(null)),
+    };
+    const logoutReq = {
+      user: { id: 42 },
+      path: '/auth/logout',
+      session: logoutSession,
+    };
+    const logoutRes = { clearCookie: jest.fn(), redirect: jest.fn() };
+    const logoutNext = jest.fn();
+    middleware(logoutReq, logoutRes, logoutNext);
+    expect(logoutReq.user).toBeNull();
+    expect(logoutSession.destroy).toHaveBeenCalledTimes(1);
+    expect(logoutRes.clearCookie).toHaveBeenCalledWith(
+      SESSION_COOKIE_NAME,
+      clearOpts,
+    );
+    expect(logoutRes.redirect).toHaveBeenCalledWith('/auth/login');
+    expect(logoutNext).not.toHaveBeenCalled();
   });
 
-  it('9. Mantiene válida una sesión activa antes de 7 días y la destruye en PostgreSQL al superar 7 días aunque maxAge se haya renovado (1.A5)', async () => {
+  it('9. Sella sessionCreatedAt en login, mantiene válida la sesión < 7d y la destruye en PostgreSQL al superar 7d aunque maxAge se haya renovado (1.A5)', async () => {
     const { User, sequelize } = db;
     const email = `abs_exp_${Date.now()}@agrosystem.test`;
     const password = 'ValidPassword123';
@@ -434,10 +466,7 @@ describe('🛡️ Pruebas de Seguridad de Sesión y Rate Limiting (Pasos 3 y 4)'
         false,
       );
 
-      // Primera petición autenticada: persiste sessionCreatedAt en PostgreSQL
-      const firstDashboard = await agent.get('/dashboard');
-      expect(firstDashboard.status).toBe(200);
-
+      // Verifica que sessionCreatedAt se sella inmediatamente en POST /auth/login (antes de cualquier petición adicional)
       const [[sessionRow]] = await sequelize.query(
         `SELECT sid, sess, expire
          FROM "session"
@@ -449,6 +478,9 @@ describe('🛡️ Pruebas de Seguridad de Sesión y Rate Limiting (Pasos 3 y 4)'
       );
       expect(sessionRow).toBeDefined();
       expect(Number.isFinite(sessionRow.sess.sessionCreatedAt)).toBe(true);
+
+      const firstDashboard = await agent.get('/dashboard');
+      expect(firstDashboard.status).toBe(200);
 
       // Envejecemos sessionCreatedAt a 7 días - 60s (con expire +24h vigente): debe seguir activa
       const validCreatedAt =
@@ -510,6 +542,263 @@ describe('🛡️ Pruebas de Seguridad de Sesión y Rate Limiting (Pasos 3 y 4)'
         { replacements: { sid: sessionRow.sid } },
       );
       expect(remainingRows).toHaveLength(0);
+    } finally {
+      await sequelize.query(
+        `DELETE FROM "session" WHERE (sess -> 'passport' ->> 'user') = :uid`,
+        { replacements: { uid: String(user.id) } },
+      );
+      await user.destroy();
+    }
+  });
+
+  it('10. Maneja sin HTTP 500 sesiones > 7d en POST /auth/logout y POST /auth/login (inválido y válido) (1.A5)', async () => {
+    const { User, sequelize } = db;
+    const email = `abs_auth_routes_${Date.now()}@agrosystem.test`;
+    const password = 'ValidPassword123';
+    const passwordHash = await bcrypt.hash(password, 10);
+    const user = await User.create({
+      full_name: 'Usuario Auth Expiracion',
+      email,
+      password_hash: passwordHash,
+      role: 'inifap',
+      status: 'activo',
+    });
+
+    const expectClearedCookie = (res) => {
+      const cleared = (res.headers['set-cookie'] || []).find((c) =>
+        c.startsWith(`${SESSION_COOKIE_NAME}=;`),
+      );
+      expect(cleared).toBeDefined();
+      expect(cleared).toMatch(/Path=\//i);
+      expect(cleared).toMatch(/HttpOnly/i);
+      expect(cleared).toMatch(/SameSite=Lax/i);
+      expect(cleared).toMatch(/Expires=Thu, 01 Jan 1970 00:00:00 GMT/i);
+    };
+
+    const createExpiredAgent = async () => {
+      const agent = request.agent(app);
+      const loginRes = await agent
+        .post('/auth/login')
+        .send({ email, password });
+      expect(loginRes.status).toBe(302);
+
+      const [[row]] = await sequelize.query(
+        `SELECT sid, sess
+         FROM "session"
+         WHERE (sess -> 'passport' ->> 'user') = :uid
+         ORDER BY expire DESC
+         LIMIT 1`,
+        { replacements: { uid: String(user.id) } },
+      );
+      expect(row).toBeDefined();
+      expect(Number.isFinite(row.sess.sessionCreatedAt)).toBe(true);
+
+      const expiredCreatedAt =
+        Date.now() - (SESSION_ABSOLUTE_MAX_AGE_MS + 60_000);
+      const renewedExpire = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      await sequelize.query(
+        'UPDATE "session" SET sess = :sess::json, expire = :expire WHERE sid = :sid',
+        {
+          replacements: {
+            sid: row.sid,
+            sess: JSON.stringify({
+              ...row.sess,
+              sessionCreatedAt: expiredCreatedAt,
+              lastActive: new Date().toISOString(),
+            }),
+            expire: renewedExpire,
+          },
+        },
+      );
+      return { agent, sid: row.sid };
+    };
+
+    const countSessionsBySid = async (sid) => {
+      const [rows] = await sequelize.query(
+        'SELECT sid FROM "session" WHERE sid = :sid',
+        { replacements: { sid } },
+      );
+      return rows.length;
+    };
+
+    try {
+      // A) POST /auth/logout con sesión > 7d: 302 /auth/login sin 500, cookie limpiada y fila eliminada
+      const logoutCase = await createExpiredAgent();
+      const logoutRes = await logoutCase.agent.post('/auth/logout');
+      expect(logoutRes.status).toBe(302);
+      expect(logoutRes.headers.location).toBe('/auth/login');
+      expectClearedCookie(logoutRes);
+      expect(await countSessionsBySid(logoutCase.sid)).toBe(0);
+
+      // B) POST /auth/login con sesión > 7d y contraseña inválida: 401 sin 500, limpia cookie y no crea sesión nueva
+      const badLoginCase = await createExpiredAgent();
+      const badLoginRes = await badLoginCase.agent
+        .post('/auth/login')
+        .send({ email, password: 'WrongPassword123' });
+      expect(badLoginRes.status).toBe(401);
+      expectClearedCookie(badLoginRes);
+      expect(await countSessionsBySid(badLoginCase.sid)).toBe(0);
+
+      // C) POST /auth/login con sesión > 7d y credenciales válidas: 302 / sin 500, destruye vieja sesión y crea sesión nueva funcional
+      const reloginCase = await createExpiredAgent();
+      const reloginRes = await reloginCase.agent
+        .post('/auth/login')
+        .send({ email, password });
+      expect(reloginRes.status).toBe(302);
+      expect(reloginRes.headers.location).toBe('/');
+      expect(await countSessionsBySid(reloginCase.sid)).toBe(0);
+
+      const reloginCookies = reloginRes.headers['set-cookie'] || [];
+      const freshCookie = reloginCookies.find(
+        (c) =>
+          c.startsWith(`${SESSION_COOKIE_NAME}=`) &&
+          !c.startsWith(`${SESSION_COOKIE_NAME}=;`),
+      );
+      expect(freshCookie).toBeDefined();
+      expect(freshCookie).toMatch(/HttpOnly/i);
+      expect(freshCookie).toMatch(/SameSite=Lax/i);
+      expect(
+        reloginCookies.some((c) => c.startsWith(`${SESSION_COOKIE_NAME}=;`)),
+      ).toBe(false);
+
+      const [[freshRow]] = await sequelize.query(
+        `SELECT sid, sess
+         FROM "session"
+         WHERE (sess -> 'passport' ->> 'user') = :uid
+         ORDER BY expire DESC
+         LIMIT 1`,
+        { replacements: { uid: String(user.id) } },
+      );
+      expect(freshRow).toBeDefined();
+      expect(freshRow.sid).not.toBe(reloginCase.sid);
+      expect(Number.isFinite(freshRow.sess.sessionCreatedAt)).toBe(true);
+
+      const postReloginDashboard = await reloginCase.agent.get('/dashboard');
+      expect(postReloginDashboard.status).toBe(200);
+    } finally {
+      await sequelize.query(
+        `DELETE FROM "session" WHERE (sess -> 'passport' ->> 'user') = :uid`,
+        { replacements: { uid: String(user.id) } },
+      );
+      await user.destroy();
+    }
+  });
+
+  it('11. Limpia sesiones > 7d sin regresiones en GET /, GET /private/profile y GET /api/notifications, y adopta sesiones previas sin sessionCreatedAt (1.A5)', async () => {
+    const { User, sequelize } = db;
+    const email = `abs_other_routes_${Date.now()}@agrosystem.test`;
+    const password = 'ValidPassword123';
+    const passwordHash = await bcrypt.hash(password, 10);
+    const user = await User.create({
+      full_name: 'Usuario Rutas Publicas Privadas',
+      email,
+      password_hash: passwordHash,
+      role: 'inifap',
+      status: 'activo',
+    });
+
+    const expectClearedCookie = (res) => {
+      const cleared = (res.headers['set-cookie'] || []).find((c) =>
+        c.startsWith(`${SESSION_COOKIE_NAME}=;`),
+      );
+      expect(cleared).toBeDefined();
+      expect(cleared).toMatch(/Path=\//i);
+      expect(cleared).toMatch(/HttpOnly/i);
+      expect(cleared).toMatch(/SameSite=Lax/i);
+      expect(cleared).toMatch(/Expires=Thu, 01 Jan 1970 00:00:00 GMT/i);
+    };
+
+    const createExpiredAgent = async () => {
+      const agent = request.agent(app);
+      const loginRes = await agent
+        .post('/auth/login')
+        .send({ email, password });
+      expect(loginRes.status).toBe(302);
+      const [[row]] = await sequelize.query(
+        `SELECT sid, sess
+         FROM "session"
+         WHERE (sess -> 'passport' ->> 'user') = :uid
+         ORDER BY expire DESC
+         LIMIT 1`,
+        { replacements: { uid: String(user.id) } },
+      );
+      await sequelize.query(
+        'UPDATE "session" SET sess = :sess::json, expire = :expire WHERE sid = :sid',
+        {
+          replacements: {
+            sid: row.sid,
+            sess: JSON.stringify({
+              ...row.sess,
+              sessionCreatedAt:
+                Date.now() - (SESSION_ABSOLUTE_MAX_AGE_MS + 60_000),
+              lastActive: new Date().toISOString(),
+            }),
+            expire: new Date(Date.now() + 24 * 60 * 60 * 1000),
+          },
+        },
+      );
+      return { agent, sid: row.sid };
+    };
+
+    const countSessionsBySid = async (sid) => {
+      const [rows] = await sequelize.query(
+        'SELECT sid FROM "session" WHERE sid = :sid',
+        { replacements: { sid } },
+      );
+      return rows.length;
+    };
+
+    try {
+      const homeCase = await createExpiredAgent();
+      const homeRes = await homeCase.agent.get('/');
+      expect(homeRes.status).toBe(200);
+      expectClearedCookie(homeRes);
+      expect(await countSessionsBySid(homeCase.sid)).toBe(0);
+
+      const profileCase = await createExpiredAgent();
+      const profileRes = await profileCase.agent.get('/private/profile');
+      expect(profileRes.status).toBe(302);
+      expect(profileRes.headers.location).toBe('/auth/login');
+      expectClearedCookie(profileRes);
+      expect(await countSessionsBySid(profileCase.sid)).toBe(0);
+
+      const notifCase = await createExpiredAgent();
+      const notifRes = await notifCase.agent.get('/api/notifications');
+      expect(notifRes.status).toBe(302);
+      expect(notifRes.headers.location).toBe('/auth/login');
+      expectClearedCookie(notifRes);
+      expect(await countSessionsBySid(notifCase.sid)).toBe(0);
+
+      // Sesión preexistente en BD sin sessionCreatedAt: se adopta y sella en la primera petición autenticada
+      const legacyAgent = request.agent(app);
+      await legacyAgent.post('/auth/login').send({ email, password });
+      const [[legacyRow]] = await sequelize.query(
+        `SELECT sid, sess
+         FROM "session"
+         WHERE (sess -> 'passport' ->> 'user') = :uid
+         ORDER BY expire DESC
+         LIMIT 1`,
+        { replacements: { uid: String(user.id) } },
+      );
+      const { sessionCreatedAt: _omitted, ...sessWithoutCreatedAt } =
+        legacyRow.sess;
+      await sequelize.query(
+        'UPDATE "session" SET sess = :sess::json WHERE sid = :sid',
+        {
+          replacements: {
+            sid: legacyRow.sid,
+            sess: JSON.stringify(sessWithoutCreatedAt),
+          },
+        },
+      );
+
+      const legacyRes = await legacyAgent.get('/dashboard');
+      expect(legacyRes.status).toBe(200);
+      const [[adoptedRow]] = await sequelize.query(
+        'SELECT sess FROM "session" WHERE sid = :sid',
+        { replacements: { sid: legacyRow.sid } },
+      );
+      expect(Number.isFinite(adoptedRow.sess.sessionCreatedAt)).toBe(true);
     } finally {
       await sequelize.query(
         `DELETE FROM "session" WHERE (sess -> 'passport' ->> 'user') = :uid`,
