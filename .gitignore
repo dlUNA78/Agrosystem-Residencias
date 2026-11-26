@@ -56,3 +56,4 @@ loadtests/results/
 # Respaldos locales del entorno demo
 scripts/demo/backups/
 *.dump
+scripts/demo/credenciales.local.txt
