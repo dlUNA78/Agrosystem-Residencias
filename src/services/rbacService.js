@@ -314,10 +314,12 @@ export const resolveEffectivePermissions = (user) => {
 
   const effective = getBasePermissionsForRole(user.role);
 
-  const subRole = user.rbacRole || user.RbacRole;
-  if (subRole?.permissions) {
-    const subPerms = parsePermissionsList(subRole.permissions);
-    subPerms.forEach((perm) => effective.add(perm));
+  if (user.role === 'inifap') {
+    const subRole = user.rbacRole || user.RbacRole;
+    if (subRole?.permissions) {
+      const subPerms = parsePermissionsList(subRole.permissions);
+      subPerms.forEach((perm) => effective.add(perm));
+    }
   }
 
   const { allow, deny } = extractCustomOverrides(user);
@@ -383,7 +385,7 @@ const resolveRoleBadgeDetails = (role, subRole) => {
       subTitle: 'Control Total del Sistema',
     };
   }
-  if (subRole?.name) {
+  if (role === 'inifap' && subRole?.name) {
     return {
       title: subRole.name,
       badgeColor: subRole.badge_color || 'emerald',

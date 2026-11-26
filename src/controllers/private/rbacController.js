@@ -49,13 +49,106 @@ const sanitizePermissionsInput = (input) => {
   return [];
 };
 
+const SUBROLE_ONLY_INIFAP_MESSAGE =
+  'Los sub-roles RBAC solo pueden asignarse a personal técnico INIFAP.';
+
+const isJsonRequest = (req) =>
+  Boolean(
+    req.xhr ||
+    req.headers?.['x-requested-with'] === 'fetch' ||
+    req.headers?.accept?.includes('application/json'),
+  );
+
+const hasNonEmptyRbacRoleInput = (value) =>
+  value !== undefined && value !== null && String(value).trim() !== '';
+
+const parsePositiveRoleId = (value) => {
+  const parsed = Number(String(value).trim());
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+};
+
+const respondRbacError = (
+  req,
+  res,
+  { status = 400, code, message, tab = 'rbac' },
+) => {
+  if (isJsonRequest(req)) {
+    return res.status(status).json({ error: code, code, message });
+  }
+  return res.redirect(`/private/users?tab=${tab}&error=${code}`);
+};
+
+const resolveAssignedRbacRoleId = (targetRole, rawRbacRoleId) => {
+  if (!hasNonEmptyRbacRoleInput(rawRbacRoleId)) {
+    return { ok: true, rbacRoleId: null };
+  }
+  if (targetRole !== 'inifap') {
+    return {
+      ok: false,
+      status: 400,
+      code: 'subrol_solo_inifap',
+      message: SUBROLE_ONLY_INIFAP_MESSAGE,
+    };
+  }
+  const parsed = parsePositiveRoleId(rawRbacRoleId);
+  if (!parsed) {
+    return {
+      ok: false,
+      status: 400,
+      code: 'rol_no_encontrado',
+      message: 'El sub-rol solicitado no es válido.',
+    };
+  }
+  return { ok: true, rbacRoleId: parsed };
+};
+
+const respondRbacSuccess = (req, res, { status = 200, role, successCode }) => {
+  if (isJsonRequest(req)) {
+    return res.status(status).json({ success: true, role });
+  }
+  return res.redirect(`/private/users?tab=rbac&success=${successCode}`);
+};
+
+const validateRbacRolePayload = ({ name, base_role }, { requireName }) => {
+  if (requireName && (!name || !name.trim())) {
+    return {
+      status: 400,
+      code: 'nombre_rol_requerido',
+      message: 'El nombre del sub-rol es obligatorio.',
+    };
+  }
+  if (base_role && base_role !== 'inifap') {
+    return {
+      status: 400,
+      code: 'subrol_solo_inifap',
+      message: SUBROLE_ONLY_INIFAP_MESSAGE,
+    };
+  }
+  return null;
+};
+
+const applyRbacRoleUpdates = (role, body = {}) => {
+  const { name, description, badge_color, permissions } = body;
+  if (name && name.trim()) role.name = name.trim();
+  if (description !== undefined) {
+    role.description = description ? description.trim() : null;
+  }
+  if (badge_color) role.badge_color = badge_color;
+  if (permissions !== undefined) {
+    role.permissions = sanitizePermissionsInput(permissions);
+  }
+};
+
 export const createRbacRole = async (req, res) => {
   try {
-    const { name, description, base_role, badge_color, permissions } = req.body;
-    if (!name || !name.trim()) {
-      return res.redirect('/private/users?tab=rbac&error=nombre_rol_requerido');
+    const validationError = validateRbacRolePayload(req.body, {
+      requireName: true,
+    });
+    if (validationError) {
+      return respondRbacError(req, res, validationError);
     }
 
+    const { name, description, badge_color, permissions } = req.body;
     const baseSlug = slugify(name);
     const existing = await RbacRole.findOne({ where: { slug: baseSlug } });
     const finalSlug = existing
@@ -66,7 +159,7 @@ export const createRbacRole = async (req, res) => {
       slug: finalSlug,
       name: name.trim(),
       description: description ? description.trim() : null,
-      base_role: base_role || 'inifap',
+      base_role: 'inifap',
       badge_color: badge_color || 'emerald',
       permissions: sanitizePermissionsInput(permissions),
       is_system: false,
@@ -79,10 +172,18 @@ export const createRbacRole = async (req, res) => {
       details: { slug: created.slug, name: created.name },
     });
 
-    return res.redirect('/private/users?tab=rbac&success=rol_creado');
+    return respondRbacSuccess(req, res, {
+      status: 201,
+      role: created,
+      successCode: 'rol_creado',
+    });
   } catch (error) {
     console.error('Error al crear sub-rol RBAC:', error);
-    return res.redirect('/private/users?tab=rbac&error=creacion_rol_fallida');
+    return respondRbacError(req, res, {
+      status: 500,
+      code: 'creacion_rol_fallida',
+      message: 'No fue posible crear el sub-rol.',
+    });
   }
 };
 
@@ -91,23 +192,21 @@ export const updateRbacRole = async (req, res) => {
     const { id } = req.params;
     const role = await RbacRole.findByPk(id);
     if (!role) {
-      return res.redirect('/private/users?tab=rbac&error=rol_no_encontrado');
+      return respondRbacError(req, res, {
+        status: 404,
+        code: 'rol_no_encontrado',
+        message: 'El sub-rol solicitado no existe.',
+      });
     }
 
-    const { name, description, badge_color, permissions } = req.body;
-    if (name && name.trim()) {
-      role.name = name.trim();
-    }
-    if (description !== undefined) {
-      role.description = description ? description.trim() : null;
-    }
-    if (badge_color) {
-      role.badge_color = badge_color;
-    }
-    if (permissions !== undefined) {
-      role.permissions = sanitizePermissionsInput(permissions);
+    const validationError = validateRbacRolePayload(req.body, {
+      requireName: false,
+    });
+    if (validationError) {
+      return respondRbacError(req, res, validationError);
     }
 
+    applyRbacRoleUpdates(role, req.body);
     await role.save();
 
     await recordRbacAudit({
@@ -117,12 +216,18 @@ export const updateRbacRole = async (req, res) => {
       details: { slug: role.slug, name: role.name },
     });
 
-    return res.redirect('/private/users?tab=rbac&success=rol_actualizado');
+    return respondRbacSuccess(req, res, {
+      status: 200,
+      role,
+      successCode: 'rol_actualizado',
+    });
   } catch (error) {
     console.error('Error al actualizar sub-rol RBAC:', error);
-    return res.redirect(
-      '/private/users?tab=rbac&error=actualizacion_rol_fallida',
-    );
+    return respondRbacError(req, res, {
+      status: 500,
+      code: 'actualizacion_rol_fallida',
+      message: 'No fue posible actualizar el sub-rol.',
+    });
   }
 };
 
@@ -165,14 +270,38 @@ const parseCustomOverridesBody = (body = {}) => {
   return { allow, deny };
 };
 
+const respondUserPermissionsSuccess = (req, res, user) => {
+  if (isJsonRequest(req)) {
+    return res.status(200).json({
+      success: true,
+      user: {
+        id: user.id,
+        role: user.role,
+        status: user.status,
+        rbac_role_id: user.rbac_role_id,
+      },
+    });
+  }
+  return res.redirect('/private/users?tab=rbac&success=permisos_actualizados');
+};
+
+const applyUserPermissionMutation = (user, body, resolvedRbacRoleId) => {
+  if (body.role) user.role = body.role;
+  if (body.status) user.status = body.status;
+  user.rbac_role_id = user.role === 'inifap' ? resolvedRbacRoleId : null;
+  user.custom_permissions = parseCustomOverridesBody(body);
+};
+
 export const updateUserPermissions = async (req, res) => {
   try {
     const { id } = req.params;
     const user = await User.findByPk(id);
     if (!user) {
-      return res.redirect(
-        '/private/users?tab=rbac&error=usuario_no_encontrado',
-      );
+      return respondRbacError(req, res, {
+        status: 404,
+        code: 'usuario_no_encontrado',
+        message: 'El usuario solicitado no existe o ya fue eliminado.',
+      });
     }
 
     const { role, status, rbac_role_id } = req.body;
@@ -185,20 +314,27 @@ export const updateUserPermissions = async (req, res) => {
     });
 
     if (!check.allowed) {
-      return res.redirect(
-        '/private/users?tab=rbac&error=auto_bloqueo_restringido',
-      );
+      return respondRbacError(req, res, {
+        status: 403,
+        code: 'auto_bloqueo_restringido',
+        message: check.reason,
+      });
     }
 
-    if (role) user.role = role;
-    if (status) user.status = status;
-    user.rbac_role_id = rbac_role_id ? Number(rbac_role_id) : null;
-    user.custom_permissions = parseCustomOverridesBody(req.body);
+    const subRoleResolution = resolveAssignedRbacRoleId(
+      role || user.role,
+      rbac_role_id,
+    );
+    if (!subRoleResolution.ok) {
+      return respondRbacError(req, res, subRoleResolution);
+    }
 
+    applyUserPermissionMutation(user, req.body, subRoleResolution.rbacRoleId);
     await user.save();
 
+    const actorId = req.user?.id || null;
     await recordRbacAudit({
-      actorId: req.user?.id,
+      actorId,
       action: 'update_user_permissions',
       recordId: user.id,
       details: {
@@ -211,7 +347,7 @@ export const updateUserPermissions = async (req, res) => {
 
     await createNotification({
       userId: user.id,
-      actorId: req.user?.id,
+      actorId,
       category: 'rbac',
       severity: 'info',
       title: 'Permisos Actualizados',
@@ -220,14 +356,14 @@ export const updateUserPermissions = async (req, res) => {
       actionUrl: resolveNotificationActionUrl('/private/profile', user.role),
     });
 
-    return res.redirect(
-      '/private/users?tab=rbac&success=permisos_actualizados',
-    );
+    return respondUserPermissionsSuccess(req, res, user);
   } catch (error) {
     console.error('Error al actualizar permisos de usuario:', error);
-    return res.redirect(
-      '/private/users?tab=rbac&error=actualizacion_permisos_fallida',
-    );
+    return respondRbacError(req, res, {
+      status: 500,
+      code: 'actualizacion_permisos_fallida',
+      message: 'No fue posible actualizar los permisos del usuario.',
+    });
   }
 };
 

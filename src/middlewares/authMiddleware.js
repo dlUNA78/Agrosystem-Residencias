@@ -12,12 +12,15 @@ export const isAuthenticated = (req, res, next) => {
   return res.redirect('/auth/login');
 };
 
-const hasSpecificDelegatedPermission = (req) => {
-  if (!req.user) return false;
+export const hasSpecificDelegatedPermission = (
+  req,
+  permissionChecker = hasEffectivePermission,
+) => {
+  if (!req?.user || req.user.role !== 'inifap') return false;
   const path = req.path || '';
   if (
     path.includes('/ingredients') &&
-    hasEffectivePermission(req.user, PANEL_PERMISSIONS.INGREDIENTS_MANAGE)
+    permissionChecker(req.user, PANEL_PERMISSIONS.INGREDIENTS_MANAGE)
   ) {
     return true;
   }

@@ -67,6 +67,8 @@ const ERROR_MESSAGES = {
     'Debes confirmar tu contraseña de administrador para generar códigos.',
   admin_unico_inmutable:
     'Por gobernanza institucional, el rol de Administrador General es único y no transferible.',
+  subrol_solo_inifap:
+    'Los sub-roles RBAC solo pueden asignarse a personal técnico INIFAP.',
 };
 
 const recordUserAudit = async ({
@@ -127,12 +129,74 @@ const buildUserSearchFilters = (filters) => [
   },
 ];
 
+const isJsonRequest = (req) =>
+  Boolean(
+    req.xhr ||
+    req.headers?.['x-requested-with'] === 'fetch' ||
+    req.headers?.accept?.includes('application/json'),
+  );
+
+const hasNonEmptyRbacRoleInput = (value) =>
+  value !== undefined && value !== null && String(value).trim() !== '';
+
+const parsePositiveRoleId = (value) => {
+  const parsed = Number(String(value).trim());
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+};
+
+const validateUserSubRoleRequest = (targetRole, rawRbacRoleId) => {
+  if (!hasNonEmptyRbacRoleInput(rawRbacRoleId)) {
+    return null;
+  }
+  if (targetRole !== 'inifap') {
+    return 'subrol_solo_inifap';
+  }
+  return parsePositiveRoleId(rawRbacRoleId) ? null : 'rol_no_encontrado';
+};
+
+const respondUserMutationError = (req, res, { status = 400, code }) => {
+  if (isJsonRequest(req)) {
+    return res.status(status).json({
+      error: code,
+      code,
+      message: ERROR_MESSAGES[code] || code,
+    });
+  }
+  return res.redirect(`/private/users?error=${code}`);
+};
+
+const respondUserMutationSuccess = (req, res, { status = 200, code, user }) => {
+  if (isJsonRequest(req)) {
+    return res.status(status).json({
+      success: true,
+      code,
+      message: SUCCESS_MESSAGES[code] || code,
+      user: user
+        ? {
+            id: user.id,
+            full_name: user.full_name,
+            email: user.email,
+            role: user.role,
+            status: user.status,
+            rbac_role_id: user.rbac_role_id,
+          }
+        : undefined,
+    });
+  }
+  return res.redirect(`/private/users?success=${code}`);
+};
+
 const sanitizeUserRecord = (userInstance) => {
   const plain =
     typeof userInstance.toJSON === 'function'
       ? userInstance.toJSON()
       : { ...userInstance };
   delete plain.password_hash;
+  if (plain.role !== 'inifap') {
+    plain.rbac_role_id = null;
+    plain.rbacRole = null;
+    if ('RbacRole' in plain) plain.RbacRole = null;
+  }
   const effective = resolveEffectivePermissions(userInstance);
   plain.effectivePermissions = Array.from(effective);
   return plain;
@@ -153,8 +217,12 @@ const applyUserUpdates = (user, body = {}) => {
   if (body.status) user.status = body.status;
   if (body.job_title !== undefined) user.job_title = trimOrNull(body.job_title);
   if (body.address !== undefined) user.address = trimOrNull(body.address);
-  if (body.rbac_role_id !== undefined) {
-    user.rbac_role_id = body.rbac_role_id ? Number(body.rbac_role_id) : null;
+  if (user.role !== 'inifap') {
+    user.rbac_role_id = null;
+  } else if (body.rbac_role_id !== undefined) {
+    user.rbac_role_id = hasNonEmptyRbacRoleInput(body.rbac_role_id)
+      ? parsePositiveRoleId(body.rbac_role_id)
+      : null;
   }
 };
 
@@ -263,8 +331,33 @@ export const usersPrivate = async (req, res) => {
   }
 };
 
+const validateCreateUserPayload = (body = {}) => {
+  const { full_name, email, password, role, rbac_role_id } = body;
+  if (!full_name || !email || !password) {
+    return { status: 400, code: 'campos_requeridos' };
+  }
+  const targetRole = role || 'inifap';
+  if (targetRole === 'admin') {
+    return { status: 403, code: 'admin_unico_inmutable' };
+  }
+  const subRoleError = validateUserSubRoleRequest(targetRole, rbac_role_id);
+  return subRoleError ? { status: 400, code: subRoleError } : null;
+};
+
+const resolveCreateRbacRoleId = (targetRole, rbacRoleId) => {
+  if (targetRole !== 'inifap' || !hasNonEmptyRbacRoleInput(rbacRoleId)) {
+    return null;
+  }
+  return parsePositiveRoleId(rbacRoleId);
+};
+
 export const createUser = async (req, res) => {
   try {
+    const validationError = validateCreateUserPayload(req.body);
+    if (validationError) {
+      return respondUserMutationError(req, res, validationError);
+    }
+
     const {
       full_name,
       email,
@@ -274,20 +367,16 @@ export const createUser = async (req, res) => {
       phone,
       address,
       status,
+      rbac_role_id,
     } = req.body;
-
-    if (!full_name || !email || !password) {
-      return res.redirect('/private/users?error=campos_requeridos');
-    }
-
-    if (role === 'admin') {
-      return res.redirect('/private/users?error=admin_unico_inmutable');
-    }
-
+    const targetRole = role || 'inifap';
     const normalizedEmail = email.trim().toLowerCase();
     const existing = await User.findOne({ where: { email: normalizedEmail } });
     if (existing) {
-      return res.redirect('/private/users?error=email_duplicado');
+      return respondUserMutationError(req, res, {
+        status: 409,
+        code: 'email_duplicado',
+      });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -295,7 +384,8 @@ export const createUser = async (req, res) => {
       full_name: full_name.trim(),
       email: normalizedEmail,
       password_hash: hashedPassword,
-      role: role || 'inifap',
+      role: targetRole,
+      rbac_role_id: resolveCreateRbacRoleId(targetRole, rbac_role_id),
       job_title: trimOrNull(job_title),
       phone: trimOrNull(phone),
       address: trimOrNull(address),
@@ -311,13 +401,21 @@ export const createUser = async (req, res) => {
         email: created.email,
         role: created.role,
         status: created.status,
+        rbac_role_id: created.rbac_role_id,
       },
     });
 
-    return res.redirect('/private/users?success=usuario_creado');
+    return respondUserMutationSuccess(req, res, {
+      status: 201,
+      code: 'usuario_creado',
+      user: created,
+    });
   } catch (error) {
     console.error('Error al crear usuario:', error);
-    return res.redirect('/private/users?error=creacion_fallida');
+    return respondUserMutationError(req, res, {
+      status: 500,
+      code: 'creacion_fallida',
+    });
   }
 };
 
@@ -326,17 +424,36 @@ export const updateUser = async (req, res) => {
     const { id } = req.params;
     const user = await User.findByPk(id);
     if (!user) {
-      return res.redirect('/private/users?error=usuario_no_encontrado');
+      return respondUserMutationError(req, res, {
+        status: 404,
+        code: 'usuario_no_encontrado',
+      });
     }
 
     if (req.body?.role === 'admin' && user.role !== 'admin') {
-      return res.redirect('/private/users?error=admin_unico_inmutable');
+      return respondUserMutationError(req, res, {
+        status: 403,
+        code: 'admin_unico_inmutable',
+      });
+    }
+
+    const targetRole = req.body?.role || user.role;
+    const subRoleError = validateUserSubRoleRequest(
+      targetRole,
+      req.body?.rbac_role_id,
+    );
+    if (subRoleError) {
+      return respondUserMutationError(req, res, {
+        status: 400,
+        code: subRoleError,
+      });
     }
 
     const oldSnapshot = {
       full_name: user.full_name,
       role: user.role,
       status: user.status,
+      rbac_role_id: user.rbac_role_id,
     };
 
     applyUserUpdates(user, req.body);
@@ -351,13 +468,21 @@ export const updateUser = async (req, res) => {
         full_name: user.full_name,
         role: user.role,
         status: user.status,
+        rbac_role_id: user.rbac_role_id,
       },
     });
 
-    return res.redirect('/private/users?success=usuario_actualizado');
+    return respondUserMutationSuccess(req, res, {
+      status: 200,
+      code: 'usuario_actualizado',
+      user,
+    });
   } catch (error) {
     console.error('Error al actualizar usuario:', error);
-    return res.redirect('/private/users?error=actualizacion_fallida');
+    return respondUserMutationError(req, res, {
+      status: 500,
+      code: 'actualizacion_fallida',
+    });
   }
 };
 
@@ -366,11 +491,28 @@ export const updateUserStatus = async (req, res) => {
     const { id } = req.params;
     const user = await User.findByPk(id);
     if (!user) {
-      return res.redirect('/private/users?error=usuario_no_encontrado');
+      return respondUserMutationError(req, res, {
+        status: 404,
+        code: 'usuario_no_encontrado',
+      });
+    }
+
+    const subRoleError = validateUserSubRoleRequest(
+      user.role,
+      req.body?.rbac_role_id,
+    );
+    if (subRoleError) {
+      return respondUserMutationError(req, res, {
+        status: 400,
+        code: subRoleError,
+      });
     }
 
     const prevStatus = user.status;
     user.status = req.body.status || 'activo';
+    if (user.role !== 'inifap') {
+      user.rbac_role_id = null;
+    }
     await user.save();
 
     await recordUserAudit({
@@ -378,13 +520,20 @@ export const updateUserStatus = async (req, res) => {
       action: 'update',
       recordId: user.id,
       oldValues: { status: prevStatus },
-      newValues: { status: user.status },
+      newValues: { status: user.status, rbac_role_id: user.rbac_role_id },
     });
 
-    return res.redirect('/private/users?success=estatus_actualizado');
+    return respondUserMutationSuccess(req, res, {
+      status: 200,
+      code: 'estatus_actualizado',
+      user,
+    });
   } catch (error) {
     console.error('Error al cambiar estatus de usuario:', error);
-    return res.redirect('/private/users?error=estatus_fallido');
+    return respondUserMutationError(req, res, {
+      status: 500,
+      code: 'estatus_fallido',
+    });
   }
 };
 
@@ -410,6 +559,9 @@ export const deleteUser = async (req, res) => {
 
     if (req.body?.mode === 'suspend') {
       user.status = 'suspendido';
+      if (user.role !== 'inifap') {
+        user.rbac_role_id = null;
+      }
       await user.save();
 
       await recordUserAudit({
