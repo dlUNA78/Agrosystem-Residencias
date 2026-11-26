@@ -445,6 +445,73 @@ export const isSessionAbsolutelyExpired = (
   return now - createdAtMs >= absoluteMaxAgeMs;
 };
 
+const stripClearedSessionCookieHeader = (res, cookieName) => {
+  const existing = res.getHeader?.('Set-Cookie');
+  if (!existing) {
+    return;
+  }
+  const list = Array.isArray(existing) ? existing : [existing];
+  const clearedPrefix = `${cookieName}=;`;
+  const remaining = list.filter(
+    (entry) => !String(entry).startsWith(clearedPrefix),
+  );
+  if (remaining.length > 0) {
+    res.setHeader('Set-Cookie', remaining);
+  } else {
+    res.removeHeader('Set-Cookie');
+  }
+};
+
+const stampLoginSessionCreatedAt = (req, res, options, callback) => {
+  const { nowProvider, inheritedCreatedAt, cookieName, stripClearedCookie } =
+    options;
+  if (!req.session) {
+    return callback(null);
+  }
+  if (stripClearedCookie) {
+    stripClearedSessionCookieHeader(res, cookieName);
+  }
+  if (!Number.isFinite(parseSessionCreatedAtMs(req.session.sessionCreatedAt))) {
+    req.session.sessionCreatedAt = Number.isFinite(inheritedCreatedAt)
+      ? inheritedCreatedAt
+      : nowProvider();
+    if (typeof req.session.save === 'function') {
+      return req.session.save((saveErr) => callback(saveErr));
+    }
+  }
+  return callback(null);
+};
+
+const wrapLoginForSessionCreation = (req, res, options) => {
+  if (typeof req.logIn !== 'function') {
+    return;
+  }
+  const originalLogIn = req.logIn.bind(req);
+  const wrappedLogIn = (user, loginOptions, done) => {
+    const hasOptions = typeof loginOptions !== 'function';
+    const resolvedOptions = hasOptions ? loginOptions : {};
+    const callback = hasOptions ? done : loginOptions;
+
+    if (!req.session && typeof req.sessionStore?.generate === 'function') {
+      req.sessionStore.generate(req);
+    }
+
+    return originalLogIn(user, resolvedOptions, (loginErr) => {
+      if (loginErr) {
+        return callback(loginErr);
+      }
+      return stampLoginSessionCreatedAt(req, res, options, callback);
+    });
+  };
+  req.logIn = wrappedLogIn;
+  req.login = wrappedLogIn;
+};
+
+const isLogoutPath = (reqPath) => {
+  const normalized = String(reqPath || '').replace(/\/+$/, '') || '/';
+  return normalized === '/auth/logout';
+};
+
 export const createAbsoluteSessionExpirationMiddleware =
   ({
     absoluteMaxAgeMs = SESSION_ABSOLUTE_MAX_AGE_MS,
@@ -453,7 +520,18 @@ export const createAbsoluteSessionExpirationMiddleware =
     clearCookieOptions = buildSessionClearCookieOptions(),
   } = {}) =>
   (req, res, next) => {
+    const effectiveCookieName =
+      req.app?.get?.('sessionCookieName') || cookieName;
+    const effectiveClearOptions =
+      req.app?.get?.('sessionClearCookieOptions') || clearCookieOptions;
+
     if (!req.user || !req.session) {
+      wrapLoginForSessionCreation(req, res, {
+        nowProvider,
+        inheritedCreatedAt: Number.NaN,
+        cookieName: effectiveCookieName,
+        stripClearedCookie: false,
+      });
       return next();
     }
 
@@ -462,17 +540,38 @@ export const createAbsoluteSessionExpirationMiddleware =
 
     if (!Number.isFinite(createdAtMs)) {
       req.session.sessionCreatedAt = now;
+      wrapLoginForSessionCreation(req, res, {
+        nowProvider,
+        inheritedCreatedAt: now,
+        cookieName: effectiveCookieName,
+        stripClearedCookie: false,
+      });
       return next();
     }
 
     if (now - createdAtMs < absoluteMaxAgeMs) {
+      wrapLoginForSessionCreation(req, res, {
+        nowProvider,
+        inheritedCreatedAt: createdAtMs,
+        cookieName: effectiveCookieName,
+        stripClearedCookie: false,
+      });
       return next();
     }
 
-    const effectiveCookieName =
-      req.app?.get?.('sessionCookieName') || cookieName;
-    const effectiveClearOptions =
-      req.app?.get?.('sessionClearCookieOptions') || clearCookieOptions;
+    const finalizeExpiredSession = () => {
+      res.clearCookie(effectiveCookieName, effectiveClearOptions);
+      if (isLogoutPath(req.path)) {
+        return res.redirect('/auth/login');
+      }
+      wrapLoginForSessionCreation(req, res, {
+        nowProvider,
+        inheritedCreatedAt: Number.NaN,
+        cookieName: effectiveCookieName,
+        stripClearedCookie: true,
+      });
+      return next();
+    };
 
     req.user = null;
     if (typeof req.session.destroy === 'function') {
@@ -483,13 +582,11 @@ export const createAbsoluteSessionExpirationMiddleware =
             destroyErr,
           );
         }
-        res.clearCookie(effectiveCookieName, effectiveClearOptions);
-        return next();
+        return finalizeExpiredSession();
       });
     }
 
-    res.clearCookie(effectiveCookieName, effectiveClearOptions);
-    return next();
+    return finalizeExpiredSession();
   };
 
 const sessionClearCookieOptions = buildSessionClearCookieOptions();
