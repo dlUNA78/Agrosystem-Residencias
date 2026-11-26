@@ -2,6 +2,7 @@
 
 export const DEFAULT_BASE_URL = 'http://localhost:3000';
 export const DEFAULT_ACCEPT_ENCODING = 'gzip';
+export const SESSION_COOKIE_NAME = 'agrosystem.sid';
 
 export const buildRequestHeaders = (
   extraHeaders = {},
@@ -169,7 +170,10 @@ const extractCookieFromSetCookieHeader = (headerValue, cookieName) => {
   return '';
 };
 
-export const extractCookieValue = (response, cookieName = 'connect.sid') => {
+export const extractCookieValue = (
+  response,
+  cookieName = SESSION_COOKIE_NAME,
+) => {
   const k6Cookies = response?.cookies?.[cookieName];
   if (Array.isArray(k6Cookies) && k6Cookies[0]?.value) {
     return String(k6Cookies[0].value);

@@ -181,7 +181,11 @@ export const authController = {
 
       // Destruimos explícitamente la sesión para que el gafete pierda validez
       req.session.destroy(() => {
-        res.clearCookie('connect.sid');
+        const cookieName = req.app?.get?.('sessionCookieName');
+        const clearCookieOptions = req.app?.get?.('sessionClearCookieOptions');
+        if (cookieName) {
+          res.clearCookie(cookieName, clearCookieOptions);
+        }
         res.redirect('/auth/login');
       });
     });

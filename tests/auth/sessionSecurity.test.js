@@ -1,17 +1,26 @@
 import { afterAll, jest, describe, it, expect } from '@jest/globals';
+import bcrypt from 'bcrypt';
 import express from 'express';
 import request from 'supertest';
 import app, {
+  buildSessionClearCookieOptions,
+  buildSessionCookieOptions,
   closeAppResources,
   configureTrustProxy,
+  createAbsoluteSessionExpirationMiddleware,
+  isSessionAbsolutelyExpired,
   resolveSessionCookieSecure,
   resolveTrustProxy,
+  SESSION_ABSOLUTE_MAX_AGE_MS,
+  SESSION_COOKIE_NAME,
 } from '../../app.js';
+import { authController } from '../../src/controllers/authController.js';
 import {
   authLimiter,
   isRateLimitBypassed,
   upgradeLimiter,
 } from '../../src/middlewares/rateLimiter.js';
+import db from '../../src/models/index.js';
 import {
   SESSION_ACTIVITY_THROTTLE_MS,
   enrichSessionActivity,
@@ -261,5 +270,252 @@ describe('🛡️ Pruebas de Seguridad de Sesión y Rate Limiting (Pasos 3 y 4)'
       updated: true,
       clientIp: '198.51.100.77',
     });
+  });
+
+  it('7. Configura cookie personalizada agrosystem.sid, SameSite=Lax explícito, opciones compartidas y clearCookie con Secure en logout (1.A5)', async () => {
+    expect(SESSION_COOKIE_NAME).toBe('agrosystem.sid');
+    expect(SESSION_COOKIE_NAME).not.toBe('connect.sid');
+    expect(SESSION_ABSOLUTE_MAX_AGE_MS).toBeGreaterThanOrEqual(
+      7 * 24 * 60 * 60 * 1000,
+    );
+
+    const devCookieOpts = buildSessionCookieOptions({
+      NODE_ENV: 'development',
+    });
+    const devClearOpts = buildSessionClearCookieOptions({
+      NODE_ENV: 'development',
+    });
+    expect(devCookieOpts).toEqual({
+      path: '/',
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: false,
+      maxAge: 24 * 60 * 60 * 1000,
+    });
+    expect(devClearOpts).toEqual({
+      path: '/',
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: false,
+    });
+    expect(devClearOpts).not.toHaveProperty('maxAge');
+    expect(devClearOpts).not.toHaveProperty('expires');
+
+    const prodClearOpts = buildSessionClearCookieOptions({
+      NODE_ENV: 'production',
+    });
+    expect(prodClearOpts).toEqual({
+      path: '/',
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: true,
+    });
+    expect(
+      buildSessionCookieOptions({
+        NODE_ENV: 'development',
+        COOKIE_SECURE: 'true',
+      }).secure,
+    ).toBe(true);
+
+    expect(app.get('sessionCookieName')).toBe(SESSION_COOKIE_NAME);
+    expect(app.get('sessionClearCookieOptions')).toEqual(
+      buildSessionClearCookieOptions(),
+    );
+
+    // Verifica que authController.logout emita Secure cuando la configuración de sesión tiene secure: true
+    const secureLogoutApp = express();
+    secureLogoutApp.set('sessionCookieName', SESSION_COOKIE_NAME);
+    secureLogoutApp.set('sessionClearCookieOptions', prodClearOpts);
+    secureLogoutApp.post('/auth/logout', (req, res, next) => {
+      req.logout = (cb) => cb(null);
+      req.session = { destroy: (cb) => cb(null) };
+      return authController.logout(req, res, next);
+    });
+
+    const secureLogoutRes = await request(secureLogoutApp).post('/auth/logout');
+    expect(secureLogoutRes.status).toBe(302);
+    expect(secureLogoutRes.headers.location).toBe('/auth/login');
+    const clearedHeader = (secureLogoutRes.headers['set-cookie'] || []).find(
+      (c) => c.startsWith(`${SESSION_COOKIE_NAME}=;`),
+    );
+    expect(clearedHeader).toBeDefined();
+    expect(clearedHeader).toMatch(/Path=\//i);
+    expect(clearedHeader).toMatch(/HttpOnly/i);
+    expect(clearedHeader).toMatch(/SameSite=Lax/i);
+    expect(clearedHeader).toMatch(/Secure/i);
+    expect(clearedHeader).toMatch(/Expires=Thu, 01 Jan 1970 00:00:00 GMT/i);
+  });
+
+  it('8. Aplica expiración absoluta máxima (>= 7 días) en middleware sin mutar sesiones vigentes (1.A5)', () => {
+    const t0 = Date.parse('2026-11-01T00:00:00.000Z');
+    const beforeLimit = t0 + SESSION_ABSOLUTE_MAX_AGE_MS - 1;
+    const atLimit = t0 + SESSION_ABSOLUTE_MAX_AGE_MS;
+
+    expect(
+      isSessionAbsolutelyExpired(
+        { sessionCreatedAt: t0 },
+        { now: beforeLimit },
+      ),
+    ).toBe(false);
+    expect(
+      isSessionAbsolutelyExpired({ sessionCreatedAt: t0 }, { now: atLimit }),
+    ).toBe(true);
+
+    let currentNow = t0;
+    const clearOpts = buildSessionClearCookieOptions({
+      NODE_ENV: 'production',
+    });
+    const middleware = createAbsoluteSessionExpirationMiddleware({
+      nowProvider: () => currentNow,
+      cookieName: SESSION_COOKIE_NAME,
+      clearCookieOptions: clearOpts,
+    });
+
+    const session = { destroy: jest.fn((cb) => cb(null)) };
+    const req = { user: { id: 42 }, session };
+    const res = { clearCookie: jest.fn() };
+    const next = jest.fn();
+
+    // Primera petición autenticada: sella sessionCreatedAt
+    middleware(req, res, next);
+    expect(session.sessionCreatedAt).toBe(t0);
+    expect(session.destroy).not.toHaveBeenCalled();
+    expect(res.clearCookie).not.toHaveBeenCalled();
+    expect(next).toHaveBeenCalledTimes(1);
+
+    // Antes de 7 días: sigue vigente sin destruir sesión
+    currentNow = beforeLimit;
+    middleware(req, res, next);
+    expect(req.user).toEqual({ id: 42 });
+    expect(session.destroy).not.toHaveBeenCalled();
+    expect(res.clearCookie).not.toHaveBeenCalled();
+    expect(next).toHaveBeenCalledTimes(2);
+
+    // Al alcanzar 7 días: destruye sesión, limpia req.user y borra la cookie con las mismas opciones
+    currentNow = atLimit;
+    middleware(req, res, next);
+    expect(req.user).toBeNull();
+    expect(session.destroy).toHaveBeenCalledTimes(1);
+    expect(res.clearCookie).toHaveBeenCalledWith(
+      SESSION_COOKIE_NAME,
+      clearOpts,
+    );
+    expect(next).toHaveBeenCalledTimes(3);
+  });
+
+  it('9. Mantiene válida una sesión activa antes de 7 días y la destruye en PostgreSQL al superar 7 días aunque maxAge se haya renovado (1.A5)', async () => {
+    const { User, sequelize } = db;
+    const email = `abs_exp_${Date.now()}@agrosystem.test`;
+    const password = 'ValidPassword123';
+    const passwordHash = await bcrypt.hash(password, 10);
+    const user = await User.create({
+      full_name: 'Usuario Expiracion Absoluta',
+      email,
+      password_hash: passwordHash,
+      role: 'inifap',
+      status: 'activo',
+    });
+
+    try {
+      const agent = request.agent(app);
+      const loginRes = await agent
+        .post('/auth/login')
+        .send({ email, password });
+      expect(loginRes.status).toBe(302);
+
+      const loginCookies = loginRes.headers['set-cookie'] || [];
+      const issuedCookie = loginCookies.find((c) =>
+        c.startsWith(`${SESSION_COOKIE_NAME}=`),
+      );
+      expect(issuedCookie).toBeDefined();
+      expect(issuedCookie).toMatch(/SameSite=Lax/i);
+      expect(issuedCookie).toMatch(/HttpOnly/i);
+      expect(loginCookies.some((c) => c.startsWith('connect.sid='))).toBe(
+        false,
+      );
+
+      // Primera petición autenticada: persiste sessionCreatedAt en PostgreSQL
+      const firstDashboard = await agent.get('/dashboard');
+      expect(firstDashboard.status).toBe(200);
+
+      const [[sessionRow]] = await sequelize.query(
+        `SELECT sid, sess, expire
+         FROM "session"
+         WHERE (sess -> 'passport' ->> 'user') = :uid
+           AND expire > NOW()
+         ORDER BY expire DESC
+         LIMIT 1`,
+        { replacements: { uid: String(user.id) } },
+      );
+      expect(sessionRow).toBeDefined();
+      expect(Number.isFinite(sessionRow.sess.sessionCreatedAt)).toBe(true);
+
+      // Envejecemos sessionCreatedAt a 7 días - 60s (con expire +24h vigente): debe seguir activa
+      const validCreatedAt =
+        Date.now() - (SESSION_ABSOLUTE_MAX_AGE_MS - 60_000);
+      const renewedExpire = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      await sequelize.query(
+        'UPDATE "session" SET sess = :sess::json, expire = :expire WHERE sid = :sid',
+        {
+          replacements: {
+            sid: sessionRow.sid,
+            sess: JSON.stringify({
+              ...sessionRow.sess,
+              sessionCreatedAt: validCreatedAt,
+              lastActive: new Date().toISOString(),
+            }),
+            expire: renewedExpire,
+          },
+        },
+      );
+
+      const stillValidRes = await agent.get('/dashboard');
+      expect(stillValidRes.status).toBe(200);
+
+      // Envejecemos sessionCreatedAt a 7 días + 60s manteniendo expire +24h y lastActive reciente
+      const expiredCreatedAt =
+        Date.now() - (SESSION_ABSOLUTE_MAX_AGE_MS + 60_000);
+      await sequelize.query(
+        'UPDATE "session" SET sess = :sess::json, expire = :expire WHERE sid = :sid',
+        {
+          replacements: {
+            sid: sessionRow.sid,
+            sess: JSON.stringify({
+              ...sessionRow.sess,
+              sessionCreatedAt: expiredCreatedAt,
+              lastActive: new Date().toISOString(),
+            }),
+            expire: renewedExpire,
+          },
+        },
+      );
+
+      const expiredRes = await agent.get('/dashboard');
+      expect(expiredRes.status).toBe(302);
+      expect(expiredRes.headers.location).toBe('/auth/login');
+
+      const expiredClearCookie = (expiredRes.headers['set-cookie'] || []).find(
+        (c) => c.startsWith(`${SESSION_COOKIE_NAME}=;`),
+      );
+      expect(expiredClearCookie).toBeDefined();
+      expect(expiredClearCookie).toMatch(/Path=\//i);
+      expect(expiredClearCookie).toMatch(/HttpOnly/i);
+      expect(expiredClearCookie).toMatch(/SameSite=Lax/i);
+      expect(expiredClearCookie).toMatch(
+        /Expires=Thu, 01 Jan 1970 00:00:00 GMT/i,
+      );
+
+      const [remainingRows] = await sequelize.query(
+        'SELECT sid FROM "session" WHERE sid = :sid',
+        { replacements: { sid: sessionRow.sid } },
+      );
+      expect(remainingRows).toHaveLength(0);
+    } finally {
+      await sequelize.query(
+        `DELETE FROM "session" WHERE (sess -> 'passport' ->> 'user') = :uid`,
+        { replacements: { uid: String(user.id) } },
+      );
+      await user.destroy();
+    }
   });
 });

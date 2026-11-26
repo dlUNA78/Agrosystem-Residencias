@@ -1,6 +1,11 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { afterAll, describe, expect, it } from '@jest/globals';
+import {
+  closeAppResources,
+  SESSION_COOKIE_NAME as APP_SESSION_COOKIE_NAME,
+} from '../../app.js';
 import {
   buildRequestHeaders,
   buildWorkloadOptions,
@@ -18,7 +23,10 @@ import {
   parseRateThreshold,
   resolveThresholdConfig,
   sanitizeSummaryData,
+  SESSION_COOKIE_NAME,
 } from '../../loadtests/lib/config.js';
+
+afterAll(closeAppResources);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -122,17 +130,23 @@ describe('loadtests/lib/config', () => {
     ).toEqual({ errorRate: 0.05, checkRate: 0.98, p95Ms: 3000, p99Ms: 6000 });
   });
 
-  it('extracts connect.sid cookie from k6 cookies map or Set-Cookie headers', () => {
+  it('keeps SESSION_COOKIE_NAME aligned with app.js and extracts it from k6 cookies or Set-Cookie headers', () => {
+    expect(SESSION_COOKIE_NAME).toBe(APP_SESSION_COOKIE_NAME);
+    expect(SESSION_COOKIE_NAME).not.toBe('connect.sid');
+
     expect(
       extractCookieValue({
-        cookies: { 'connect.sid': [{ value: 'abc123' }] },
+        cookies: { [SESSION_COOKIE_NAME]: [{ value: 'abc123' }] },
       }),
     ).toBe('abc123');
 
     expect(
       extractCookieValue({
         headers: {
-          'Set-Cookie': ['other=1; Path=/', 'connect.sid=xyz789; HttpOnly'],
+          'Set-Cookie': [
+            'other=1; Path=/',
+            `${SESSION_COOKIE_NAME}=xyz789; HttpOnly`,
+          ],
         },
       }),
     ).toBe('xyz789');
@@ -161,7 +175,7 @@ describe('loadtests/lib/config', () => {
       metrics: { http_reqs: { count: 10 } },
       setup_data: {
         baseUrl: 'http://localhost:3000',
-        cookieHeader: 'connect.sid=s%3Asensitive-session-token',
+        cookieHeader: `${SESSION_COOKIE_NAME}=s%3Asensitive-session-token`,
         cropId: 1,
       },
     };
@@ -187,9 +201,11 @@ describe('loadtests/lib/config', () => {
     expect(buildRequestHeaders({}, {})).toEqual({
       'Accept-Encoding': 'gzip',
     });
-    expect(buildRequestHeaders({ Cookie: 'connect.sid=abc' }, {})).toEqual({
+    expect(
+      buildRequestHeaders({ Cookie: `${SESSION_COOKIE_NAME}=abc` }, {}),
+    ).toEqual({
       'Accept-Encoding': 'gzip',
-      Cookie: 'connect.sid=abc',
+      Cookie: `${SESSION_COOKIE_NAME}=abc`,
     });
     expect(buildRequestHeaders({}, { K6_ACCEPT_ENCODING: 'identity' })).toEqual(
       {
@@ -218,6 +234,10 @@ describe('loadtests k6 scripts contract & secret hygiene', () => {
       expect(content).toContain('handleSanitizedSummary');
       expect(content).not.toMatch(/@agrosystem\.com/i);
       expect(content).not.toMatch(/admin123|123456/);
+      expect(content).not.toContain('connect.sid');
+      if (fileName === 'auth-panel.js' || fileName === 'pdf.js') {
+        expect(content).toContain('SESSION_COOKIE_NAME');
+      }
     },
   );
 

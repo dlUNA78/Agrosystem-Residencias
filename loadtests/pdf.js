@@ -15,6 +15,7 @@ import {
   parseNonNegativeNumber,
   parsePositiveInt,
   resolveThresholdConfig,
+  SESSION_COOKIE_NAME,
 } from './lib/config.js';
 
 const env = getRuntimeEnv();
@@ -86,7 +87,7 @@ export function setup() {
     );
   }
 
-  const sessionId = extractCookieValue(loginRes, 'connect.sid');
+  const sessionId = extractCookieValue(loginRes, SESSION_COOKIE_NAME);
   if (loginRes.status !== 302 || !sessionId) {
     throw new Error(
       `Autenticación fallida en setup() (HTTP ${loginRes.status}). Verifica LOADTEST_EMAIL y LOADTEST_PASSWORD.`,
@@ -98,7 +99,7 @@ export function setup() {
     cropId,
     cropScope: PDF_CROP_SCOPE === 'private' ? 'private' : 'public',
     reportPeriod: REPORT_PERIOD,
-    cookieHeader: `connect.sid=${sessionId}`,
+    cookieHeader: `${SESSION_COOKIE_NAME}=${sessionId}`,
   };
 }
 

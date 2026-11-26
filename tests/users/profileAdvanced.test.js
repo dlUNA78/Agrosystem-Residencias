@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import request from 'supertest';
 import bcrypt from 'bcrypt';
-import app, { closeAppResources } from '../../app.js';
+import app, { closeAppResources, SESSION_COOKIE_NAME } from '../../app.js';
 import db from '../../src/models/index.js';
 import {
   getEnrichedProfileData,
@@ -888,7 +888,9 @@ describe('👤 Módulo de Perfil Avanzado y Control de Sesiones', () => {
       expect(renewedRes.status).toBe(200);
 
       const setCookies = renewedRes.headers['set-cookie'] || [];
-      const sidCookie = setCookies.find((c) => c.startsWith('connect.sid='));
+      const sidCookie = setCookies.find((c) =>
+        c.startsWith(`${SESSION_COOKIE_NAME}=`),
+      );
       expect(sidCookie).toBeDefined();
       const expiresMatch = sidCookie.match(/Expires=([^;]+)/i);
       expect(expiresMatch).not.toBeNull();

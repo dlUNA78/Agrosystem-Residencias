@@ -89,7 +89,7 @@ k6 run -e BASE_URL=http://localhost:3000 -e K6_VUS=10 -e K6_DURATION=30s loadtes
 
 ### Notas sobre rate limiting local
 
-- **`authLimiter` (`POST /auth/login`):** permite 5 intentos cada 15 minutos por IP. Por eso `auth-panel.js` y `pdf.js` inician sesión una sola vez en `setup()`, validan el `302` + cookie `connect.sid`, comparten la sesión entre los VUs y cierran sesión en `teardown()`.
+- **`authLimiter` (`POST /auth/login`):** permite 5 intentos cada 15 minutos por IP. Por eso `auth-panel.js` y `pdf.js` inician sesión una sola vez en `setup()`, validan el `302` + cookie `agrosystem.sid`, comparten la sesión entre los VUs y cierran sesión en `teardown()`.
 - **`publicRateLimiter` (`publicRouter` montado en `'/'`):** permite 30 peticiones por minuto por IP. Al estar montado en `'/'` dentro de `app.js`, también contabiliza peticiones hacia `/dashboard`, `/private/*` y `/api/notifications`. Por ello los perfiles por defecto (`catalog.js`: 24 req, `auth-panel.js`: 22 req y `pdf.js`: 9 req) se mantienen debajo de 30 req/min; espera ~60 s (o reinicia el servidor local) al ejecutar scripts seguidos desde la misma IP.
 
 ## Cómo leer los resultados de k6

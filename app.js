@@ -390,6 +390,12 @@ app.use(express.urlencoded({ extended: true }));
 
 const PgSession = connectPgSimple(session);
 
+export const SESSION_COOKIE_NAME = 'agrosystem.sid';
+export const SESSION_COOKIE_PATH = '/';
+export const SESSION_COOKIE_SAME_SITE = 'lax';
+export const SESSION_COOKIE_MAX_AGE_MS = 1000 * 60 * 60 * 24; // 1 día
+export const SESSION_ABSOLUTE_MAX_AGE_MS = 1000 * 60 * 60 * 24 * 7; // 7 días
+
 export const resolveSessionCookieSecure = (env = process.env) => {
   if (env.COOKIE_SECURE === 'false') {
     return false;
@@ -399,6 +405,96 @@ export const resolveSessionCookieSecure = (env = process.env) => {
   }
   return env.NODE_ENV === 'production';
 };
+
+export const buildSessionClearCookieOptions = (env = process.env) => ({
+  path: SESSION_COOKIE_PATH,
+  httpOnly: true,
+  sameSite: SESSION_COOKIE_SAME_SITE,
+  secure: resolveSessionCookieSecure(env),
+});
+
+export const buildSessionCookieOptions = (env = process.env) => ({
+  ...buildSessionClearCookieOptions(env),
+  maxAge: SESSION_COOKIE_MAX_AGE_MS,
+});
+
+const parseSessionCreatedAtMs = (rawValue) => {
+  if (typeof rawValue === 'number' && Number.isFinite(rawValue)) {
+    return rawValue;
+  }
+  if (typeof rawValue === 'string' && rawValue.trim()) {
+    const parsed = Date.parse(rawValue);
+    if (Number.isFinite(parsed)) {
+      return parsed;
+    }
+  }
+  return Number.NaN;
+};
+
+export const isSessionAbsolutelyExpired = (
+  sessionData,
+  { now = Date.now(), absoluteMaxAgeMs = SESSION_ABSOLUTE_MAX_AGE_MS } = {},
+) => {
+  if (!sessionData || typeof sessionData !== 'object') {
+    return false;
+  }
+  const createdAtMs = parseSessionCreatedAtMs(sessionData.sessionCreatedAt);
+  if (!Number.isFinite(createdAtMs)) {
+    return false;
+  }
+  return now - createdAtMs >= absoluteMaxAgeMs;
+};
+
+export const createAbsoluteSessionExpirationMiddleware =
+  ({
+    absoluteMaxAgeMs = SESSION_ABSOLUTE_MAX_AGE_MS,
+    nowProvider = () => Date.now(),
+    cookieName = SESSION_COOKIE_NAME,
+    clearCookieOptions = buildSessionClearCookieOptions(),
+  } = {}) =>
+  (req, res, next) => {
+    if (!req.user || !req.session) {
+      return next();
+    }
+
+    const now = nowProvider();
+    const createdAtMs = parseSessionCreatedAtMs(req.session.sessionCreatedAt);
+
+    if (!Number.isFinite(createdAtMs)) {
+      req.session.sessionCreatedAt = now;
+      return next();
+    }
+
+    if (now - createdAtMs < absoluteMaxAgeMs) {
+      return next();
+    }
+
+    const effectiveCookieName =
+      req.app?.get?.('sessionCookieName') || cookieName;
+    const effectiveClearOptions =
+      req.app?.get?.('sessionClearCookieOptions') || clearCookieOptions;
+
+    req.user = null;
+    if (typeof req.session.destroy === 'function') {
+      return req.session.destroy((destroyErr) => {
+        if (destroyErr) {
+          console.error(
+            'Error al destruir sesión tras expiración absoluta:',
+            destroyErr,
+          );
+        }
+        res.clearCookie(effectiveCookieName, effectiveClearOptions);
+        return next();
+      });
+    }
+
+    res.clearCookie(effectiveCookieName, effectiveClearOptions);
+    return next();
+  };
+
+const sessionClearCookieOptions = buildSessionClearCookieOptions();
+app.set('sessionCookieName', SESSION_COOKIE_NAME);
+app.set('sessionClearCookieOptions', sessionClearCookieOptions);
 
 const logLoadTestModeWarnings = (env = process.env) => {
   if (env.DISABLE_RATE_LIMIT === 'true') {
@@ -421,6 +517,7 @@ const logLoadTestModeWarnings = (env = process.env) => {
 
 app.use(
   session({
+    name: SESSION_COOKIE_NAME,
     // Reutilizamos el pool de pg en vez de pasar credenciales sueltas.
     // Esto garantiza que Sequelize y las sesiones usen la misma configuración.
     store: new PgSession({
@@ -439,11 +536,7 @@ app.use(
     resave: false,
     saveUninitialized: false,
     rolling: false,
-    cookie: {
-      httpOnly: true,
-      secure: resolveSessionCookieSecure(),
-      maxAge: 1000 * 60 * 60 * 24, // 1 día
-    },
+    cookie: buildSessionCookieOptions(),
   }),
 );
 
@@ -451,6 +544,7 @@ app.use(
 configurePassport(passport);
 app.use(passport.initialize());
 app.use(passport.session());
+app.use(createAbsoluteSessionExpirationMiddleware());
 app.use((req, res, next) => {
   // Convierte la instancia del modelo a objeto plano y sanitiza campos sensibles
   if (req.user) {
