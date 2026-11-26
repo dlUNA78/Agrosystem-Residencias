@@ -133,8 +133,8 @@ const upsertSingleDemoUser = async (client, spec, rbacBySlug) => {
   const rbacRole = resolveUserSubRole(spec, rbacBySlug);
   const rbacRoleId = rbacRole ? rbacRole.id : null;
   const existing = await client.query(
-    'SELECT id FROM "Users" WHERE email = $1',
-    [spec.email],
+    'SELECT id FROM "Users" WHERE email = $1 OR code = $2 ORDER BY id ASC LIMIT 1',
+    [spec.email, spec.code],
   );
 
   const passwordHash = await bcrypt.hash(spec.credential, SALT_ROUNDS);
@@ -142,10 +142,21 @@ const upsertSingleDemoUser = async (client, spec, rbacBySlug) => {
     const userId = existing.rows[0].id;
     await client.query(
       `UPDATE "Users"
-          SET role = $1, rbac_role_id = $2, status = $3, password_hash = $4,
+          SET email = $1, full_name = $2, job_title = $3, address = $4,
+              role = $5, rbac_role_id = $6, status = $7, password_hash = $8,
               "updatedAt" = NOW()
-        WHERE id = $5`,
-      [spec.role, rbacRoleId, spec.status, passwordHash, userId],
+        WHERE id = $9`,
+      [
+        spec.email,
+        spec.full_name,
+        spec.job_title,
+        spec.address,
+        spec.role,
+        rbacRoleId,
+        spec.status,
+        passwordHash,
+        userId,
+      ],
     );
     return { ...spec, id: userId, rbacRoleName: rbacRole?.name || null };
   }
@@ -251,7 +262,15 @@ const seedActiveIngredients = async (client, adminId) => {
       'SELECT id FROM "ActiveIngredients" WHERE name = $1',
       [item.name],
     );
-    if (existing.rowCount > 0) continue;
+    if (existing.rowCount > 0) {
+      await client.query(
+        `UPDATE "ActiveIngredients"
+            SET toxicological_category = $1, "updatedAt" = NOW()
+          WHERE id = $2`,
+        [item.toxicological_category, existing.rows[0].id],
+      );
+      continue;
+    }
 
     await client.query(
       `INSERT INTO "ActiveIngredients" (
@@ -934,7 +953,7 @@ const seedNotifications = async (
 ) => {
   const adminId = usersByKey.get('admin').id;
   const tecnicoId = usersByKey.get('inifapBase').id;
-  const coordId = usersByKey.get('inifapSubrole').id;
+  const curadorId = usersByKey.get('inifapSubrole').id;
   const farmerId = usersByKey.get('agricultor').id;
   const reviewPlagueId = plaguesByName.get('Barrenador del Tallo de Maíz');
   const suggestedPlagueId = plaguesByName.get('Mosca Blanca del Algodonero');
@@ -944,13 +963,13 @@ const seedNotifications = async (
 
   const items = [
     {
-      userId: coordId,
+      userId: curadorId,
       actorId: tecnicoId,
       category: 'editorial',
       severity: 'warning',
       title: 'Ficha técnica en revisión: Barrenador del Tallo de Maíz',
       message:
-        'Técnico Fitosanitario Base Demo envió la ficha de Diatraea grandiosella para dictamen y publicación.',
+        'Técnico Fitosanitario Base Demo envió la ficha de Diatraea grandiosella para verificación técnica.',
       actionUrl: `/private/plagues/${reviewPlagueId}`,
       isRead: false,
     },
@@ -966,7 +985,7 @@ const seedNotifications = async (
       isRead: false,
     },
     {
-      userId: coordId,
+      userId: curadorId,
       actorId: farmerId,
       category: 'editorial',
       severity: 'info',
@@ -1000,7 +1019,7 @@ const seedNotifications = async (
     },
     {
       userId: farmerId,
-      actorId: coordId,
+      actorId: curadorId,
       category: 'sistema',
       severity: 'success',
       title: 'Bienvenido al entorno de demostración AgroSystem INIFAP',
@@ -1051,7 +1070,7 @@ const seedAuditLogs = async (
 ) => {
   const adminId = usersByKey.get('admin').id;
   const tecnicoId = usersByKey.get('inifapBase').id;
-  const coordId = usersByKey.get('inifapSubrole').id;
+  const curadorId = usersByKey.get('inifapSubrole').id;
   const farmerId = usersByKey.get('agricultor').id;
 
   const entries = [
@@ -1108,7 +1127,7 @@ const seedAuditLogs = async (
         name: 'Gusano Cogollero',
         workflow_status: 'published',
       },
-      userId: coordId,
+      userId: adminId,
       hoursAgo: 12,
     },
     {
@@ -1118,7 +1137,7 @@ const seedAuditLogs = async (
       recordId: productsByName.get('Coragen'),
       oldValues: { workflow_status: 'verified' },
       newValues: { name: 'Coragen', workflow_status: 'published' },
-      userId: coordId,
+      userId: curadorId,
       hoursAgo: 18,
     },
     {

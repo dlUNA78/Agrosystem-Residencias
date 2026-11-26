@@ -12,7 +12,7 @@
 
 Todos los scripts dentro de `scripts/demo/` aplican **dos bloqueos obligatorios**:
 
-1. Abortan con código de salida distinto de cero si `NODE_ENV=production`.
+1. Abortan con código de salida distinto de cero si `NODE_ENV=production` (tanto en el proceso actual como dentro del archivo `--env-file`).
 2. Abortan con código de salida distinto de cero si `DB_NAME` no inicia con `agrosystem_demo` (`!/^agrosystem_demo/i.test(dbName)`).
 
 ### 1.1 Crear `.env.demo` (sin commitear)
@@ -40,7 +40,7 @@ El script:
   - **10 regiones agrícolas** con relaciones `PlagueRegions` y **5 boletines regionales** publicados para el mapa SVG y la portada.
   - **7 cultivos publicados** + **1 propuesta ciudadana pendiente** (`Aguacate Hass (Propuesta Ciudadana)`).
   - **8 plagas publicadas** + **1 plaga en revisión editorial** (`Barrenador del Tallo de Maíz`) + **1 sugerencia ciudadana pendiente** (`Mosca Blanca del Algodonero`).
-  - **8 insumos/productos publicados**, **9 ingredientes activos**, **4 proveedores** y relaciones cruzadas (`CropPlagues`, `PlagueProducts`, `CropProducts`).
+  - **8 insumos/productos publicados**, **10 ingredientes activos** (incluyendo **`Clorpirifos Etil`**, `clase-i`, libre de productos activos para demostrar la solicitud y aprobación dual de baja), **4 proveedores** y relaciones cruzadas (`CropPlagues`, `PlagueProducts`, `CropProducts`).
   - **10 predios (`Farms`)** distribuidos entre los 4 usuarios con lotes (`FarmLots`), ciclos activos y finalizados (`FarmCrops` + `FarmCropStages`), reportes sanitarios (`FarmHealthReports`) y aplicaciones (`FarmApplications`).
   - **Notificaciones** y **bitácora de auditoría (`AuditLogs`)** recientes.
 
@@ -77,14 +77,15 @@ Confirma que `$env:DB_NAME` imprima `agrosystem_demo` y que la consola muestre:
 
 Todas las cuentas usan el dominio ficticio `@demo.agrosystem.invalid`, cero datos personales reales y contraseñas validadas con `validatePasswordPolicy`.
 
-| Perfil                          | Correo (`@demo.agrosystem.invalid`)        | Contraseña por defecto | Rol base     | Subrol RBAC                     | Uso en la demo                                             |
-| ------------------------------- | ------------------------------------------ | ---------------------- | ------------ | ------------------------------- | ---------------------------------------------------------- |
-| **Administrador General**       | `admin.demo@demo.agrosystem.invalid`       | `AgroDemoAdmin2026`    | `admin`      | N/A (control total)             | Gobernanza, usuarios, RBAC, auditoría, reportes y catálogo |
-| **Técnico INIFAP (sin subrol)** | `tecnico.demo@demo.agrosystem.invalid`     | `AgroDemoTecnico2026`  | `inifap`     | Ninguno (`rbac_role_id = null`) | Panel técnico base, consulta/edición y envío a revisión    |
-| **Técnico INIFAP (con subrol)** | `coordinador.demo@demo.agrosystem.invalid` | `AgroDemoEditor2026`   | `inifap`     | `Coordinador Editorial`         | Revisión editorial, verificación y publicación de fichas   |
-| **Productor Agrícola**          | `productor.demo@demo.agrosystem.invalid`   | `AgroDemoCampo2026`    | `agricultor` | Ninguno (`rbac_role_id = null`) | Consulta pública, bloqueo `403`, sugerencias y ascenso     |
+| Perfil                          | Correo (`@demo.agrosystem.invalid`)      | Contraseña por defecto | Rol base     | Subrol RBAC                                            | Uso en la demo                                                                              |
+| ------------------------------- | ---------------------------------------- | ---------------------- | ------------ | ------------------------------------------------------ | ------------------------------------------------------------------------------------------- |
+| **Administrador General**       | `admin.demo@demo.agrosystem.invalid`     | `AgroDemoAdmin2026`    | `admin`      | N/A (control total)                                    | Gobernanza, usuarios, RBAC, auditoría (`/private/audit`), aprobación dual y publicar        |
+| **Técnico INIFAP (sin subrol)** | `tecnico.demo@demo.agrosystem.invalid`   | `AgroDemoTecnico2026`  | `inifap`     | Ninguno (`rbac_role_id = null`)                        | Panel técnico base, consulta/edición y envío a revisión                                     |
+| **Técnico INIFAP (con subrol)** | `curador.demo@demo.agrosystem.invalid`   | `AgroDemoCurador2026`  | `inifap`     | `Curador de Insumos y Proveedores` (`curador-insumos`) | Verificación técnica, proveedores, solicitud de baja de ingrediente (`ingredients.manage`)* |
+| **Productor Agrícola**          | `productor.demo@demo.agrosystem.invalid` | `AgroDemoCampo2026`    | `agricultor` | Ninguno (`rbac_role_id = null`)                        | Consulta pública, bloqueo `403`, sugerencias y ascenso                                      |
 
 - **Código INIFAP disponible para canje en vivo:** `AGS-DEMO-2026-INIF-AP01` (vigente 90 días, `is_used = false`, `revoked_at = null`).
+- **Alcance real del subrol `Curador de Insumos y Proveedores` (`slug: curador-insumos`):** otorga permisos delegados `ingredients.manage`, `suppliers.manage` y `products.publish` además de los permisos base `inifap`. **NO** otorga acceso a `/private/audit` ni a `/private/users` (exclusivos de `admin`, responden `403 Forbidden`).
 
 ---
 
@@ -109,7 +110,7 @@ Todas las cuentas usan el dominio ficticio `@demo.agrosystem.invalid`, cero dato
    - **Acción negativa 1 (contraseña incorrecta):** Ingresar `productor.demo@demo.agrosystem.invalid` con contraseña errónea `ClaveIncorrecta99`.
    - **Resultado esperado:** HTTP `401`, alerta roja con el mensaje genérico **`Credenciales incorrectas.`** (sin revelar si falló correo o contraseña) y correo preservado en el campo.
 2. Iniciar sesión correctamente con **`productor.demo@demo.agrosystem.invalid`** / `AgroDemoCampo2026`.
-   - **Acción negativa 2 (bloqueo de panel privado):** Intentar navegar manualmente a **`/dashboard`**, **`/private/lands`**, **`/private/plagues`** y **`/private/users`**.
+   - **Acción negativa 2 (bloqueo de panel privado):** Intentar navegar manualmente a **`/dashboard`**, **`/private/lands`**, **`/private/plagues`**, **`/private/ingredients`** y **`/private/users`**.
    - **Resultado esperado:** Página **HTTP `403 Forbidden`** (_Acceso Denegado_) en todas las rutas `/dashboard` y `/private/...`.
 3. Abrir **`/profile`** como productor para confirmar que el perfil propio sí es accesible para cuentas autenticadas.
 
@@ -120,24 +121,30 @@ Todas las cuentas usan el dominio ficticio `@demo.agrosystem.invalid`, cero dato
    - _(Opcional en vivo)_ Enviar una propuesta corta o mostrar directamente las propuestas precargadas (`Mosca Blanca del Algodonero` y `Aguacate Hass (Propuesta Ciudadana)`), que generan notificación editorial y registro en `AuditLogs`.
 2. Cerrar sesión (botón `POST /auth/logout`).
 
-### Bloque D — Diferenciación de permisos INIFAP y flujo editorial (4 min)
+### Bloque D — Permisos INIFAP, verificación editorial y solicitud de baja de ingrediente (4 min)
 
 1. Iniciar sesión como **`tecnico.demo@demo.agrosystem.invalid`** / `AgroDemoTecnico2026` (`inifap` **sin subrol**).
    - Abrir **`/dashboard`**: mostrar KPIs reales (validaciones pendientes, alertas críticas abiertas, hectáreas monitoreadas, top de plagas del mes y distribución de cultivos).
    - Abrir **`/private/suggestions`** (redirige a **`/private/plagues?workflow=in_review`**): mostrar las dos fichas pendientes:
-     - **`Barrenador del Tallo de Maíz`** (en revisión editorial técnica).
+     - **`Barrenador del Tallo de Maíz`** (en revisión editorial técnica, redactada por este técnico).
      - **`Mosca Blanca del Algodonero`** (propuesta ciudadana enviada por el productor).
    - Intentar entrar a **`/private/users`** o **`/private/audit`**: confirmar respuesta **`403 Forbidden`** (exclusivo de administrador).
    - Cerrar sesión.
-2. Iniciar sesión como **`coordinador.demo@demo.agrosystem.invalid`** / `AgroDemoEditor2026` (`inifap` **con subrol `Coordinador Editorial`**).
-   - Mostrar insignia del subrol **`Coordinador Editorial`** en perfil/cabecera y notificaciones editoriales en la campana.
-   - Abrir **`/private/plagues?workflow=in_review`**, ingresar al detalle de **`Barrenador del Tallo de Maíz`**, ejecutar transición **`Verificar`** y luego **`Publicar`**.
-   - Comprobar en **`/plagues`** que la plaga recién publicada ahora aparece en el catálogo público.
-   - Revisar también **`/private/crops?workflow=in_review`** donde espera **`Aguacate Hass (Propuesta Ciudadana)`**.
+2. Iniciar sesión como **`curador.demo@demo.agrosystem.invalid`** / `AgroDemoCurador2026` (`inifap` **con subrol `Curador de Insumos y Proveedores`**).
+   - Mostrar la insignia del subrol **`Curador de Insumos y Proveedores`** en cabecera/perfil y las notificaciones en la campana.
+   - Confirmar que `/private/audit` y `/private/users` siguen respondiendo **`403 Forbidden`** para este subrol (la bitácora de auditoría y gestión de usuarios son exclusivas de `admin`).
+   - **Verificación técnica editorial:** Abrir **`/private/plagues?workflow=in_review`**, ingresar al detalle de **`Barrenador del Tallo de Maíz`** (autor distinto) y ejecutar **`Verificar`** (pasa a estado `verified`, lista para publicación por `admin`). Revisar también **`/private/crops?workflow=in_review`** donde espera **`Aguacate Hass (Propuesta Ciudadana)`**.
+   - **Solicitud de baja de ingrediente activo (aprobación dual — Paso 1):**
+     - Navegar a **`/private/ingredients`**.
+     - **Nota técnica importante (Hallazgo H-7):** En la interfaz de `/private/ingredients`, los botones de **Añadir**, **Editar** y **Eliminar** ingredientes **no aparecen para el subrol `Curador de Insumos y Proveedores`** porque la vista evalúa `canManage: user?.role === 'admin'` (`src/controllers/private/ingredientsController.js`), aunque el servidor sí autoriza el permiso delegado `ingredients.manage` en las rutas de mutación (`src/middlewares/authMiddleware.js`). Explicarlo con transparencia si alguien pregunta durante la sesión.
+     - Localizar la molécula **`Clorpirifos Etil`** (`Clase I · OMS`, restringida y sin productos activos formulados) y hacer clic en el icono de escudo ámbar **`Solicitar baja justificada`** (abre el modal `#modal-request-archive-ingredient`, que envía `POST /private/ingredients/<id>/workflow` con `action=request_archive`).
+     - Seleccionar causa **`Prohibición Regulatoria (CICOPLAFEST / OMS / Convenio de Róterdam)`**, escribir una justificación técnica de al menos 20 caracteres (ej. `"Retiro regulatorio por alta toxicidad OMS Clase I y actualización del catálogo oficial INIFAP."`) y enviar **`Tramitar Solicitud de Baja`**.
+     - **Resultado esperado:** **`Clorpirifos Etil`** cambia a etiqueta **`Baja en trámite`** (`archive_pending`). Comprobar que `curador.demo` **no ve el botón de aprobar su propia solicitud** (principio de los 4 ojos / aprobación dual).
+   - Mostrar también **`/private/suppliers`** (4 proveedores) y cerrar sesión.
 
 ### Bloque E — Predios, ciclos fenológicos y bitácora operativa (3 min)
 
-1. Desde el panel privado (con `coordinador.demo` o `admin.demo`), navegar a **`/private/lands`**.
+1. Desde el panel privado (con `curador.demo` o `admin.demo`), navegar a **`/private/lands`**.
    - **Pantalla esperada:** Padrón de **10 predios** distribuidos en Sinaloa, Michoacán, Sonora, El Bajío, Colima, Veracruz, Puebla, Estado de México y Chiapas, con estadísticas de hectáreas y exportación CSV/GeoJSON.
 2. Abrir el expediente de **`Parcela Valle Verde Norte`** (`/private/lands/<id>/expediente`).
    - **Mostrar:**
@@ -146,15 +153,19 @@ Todas las cuentas usan el dominio ficticio `@demo.agrosystem.invalid`, cero dato
      - **Reportes sanitarios (`FarmHealthReports`):** alerta alta abierta por _Gusano Cogollero_.
      - **Aplicaciones (`FarmApplications`):** aplicación registrada de _Coragen_ (`125 mL/ha`).
 
-### Bloque F — Gobernanza administrativa y auditoría (2 min)
+### Bloque F — Gobernanza administrativa, aprobación dual y auditoría (3 min)
 
 1. Cerrar sesión e iniciar como **`admin.demo@demo.agrosystem.invalid`** / `AgroDemoAdmin2026`.
-2. Recorrer brevemente:
+2. **Aprobación dual de baja de ingrediente (Paso 2):**
+   - Abrir **`/private/ingredients`**, localizar **`Clorpirifos Etil`** con etiqueta **`Baja en trámite`** y hacer clic en **`Aprobar dictamen de baja (Dual Approval)`** (`POST /private/ingredients/<id>/workflow` con `action=approve_archive`).
+   - **Resultado esperado:** Al ser un usuario distinto al solicitante y no existir productos comerciales activos que dependan de `Clorpirifos Etil`, el ingrediente pasa limpiamente a estado **`Archivado`** (`archived`) y aparece la opción **`Restaurar a activo`** exclusiva de administrador.
+3. **Publicación editorial final:**
+   - Abrir **`/private/plagues`** (estado `verified`), ingresar a **`Barrenador del Tallo de Maíz`** y ejecutar **`Publicar`**; comprobar en **`/plagues`** que ya figura en el catálogo público.
+4. Recorrer los módulos exclusivos de administración:
    - **`/private/users`**: tabla de usuarios, subroles RBAC (`Coordinador Editorial`, `Curador de Insumos y Proveedores`, `Auditor Fitosanitario`, `Moderador Institucional`) y pestaña de códigos INIFAP mostrando `AGS-DEMO-****-****-AP01` en estado **Disponible**.
-   - **`/private/ingredients`** y **`/private/suppliers`**: 9 ingredientes activos y 4 proveedores.
    - **`/private/reports`**: resumen analítico y exportación PDF.
-   - **`/private/audit`**: trazabilidad cronológica incluyendo propuestas ciudadanas y publicaciones recién realizadas en vivo.
-3. Cerrar sesión.
+   - **`/private/audit`**: trazabilidad cronológica mostrando `workflow.request_archive` (por `curador.demo`), `workflow.approve_archive` (por `admin.demo`), las propuestas ciudadanas y la publicación recién realizada en vivo.
+5. Cerrar sesión.
 
 ### Bloque G — Ascenso a Personal INIFAP con código único (2 min)
 
@@ -173,7 +184,7 @@ Detener el servidor (`Ctrl + C`) y restaurar la instantánea limpia previa a la 
 node scripts/demo/restoreDemoDb.js --env-file .env.demo --latest
 ```
 
-El script valida los guardrails (`agrosystem_demo*` y no producción), cierra conexiones abiertas sobre `agrosystem_demo`, restaura el `.dump` más reciente en pocos segundos e imprime el conteo verificado (incluyendo `InifapCodesDisponibles=1` y `productor.demo` nuevamente como `agricultor`).
+El script valida los guardrails (`agrosystem_demo*` y no producción), cierra conexiones abiertas sobre `agrosystem_demo`, restaura el `.dump` más reciente en pocos segundos e imprime el conteo verificado (incluyendo `InifapCodesDisponibles=1`, `Clorpirifos Etil` nuevamente `active` y `productor.demo` nuevamente como `agricultor`).
 
 ---
 
@@ -184,15 +195,17 @@ El script valida los guardrails (`agrosystem_demo*` y no producción), cierra co
 
 - [ ] `.env.demo` creado localmente desde `scripts/demo/.env.demo.example` con `DB_NAME=agrosystem_demo` y `NODE_ENV=development` (y verificado con `git status` que NO está rastreado).
 - [ ] `node scripts/demo/setupDemoDb.js --env-file .env.demo` ejecutado **dos veces seguidas** con salida `0` y conteos de filas idénticos en ambas corridas.
-- [ ] Guardrails probados manualmente: el script aborta con código `1` si `DB_NAME=agrosystem_test` o `NODE_ENV=production`.
+- [ ] Guardrails probados manualmente: los scripts abortan con código `1` si `DB_NAME=agrosystem_test` o si `NODE_ENV=production` (tanto en el proceso como en `--env-file`).
 - [ ] Respaldo limpio tomado con `node scripts/demo/backupDemoDb.js --env-file .env.demo` en **menos de 60 segundos** (y confirmado en `.gitignore`).
 - [ ] Restauración probada en seco con `node scripts/demo/restoreDemoDb.js --env-file .env.demo --latest` en **menos de 60 segundos**.
 - [ ] Portada `/` revisada: mapa SVG interactivo, boletines regionales y contadores sin valores rotos.
 - [ ] Catálogos `/plagues`, `/crops`, `/products` y `/lands` revisados: **cero imágenes rotas** (todas existen en `public/images/`) y descarga de PDF `/products/<id>/hds.pdf` operativa.
 - [ ] **Prueba negativa de login:** contraseña incorrecta en `/auth/login` devuelve `401` con mensaje genérico `Credenciales incorrectas.`.
 - [ ] **Prueba negativa RBAC (`403`):** `productor.demo@demo.agrosystem.invalid` (`agricultor`) recibe **`403 Forbidden`** al intentar acceder a `/dashboard`, `/private/lands`, `/private/plagues`, `/private/ingredients` y `/private/users`.
-- [ ] **Re-verificación post-merge (`H-2` y `1.A5`):** confirmar nuevamente login, permisos de `tecnico.demo` (sin subrol) vs `coordinador.demo` (subrol `Coordinador Editorial`), bloqueo `403` de `agricultor` en `/private/...` y tarjetas de rol sobre `agrosystem_demo` después de integrar ambos PRs en `main`.
-- [ ] Flujo editorial probado: `Barrenador del Tallo de Maíz` verificado y publicado; sugerencias `Mosca Blanca del Algodonero` y `Aguacate Hass (Propuesta Ciudadana)` visibles en bandeja `in_review`.
+- [ ] **Prueba negativa de auditoría (`403`):** confirmar que tanto `tecnico.demo` como `curador.demo` (`Curador de Insumos y Proveedores`) reciben **`403 Forbidden`** en `/private/audit` y `/private/users`.
+- [ ] **Flujo de aprobación dual de ingrediente + Hallazgo H-7:** confirmar que `curador.demo` ve **`Solicitar baja justificada`** en `/private/ingredients` (y **NO** ve botones de añadir/editar/eliminar por H-7), tramita la baja de **`Clorpirifos Etil`** (`POST /private/ingredients/<id>/workflow` con `action=request_archive`), no puede auto-aprobarla, y `admin.demo` aprueba la baja (`action=approve_archive`) dejándola en `Archivado` y visible en `/private/audit`.
+- [ ] **Re-verificación post-merge (`H-2` y `1.A5`):** confirmar nuevamente login, permisos de `tecnico.demo` (sin subrol) vs `curador.demo` (subrol `Curador de Insumos y Proveedores`), bloqueo `403` de `agricultor` en `/private/...` y tarjetas de rol sobre `agrosystem_demo` después de integrar ambos PRs en `main`.
+- [ ] Flujo editorial probado: `Barrenador del Tallo de Maíz` verificado por `curador.demo` y publicado por `admin.demo`; sugerencias `Mosca Blanca del Algodonero` y `Aguacate Hass (Propuesta Ciudadana)` visibles en bandeja `in_review`.
 - [ ] Expediente de predio probado (`/private/lands/<id>/expediente`): lotes, ciclos activos con etapas fenológicas, reportes sanitarios y aplicaciones visibles.
 - [ ] Canje de código INIFAP (`AGS-DEMO-2026-INIF-AP01`) probado en `/auth/inifap-upgrade` y revertido exitosamente con `restoreDemoDb.js --latest`.
 - [ ] Antes de cerrar la presentación o hacer commit, verificar `git status` limpio (sin `.env.demo` ni archivos `.dump` rastreados).
