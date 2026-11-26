@@ -5,6 +5,7 @@ node_modules/
 .env
 .env.local
 .env.loadtest
+.env.demo
 
 # Archivos de logs (ignora cualquier archivo que termine en .log)
 *.log
@@ -51,3 +52,7 @@ docs/**/*.pdf
 
 # Resultados locales de pruebas de carga con k6
 loadtests/results/
+
+# Respaldos locales del entorno demo
+scripts/demo/backups/
+*.dump
