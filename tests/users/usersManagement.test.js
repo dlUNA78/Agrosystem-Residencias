@@ -4,7 +4,7 @@ import bcrypt from 'bcrypt';
 import app, { closeAppResources } from '../../app.js';
 import db from '../../src/models/index.js';
 
-const { User } = db;
+const { User, RbacRole } = db;
 
 describe('👥 Módulo de Gestión de Usuarios (CRUD + RBAC Admin + Perfil)', () => {
   let testCreatedUserId = null;
@@ -223,5 +223,239 @@ describe('👥 Módulo de Gestión de Usuarios (CRUD + RBAC Admin + Perfil)', ()
     const farmerAgent = await getFarmerAgent();
     const res = await farmerAgent.get('/private/profile');
     expect(res.status).toBe(403);
+  });
+
+  describe('9. H-2: Reglas de persistencia de rbac_role_id exclusivo para INIFAP en /private/users', () => {
+    const CREATE_BLOCKED_EMAIL = 'h2_blocked_farmer@agrosystem.com';
+    const CREATE_INIFAP_EMAIL = 'h2_created_inifap@agrosystem.com';
+    const EDIT_TARGET_EMAIL = 'h2_edit_target@agrosystem.com';
+    let curatorRole = null;
+    let auditorRole = null;
+    let editTargetUser = null;
+
+    beforeAll(async () => {
+      await User.destroy({
+        where: {
+          email: [CREATE_BLOCKED_EMAIL, CREATE_INIFAP_EMAIL, EDIT_TARGET_EMAIL],
+        },
+      });
+      curatorRole = await RbacRole.findOne({
+        where: { slug: 'curador-insumos' },
+      });
+      auditorRole = await RbacRole.findOne({
+        where: { slug: 'auditor-fitosanitario' },
+      });
+      expect(curatorRole).not.toBeNull();
+      expect(auditorRole).not.toBeNull();
+
+      const hash = await bcrypt.hash('H2Users@1234', 10);
+      editTargetUser = await User.create({
+        full_name: 'Usuario H2 Edición',
+        email: EDIT_TARGET_EMAIL,
+        password_hash: hash,
+        role: 'inifap',
+        status: 'activo',
+        rbac_role_id: curatorRole.id,
+      });
+    });
+
+    afterAll(async () => {
+      await User.destroy({
+        where: {
+          email: [CREATE_BLOCKED_EMAIL, CREATE_INIFAP_EMAIL, EDIT_TARGET_EMAIL],
+        },
+      });
+    });
+
+    it('9.1. POST /private/users/create rechaza crear agricultor con rbac_role_id (redirect y JSON) y permite crear INIFAP con sub-rol', async () => {
+      const adminAgent = await getAdminAgent();
+
+      const formReject = await adminAgent.post('/private/users/create').send({
+        full_name: 'Agricultor Con Subrol Form',
+        email: CREATE_BLOCKED_EMAIL,
+        password: 'Password@1234',
+        role: 'agricultor',
+        status: 'activo',
+        rbac_role_id: curatorRole.id,
+      });
+      expect(formReject.status).toBe(302);
+      expect(formReject.headers.location).toContain('error=subrol_solo_inifap');
+      expect(
+        await User.findOne({ where: { email: CREATE_BLOCKED_EMAIL } }),
+      ).toBeNull();
+
+      const jsonReject = await adminAgent
+        .post('/private/users/create')
+        .set('Accept', 'application/json')
+        .send({
+          full_name: 'Agricultor Con Subrol JSON',
+          email: CREATE_BLOCKED_EMAIL,
+          password: 'Password@1234',
+          role: 'agricultor',
+          status: 'activo',
+          rbac_role_id: auditorRole.id,
+        });
+      expect(jsonReject.status).toBe(400);
+      expect(jsonReject.body.code).toBe('subrol_solo_inifap');
+      expect(
+        await User.findOne({ where: { email: CREATE_BLOCKED_EMAIL } }),
+      ).toBeNull();
+
+      // INIFAP legítimo sí puede crearse con sub-rol
+      const inifapRes = await adminAgent
+        .post('/private/users/create')
+        .set('Accept', 'application/json')
+        .send({
+          full_name: 'INIFAP Con Subrol Válido',
+          email: CREATE_INIFAP_EMAIL,
+          password: 'Password@1234',
+          role: 'inifap',
+          status: 'activo',
+          rbac_role_id: curatorRole.id,
+        });
+      expect(inifapRes.status).toBe(201);
+      expect(inifapRes.body.success).toBe(true);
+      const createdInifap = await User.findOne({
+        where: { email: CREATE_INIFAP_EMAIL },
+      });
+      expect(createdInifap).not.toBeNull();
+      expect(createdInifap.role).toBe('inifap');
+      expect(createdInifap.rbac_role_id).toBe(curatorRole.id);
+    });
+
+    it('9.2. POST /private/users/edit/:id rechaza asignar sub-rol a agricultor o admin, limpia sub-rol al degradar y lo preserva para INIFAP', async () => {
+      const adminAgent = await getAdminAgent();
+      const adminRecord = await User.findOne({
+        where: { email: 'admin@agrosystem.com' },
+      });
+
+      // 1. Actualizar puesto de INIFAP sin enviar rbac_role_id conserva su sub-rol actual
+      const keepSubRoleRes = await adminAgent
+        .post(`/private/users/edit/${editTargetUser.id}`)
+        .send({
+          mode: 'institutional',
+          job_title: 'Investigador Senior',
+        });
+      expect(keepSubRoleRes.status).toBe(302);
+      expect(keepSubRoleRes.headers.location).toContain(
+        'success=usuario_actualizado',
+      );
+      let reloaded = await User.findByPk(editTargetUser.id);
+      expect(reloaded.role).toBe('inifap');
+      expect(reloaded.rbac_role_id).toBe(curatorRole.id);
+
+      // 2. Intentar degradar a agricultor manteniendo rbac_role_id no nulo -> rechazado (JSON y redirect)
+      const rejectDemoteJson = await adminAgent
+        .post(`/private/users/edit/${editTargetUser.id}`)
+        .set('Accept', 'application/json')
+        .send({
+          role: 'agricultor',
+          rbac_role_id: curatorRole.id,
+        });
+      expect(rejectDemoteJson.status).toBe(400);
+      expect(rejectDemoteJson.body.code).toBe('subrol_solo_inifap');
+      reloaded = await User.findByPk(editTargetUser.id);
+      expect(reloaded.role).toBe('inifap');
+      expect(reloaded.rbac_role_id).toBe(curatorRole.id);
+
+      // 3. Degradar a agricultor sin rbac_role_id -> fuerza rbac_role_id = null
+      const demoteRes = await adminAgent
+        .post(`/private/users/edit/${editTargetUser.id}`)
+        .send({
+          role: 'agricultor',
+          status: 'activo',
+        });
+      expect(demoteRes.status).toBe(302);
+      expect(demoteRes.headers.location).toContain(
+        'success=usuario_actualizado',
+      );
+      reloaded = await User.findByPk(editTargetUser.id);
+      expect(reloaded.role).toBe('agricultor');
+      expect(reloaded.rbac_role_id).toBeNull();
+
+      // 4. Intentar asignar sub-rol a agricultor (con role omitido) -> rechazado
+      const rejectFarmerForm = await adminAgent
+        .post(`/private/users/edit/${editTargetUser.id}`)
+        .send({
+          rbac_role_id: auditorRole.id,
+        });
+      expect(rejectFarmerForm.status).toBe(302);
+      expect(rejectFarmerForm.headers.location).toContain(
+        'error=subrol_solo_inifap',
+      );
+      expect((await User.findByPk(editTargetUser.id)).rbac_role_id).toBeNull();
+
+      // 5. Intentar asignar sub-rol a admin -> rechazado (form y JSON)
+      const rejectAdminForm = await adminAgent
+        .post(`/private/users/edit/${adminRecord.id}`)
+        .send({
+          role: 'admin',
+          rbac_role_id: curatorRole.id,
+        });
+      expect(rejectAdminForm.status).toBe(302);
+      expect(rejectAdminForm.headers.location).toContain(
+        'error=subrol_solo_inifap',
+      );
+
+      const rejectAdminJson = await adminAgent
+        .post(`/private/users/edit/${adminRecord.id}`)
+        .set('Accept', 'application/json')
+        .send({
+          rbac_role_id: curatorRole.id,
+        });
+      expect(rejectAdminJson.status).toBe(400);
+      expect(rejectAdminJson.body.code).toBe('subrol_solo_inifap');
+      expect((await User.findByPk(adminRecord.id)).rbac_role_id).toBeNull();
+
+      // 6. Guardar agricultor con sub-rol huérfano preexistente en BD -> limpia a null
+      await editTargetUser.update({
+        role: 'agricultor',
+        rbac_role_id: auditorRole.id,
+      });
+      const autoCleanRes = await adminAgent
+        .post(`/private/users/edit/${editTargetUser.id}`)
+        .set('Accept', 'application/json')
+        .send({
+          job_title: 'Productor Actualizado',
+        });
+      expect(autoCleanRes.status).toBe(200);
+      expect(autoCleanRes.body.user.rbac_role_id).toBeNull();
+      expect((await User.findByPk(editTargetUser.id)).rbac_role_id).toBeNull();
+
+      // 7. POST /private/users/status/:id rechaza sub-rol para agricultor y limpia sub-rol huérfano si role !== 'inifap'
+      await editTargetUser.update({
+        role: 'agricultor',
+        rbac_role_id: curatorRole.id,
+      });
+      const statusRejectRes = await adminAgent
+        .post(`/private/users/status/${editTargetUser.id}`)
+        .set('Accept', 'application/json')
+        .send({ status: 'activo', rbac_role_id: curatorRole.id });
+      expect(statusRejectRes.status).toBe(400);
+      expect(statusRejectRes.body.code).toBe('subrol_solo_inifap');
+
+      const statusRes = await adminAgent
+        .post(`/private/users/status/${editTargetUser.id}`)
+        .send({ status: 'activo' });
+      expect(statusRes.status).toBe(302);
+      expect((await User.findByPk(editTargetUser.id)).rbac_role_id).toBeNull();
+    });
+
+    it('9.3. GET /private/users no expone ni renderiza sub-rol huérfano para un agricultor', async () => {
+      const adminAgent = await getAdminAgent();
+      await editTargetUser.update({
+        role: 'agricultor',
+        rbac_role_id: curatorRole.id,
+      });
+
+      const listRes = await adminAgent.get(
+        `/private/users?search=${encodeURIComponent(EDIT_TARGET_EMAIL)}`,
+      );
+      expect(listRes.status).toBe(200);
+      expect(listRes.text).toContain(EDIT_TARGET_EMAIL);
+      expect(listRes.text).toContain('data-subrole-name="Sin sub-rol"');
+
+      await editTargetUser.update({ rbac_role_id: null });
+    });
   });
 });
