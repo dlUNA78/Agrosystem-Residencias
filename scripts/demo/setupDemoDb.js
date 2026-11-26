@@ -408,6 +408,16 @@ const insertCropRecord = async (client, crop, usersByKey) => {
   return inserted.rows[0].id;
 };
 
+const syncExistingCropMetadata = async (client, cropId, crop, usersByKey) => {
+  if (crop.workflow_status !== 'published') return;
+  await client.query(
+    `UPDATE "Crops"
+        SET published_by_user_id = $1, "updatedAt" = NOW()
+      WHERE id = $2`,
+    [lookupUserId(usersByKey, crop.publisherKey), cropId],
+  );
+};
+
 const seedCrops = async (client, usersByKey) => {
   const byName = new Map();
   for (const crop of DEMO_CROPS) {
@@ -415,10 +425,13 @@ const seedCrops = async (client, usersByKey) => {
       'SELECT id FROM "Crops" WHERE name = $1',
       [crop.name],
     );
-    const cropId =
-      existing.rowCount > 0
-        ? existing.rows[0].id
-        : await insertCropRecord(client, crop, usersByKey);
+    let cropId;
+    if (existing.rowCount > 0) {
+      cropId = existing.rows[0].id;
+      await syncExistingCropMetadata(client, cropId, crop, usersByKey);
+    } else {
+      cropId = await insertCropRecord(client, crop, usersByKey);
+    }
     await ensureCropImage(client, cropId, crop);
     byName.set(crop.name, cropId);
   }
@@ -483,6 +496,26 @@ const insertPlagueRecord = async (client, plague, usersByKey) => {
   return inserted.rows[0].id;
 };
 
+const syncExistingPlagueMetadata = async (
+  client,
+  plagueId,
+  plague,
+  usersByKey,
+) => {
+  const publisherId =
+    plague.workflow_status === 'published'
+      ? lookupUserId(usersByKey, plague.publisherKey)
+      : null;
+  await client.query(
+    `UPDATE "Plagues"
+        SET biological_cycle = $1::jsonb,
+            published_by_user_id = COALESCE($2, published_by_user_id),
+            "updatedAt" = NOW()
+      WHERE id = $3`,
+    [JSON.stringify(plague.biological_cycle), publisherId, plagueId],
+  );
+};
+
 const seedPlagues = async (client, usersByKey) => {
   const byName = new Map();
   for (const plague of DEMO_PLAGUES) {
@@ -490,10 +523,13 @@ const seedPlagues = async (client, usersByKey) => {
       'SELECT id FROM "Plagues" WHERE name = $1',
       [plague.name],
     );
-    const plagueId =
-      existing.rowCount > 0
-        ? existing.rows[0].id
-        : await insertPlagueRecord(client, plague, usersByKey);
+    let plagueId;
+    if (existing.rowCount > 0) {
+      plagueId = existing.rows[0].id;
+      await syncExistingPlagueMetadata(client, plagueId, plague, usersByKey);
+    } else {
+      plagueId = await insertPlagueRecord(client, plague, usersByKey);
+    }
     await ensurePlagueImage(client, plagueId, plague);
     byName.set(plague.name, plagueId);
   }
@@ -649,7 +685,16 @@ const seedRegionalBulletins = async (client, regionsByName, publisherId) => {
       'SELECT id FROM "RegionalBulletins" WHERE folio = $1',
       [bulletin.folio],
     );
-    if (existing.rowCount > 0) continue;
+    if (existing.rowCount > 0) {
+      await client.query(
+        `UPDATE "RegionalBulletins"
+            SET created_by_user_id = $1, published_by_user_id = $1,
+                "updatedAt" = NOW()
+          WHERE id = $2`,
+        [publisherId, existing.rows[0].id],
+      );
+      continue;
+    }
 
     const regionId = regionsByName.get(bulletin.regionName) || null;
     await client.query(
@@ -789,39 +834,58 @@ const seedFarmCycles = async (client, farmId, cycles, cropsByName) => {
   return primaryCycleId;
 };
 
+const upsertFarmHealthReport = async (
+  client,
+  { report, farmId, cycleId, ownerId, plaguesByName },
+) => {
+  const observedAt = formatDateDaysAgo(report.daysAgo);
+  const existing = await client.query(
+    `SELECT id FROM "FarmHealthReports"
+      WHERE farm_id = $1 AND plague_name = $2 AND description = $3`,
+    [farmId, report.plagueName, report.description],
+  );
+  if (existing.rowCount > 0) {
+    await client.query(
+      `UPDATE "FarmHealthReports"
+          SET severity = $1, "updatedAt" = NOW()
+        WHERE id = $2`,
+      [report.severity, existing.rows[0].id],
+    );
+    return;
+  }
+  await client.query(
+    `INSERT INTO "FarmHealthReports" (
+       farm_id, farm_crop_id, plague_id, plague_name, severity,
+       description, observed_at, status, created_by_user_id,
+       "createdAt", "updatedAt"
+     )
+     VALUES ($1,$2,$3,$4,$5,$6,$7::date,$8,$9,NOW(),NOW())`,
+    [
+      farmId,
+      cycleId,
+      plaguesByName.get(report.plagueName) || null,
+      report.plagueName,
+      report.severity,
+      report.description,
+      observedAt,
+      report.status,
+      ownerId,
+    ],
+  );
+};
+
 const seedFarmHealthAndApplication = async (
   client,
   { farmSpec, farmId, cycleId, ownerId, plaguesByName, productsByName },
 ) => {
   if (farmSpec.healthReport) {
-    const report = farmSpec.healthReport;
-    const observedAt = formatDateDaysAgo(report.daysAgo);
-    const existing = await client.query(
-      `SELECT id FROM "FarmHealthReports"
-        WHERE farm_id = $1 AND plague_name = $2 AND description = $3`,
-      [farmId, report.plagueName, report.description],
-    );
-    if (existing.rowCount === 0) {
-      await client.query(
-        `INSERT INTO "FarmHealthReports" (
-           farm_id, farm_crop_id, plague_id, plague_name, severity,
-           description, observed_at, status, created_by_user_id,
-           "createdAt", "updatedAt"
-         )
-         VALUES ($1,$2,$3,$4,$5,$6,$7::date,$8,$9,NOW(),NOW())`,
-        [
-          farmId,
-          cycleId,
-          plaguesByName.get(report.plagueName) || null,
-          report.plagueName,
-          report.severity,
-          report.description,
-          observedAt,
-          report.status,
-          ownerId,
-        ],
-      );
-    }
+    await upsertFarmHealthReport(client, {
+      report: farmSpec.healthReport,
+      farmId,
+      cycleId,
+      ownerId,
+      plaguesByName,
+    });
   }
 
   if (farmSpec.application) {
@@ -1008,12 +1072,12 @@ const seedNotifications = async (
     },
     {
       userId: adminId,
-      actorId: tecnicoId,
+      actorId: adminId,
       category: 'monitoreo',
       severity: 'warning',
-      title: 'Alerta sanitaria alta en Parcela Valle Verde Norte',
+      title: 'Alerta sanitaria alta en Campo Valles Altos Metepec',
       message:
-        'Se registró reporte abierto de Gusano Cogollero en Sinaloa con severidad alta.',
+        'Se registró reporte abierto de Tizón Tardío en Estado de México con severidad alta en tu predio administrado.',
       actionUrl: '/private/lands',
       isRead: false,
     },
@@ -1029,6 +1093,12 @@ const seedNotifications = async (
       isRead: true,
     },
   ];
+
+  await client.query(
+    `DELETE FROM "Notifications"
+      WHERE user_id = $1 AND title = 'Alerta sanitaria alta en Parcela Valle Verde Norte'`,
+    [adminId],
+  );
 
   for (const item of items) {
     await insertNotificationIfMissing(client, item);
@@ -1281,7 +1351,7 @@ export const setupDemoDb = async ({
     await seedRegionalBulletins(
       client,
       regionsByName,
-      usersByKey.get('inifapSubrole').id,
+      usersByKey.get('admin').id,
     );
     const farmsByName = await seedFarmsAndOperations(client, {
       usersByKey,

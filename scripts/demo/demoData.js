@@ -263,7 +263,7 @@ export const DEMO_CROPS = Object.freeze([
     workflow_status: 'published',
     authorKey: 'inifapBase',
     verifierKey: 'inifapSubrole',
-    publisherKey: 'inifapSubrole',
+    publisherKey: 'admin',
     imageUrl: '/images/cultivos/maiz.webp',
   },
   {
@@ -295,7 +295,7 @@ export const DEMO_CROPS = Object.freeze([
     workflow_status: 'published',
     authorKey: 'inifapBase',
     verifierKey: 'inifapSubrole',
-    publisherKey: 'inifapSubrole',
+    publisherKey: 'admin',
     imageUrl: '/images/cultivos/trigo.webp',
   },
   {
@@ -327,7 +327,7 @@ export const DEMO_CROPS = Object.freeze([
     workflow_status: 'published',
     authorKey: 'inifapBase',
     verifierKey: 'inifapSubrole',
-    publisherKey: 'inifapSubrole',
+    publisherKey: 'admin',
     imageUrl: '/images/cultivos/limon-mexicano.webp',
   },
   {
@@ -360,7 +360,7 @@ export const DEMO_CROPS = Object.freeze([
     workflow_status: 'published',
     authorKey: 'inifapBase',
     verifierKey: 'inifapSubrole',
-    publisherKey: 'inifapSubrole',
+    publisherKey: 'admin',
     imageUrl: '/images/cultivos/naranja-dulce.webp',
   },
   {
@@ -393,7 +393,7 @@ export const DEMO_CROPS = Object.freeze([
     workflow_status: 'published',
     authorKey: 'inifapBase',
     verifierKey: 'inifapSubrole',
-    publisherKey: 'inifapSubrole',
+    publisherKey: 'admin',
     imageUrl: '/images/cultivos/jitomate.webp',
   },
   {
@@ -426,7 +426,7 @@ export const DEMO_CROPS = Object.freeze([
     workflow_status: 'published',
     authorKey: 'inifapBase',
     verifierKey: 'inifapSubrole',
-    publisherKey: 'inifapSubrole',
+    publisherKey: 'admin',
     imageUrl: '/images/cultivos/papa.webp',
   },
   {
@@ -458,7 +458,7 @@ export const DEMO_CROPS = Object.freeze([
     workflow_status: 'published',
     authorKey: 'inifapBase',
     verifierKey: 'inifapSubrole',
-    publisherKey: 'inifapSubrole',
+    publisherKey: 'admin',
     imageUrl: '/images/cultivos/calabacita.webp',
   },
   {
@@ -540,7 +540,7 @@ export const DEMO_PLAGUES = Object.freeze([
     is_monitoring_active: true,
     authorKey: 'inifapBase',
     verifierKey: 'inifapSubrole',
-    publisherKey: 'inifapSubrole',
+    publisherKey: 'admin',
     imageUrl: '/images/plagas/cenicilla.webp',
   },
   {
@@ -597,7 +597,7 @@ export const DEMO_PLAGUES = Object.freeze([
     is_monitoring_active: true,
     authorKey: 'inifapBase',
     verifierKey: 'inifapSubrole',
-    publisherKey: 'inifapSubrole',
+    publisherKey: 'admin',
     imageUrl: '/images/plagas/gusano-cogollero.webp',
   },
   {
@@ -644,7 +644,7 @@ export const DEMO_PLAGUES = Object.freeze([
     is_monitoring_active: true,
     authorKey: 'inifapBase',
     verifierKey: 'inifapSubrole',
-    publisherKey: 'inifapSubrole',
+    publisherKey: 'admin',
     imageUrl: '/images/plagas/mosca-mediterraneo.webp',
   },
   {
@@ -690,7 +690,7 @@ export const DEMO_PLAGUES = Object.freeze([
     is_monitoring_active: true,
     authorKey: 'inifapBase',
     verifierKey: 'inifapSubrole',
-    publisherKey: 'inifapSubrole',
+    publisherKey: 'admin',
     imageUrl: '/images/plagas/psilido-asiatico.webp',
   },
   {
@@ -726,7 +726,7 @@ export const DEMO_PLAGUES = Object.freeze([
     is_monitoring_active: false,
     authorKey: 'inifapBase',
     verifierKey: 'inifapSubrole',
-    publisherKey: 'inifapSubrole',
+    publisherKey: 'admin',
     imageUrl: '/images/plagas/pulgon-verde.webp',
   },
   {
@@ -761,7 +761,7 @@ export const DEMO_PLAGUES = Object.freeze([
     is_monitoring_active: true,
     authorKey: 'inifapBase',
     verifierKey: 'inifapSubrole',
-    publisherKey: 'inifapSubrole',
+    publisherKey: 'admin',
     imageUrl: '/images/plagas/roya-amarilla.webp',
   },
   {
@@ -796,7 +796,7 @@ export const DEMO_PLAGUES = Object.freeze([
     is_monitoring_active: true,
     authorKey: 'inifapBase',
     verifierKey: 'inifapSubrole',
-    publisherKey: 'inifapSubrole',
+    publisherKey: 'admin',
     imageUrl: '/images/plagas/tizon-tardio.webp',
   },
   {
@@ -831,7 +831,7 @@ export const DEMO_PLAGUES = Object.freeze([
     is_monitoring_active: true,
     authorKey: 'inifapBase',
     verifierKey: 'inifapSubrole',
-    publisherKey: 'inifapSubrole',
+    publisherKey: 'admin',
     imageUrl: '/images/plagas/trips-oriental.webp',
   },
   {
@@ -849,15 +849,48 @@ export const DEMO_PLAGUES = Object.freeze([
     biological_control: 'Trichogramma pretiosum, Cotesia flavipes.',
     biological_cycle: [
       {
+        title: 'Huevo (Masa ovígera)',
+        duration: '4-6 días',
+        plantZone: 'Haz y envés de hojas medias de maíz',
+        damageLevel: 'Sin daño directo',
+        isControlWindow: true,
+        description:
+          'Huevos aplanados imbricados como escamas depositados en grupos sobre el follaje tierno.',
+        recommendedAction:
+          'Monitoreo semanal de oviposturas y liberación temprana de Trichogramma pretiosum.',
+      },
+      {
         title: 'Larva perforadora',
         duration: '14-20 días',
-        plantZone: 'Entrenudos del tallo y base de mazorca',
+        plantZone: 'Cogollo inicial, entrenudos del tallo y base de mazorca',
         damageLevel: 'Severo',
         isControlWindow: true,
         description:
-          'Tras alimentarse brevemente del cogollo, barrena galerías internas en el tallo.',
+          'Tras alimentarse brevemente del cogollo, barrena galerías internas en el tallo provocando acame.',
         recommendedAction:
-          'Intervenir antes del ingreso al tallo tras confirmar masas de huevo.',
+          'Intervenir antes del ingreso al tallo con control biológico o diamidas selectivas.',
+      },
+      {
+        title: 'Pupa en galería del tallo',
+        duration: '8-12 días',
+        plantZone: 'Interior de entrenudos basales o rastrojo',
+        damageLevel: 'Sin daño directo',
+        isControlWindow: false,
+        description:
+          'Crisálida protegida dentro del tallo donde completa la metamorfosis o entra en diapausa invernal.',
+        recommendedAction:
+          'Trituración e incorporación sanitaria del rastrojo inmediatamente después de la cosecha.',
+      },
+      {
+        title: 'Adulto (Palomilla nocturna)',
+        duration: '5-8 días',
+        plantZone: 'Dosel del cultivo (hábito crepuscular y nocturno)',
+        damageLevel: 'Sin daño directo',
+        isControlWindow: false,
+        description:
+          'Palomilla color crema que dispersa la infestación hacia lotes vecinos durante etapas vegetativas.',
+        recommendedAction:
+          'Seguimiento de vuelos con trampas de feromona para anticipar picos de oviposición.',
       },
     ],
     verified_by: null,
@@ -1054,6 +1087,7 @@ export const DEMO_PRODUCTS = Object.freeze([
 export const DEMO_CROP_PLAGUES = Object.freeze([
   ['Maíz', 'Gusano Cogollero'],
   ['Maíz', 'Pulgón Verde'],
+  ['Maíz', 'Barrenador del Tallo de Maíz'],
   ['Trigo', 'Roya Amarilla del Trigo'],
   ['Trigo', 'Pulgón Verde'],
   ['Limón Mexicano', 'Psílido Asiático de los Cítricos'],
@@ -1072,6 +1106,7 @@ export const DEMO_PLAGUE_PRODUCTS = Object.freeze([
   ['Cenicilla Polvorienta', 'Folicur 250 EW'],
   ['Gusano Cogollero', 'Coragen'],
   ['Gusano Cogollero', 'Belt 480 SC'],
+  ['Barrenador del Tallo de Maíz', 'Coragen'],
   ['Mosca del Mediterráneo', 'Success 120 SC'],
   ['Psílido Asiático de los Cítricos', 'Confidor 350 SC'],
   ['Psílido Asiático de los Cítricos', 'Movento 150 SC'],
@@ -1124,6 +1159,8 @@ export const DEMO_PLAGUE_REGIONS = Object.freeze([
   ['Tizón Tardío', 'Puebla', 'Alto'],
   ['Trips Oriental', 'Sinaloa', 'Alto'],
   ['Trips Oriental', 'Michoacán', 'Medio'],
+  ['Barrenador del Tallo de Maíz', 'Sinaloa', 'Alto'],
+  ['Barrenador del Tallo de Maíz', 'El Bajío', 'Alto'],
 ]);
 
 export const DEMO_REGIONAL_BULLETINS = Object.freeze([
@@ -1542,7 +1579,7 @@ export const DEMO_FARMS = Object.freeze([
     ],
     healthReport: {
       plagueName: 'Tizón Tardío',
-      severity: 'medium',
+      severity: 'high',
       status: 'open',
       daysAgo: 7,
       description:
