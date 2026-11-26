@@ -130,7 +130,23 @@ export const resolveEnvFilePath = (explicitPath = null) => {
   return null;
 };
 
-export const loadDemoEnv = (explicitPath = null) => {
+export const isProductionEnvironment = (env = process.env) =>
+  String(env?.NODE_ENV || '')
+    .trim()
+    .toLowerCase() === 'production';
+
+export const assertNotProductionEnvironment = (env = process.env) => {
+  if (isProductionEnvironment(env)) {
+    throw new Error(
+      'Operación bloqueada: los scripts de demo NO pueden ejecutarse con NODE_ENV=production.',
+    );
+  }
+};
+
+export const loadDemoEnv = (explicitPath = null, env = process.env) => {
+  assertNotProductionEnvironment(process.env);
+  assertNotProductionEnvironment(env);
+
   const target = resolveEnvFilePath(explicitPath);
   if (!target) return null;
 
@@ -145,13 +161,11 @@ export const loadDemoEnv = (explicitPath = null) => {
       `No se pudo cargar el archivo de entorno "${target.path}": ${result.error.message}`,
     );
   }
+
+  assertNotProductionEnvironment(process.env);
+  assertNotProductionEnvironment(env);
   return target.path;
 };
-
-export const isProductionEnvironment = (env = process.env) =>
-  String(env?.NODE_ENV || '')
-    .trim()
-    .toLowerCase() === 'production';
 
 export const assertDemoDatabaseName = (dbName) => {
   const normalized = String(dbName || '').trim();
@@ -169,11 +183,8 @@ export const assertDemoDatabaseName = (dbName) => {
 };
 
 export const assertDemoEnvironment = (env = process.env) => {
-  if (isProductionEnvironment(env)) {
-    throw new Error(
-      'Operación bloqueada: los scripts de demo NO pueden ejecutarse con NODE_ENV=production.',
-    );
-  }
+  assertNotProductionEnvironment(process.env);
+  assertNotProductionEnvironment(env);
 
   const database = assertDemoDatabaseName(env?.DB_NAME);
   const missing = REQUIRED_DB_KEYS.filter(

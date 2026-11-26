@@ -18,6 +18,7 @@ import { performance } from 'node:perf_hooks';
 import { pathToFileURL } from 'node:url';
 import {
   assertDemoEnvironment,
+  assertNotProductionEnvironment,
   buildPgToolEnv,
   DEFAULT_BACKUP_DIR,
   loadDemoEnv,
@@ -50,7 +51,9 @@ export const backupDemoDb = async ({
   out = null,
   env = process.env,
 } = {}) => {
-  loadDemoEnv(envFile);
+  assertNotProductionEnvironment(process.env);
+  assertNotProductionEnvironment(env);
+  loadDemoEnv(envFile, env);
   const dbConfig = assertDemoEnvironment(env);
   const pgDumpBin = resolvePgTool('pg_dump');
 

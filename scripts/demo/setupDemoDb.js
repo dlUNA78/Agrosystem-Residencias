@@ -20,6 +20,7 @@ import bcrypt from 'bcrypt';
 import { generateLandCropStages } from '../../src/services/landPhenologyService.js';
 import {
   assertDemoEnvironment,
+  assertNotProductionEnvironment,
   createDemoPool,
   ensureDemoDatabaseExists,
   loadDemoEnv,
@@ -136,18 +137,19 @@ const upsertSingleDemoUser = async (client, spec, rbacBySlug) => {
     [spec.email],
   );
 
+  const passwordHash = await bcrypt.hash(spec.credential, SALT_ROUNDS);
   if (existing.rowCount > 0) {
     const userId = existing.rows[0].id;
     await client.query(
       `UPDATE "Users"
-          SET role = $1, rbac_role_id = $2, status = $3, "updatedAt" = NOW()
-        WHERE id = $4`,
-      [spec.role, rbacRoleId, spec.status, userId],
+          SET role = $1, rbac_role_id = $2, status = $3, password_hash = $4,
+              "updatedAt" = NOW()
+        WHERE id = $5`,
+      [spec.role, rbacRoleId, spec.status, passwordHash, userId],
     );
     return { ...spec, id: userId, rbacRoleName: rbacRole?.name || null };
   }
 
-  const passwordHash = await bcrypt.hash(spec.credential, SALT_ROUNDS);
   const inserted = await client.query(
     `INSERT INTO "Users" (
        code, full_name, email, password_hash, role, phone, address,
@@ -1224,7 +1226,9 @@ export const setupDemoDb = async ({
   envFile = null,
   env = process.env,
 } = {}) => {
-  loadDemoEnv(envFile);
+  assertNotProductionEnvironment(process.env);
+  assertNotProductionEnvironment(env);
+  loadDemoEnv(envFile, env);
   const dbConfig = assertDemoEnvironment(env);
   const usersSpec = buildDemoUsers(env);
   verifyDemoImagesExist();
