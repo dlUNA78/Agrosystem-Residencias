@@ -164,3 +164,58 @@ Las siguientes mejoras fueron detectadas al validar la Fase 1 y quedan registrad
   1. En `seedDefaultUsers()`, cambiar el comportamiento a **solo creación si no existe** (`if (existing) continue;` o `findOrCreate`), sin sobrescribir jamás `role`, `rbac_role_id`, `password_hash` ni datos de perfil de usuarios ya existentes.
   2. En [app.js](../app.js#L496-L505), **no ejecutar `seedDefaultUsers()` en `NODE_ENV=production`** (restringirlo a entorno de desarrollo o ejecución manual explícita por CLI/variable dedicada, en coordinación con `1.A8`).
   3. Añadir prueba automatizada que verifique que re-ejecutar `seedDefaultUsers()` tras un ascenso a `inifap` o un cambio de contraseña **preserva intactos** `role`, `rbac_role_id` y `password_hash`.
+
+## 14. H-3: Degradar un usuario desde `/private/users` conserva el sub-rol seleccionado y es rechazado con `subrol_solo_inifap`
+
+- **Ubicación**: [usersController.js](../src/controllers/private/usersController.js#L147-L155), [usersController.js](../src/controllers/private/usersController.js#L440-L450), [rbacController.js](../src/controllers/private/rbacController.js#L81-L103), [users.hbs](../src/views/private/admin/users.hbs#L946-L971), [users.hbs](../src/views/private/admin/users.hbs#L1062-L1102), [users.js](../public/js/private/users.js#L98-L107).
+- **Qué se observó**:
+  - Al degradar un usuario `inifap` con sub-rol asignado desde `/private/users` (por ejemplo, hacia `agricultor`), el selector de sub-rol (`rbac_role_id`) no se vacía automáticamente en el formulario y el servidor rechaza la operación con `subrol_solo_inifap`.
+- **Propuesta**:
+  1. Al degradar desde `inifap` a un nivel base distinto, **retirar el sub-rol automáticamente** en el servidor (revocar privilegios nunca debe bloquearse).
+  2. Deshabilitar y limpiar el selector de sub-rol en la interfaz cuando el nivel base seleccionado no sea `inifap`.
+  3. Mostrar un modal de confirmación que liste explícitamente qué se retira (cambio de nivel base, sub-rol removido y privilegios asociados).
+  4. Seguir rechazando con `subrol_solo_inifap` cualquier **asignación explícita** de sub-rol a una cuenta cuyo nivel base no sea `inifap`.
+
+## 15. H-4: La auditoría de cambios de rol omite el sub-rol y los permisos concedidos (prioridad alta tras la demo)
+
+- **Ubicación**: [usersController.js](../src/controllers/private/usersController.js#L74-L94), [usersController.js](../src/controllers/private/usersController.js#L452-L473), [rbacController.js](../src/controllers/private/rbacController.js#L25-L37), [rbacController.js](../src/controllers/private/rbacController.js#L335-L346), [auditController.js](../src/controllers/private/auditController.js), [audit.hbs](../src/views/private/admin/audit.hbs).
+- **Qué se observó**:
+  - La auditoría de cambios de rol muestra el puesto/nivel del usuario, pero no deja rastro claro del sub-rol RBAC ni de los permisos concedidos o retirados.
+- **Propuesta (prioridad alta tras la demo)**:
+  - Registrar explícitamente **nivel base y sub-rol antes y después** del cambio, además de los permisos concedidos/retirados, **quién** realizó la acción (actor) y **a quién** afectó (usuario objetivo), y reflejarlo de forma legible en `/private/audit`.
+
+## 16. H-5: La pantalla de roles muestra claves técnicas de permisos en lugar de etiquetas legibles
+
+- **Ubicación**: [users.hbs](../src/views/private/admin/users.hbs#L505-L518), [users.hbs](../src/views/private/admin/users.hbs#L568-L583) y [rbacService.js](../src/services/rbacService.js#L79-L120).
+- **Qué se observó**:
+  - La pantalla de administración de roles y sub-roles en `/private/users` muestra claves técnicas crudas de permisos (p. ej. `crops.create`) en las tarjetas de sub-roles y en la matriz de permisos.
+- **Propuesta**:
+  - Sustituir las claves técnicas visibles por **etiquetas legibles en español**, agrupadas por módulo (reutilizando y completando las definiciones de `PERMISSION_DEFINITIONS`).
+
+## 17. H-6: Limpieza de `rbac_role_id` en canje y serialización, y verificación de auditoría en ascensos directos
+
+- **Ubicación**: [authController.js](../src/controllers/authController.js#L30-L43), [app.js](../app.js#L458-L464), [profileController.js](../src/controllers/private/profileController.js#L22-L43), [usersController.js](../src/controllers/private/usersController.js#L422-L479), [rbacController.js](../src/controllers/private/rbacController.js#L295-L359).
+- **Qué se observó**:
+  - **(a)** `applyUpgradeTransaction` en [authController.js](../src/controllers/authController.js#L30-L43) solo actualiza `user.rbac_role_id` si `inifapCode.rbac_role_id` tiene valor, por lo que **conserva un `rbac_role_id` huérfano** preexistente si el código canjeado no trae sub-rol.
+  - **(b)** [app.js](../app.js#L458-L464) y [profileController.js](../src/controllers/private/profileController.js#L22-L43) dejan `rbac_role_id` crudo en `safeUser` sin depurarlo cuando el usuario no tiene rol `inifap`.
+  - **(c)** Un administrador puede ascender una cuenta a `inifap` directamente desde la administración sin canjear un código INIFAP: comprobar que dicha promoción queda debidamente auditada (ver **H-4**).
+
+## 18. H-7: Permisos de sub-roles casi decorativos y desalineación con la interfaz de ingredientes
+
+- **Ubicación**: [authMiddleware.js](../src/middlewares/authMiddleware.js#L15-L77), [adminRoutes.js](../src/routes/private/adminRoutes.js#L59), [catalogRoutes.js](../src/routes/private/catalogRoutes.js#L203-L223), [ingredientsController.js](../src/controllers/private/ingredientsController.js#L92), [ingredients.hbs](../src/views/private/catalog/ingredients.hbs#L11-L24), [app.js](../app.js#L465-L466), [profile.hbs](../src/views/shared/profile.hbs#L788), [cropAuthorizationService.js](../src/services/cropAuthorizationService.js).
+- **Qué se observó**:
+  - Los permisos de los sub-roles son hoy casi decorativos: `effectivePermissions` solo se muestra en vistas; **ninguna ruta** usa el middleware `requirePermission`; `/private/audit` exige `requireRole('admin')`.
+  - El único permiso delegado que realmente abre una ruta es `ingredients.manage`, mediante una excepción acoplada por path (`/ingredients`) dentro de `hasSpecificDelegatedPermission` en [authMiddleware.js](../src/middlewares/authMiddleware.js#L15-L28).
+  - En la interfaz de ingredientes, [ingredientsController.js](../src/controllers/private/ingredientsController.js#L92) calcula `canManage: user?.role === 'admin'`, por lo que los botones de creación/edición/eliminación no aparecen para personal `inifap` con el sub-rol aunque el servidor permita la operación.
+- **Decisión pendiente y verificación**:
+  - **Decidir**: conectar los permisos granulares a las rutas con `requirePermission` y alinear la interfaz (incluido `canManage` en ingredientes), **o** dejar de mostrarlos en la UI como concesión efectiva de acceso.
+  - Verificar cómo aplican autorización [cropAuthorizationService.js](../src/services/cropAuthorizationService.js) y los controladores y servicios de autorización de **plagas** y **productos**.
+
+## 19. H-8: `normalizePublicImageUrl` sin llamadores y revisión de rutas de entrada de URLs de imagen (después de la demo)
+
+- **Ubicación**: [upload.js](../src/middlewares/upload.js#L30-L42).
+- **Qué se observó**:
+  - `normalizePublicImageUrl` no se usa en ninguna parte del código (**0 llamadores** en el repositorio).
+- **Alcance propuesto (para atender después de la demo)**:
+  - Auditar por qué rutas y campos entran las URLs de imagen en la plataforma (**formularios de cultivos, plagas y productos, y avatares**) y verificar si alguna ruta acepta URLs arbitrarias.
+  - Implementar la validación y protección real en el punto donde se guarda/persiste el valor (y eliminar o conectar `normalizePublicImageUrl` según corresponda).
