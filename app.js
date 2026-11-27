@@ -507,10 +507,12 @@ const wrapLoginForSessionCreation = (req, res, options) => {
   req.login = wrappedLogIn;
 };
 
-const isLogoutPath = (reqPath) => {
-  const normalized = String(reqPath || '').replace(/\/+$/, '') || '/';
-  return normalized === '/auth/logout';
-};
+const normalizeAuthPath = (reqPath) =>
+  (String(reqPath || '').replace(/\/+$/, '') || '/').toLowerCase();
+
+const isLogoutPath = (reqPath) => normalizeAuthPath(reqPath) === '/auth/logout';
+
+const isLoginPath = (reqPath) => normalizeAuthPath(reqPath) === '/auth/login';
 
 export const createAbsoluteSessionExpirationMiddleware =
   ({
@@ -537,12 +539,15 @@ export const createAbsoluteSessionExpirationMiddleware =
 
     const now = nowProvider();
     const createdAtMs = parseSessionCreatedAtMs(req.session.sessionCreatedAt);
+    const isFreshLoginRequest =
+      String(req.method || '').toUpperCase() === 'POST' &&
+      isLoginPath(req.path);
 
     if (!Number.isFinite(createdAtMs)) {
       req.session.sessionCreatedAt = now;
       wrapLoginForSessionCreation(req, res, {
         nowProvider,
-        inheritedCreatedAt: now,
+        inheritedCreatedAt: isFreshLoginRequest ? Number.NaN : now,
         cookieName: effectiveCookieName,
         stripClearedCookie: false,
       });
@@ -552,7 +557,7 @@ export const createAbsoluteSessionExpirationMiddleware =
     if (now - createdAtMs < absoluteMaxAgeMs) {
       wrapLoginForSessionCreation(req, res, {
         nowProvider,
-        inheritedCreatedAt: createdAtMs,
+        inheritedCreatedAt: isFreshLoginRequest ? Number.NaN : createdAtMs,
         cookieName: effectiveCookieName,
         stripClearedCookie: false,
       });

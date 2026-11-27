@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 import { afterAll, jest, describe, it, expect } from '@jest/globals';
 import bcrypt from 'bcrypt';
 import express from 'express';
@@ -621,14 +622,29 @@ describe('🛡️ Pruebas de Seguridad de Sesión y Rate Limiting (Pasos 3 y 4)'
       return rows.length;
     };
 
+    const countSessionsByUser = async (uid) => {
+      const [rows] = await sequelize.query(
+        `SELECT sid FROM "session" WHERE (sess -> 'passport' ->> 'user') = :uid`,
+        { replacements: { uid: String(uid) } },
+      );
+      return rows.length;
+    };
+
     try {
-      // A) POST /auth/logout con sesión > 7d: 302 /auth/login sin 500, cookie limpiada y fila eliminada
+      // A) POST /auth/logout y POST /AUTH/LOGOUT (case-insensitive) con sesión > 7d: 302 /auth/login sin 500, cookie limpiada y fila eliminada
       const logoutCase = await createExpiredAgent();
       const logoutRes = await logoutCase.agent.post('/auth/logout');
       expect(logoutRes.status).toBe(302);
       expect(logoutRes.headers.location).toBe('/auth/login');
       expectClearedCookie(logoutRes);
       expect(await countSessionsBySid(logoutCase.sid)).toBe(0);
+
+      const upperLogoutCase = await createExpiredAgent();
+      const upperLogoutRes = await upperLogoutCase.agent.post('/AUTH/LOGOUT');
+      expect(upperLogoutRes.status).toBe(302);
+      expect(upperLogoutRes.headers.location).toBe('/auth/login');
+      expectClearedCookie(upperLogoutRes);
+      expect(await countSessionsBySid(upperLogoutCase.sid)).toBe(0);
 
       // B) POST /auth/login con sesión > 7d y contraseña inválida: 401 sin 500, limpia cookie y no crea sesión nueva
       const badLoginCase = await createExpiredAgent();
@@ -638,6 +654,7 @@ describe('🛡️ Pruebas de Seguridad de Sesión y Rate Limiting (Pasos 3 y 4)'
       expect(badLoginRes.status).toBe(401);
       expectClearedCookie(badLoginRes);
       expect(await countSessionsBySid(badLoginCase.sid)).toBe(0);
+      expect(await countSessionsByUser(user.id)).toBe(0);
 
       // C) POST /auth/login con sesión > 7d y credenciales válidas: 302 / sin 500, destruye vieja sesión y crea sesión nueva funcional
       const reloginCase = await createExpiredAgent();
@@ -753,7 +770,19 @@ describe('🛡️ Pruebas de Seguridad de Sesión y Rate Limiting (Pasos 3 y 4)'
       const homeRes = await homeCase.agent.get('/');
       expect(homeRes.status).toBe(200);
       expectClearedCookie(homeRes);
+      expect(
+        (homeRes.headers['set-cookie'] || []).some(
+          (c) =>
+            c.startsWith(`${SESSION_COOKIE_NAME}=`) &&
+            !c.startsWith(`${SESSION_COOKIE_NAME}=;`),
+        ),
+      ).toBe(false);
       expect(await countSessionsBySid(homeCase.sid)).toBe(0);
+      const [homeUserSessions] = await sequelize.query(
+        `SELECT sid FROM "session" WHERE (sess -> 'passport' ->> 'user') = :uid`,
+        { replacements: { uid: String(user.id) } },
+      );
+      expect(homeUserSessions).toHaveLength(0);
 
       const profileCase = await createExpiredAgent();
       const profileRes = await profileCase.agent.get('/private/profile');
@@ -805,6 +834,206 @@ describe('🛡️ Pruebas de Seguridad de Sesión y Rate Limiting (Pasos 3 y 4)'
         { replacements: { uid: String(user.id) } },
       );
       await user.destroy();
+    }
+  });
+
+  it('12. Reinicia sessionCreatedAt al re-autenticar otro usuario en POST /auth/login sobre sesión de 6d23h, pero no altera la sesión si el login falla (1.A5)', async () => {
+    const { User, sequelize } = db;
+    const suffix = `${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+    const password = 'ValidPassword123';
+    const passwordHash = await bcrypt.hash(password, 10);
+    const userA = await User.create({
+      full_name: 'Usuario Sesion A',
+      email: `relogin_a_${suffix}@agrosystem.test`,
+      password_hash: passwordHash,
+      role: 'inifap',
+      status: 'activo',
+    });
+    const userB = await User.create({
+      full_name: 'Usuario Sesion B',
+      email: `relogin_b_${suffix}@agrosystem.test`,
+      password_hash: passwordHash,
+      role: 'inifap',
+      status: 'activo',
+    });
+
+    const ageSessionTo6d23h = async (uid) => {
+      const [[row]] = await sequelize.query(
+        `SELECT sid, sess
+         FROM "session"
+         WHERE (sess -> 'passport' ->> 'user') = :uid
+         ORDER BY expire DESC
+         LIMIT 1`,
+        { replacements: { uid: String(uid) } },
+      );
+      expect(row).toBeDefined();
+      const agedCreatedAt =
+        Date.now() - (SESSION_ABSOLUTE_MAX_AGE_MS - 60 * 60 * 1000);
+      await sequelize.query(
+        'UPDATE "session" SET sess = :sess::json, expire = :expire WHERE sid = :sid',
+        {
+          replacements: {
+            sid: row.sid,
+            sess: JSON.stringify({
+              ...row.sess,
+              sessionCreatedAt: agedCreatedAt,
+              lastActive: new Date().toISOString(),
+            }),
+            expire: new Date(Date.now() + 24 * 60 * 60 * 1000),
+          },
+        },
+      );
+      return { sid: row.sid, agedCreatedAt };
+    };
+
+    try {
+      // 1) Fallo de POST /auth/login (contraseña incorrecta) sobre sesión 6d23h: 401 sin alterar usuario, sid ni sessionCreatedAt
+      const failedAgent = request.agent(app);
+      const loginA = await failedAgent
+        .post('/auth/login')
+        .send({ email: userA.email, password });
+      expect(loginA.status).toBe(302);
+      const agedA = await ageSessionTo6d23h(userA.id);
+
+      const failedRelogin = await failedAgent
+        .post('/auth/login')
+        .send({ email: userB.email, password: 'WrongPassword123' });
+      expect(failedRelogin.status).toBe(401);
+
+      const [[rowAfterFailed]] = await sequelize.query(
+        'SELECT sid, sess FROM "session" WHERE sid = :sid',
+        { replacements: { sid: agedA.sid } },
+      );
+      expect(rowAfterFailed).toBeDefined();
+      expect(rowAfterFailed.sess.passport.user).toBe(userA.id);
+      expect(rowAfterFailed.sess.sessionCreatedAt).toBe(agedA.agedCreatedAt);
+
+      const stillAuthA = await failedAgent.get('/dashboard');
+      expect(stillAuthA.status).toBe(200);
+
+      // 2) Re-login exitoso de otro usuario (POST /AUTH/LOGIN case-insensitive) sobre sesión 6d23h: reemplaza usuario y reinicia sessionCreatedAt a now
+      const beforeReloginMs = Date.now();
+      const okRelogin = await failedAgent
+        .post('/AUTH/LOGIN')
+        .send({ email: userB.email, password });
+      expect(okRelogin.status).toBe(302);
+      expect(okRelogin.headers.location).toBe('/');
+
+      const [[rowUserB]] = await sequelize.query(
+        `SELECT sid, sess
+         FROM "session"
+         WHERE (sess -> 'passport' ->> 'user') = :uid
+         ORDER BY expire DESC
+         LIMIT 1`,
+        { replacements: { uid: String(userB.id) } },
+      );
+      expect(rowUserB).toBeDefined();
+      expect(rowUserB.sid).not.toBe(agedA.sid);
+      expect(rowUserB.sess.passport.user).toBe(userB.id);
+      expect(rowUserB.sess.sessionCreatedAt).toBeGreaterThanOrEqual(
+        beforeReloginMs - 1000,
+      );
+      expect(rowUserB.sess.sessionCreatedAt).toBeGreaterThan(
+        agedA.agedCreatedAt + 6 * 24 * 60 * 60 * 1000,
+      );
+    } finally {
+      await sequelize.query(
+        `DELETE FROM "session" WHERE (sess -> 'passport' ->> 'user') IN (:uidA, :uidB)`,
+        { replacements: { uidA: String(userA.id), uidB: String(userB.id) } },
+      );
+      await userA.destroy();
+      await userB.destroy();
+    }
+  });
+
+  it('13. Preserva sessionCreatedAt original de 6d23h tras POST /auth/inifap-upgrade sin extender el tope absoluto de 7 días (1.A5)', async () => {
+    const { InifapCode, Notification, User, sequelize } = db;
+    const suffix = `${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+    const password = 'ValidPassword123';
+    const passwordHash = await bcrypt.hash(password, 10);
+    const farmer = await User.create({
+      full_name: 'Agricultor Upgrade Reloj',
+      email: `upgrade_clock_${suffix}@agrosystem.test`,
+      password_hash: passwordHash,
+      role: 'agricultor',
+      status: 'activo',
+    });
+
+    const rawCode = `AGS-1A5-${suffix.slice(-6).toUpperCase()}`;
+    const codeHash = crypto.createHash('sha256').update(rawCode).digest('hex');
+    const codeRecord = await InifapCode.create({
+      code: rawCode,
+      code_hash: codeHash,
+      code_masked: `AGS-1A5-****-${rawCode.slice(-4)}`,
+      is_used: false,
+    });
+
+    try {
+      const agent = request.agent(app);
+      const loginRes = await agent
+        .post('/auth/login')
+        .send({ email: farmer.email, password });
+      expect(loginRes.status).toBe(302);
+
+      const [[initialRow]] = await sequelize.query(
+        `SELECT sid, sess
+         FROM "session"
+         WHERE (sess -> 'passport' ->> 'user') = :uid
+         ORDER BY expire DESC
+         LIMIT 1`,
+        { replacements: { uid: String(farmer.id) } },
+      );
+      expect(initialRow).toBeDefined();
+
+      const agedCreatedAt =
+        Date.now() - (SESSION_ABSOLUTE_MAX_AGE_MS - 60 * 60 * 1000);
+      await sequelize.query(
+        'UPDATE "session" SET sess = :sess::json, expire = :expire WHERE sid = :sid',
+        {
+          replacements: {
+            sid: initialRow.sid,
+            sess: JSON.stringify({
+              ...initialRow.sess,
+              sessionCreatedAt: agedCreatedAt,
+              lastActive: new Date().toISOString(),
+            }),
+            expire: new Date(Date.now() + 24 * 60 * 60 * 1000),
+          },
+        },
+      );
+
+      const upgradeRes = await agent.post('/auth/inifap-upgrade').send({
+        secret_code: rawCode,
+        job_title: 'Investigador Fitosanitario',
+      });
+      expect(upgradeRes.status).toBe(302);
+      expect(upgradeRes.headers.location).toBe('/dashboard');
+
+      const [[upgradedRow]] = await sequelize.query(
+        `SELECT sid, sess
+         FROM "session"
+         WHERE (sess -> 'passport' ->> 'user') = :uid
+         ORDER BY expire DESC
+         LIMIT 1`,
+        { replacements: { uid: String(farmer.id) } },
+      );
+      expect(upgradedRow).toBeDefined();
+      expect(upgradedRow.sid).not.toBe(initialRow.sid);
+      expect(upgradedRow.sess.sessionCreatedAt).toBe(agedCreatedAt);
+
+      await farmer.reload();
+      expect(farmer.role).toBe('inifap');
+    } finally {
+      await sequelize.query(
+        `DELETE FROM "session" WHERE (sess -> 'passport' ->> 'user') = :uid`,
+        { replacements: { uid: String(farmer.id) } },
+      );
+      if (Notification) {
+        await Notification.destroy({ where: { actor_id: farmer.id } });
+        await Notification.destroy({ where: { user_id: farmer.id } });
+      }
+      await codeRecord.destroy();
+      await farmer.destroy();
     }
   });
 });
