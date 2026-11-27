@@ -344,6 +344,95 @@ describe('🛡️ Módulo de Gobernanza RBAC y Códigos INIFAP', () => {
         isSuspended: false,
       });
     });
+
+    it('Capa 1 (custom_permissions solo INIFAP): ignora custom_permissions.allow y deny en agricultor y los conserva en inifap', () => {
+      const farmerWithCustom = {
+        role: 'agricultor',
+        status: 'activo',
+        custom_permissions: {
+          allow: [
+            PANEL_PERMISSIONS.INGREDIENTS_MANAGE,
+            PANEL_PERMISSIONS.CROPS_PUBLISH,
+            PANEL_PERMISSIONS.AUDIT_VIEW,
+          ],
+          deny: [PANEL_PERMISSIONS.LANDS_MANAGE],
+        },
+      };
+
+      const farmerEffective = resolveEffectivePermissions(farmerWithCustom);
+      expect(Array.from(farmerEffective).sort()).toEqual(
+        [
+          PANEL_PERMISSIONS.LANDS_MANAGE,
+          PANEL_PERMISSIONS.LANDS_VIEW_PRIVATE,
+        ].sort(),
+      );
+      expect(
+        hasEffectivePermission(
+          farmerWithCustom,
+          PANEL_PERMISSIONS.CROPS_PUBLISH,
+        ),
+      ).toBe(false);
+      expect(
+        hasEffectivePermission(
+          farmerWithCustom,
+          PANEL_PERMISSIONS.INGREDIENTS_MANAGE,
+        ),
+      ).toBe(false);
+      expect(
+        hasEffectivePermission(farmerWithCustom, PANEL_PERMISSIONS.AUDIT_VIEW),
+      ).toBe(false);
+      expect(
+        hasEffectivePermission(
+          farmerWithCustom,
+          PANEL_PERMISSIONS.LANDS_MANAGE,
+        ),
+      ).toBe(true);
+      expect(
+        hasEffectivePermission(
+          farmerWithCustom,
+          PANEL_PERMISSIONS.LANDS_VIEW_PRIVATE,
+        ),
+      ).toBe(true);
+
+      // Rol desconocido tampoco debe heredar custom_permissions.allow
+      const unknownRoleUser = {
+        role: 'invitado',
+        status: 'activo',
+        custom_permissions: {
+          allow: [PANEL_PERMISSIONS.CROPS_PUBLISH],
+          deny: [],
+        },
+      };
+      expect(resolveEffectivePermissions(unknownRoleUser).size).toBe(0);
+      expect(
+        hasEffectivePermission(
+          unknownRoleUser,
+          PANEL_PERMISSIONS.CROPS_PUBLISH,
+        ),
+      ).toBe(false);
+
+      // Control positivo: INIFAP legítimo sigue aplicando allow y deny
+      const inifapWithCustom = {
+        role: 'inifap',
+        status: 'activo',
+        custom_permissions: {
+          allow: [PANEL_PERMISSIONS.CROPS_PUBLISH],
+          deny: [PANEL_PERMISSIONS.PLAGUES_VIEW_PRIVATE],
+        },
+      };
+      expect(
+        hasEffectivePermission(
+          inifapWithCustom,
+          PANEL_PERMISSIONS.CROPS_PUBLISH,
+        ),
+      ).toBe(true);
+      expect(
+        hasEffectivePermission(
+          inifapWithCustom,
+          PANEL_PERMISSIONS.PLAGUES_VIEW_PRIVATE,
+        ),
+      ).toBe(false);
+    });
   });
 
   describe('2. Servicio de Gestión y Emisión de Códigos INIFAP', () => {
@@ -798,6 +887,248 @@ describe('🛡️ Módulo de Gobernanza RBAC y Códigos INIFAP', () => {
         });
       expect(editRes.status).toBe(400);
       expect(editRes.body.code).toBe('subrol_solo_inifap');
+    });
+  });
+
+  describe('5. Capa 2: Persistencia de custom_permissions exclusiva para INIFAP', () => {
+    const CP_FARMER_EMAIL = 'cp_guard_farmer@agrosystem.com';
+    const CP_INIFAP_EMAIL = 'cp_guard_inifap@agrosystem.com';
+    let cpFarmerUser = null;
+    let cpInifapUser = null;
+
+    beforeAll(async () => {
+      await User.destroy({
+        where: { email: [CP_FARMER_EMAIL, CP_INIFAP_EMAIL] },
+      });
+      await adminUser.update({ custom_permissions: { allow: [], deny: [] } });
+
+      const pwdHash = await bcrypt.hash('CpGuard@1234', 10);
+      cpFarmerUser = await User.create({
+        full_name: 'Agricultor Custom Perms Guard',
+        email: CP_FARMER_EMAIL,
+        password_hash: pwdHash,
+        role: 'agricultor',
+        status: 'activo',
+        custom_permissions: { allow: [], deny: [] },
+      });
+
+      cpInifapUser = await User.create({
+        full_name: 'Investigador Custom Perms Guard',
+        email: CP_INIFAP_EMAIL,
+        password_hash: pwdHash,
+        role: 'inifap',
+        status: 'activo',
+        custom_permissions: {
+          allow: [PANEL_PERMISSIONS.CROPS_PUBLISH],
+          deny: [],
+        },
+      });
+    });
+
+    afterAll(async () => {
+      await User.destroy({
+        where: { email: [CP_FARMER_EMAIL, CP_INIFAP_EMAIL] },
+      });
+    });
+
+    it('rechaza guardar custom_permissions.allow en agricultor (JSON y form) sin modificar BD', async () => {
+      const adminAgent = await getAdminAgent();
+      const initialPerms = { allow: [], deny: [] };
+      await cpFarmerUser.update({
+        role: 'agricultor',
+        custom_permissions: initialPerms,
+      });
+
+      // 1. JSON con allow no vacío y role explícito agricultor
+      const jsonRes = await adminAgent
+        .post(`/private/rbac/users/${cpFarmerUser.id}/permissions`)
+        .set('Accept', 'application/json')
+        .send({
+          role: 'agricultor',
+          status: 'activo',
+          allow: [PANEL_PERMISSIONS.CROPS_PUBLISH],
+        });
+      expect(jsonRes.status).toBe(400);
+      expect(jsonRes.body.code).toBe('permisos_custom_solo_inifap');
+      expect(jsonRes.body.error).toBe('permisos_custom_solo_inifap');
+      expect((await User.findByPk(cpFarmerUser.id)).custom_permissions).toEqual(
+        initialPerms,
+      );
+
+      // 2. JSON con role omitido y allow_permissions no vacío
+      const omittedRoleJsonRes = await adminAgent
+        .post(`/private/rbac/users/${cpFarmerUser.id}/permissions`)
+        .set('Accept', 'application/json')
+        .send({
+          status: 'activo',
+          allow_permissions: [PANEL_PERMISSIONS.AUDIT_VIEW],
+        });
+      expect(omittedRoleJsonRes.status).toBe(400);
+      expect(omittedRoleJsonRes.body.code).toBe('permisos_custom_solo_inifap');
+      expect((await User.findByPk(cpFarmerUser.id)).custom_permissions).toEqual(
+        initialPerms,
+      );
+
+      // 3. Intento de bypass enviando allow_permissions vacío junto con allow no vacío
+      const bypassJsonRes = await adminAgent
+        .post(`/private/rbac/users/${cpFarmerUser.id}/permissions`)
+        .set('Accept', 'application/json')
+        .send({
+          role: 'agricultor',
+          status: 'activo',
+          allow_permissions: [],
+          allow: [PANEL_PERMISSIONS.INGREDIENTS_MANAGE],
+        });
+      expect(bypassJsonRes.status).toBe(400);
+      expect(bypassJsonRes.body.code).toBe('permisos_custom_solo_inifap');
+      expect((await User.findByPk(cpFarmerUser.id)).custom_permissions).toEqual(
+        initialPerms,
+      );
+
+      // 4. Form/redirect con allow (checkbox único como string)
+      const formRes = await adminAgent
+        .post(`/private/rbac/users/${cpFarmerUser.id}/permissions`)
+        .send({
+          role: 'agricultor',
+          status: 'activo',
+          allow: PANEL_PERMISSIONS.CROPS_PUBLISH,
+        });
+      expect(formRes.status).toBe(302);
+      expect(formRes.headers.location).toContain(
+        'error=permisos_custom_solo_inifap',
+      );
+      expect((await User.findByPk(cpFarmerUser.id)).custom_permissions).toEqual(
+        initialPerms,
+      );
+
+      // 5. JSON con deny no vacío para agricultor también es rechazado
+      const denyJsonRes = await adminAgent
+        .post(`/private/rbac/users/${cpFarmerUser.id}/permissions`)
+        .set('Accept', 'application/json')
+        .send({
+          role: 'agricultor',
+          status: 'activo',
+          deny: [PANEL_PERMISSIONS.LANDS_MANAGE],
+        });
+      expect(denyJsonRes.status).toBe(400);
+      expect(denyJsonRes.body.code).toBe('permisos_custom_solo_inifap');
+      expect((await User.findByPk(cpFarmerUser.id)).custom_permissions).toEqual(
+        initialPerms,
+      );
+    });
+
+    it('rechaza guardar custom_permissions.allow en admin y al degradar INIFAP a agricultor (JSON y form) sin modificar BD', async () => {
+      const adminAgent = await getAdminAgent();
+      const adminBefore = (await User.findByPk(adminUser.id))
+        .custom_permissions;
+
+      // 1. Admin JSON
+      const adminJsonRes = await adminAgent
+        .post(`/private/rbac/users/${adminUser.id}/permissions`)
+        .set('Accept', 'application/json')
+        .send({
+          role: 'admin',
+          status: 'activo',
+          allow: [PANEL_PERMISSIONS.CROPS_PUBLISH],
+        });
+      expect(adminJsonRes.status).toBe(400);
+      expect(adminJsonRes.body.code).toBe('permisos_custom_solo_inifap');
+      expect((await User.findByPk(adminUser.id)).custom_permissions).toEqual(
+        adminBefore,
+      );
+
+      // 2. Admin form/redirect
+      const adminFormRes = await adminAgent
+        .post(`/private/rbac/users/${adminUser.id}/permissions`)
+        .send({
+          role: 'admin',
+          status: 'activo',
+          allow: [PANEL_PERMISSIONS.AUDIT_VIEW],
+        });
+      expect(adminFormRes.status).toBe(302);
+      expect(adminFormRes.headers.location).toContain(
+        'error=permisos_custom_solo_inifap',
+      );
+      expect((await User.findByPk(adminUser.id)).custom_permissions).toEqual(
+        adminBefore,
+      );
+
+      // 3. Degradar INIFAP a agricultor enviando allow no vacío -> rechaza y preserva estado previo
+      const inifapInitialPerms = {
+        allow: [PANEL_PERMISSIONS.CROPS_PUBLISH],
+        deny: [],
+      };
+      await cpInifapUser.update({
+        role: 'inifap',
+        custom_permissions: inifapInitialPerms,
+      });
+
+      const demoteJsonRes = await adminAgent
+        .post(`/private/rbac/users/${cpInifapUser.id}/permissions`)
+        .set('Accept', 'application/json')
+        .send({
+          role: 'agricultor',
+          status: 'activo',
+          allow: [PANEL_PERMISSIONS.CROPS_PUBLISH],
+        });
+      expect(demoteJsonRes.status).toBe(400);
+      expect(demoteJsonRes.body.code).toBe('permisos_custom_solo_inifap');
+
+      const demoteFormRes = await adminAgent
+        .post(`/private/rbac/users/${cpInifapUser.id}/permissions`)
+        .send({
+          role: 'agricultor',
+          status: 'activo',
+          allow: [PANEL_PERMISSIONS.CROPS_PUBLISH],
+        });
+      expect(demoteFormRes.status).toBe(302);
+      expect(demoteFormRes.headers.location).toContain(
+        'error=permisos_custom_solo_inifap',
+      );
+
+      const unchangedInifap = await User.findByPk(cpInifapUser.id);
+      expect(unchangedInifap.role).toBe('inifap');
+      expect(unchangedInifap.custom_permissions).toEqual(inifapInitialPerms);
+    });
+
+    it('control positivo: permite guardar custom_permissions.allow y deny en usuario inifap (JSON y form)', async () => {
+      const adminAgent = await getAdminAgent();
+
+      const jsonRes = await adminAgent
+        .post(`/private/rbac/users/${cpInifapUser.id}/permissions`)
+        .set('Accept', 'application/json')
+        .send({
+          role: 'inifap',
+          status: 'activo',
+          allow: [PANEL_PERMISSIONS.CROPS_PUBLISH],
+          deny: [PANEL_PERMISSIONS.PLAGUES_VIEW_PRIVATE],
+        });
+      expect(jsonRes.status).toBe(200);
+      expect(jsonRes.body.success).toBe(true);
+
+      const savedAfterJson = await User.findByPk(cpInifapUser.id);
+      expect(savedAfterJson.custom_permissions).toEqual({
+        allow: [PANEL_PERMISSIONS.CROPS_PUBLISH],
+        deny: [PANEL_PERMISSIONS.PLAGUES_VIEW_PRIVATE],
+      });
+
+      const formRes = await adminAgent
+        .post(`/private/rbac/users/${cpInifapUser.id}/permissions`)
+        .send({
+          role: 'inifap',
+          status: 'activo',
+          allow: [PANEL_PERMISSIONS.CROPS_PUBLISH],
+        });
+      expect(formRes.status).toBe(302);
+      expect(formRes.headers.location).toContain(
+        'success=permisos_actualizados',
+      );
+
+      const savedAfterForm = await User.findByPk(cpInifapUser.id);
+      expect(savedAfterForm.custom_permissions).toEqual({
+        allow: [PANEL_PERMISSIONS.CROPS_PUBLISH],
+        deny: [],
+      });
     });
   });
 });
