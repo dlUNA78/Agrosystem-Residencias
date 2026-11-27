@@ -333,3 +333,83 @@ describe('🔒 H-2: Sub-roles RBAC exclusivos de INIFAP en middleware y delegaci
     expect(inifapNext).toHaveBeenCalledTimes(1);
   });
 });
+
+describe('🔒 Capa 1: custom_permissions exclusivos de INIFAP en requirePermission', () => {
+  const makeRes = () => ({
+    status: jest.fn().mockReturnThis(),
+    send: jest.fn(),
+    json: jest.fn(),
+  });
+
+  it('deniega 403 a agricultor con custom_permissions.allow en permisos delegables y preserva sus permisos base pese a deny', () => {
+    const agricultorWithCustom = {
+      role: 'agricultor',
+      status: 'activo',
+      custom_permissions: {
+        allow: [
+          PANEL_PERMISSIONS.INGREDIENTS_MANAGE,
+          PANEL_PERMISSIONS.CROPS_PUBLISH,
+          PANEL_PERMISSIONS.AUDIT_VIEW,
+        ],
+        deny: [PANEL_PERMISSIONS.LANDS_MANAGE],
+      },
+    };
+
+    for (const perm of [
+      PANEL_PERMISSIONS.CROPS_PUBLISH,
+      PANEL_PERMISSIONS.INGREDIENTS_MANAGE,
+      PANEL_PERMISSIONS.AUDIT_VIEW,
+    ]) {
+      const middleware = requirePermission(perm);
+      const req = { user: agricultorWithCustom, path: '/private/crops' };
+      const res = makeRes();
+      const next = jest.fn();
+
+      middleware(req, res, next);
+
+      expect(next).not.toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(403);
+    }
+
+    // custom_permissions.deny tampoco altera los permisos base del agricultor
+    const landsReq = { user: agricultorWithCustom, path: '/private/lands' };
+    const landsRes = makeRes();
+    const landsNext = jest.fn();
+    requirePermission(PANEL_PERMISSIONS.LANDS_MANAGE)(
+      landsReq,
+      landsRes,
+      landsNext,
+    );
+    expect(landsNext).toHaveBeenCalledTimes(1);
+  });
+
+  it('control positivo: permite allow y aplica deny en requirePermission para usuario INIFAP legítimo', () => {
+    const inifapWithCustom = {
+      role: 'inifap',
+      status: 'activo',
+      custom_permissions: {
+        allow: [PANEL_PERMISSIONS.CROPS_PUBLISH],
+        deny: [PANEL_PERMISSIONS.PLAGUES_VIEW_PRIVATE],
+      },
+    };
+
+    const allowRes = makeRes();
+    const allowNext = jest.fn();
+    requirePermission(PANEL_PERMISSIONS.CROPS_PUBLISH)(
+      { user: inifapWithCustom, path: '/private/crops/publish' },
+      allowRes,
+      allowNext,
+    );
+    expect(allowNext).toHaveBeenCalledTimes(1);
+
+    const denyRes = makeRes();
+    const denyNext = jest.fn();
+    requirePermission(PANEL_PERMISSIONS.PLAGUES_VIEW_PRIVATE)(
+      { user: inifapWithCustom, path: '/private/plagues' },
+      denyRes,
+      denyNext,
+    );
+    expect(denyNext).not.toHaveBeenCalled();
+    expect(denyRes.status).toHaveBeenCalledWith(403);
+  });
+});

@@ -320,11 +320,11 @@ export const resolveEffectivePermissions = (user) => {
       const subPerms = parsePermissionsList(subRole.permissions);
       subPerms.forEach((perm) => effective.add(perm));
     }
-  }
 
-  const { allow, deny } = extractCustomOverrides(user);
-  allow.forEach((perm) => effective.add(perm));
-  deny.forEach((perm) => effective.delete(perm));
+    const { allow, deny } = extractCustomOverrides(user);
+    allow.forEach((perm) => effective.add(perm));
+    deny.forEach((perm) => effective.delete(perm));
+  }
 
   return effective;
 };

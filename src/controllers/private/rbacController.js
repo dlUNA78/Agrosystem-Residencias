@@ -36,14 +36,19 @@ const recordRbacAudit = async ({ actorId, action, recordId, details }) => {
   }
 };
 
+const normalizePermissionList = (items) =>
+  items
+    .map((item) => (typeof item === 'string' ? item.trim() : item))
+    .filter(Boolean);
+
 const sanitizePermissionsInput = (input) => {
-  if (Array.isArray(input)) return input.filter(Boolean);
+  if (Array.isArray(input)) return normalizePermissionList(input);
   if (typeof input === 'string') {
     try {
       const parsed = JSON.parse(input);
-      if (Array.isArray(parsed)) return parsed.filter(Boolean);
+      if (Array.isArray(parsed)) return normalizePermissionList(parsed);
     } catch {
-      return [input].filter(Boolean);
+      return normalizePermissionList([input]);
     }
   }
   return [];
@@ -51,6 +56,9 @@ const sanitizePermissionsInput = (input) => {
 
 const SUBROLE_ONLY_INIFAP_MESSAGE =
   'Los sub-roles RBAC solo pueden asignarse a personal técnico INIFAP.';
+
+const CUSTOM_PERMISSIONS_ONLY_INIFAP_MESSAGE =
+  'Los permisos personalizados solo pueden asignarse a personal técnico INIFAP.';
 
 const isJsonRequest = (req) =>
   Boolean(
@@ -264,10 +272,29 @@ export const deleteRbacRole = async (req, res) => {
   }
 };
 
+const mergePermissionInputs = (...inputs) => [
+  ...new Set(inputs.flatMap((input) => sanitizePermissionsInput(input))),
+];
+
 const parseCustomOverridesBody = (body = {}) => {
-  const allow = sanitizePermissionsInput(body.allow_permissions || body.allow);
-  const deny = sanitizePermissionsInput(body.deny_permissions || body.deny);
+  const allow = mergePermissionInputs(body.allow_permissions, body.allow);
+  const deny = mergePermissionInputs(body.deny_permissions, body.deny);
   return { allow, deny };
+};
+
+const resolveAssignedCustomPermissions = (targetRole, body = {}) => {
+  const customPermissions = parseCustomOverridesBody(body);
+  const hasCustomOverrides =
+    customPermissions.allow.length > 0 || customPermissions.deny.length > 0;
+  if (targetRole !== 'inifap' && hasCustomOverrides) {
+    return {
+      ok: false,
+      status: 400,
+      code: 'permisos_custom_solo_inifap',
+      message: CUSTOM_PERMISSIONS_ONLY_INIFAP_MESSAGE,
+    };
+  }
+  return { ok: true, customPermissions };
 };
 
 const respondUserPermissionsSuccess = (req, res, user) => {
@@ -285,11 +312,16 @@ const respondUserPermissionsSuccess = (req, res, user) => {
   return res.redirect('/private/users?tab=rbac&success=permisos_actualizados');
 };
 
-const applyUserPermissionMutation = (user, body, resolvedRbacRoleId) => {
+const applyUserPermissionMutation = (
+  user,
+  body,
+  resolvedRbacRoleId,
+  resolvedCustomPermissions,
+) => {
   if (body.role) user.role = body.role;
   if (body.status) user.status = body.status;
   user.rbac_role_id = user.role === 'inifap' ? resolvedRbacRoleId : null;
-  user.custom_permissions = parseCustomOverridesBody(body);
+  user.custom_permissions = resolvedCustomPermissions;
 };
 
 export const updateUserPermissions = async (req, res) => {
@@ -321,15 +353,29 @@ export const updateUserPermissions = async (req, res) => {
       });
     }
 
+    const targetRole = role || user.role;
     const subRoleResolution = resolveAssignedRbacRoleId(
-      role || user.role,
+      targetRole,
       rbac_role_id,
     );
     if (!subRoleResolution.ok) {
       return respondRbacError(req, res, subRoleResolution);
     }
 
-    applyUserPermissionMutation(user, req.body, subRoleResolution.rbacRoleId);
+    const customPermissionsResolution = resolveAssignedCustomPermissions(
+      targetRole,
+      req.body,
+    );
+    if (!customPermissionsResolution.ok) {
+      return respondRbacError(req, res, customPermissionsResolution);
+    }
+
+    applyUserPermissionMutation(
+      user,
+      req.body,
+      subRoleResolution.rbacRoleId,
+      customPermissionsResolution.customPermissions,
+    );
     await user.save();
 
     const actorId = req.user?.id || null;
