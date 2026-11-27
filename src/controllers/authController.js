@@ -4,6 +4,7 @@ import {
   createNotification,
   notifyAdmins,
 } from '../services/notificationService.js';
+import { sendForbiddenResponse } from '../utils/errorRenderer.js';
 import {
   sanitizeText,
   isValidEmail,
@@ -205,6 +206,18 @@ export const authController = {
   },
 
   processUpgrade: async (req, res, next) => {
+    if (!req.user) {
+      return res.redirect('/auth/login');
+    }
+
+    if (req.user.role !== 'agricultor') {
+      return sendForbiddenResponse(
+        req,
+        res,
+        'Solo las cuentas con rol agricultor pueden canjear un código de ascenso INIFAP.',
+      );
+    }
+
     try {
       const { rawCode, jobTitle, shift } = extractUpgradeParams(req.body);
       if (!rawCode) {
