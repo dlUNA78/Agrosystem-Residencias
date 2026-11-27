@@ -12,8 +12,20 @@ import {
 } from '../../services/inifapCodeService.js';
 import {
   PERMISSION_DEFINITIONS,
+  hasCustomPermissionsOverrides,
+  isDowngradeFromInifap,
   resolveEffectivePermissions,
+  resolveUserSubRoleMutation,
 } from '../../services/rbacService.js';
+import {
+  ROLE_AUDIT_ACTIONS,
+  ROLE_AUDIT_CHANGE_SOURCES,
+  buildUserRoleAuditPayloads,
+  buildUserRoleSnapshot,
+  recordUserRoleAudit,
+  resolveSubRoleRecord,
+  runAtomicTransaction,
+} from '../../services/userRoleAuditService.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -69,28 +81,8 @@ const ERROR_MESSAGES = {
     'Por gobernanza institucional, el rol de Administrador General es único y no transferible.',
   subrol_solo_inifap:
     'Los sub-roles RBAC solo pueden asignarse a personal técnico INIFAP.',
-};
-
-const recordUserAudit = async ({
-  actorId = null,
-  action,
-  recordId,
-  oldValues = null,
-  newValues = null,
-}) => {
-  if (!db.AuditLog || typeof db.AuditLog.create !== 'function') return;
-  try {
-    await db.AuditLog.create({
-      user_id: actorId,
-      action,
-      table_name: 'Users',
-      record_id: Number(recordId) || null,
-      old_values: oldValues,
-      new_values: newValues,
-    });
-  } catch (err) {
-    console.warn('No se pudo auditar operación de usuario:', err);
-  }
+  permisos_custom_solo_inifap:
+    'Los permisos personalizados solo pueden asignarse a personal técnico INIFAP.',
 };
 
 const calculateUserStats = (users = []) => ({
@@ -135,24 +127,6 @@ const isJsonRequest = (req) =>
     req.headers?.['x-requested-with'] === 'fetch' ||
     req.headers?.accept?.includes('application/json'),
   );
-
-const hasNonEmptyRbacRoleInput = (value) =>
-  value !== undefined && value !== null && String(value).trim() !== '';
-
-const parsePositiveRoleId = (value) => {
-  const parsed = Number(String(value).trim());
-  return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
-};
-
-const validateUserSubRoleRequest = (targetRole, rawRbacRoleId) => {
-  if (!hasNonEmptyRbacRoleInput(rawRbacRoleId)) {
-    return null;
-  }
-  if (targetRole !== 'inifap') {
-    return 'subrol_solo_inifap';
-  }
-  return parsePositiveRoleId(rawRbacRoleId) ? null : 'rol_no_encontrado';
-};
 
 const respondUserMutationError = (req, res, { status = 400, code }) => {
   if (isJsonRequest(req)) {
@@ -211,18 +185,19 @@ const applyPersonalIdentityUpdates = (user, body = {}) => {
   if (body.phone !== undefined) user.phone = trimOrNull(body.phone);
 };
 
-const applyUserUpdates = (user, body = {}) => {
+const applyUserUpdates = (
+  user,
+  body = {},
+  { rbacRoleId, clearCustomPermissions = false } = {},
+) => {
   applyPersonalIdentityUpdates(user, body);
   if (body.role) user.role = body.role;
   if (body.status) user.status = body.status;
   if (body.job_title !== undefined) user.job_title = trimOrNull(body.job_title);
   if (body.address !== undefined) user.address = trimOrNull(body.address);
-  if (user.role !== 'inifap') {
-    user.rbac_role_id = null;
-  } else if (body.rbac_role_id !== undefined) {
-    user.rbac_role_id = hasNonEmptyRbacRoleInput(body.rbac_role_id)
-      ? parsePositiveRoleId(body.rbac_role_id)
-      : null;
+  user.rbac_role_id = rbacRoleId ?? null;
+  if (clearCustomPermissions) {
+    user.custom_permissions = { allow: [], deny: [] };
   }
 };
 
@@ -334,42 +309,65 @@ export const usersPrivate = async (req, res) => {
 const validateCreateUserPayload = (body = {}) => {
   const { full_name, email, password, role, rbac_role_id } = body;
   if (!full_name || !email || !password) {
-    return { status: 400, code: 'campos_requeridos' };
+    return { error: { status: 400, code: 'campos_requeridos' } };
   }
   const targetRole = role || 'inifap';
   if (targetRole === 'admin') {
-    return { status: 403, code: 'admin_unico_inmutable' };
+    return { error: { status: 403, code: 'admin_unico_inmutable' } };
   }
-  const subRoleError = validateUserSubRoleRequest(targetRole, rbac_role_id);
-  return subRoleError ? { status: 400, code: subRoleError } : null;
+  const subRoleResolution = resolveUserSubRoleMutation({
+    previousRole: null,
+    previousRbacRoleId: null,
+    targetRole,
+    rawRbacRoleId: rbac_role_id,
+    preserveWhenOmitted: false,
+  });
+  if (!subRoleResolution.ok) {
+    return {
+      error: {
+        status: subRoleResolution.status,
+        code: subRoleResolution.code,
+      },
+    };
+  }
+  return { error: null, targetRole, subRoleResolution };
 };
 
-const resolveCreateRbacRoleId = (targetRole, rbacRoleId) => {
-  if (targetRole !== 'inifap' || !hasNonEmptyRbacRoleInput(rbacRoleId)) {
-    return null;
+const verifySubRoleRecord = async (rbacRoleId, cachedSubRole = null) => {
+  if (!rbacRoleId) return { ok: true, subRole: null };
+  const subRole = await resolveSubRoleRecord(rbacRoleId, cachedSubRole);
+  if (!subRole) {
+    return { ok: false, error: { status: 400, code: 'rol_no_encontrado' } };
   }
-  return parsePositiveRoleId(rbacRoleId);
+  return { ok: true, subRole };
+};
+
+const resolveUserAuditAction = ({
+  previousRole,
+  nextRole,
+  previousRbacRoleId,
+  nextRbacRoleId,
+  customPermissionsCleared,
+}) => {
+  const roleChanged = previousRole !== nextRole;
+  const subRoleChanged =
+    (previousRbacRoleId ?? null) !== (nextRbacRoleId ?? null);
+  if (roleChanged || subRoleChanged || customPermissionsCleared) {
+    return ROLE_AUDIT_ACTIONS.USER_ROLE_UPDATE;
+  }
+  return 'update';
 };
 
 export const createUser = async (req, res) => {
   try {
-    const validationError = validateCreateUserPayload(req.body);
-    if (validationError) {
-      return respondUserMutationError(req, res, validationError);
+    const validation = validateCreateUserPayload(req.body);
+    if (validation.error) {
+      return respondUserMutationError(req, res, validation.error);
     }
 
-    const {
-      full_name,
-      email,
-      password,
-      role,
-      job_title,
-      phone,
-      address,
-      status,
-      rbac_role_id,
-    } = req.body;
-    const targetRole = role || 'inifap';
+    const { targetRole, subRoleResolution } = validation;
+    const { full_name, email, password, job_title, phone, address, status } =
+      req.body;
     const normalizedEmail = email.trim().toLowerCase();
     const existing = await User.findOne({ where: { email: normalizedEmail } });
     if (existing) {
@@ -379,30 +377,51 @@ export const createUser = async (req, res) => {
       });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const created = await User.create({
-      full_name: full_name.trim(),
-      email: normalizedEmail,
-      password_hash: hashedPassword,
-      role: targetRole,
-      rbac_role_id: resolveCreateRbacRoleId(targetRole, rbac_role_id),
-      job_title: trimOrNull(job_title),
-      phone: trimOrNull(phone),
-      address: trimOrNull(address),
-      status: status || 'activo',
-    });
+    const subRoleCheck = await verifySubRoleRecord(
+      subRoleResolution.rbacRoleId,
+    );
+    if (!subRoleCheck.ok) {
+      return respondUserMutationError(req, res, subRoleCheck.error);
+    }
 
-    await recordUserAudit({
-      actorId: req.user?.id,
-      action: 'create',
-      recordId: created?.id,
-      newValues: {
-        full_name: created.full_name,
-        email: created.email,
-        role: created.role,
-        status: created.status,
-        rbac_role_id: created.rbac_role_id,
-      },
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const created = await runAtomicTransaction(async (transaction) => {
+      const userRecord = await User.create(
+        {
+          full_name: full_name.trim(),
+          email: normalizedEmail,
+          password_hash: hashedPassword,
+          role: targetRole,
+          rbac_role_id: subRoleResolution.rbacRoleId,
+          job_title: trimOrNull(job_title),
+          phone: trimOrNull(phone),
+          address: trimOrNull(address),
+          status: status || 'activo',
+        },
+        { transaction },
+      );
+
+      const afterState = buildUserRoleSnapshot(
+        userRecord,
+        subRoleCheck.subRole,
+      );
+      const { newValues } = buildUserRoleAuditPayloads({
+        beforeState: null,
+        afterState,
+        changeSource: ROLE_AUDIT_CHANGE_SOURCES.ADMIN_USERS_PANEL,
+      });
+
+      await recordUserRoleAudit({
+        actorId: req.user?.id,
+        action: 'create',
+        tableName: 'Users',
+        recordId: userRecord.id,
+        oldValues: null,
+        newValues,
+        transaction,
+      });
+
+      return userRecord;
     });
 
     return respondUserMutationSuccess(req, res, {
@@ -419,10 +438,55 @@ export const createUser = async (req, res) => {
   }
 };
 
+const prepareUserUpdate = async (user, body = {}) => {
+  if (body.role === 'admin' && user.role !== 'admin') {
+    return { error: { status: 403, code: 'admin_unico_inmutable' } };
+  }
+
+  const previousRole = user.role;
+  const previousRbacRoleId = user.rbac_role_id ?? null;
+  const targetRole = body.role || previousRole;
+  const subRoleResolution = resolveUserSubRoleMutation({
+    previousRole,
+    previousRbacRoleId,
+    targetRole,
+    rawRbacRoleId: body.rbac_role_id,
+    preserveWhenOmitted: true,
+  });
+  if (!subRoleResolution.ok) {
+    return {
+      error: {
+        status: subRoleResolution.status,
+        code: subRoleResolution.code,
+      },
+    };
+  }
+
+  const [previousSubRole, targetSubRoleCheck] = await Promise.all([
+    resolveSubRoleRecord(previousRbacRoleId, user.rbacRole),
+    verifySubRoleRecord(subRoleResolution.rbacRoleId, user.rbacRole),
+  ]);
+  if (!targetSubRoleCheck.ok) {
+    return { error: targetSubRoleCheck.error };
+  }
+
+  return {
+    error: null,
+    previousRole,
+    previousRbacRoleId,
+    targetRole,
+    subRoleResolution,
+    previousSubRole,
+    targetSubRole: targetSubRoleCheck.subRole,
+  };
+};
+
 export const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const user = await User.findByPk(id);
+    const user = await User.findByPk(id, {
+      include: [{ model: RbacRole, as: 'rbacRole' }],
+    });
     if (!user) {
       return respondUserMutationError(req, res, {
         status: 404,
@@ -430,46 +494,59 @@ export const updateUser = async (req, res) => {
       });
     }
 
-    if (req.body?.role === 'admin' && user.role !== 'admin') {
-      return respondUserMutationError(req, res, {
-        status: 403,
-        code: 'admin_unico_inmutable',
-      });
+    const prep = await prepareUserUpdate(user, req.body);
+    if (prep.error) {
+      return respondUserMutationError(req, res, prep.error);
     }
 
-    const targetRole = req.body?.role || user.role;
-    const subRoleError = validateUserSubRoleRequest(
-      targetRole,
-      req.body?.rbac_role_id,
+    const beforeState = buildUserRoleSnapshot(user, prep.previousSubRole);
+    const isDowngrade = isDowngradeFromInifap(
+      prep.previousRole,
+      prep.targetRole,
     );
-    if (subRoleError) {
-      return respondUserMutationError(req, res, {
-        status: 400,
-        code: subRoleError,
+    const customPermissionsCleared =
+      isDowngrade && hasCustomPermissionsOverrides(user.custom_permissions);
+
+    applyUserUpdates(user, req.body, {
+      rbacRoleId: prep.subRoleResolution.rbacRoleId,
+      clearCustomPermissions: isDowngrade,
+    });
+
+    const afterState = buildUserRoleSnapshot(user, prep.targetSubRole);
+    const orphanSubroleCleared =
+      !isDowngrade &&
+      prep.previousRole !== 'inifap' &&
+      Boolean(prep.previousRbacRoleId) &&
+      user.rbac_role_id === null;
+    const auditAction = resolveUserAuditAction({
+      previousRole: prep.previousRole,
+      nextRole: user.role,
+      previousRbacRoleId: prep.previousRbacRoleId,
+      nextRbacRoleId: user.rbac_role_id,
+      customPermissionsCleared,
+    });
+    const { oldValues, newValues } = buildUserRoleAuditPayloads({
+      beforeState,
+      afterState,
+      changeSource: ROLE_AUDIT_CHANGE_SOURCES.ADMIN_USERS_PANEL,
+      subroleAutoRevoked: prep.subRoleResolution.autoRevokedSubRole,
+      customPermissionsCleared,
+      upgradedWithoutCode:
+        prep.previousRole === 'agricultor' && user.role === 'inifap',
+      orphanSubroleCleared,
+    });
+
+    await runAtomicTransaction(async (transaction) => {
+      await user.save({ transaction });
+      await recordUserRoleAudit({
+        actorId: req.user?.id,
+        action: auditAction,
+        tableName: 'Users',
+        recordId: user.id,
+        oldValues,
+        newValues,
+        transaction,
       });
-    }
-
-    const oldSnapshot = {
-      full_name: user.full_name,
-      role: user.role,
-      status: user.status,
-      rbac_role_id: user.rbac_role_id,
-    };
-
-    applyUserUpdates(user, req.body);
-    await user.save();
-
-    await recordUserAudit({
-      actorId: req.user?.id,
-      action: 'update',
-      recordId: user.id,
-      oldValues: oldSnapshot,
-      newValues: {
-        full_name: user.full_name,
-        role: user.role,
-        status: user.status,
-        rbac_role_id: user.rbac_role_id,
-      },
     });
 
     return respondUserMutationSuccess(req, res, {
@@ -489,7 +566,9 @@ export const updateUser = async (req, res) => {
 export const updateUserStatus = async (req, res) => {
   try {
     const { id } = req.params;
-    const user = await User.findByPk(id);
+    const user = await User.findByPk(id, {
+      include: [{ model: RbacRole, as: 'rbacRole' }],
+    });
     if (!user) {
       return respondUserMutationError(req, res, {
         status: 404,
@@ -497,30 +576,53 @@ export const updateUserStatus = async (req, res) => {
       });
     }
 
-    const subRoleError = validateUserSubRoleRequest(
-      user.role,
-      req.body?.rbac_role_id,
-    );
-    if (subRoleError) {
+    const previousRbacRoleId = user.rbac_role_id ?? null;
+    const subRoleResolution = resolveUserSubRoleMutation({
+      previousRole: user.role,
+      previousRbacRoleId,
+      targetRole: user.role,
+      rawRbacRoleId: req.body?.rbac_role_id,
+      preserveWhenOmitted: true,
+    });
+    if (!subRoleResolution.ok) {
       return respondUserMutationError(req, res, {
-        status: 400,
-        code: subRoleError,
+        status: subRoleResolution.status,
+        code: subRoleResolution.code,
       });
     }
 
-    const prevStatus = user.status;
+    const previousSubRole = await resolveSubRoleRecord(
+      previousRbacRoleId,
+      user.rbacRole,
+    );
+    const beforeState = buildUserRoleSnapshot(user, previousSubRole);
     user.status = req.body.status || 'activo';
-    if (user.role !== 'inifap') {
-      user.rbac_role_id = null;
-    }
-    await user.save();
+    user.rbac_role_id = subRoleResolution.rbacRoleId;
 
-    await recordUserAudit({
-      actorId: req.user?.id,
-      action: 'update',
-      recordId: user.id,
-      oldValues: { status: prevStatus },
-      newValues: { status: user.status, rbac_role_id: user.rbac_role_id },
+    const nextSubRole = user.rbac_role_id ? previousSubRole : null;
+    const afterState = buildUserRoleSnapshot(user, nextSubRole);
+    const orphanSubroleCleared =
+      user.role !== 'inifap' &&
+      Boolean(previousRbacRoleId) &&
+      user.rbac_role_id === null;
+    const { oldValues, newValues } = buildUserRoleAuditPayloads({
+      beforeState,
+      afterState,
+      changeSource: ROLE_AUDIT_CHANGE_SOURCES.ADMIN_USERS_PANEL,
+      orphanSubroleCleared,
+    });
+
+    await runAtomicTransaction(async (transaction) => {
+      await user.save({ transaction });
+      await recordUserRoleAudit({
+        actorId: req.user?.id,
+        action: 'update',
+        tableName: 'Users',
+        recordId: user.id,
+        oldValues,
+        newValues,
+        transaction,
+      });
     });
 
     return respondUserMutationSuccess(req, res, {
@@ -537,6 +639,42 @@ export const updateUserStatus = async (req, res) => {
   }
 };
 
+const suspendUserAtomically = async ({
+  user,
+  actorId,
+  beforeState,
+  previousSubRole,
+}) => {
+  const previousRbacRoleId = user.rbac_role_id ?? null;
+  const orphanSubroleCleared =
+    user.role !== 'inifap' && Boolean(previousRbacRoleId);
+  user.status = 'suspendido';
+  if (user.role !== 'inifap') {
+    user.rbac_role_id = null;
+  }
+  const nextSubRole = user.rbac_role_id ? previousSubRole : null;
+  const afterState = buildUserRoleSnapshot(user, nextSubRole);
+  const { oldValues, newValues } = buildUserRoleAuditPayloads({
+    beforeState,
+    afterState,
+    changeSource: ROLE_AUDIT_CHANGE_SOURCES.ADMIN_USERS_PANEL,
+    orphanSubroleCleared,
+  });
+
+  await runAtomicTransaction(async (transaction) => {
+    await user.save({ transaction });
+    await recordUserRoleAudit({
+      actorId,
+      action: 'suspend',
+      tableName: 'Users',
+      recordId: user.id,
+      oldValues,
+      newValues,
+      transaction,
+    });
+  });
+};
+
 export const deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
@@ -545,43 +683,40 @@ export const deleteUser = async (req, res) => {
       return res.redirect('/private/users?error=auto_eliminacion_prohibida');
     }
 
-    const user = await User.findByPk(id);
+    const user = await User.findByPk(id, {
+      include: [{ model: RbacRole, as: 'rbacRole' }],
+    });
     if (!user) {
       return res.redirect('/private/users?error=usuario_no_encontrado');
     }
 
-    const snapshot = {
-      full_name: user.full_name,
-      email: user.email,
-      role: user.role,
-      status: user.status,
-    };
+    const previousSubRole = await resolveSubRoleRecord(
+      user.rbac_role_id ?? null,
+      user.rbacRole,
+    );
+    const beforeState = buildUserRoleSnapshot(user, previousSubRole);
 
     if (req.body?.mode === 'suspend') {
-      user.status = 'suspendido';
-      if (user.role !== 'inifap') {
-        user.rbac_role_id = null;
-      }
-      await user.save();
-
-      await recordUserAudit({
+      await suspendUserAtomically({
+        user,
         actorId: req.user?.id,
-        action: 'suspend',
-        recordId: id,
-        oldValues: snapshot,
-        newValues: { status: 'suspendido' },
+        beforeState,
+        previousSubRole,
       });
-
       return res.redirect('/private/users?success=usuario_suspendido');
     }
 
-    await user.destroy();
-
-    await recordUserAudit({
-      actorId: req.user?.id,
-      action: 'delete',
-      recordId: id,
-      oldValues: snapshot,
+    await runAtomicTransaction(async (transaction) => {
+      await user.destroy({ transaction });
+      await recordUserRoleAudit({
+        actorId: req.user?.id,
+        action: 'delete',
+        tableName: 'Users',
+        recordId: id,
+        oldValues: beforeState.snapshot,
+        newValues: null,
+        transaction,
+      });
     });
 
     return res.redirect('/private/users?success=usuario_eliminado');

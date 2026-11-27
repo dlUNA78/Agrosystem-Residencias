@@ -6,6 +6,7 @@ import {
   buildAuditWhere,
   escapeLikePattern,
   resolveMatchingAuditCatalogValues,
+  extractRoleAuditSummary,
   KNOWN_AUDIT_TABLES,
   KNOWN_AUDIT_ACTIONS,
   serializeAuditLog,
@@ -62,6 +63,8 @@ jest.unstable_mockModule('../../src/models/index.js', () => ({
 
 const { auditPrivate } =
   await import('../../src/controllers/private/auditController.js');
+const { ROLE_AUDIT_ACTIONS } =
+  await import('../../src/services/userRoleAuditService.js');
 
 describe('módulo privado de auditoría', () => {
   describe('auditQueryService', () => {
@@ -284,7 +287,7 @@ describe('módulo privado de auditoría', () => {
       const discoveredActions = new Set();
 
       const auditCallPattern =
-        /(?:AuditLog\.create|recordUserAudit|recordRbacAudit|recordSupplierAudit|recordIngredientAudit|createLandAudit|recordSafeAuditLog|changeFarmStatus)\s*\(\s*\{([\s\S]*?)\}\s*(?:,|\))/g;
+        /(?:AuditLog\.create|recordUserAudit|recordUserRoleAudit|recordRbacAudit|recordSupplierAudit|recordIngredientAudit|createLandAudit|recordSafeAuditLog|changeFarmStatus)\s*\(\s*\{([\s\S]*?)\}\s*(?:,|\))/g;
 
       for (const filePath of jsFiles) {
         const content = fs.readFileSync(filePath, 'utf8');
@@ -304,7 +307,10 @@ describe('módulo privado de auditoría', () => {
         }
       }
 
-      // Acciones dinámicas de los flujos editoriales prefijados (`crop.${action}`, `plague.${action}`, `product.${action}`, `workflow.${action}`)
+      // Acciones dinámicas de los flujos editoriales prefijados y gobernanza de roles
+      for (const action of Object.values(ROLE_AUDIT_ACTIONS)) {
+        discoveredActions.add(action);
+      }
       for (const action of Object.values(CROP_WORKFLOW_ACTIONS)) {
         discoveredActions.add(`crop.${action}`);
       }
@@ -330,6 +336,181 @@ describe('módulo privado de auditoría', () => {
 
       expect(missingTables).toEqual([]);
       expect(missingActions).toEqual([]);
+    });
+
+    it('soporta filtro action=roles, módulo usuarios incluyendo RBAC/RbacRoles y búsqueda por usuario objetivo', () => {
+      const normalized = normalizeAuditQuery({
+        module: 'usuarios',
+        action: 'roles',
+        search: 'roberto@inifap.mx',
+      });
+      expect(normalized.module).toBe('usuarios');
+      expect(normalized.action).toBe('roles');
+
+      const mockOp = {
+        in: Symbol('in'),
+        notIn: Symbol('notIn'),
+        or: Symbol('or'),
+        and: Symbol('and'),
+      };
+      const mockSequelize = {
+        Op: mockOp,
+        literal: jest.fn((sql) => ({ val: sql })),
+      };
+
+      const where = buildAuditWhere(mockSequelize, normalized);
+      expect(where.table_name[mockOp.in]).toEqual(
+        expect.arrayContaining(['Users', 'InifapCodes', 'RBAC', 'RbacRoles']),
+      );
+      expect(where.action[mockOp.in]).toEqual(
+        expect.arrayContaining([
+          'update_user_role',
+          'update_user_permissions',
+          'upgrade_role',
+          'create_role',
+          'update_role',
+          'delete_role',
+          'generate_codes',
+          'revoke_code',
+        ]),
+      );
+
+      // La condición de usuario cubre tanto actor (user_id) como objetivo (table_name IN ['Users', 'RBAC'] + record_id)
+      const userAndGroup = where[mockOp.or][0][mockOp.and];
+      expect(userAndGroup).toHaveLength(2);
+      const actorOrTargetBranches = userAndGroup[1][mockOp.or];
+      expect(actorOrTargetBranches).toHaveLength(2);
+      expect(actorOrTargetBranches[0]).toHaveProperty('user_id');
+      expect(actorOrTargetBranches[1].table_name[mockOp.in]).toEqual([
+        'Users',
+        'RBAC',
+      ]);
+      expect(actorOrTargetBranches[1]).toHaveProperty('record_id');
+    });
+
+    it('serializa resúmenes estructurados de cambios de rol (update_user_role, update_user_permissions, upgrade_role, legacy) y los exporta a CSV', () => {
+      const downgradeLog = serializeAuditLog({
+        id: 501,
+        action: 'update_user_role',
+        table_name: 'Users',
+        record_id: 42,
+        createdAt: new Date('2026-11-27T10:00:00Z'),
+        user: {
+          id: 1,
+          full_name: 'Admin General',
+          email: 'admin@inifap.mx',
+          role: 'admin',
+        },
+        old_values: {
+          target_user_id: 42,
+          full_name: 'Dr. Roberto Mendoza',
+          email: 'roberto@inifap.mx',
+          role: 'inifap',
+          rbac_role_id: 2,
+          rbac_role_name: 'Curador de Insumos',
+        },
+        new_values: {
+          target_user_id: 42,
+          full_name: 'Dr. Roberto Mendoza',
+          email: 'roberto@inifap.mx',
+          role: 'agricultor',
+          rbac_role_id: null,
+          rbac_role_name: null,
+          permissions_added: [],
+          permissions_removed: ['crops.publish', 'ingredients.manage'],
+          subrole_auto_revoked: true,
+          custom_permissions_cleared: true,
+        },
+      });
+
+      expect(downgradeLog.actionLabel).toBe('Cambio de Rol');
+      expect(downgradeLog.roleChange).toEqual(
+        expect.objectContaining({
+          targetName: 'Dr. Roberto Mendoza',
+          targetEmail: 'roberto@inifap.mx',
+          oldRoleLabel: 'Personal INIFAP',
+          newRoleLabel: 'Productor Agrícola',
+          oldSubRole: 'Curador de Insumos',
+          newSubRole: 'Ninguno',
+          subroleAutoRevoked: true,
+          customPermissionsCleared: true,
+        }),
+      );
+      expect(downgradeLog.roleChange.permissionsRemovedLabels).toEqual([
+        'Publicar cultivos en portal',
+        'Gestionar ingredientes (CRUD)',
+      ]);
+      expect(downgradeLog.detailsText).toContain('Dr. Roberto Mendoza');
+      expect(downgradeLog.detailsText).toContain(
+        'Personal INIFAP → Productor Agrícola',
+      );
+      expect(downgradeLog.detailsText).toContain(
+        'Curador de Insumos → Ninguno',
+      );
+      expect(downgradeLog.detailsText).toContain('retiro automático');
+
+      const upgradeLog = serializeAuditLog({
+        id: 502,
+        action: 'upgrade_role',
+        table_name: 'Users',
+        record_id: 55,
+        createdAt: new Date('2026-11-27T11:00:00Z'),
+        user: {
+          id: 55,
+          full_name: 'Ana Campo',
+          email: 'ana@campo.mx',
+          role: 'inifap',
+        },
+        old_values: {
+          target_user_id: 55,
+          full_name: 'Ana Campo',
+          email: 'ana@campo.mx',
+          role: 'agricultor',
+          rbac_role_id: null,
+        },
+        new_values: {
+          target_user_id: 55,
+          full_name: 'Ana Campo',
+          email: 'ana@campo.mx',
+          role: 'inifap',
+          rbac_role_id: 3,
+          rbac_role_name: 'Auditor Fitosanitario',
+          permissions_added: ['audit.view'],
+          permissions_removed: [],
+          inifap_code_masked: 'AGS-1234-****-****-WXYZ',
+        },
+      });
+      expect(upgradeLog.actionLabel).toBe('Ascenso INIFAP');
+      expect(upgradeLog.detailsText).toContain('AGS-1234-****-****-WXYZ');
+
+      // Log legacy sin rbac_role_name, sin email y con old_values = null
+      const legacySummary = extractRoleAuditSummary({
+        id: 503,
+        action: 'update_user_permissions',
+        table_name: 'RBAC',
+        record_id: 88,
+        old_values: null,
+        new_values: {
+          role: 'inifap',
+          status: 'activo',
+          rbac_role_id: 7,
+        },
+      });
+      expect(legacySummary).toEqual(
+        expect.objectContaining({
+          targetUserId: 88,
+          targetName: 'Usuario #88',
+          targetEmail: null,
+          oldRoleLabel: 'Sin registro',
+          newRoleLabel: 'Personal INIFAP',
+          oldSubRole: 'Ninguno',
+          newSubRole: 'Sub-rol #7',
+        }),
+      );
+
+      const csv = generateAuditCsv([downgradeLog, upgradeLog]);
+      expect(csv).toContain('Personal INIFAP → Productor Agrícola');
+      expect(csv).toContain('AGS-1234-****-****-WXYZ');
     });
   });
 
@@ -369,6 +550,26 @@ describe('módulo privado de auditoría', () => {
           totalCount: 1,
           auditLogs: expect.any(Array),
           showViewToggle: true,
+          searchFilters: expect.arrayContaining([
+            expect.objectContaining({
+              id: 'filter-module',
+              options: expect.arrayContaining([
+                expect.objectContaining({
+                  value: 'usuarios',
+                  text: 'Usuarios y RBAC',
+                }),
+              ]),
+            }),
+            expect.objectContaining({
+              id: 'filter-action',
+              options: expect.arrayContaining([
+                expect.objectContaining({
+                  value: 'roles',
+                  text: 'Roles y Permisos (RBAC)',
+                }),
+              ]),
+            }),
+          ]),
         }),
       );
     });

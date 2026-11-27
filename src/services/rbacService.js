@@ -268,6 +268,14 @@ const BASE_AGRICULTOR_PERMISSIONS = Object.freeze(
   ]),
 );
 
+export const SUBROLE_ONLY_INIFAP_MESSAGE =
+  'Los sub-roles RBAC solo pueden asignarse a personal técnico INIFAP.';
+
+export const ROLE_NOT_FOUND_MESSAGE = 'El sub-rol solicitado no existe.';
+
+export const CUSTOM_PERMISSIONS_ONLY_INIFAP_MESSAGE =
+  'Los permisos personalizados solo pueden asignarse a personal técnico INIFAP.';
+
 const parsePermissionsList = (val) => {
   if (!val) return [];
   if (Array.isArray(val)) return val;
@@ -282,16 +290,152 @@ const parsePermissionsList = (val) => {
   return [];
 };
 
-const extractCustomOverrides = (user) => {
-  const overrides = user?.custom_permissions;
+export const normalizeCustomPermissions = (overrides) => {
   if (!overrides || typeof overrides !== 'object') {
     return { allow: [], deny: [] };
   }
   return {
-    allow: parsePermissionsList(overrides.allow),
-    deny: parsePermissionsList(overrides.deny),
+    allow: [...new Set(parsePermissionsList(overrides.allow).filter(Boolean))],
+    deny: [...new Set(parsePermissionsList(overrides.deny).filter(Boolean))],
   };
 };
+
+export const hasCustomPermissionsOverrides = (overrides) => {
+  const normalized = normalizeCustomPermissions(overrides);
+  return normalized.allow.length > 0 || normalized.deny.length > 0;
+};
+
+export const hasNonEmptyRbacRoleInput = (value) =>
+  value !== undefined && value !== null && String(value).trim() !== '';
+
+export const parsePositiveRoleId = (value) => {
+  const parsed = Number(String(value).trim());
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+};
+
+export const isDowngradeFromInifap = (previousRole, targetRole) =>
+  previousRole === 'inifap' && targetRole !== 'inifap';
+
+const resolveInifapTargetSubRole = ({
+  previousRbacRoleId,
+  rawRbacRoleId,
+  preserveWhenOmitted,
+}) => {
+  if (preserveWhenOmitted && rawRbacRoleId === undefined) {
+    return {
+      ok: true,
+      rbacRoleId: previousRbacRoleId ?? null,
+      autoRevokedSubRole: false,
+    };
+  }
+  if (!hasNonEmptyRbacRoleInput(rawRbacRoleId)) {
+    return {
+      ok: true,
+      rbacRoleId: null,
+      autoRevokedSubRole: false,
+    };
+  }
+  const parsed = parsePositiveRoleId(rawRbacRoleId);
+  if (!parsed) {
+    return {
+      ok: false,
+      status: 400,
+      code: 'rol_no_encontrado',
+      message: ROLE_NOT_FOUND_MESSAGE,
+    };
+  }
+  return {
+    ok: true,
+    rbacRoleId: parsed,
+    autoRevokedSubRole: false,
+  };
+};
+
+export const resolveUserSubRoleMutation = ({
+  previousRole = null,
+  previousRbacRoleId = null,
+  targetRole,
+  rawRbacRoleId,
+  preserveWhenOmitted = false,
+} = {}) => {
+  if (isDowngradeFromInifap(previousRole, targetRole)) {
+    return {
+      ok: true,
+      rbacRoleId: null,
+      autoRevokedSubRole: Boolean(previousRbacRoleId),
+    };
+  }
+
+  if (targetRole !== 'inifap') {
+    if (hasNonEmptyRbacRoleInput(rawRbacRoleId)) {
+      return {
+        ok: false,
+        status: 400,
+        code: 'subrol_solo_inifap',
+        message: SUBROLE_ONLY_INIFAP_MESSAGE,
+      };
+    }
+    return {
+      ok: true,
+      rbacRoleId: null,
+      autoRevokedSubRole: false,
+    };
+  }
+
+  return resolveInifapTargetSubRole({
+    previousRbacRoleId,
+    rawRbacRoleId,
+    preserveWhenOmitted,
+  });
+};
+
+export const resolveUserCustomPermissionsMutation = ({
+  previousRole = null,
+  previousCustomPermissions = null,
+  targetRole,
+  requestedCustomPermissions = null,
+} = {}) => {
+  const prevNormalized = normalizeCustomPermissions(previousCustomPermissions);
+  const hadPreviousOverrides = hasCustomPermissionsOverrides(prevNormalized);
+
+  if (isDowngradeFromInifap(previousRole, targetRole)) {
+    return {
+      ok: true,
+      customPermissions: { allow: [], deny: [] },
+      customPermissionsCleared: hadPreviousOverrides,
+    };
+  }
+
+  const nextNormalized = normalizeCustomPermissions(requestedCustomPermissions);
+  if (
+    targetRole !== 'inifap' &&
+    hasCustomPermissionsOverrides(nextNormalized)
+  ) {
+    return {
+      ok: false,
+      status: 400,
+      code: 'permisos_custom_solo_inifap',
+      message: CUSTOM_PERMISSIONS_ONLY_INIFAP_MESSAGE,
+    };
+  }
+
+  if (targetRole !== 'inifap') {
+    return {
+      ok: true,
+      customPermissions: { allow: [], deny: [] },
+      customPermissionsCleared: hadPreviousOverrides,
+    };
+  }
+
+  return {
+    ok: true,
+    customPermissions: nextNormalized,
+    customPermissionsCleared: false,
+  };
+};
+
+const extractCustomOverrides = (user) =>
+  normalizeCustomPermissions(user?.custom_permissions);
 
 const getBasePermissionsForRole = (role) => {
   if (role === 'inifap') {

@@ -5,7 +5,23 @@ import {
   createInifapCodesBatch,
   revokeInifapCode,
 } from '../../services/inifapCodeService.js';
-import { canModifyUserRoleOrStatus } from '../../services/rbacService.js';
+import {
+  ROLE_NOT_FOUND_MESSAGE,
+  SUBROLE_ONLY_INIFAP_MESSAGE,
+  canModifyUserRoleOrStatus,
+  resolveUserCustomPermissionsMutation,
+  resolveUserSubRoleMutation,
+} from '../../services/rbacService.js';
+import {
+  ROLE_AUDIT_ACTIONS,
+  ROLE_AUDIT_CHANGE_SOURCES,
+  buildUserRoleAuditPayloads,
+  buildUserRoleSnapshot,
+  computePermissionsDiff,
+  maskInifapCodeForAudit,
+  resolveSubRoleRecord,
+  runAtomicTransaction,
+} from '../../services/userRoleAuditService.js';
 import {
   createNotification,
   resolveNotificationActionUrl,
@@ -22,17 +38,30 @@ const slugify = (text) =>
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/(^-|-$)+/g, '');
 
-const recordRbacAudit = async ({ actorId, action, recordId, details }) => {
+const recordRbacAudit = async ({
+  actorId,
+  action,
+  recordId,
+  oldValues = null,
+  details = {},
+  transaction,
+}) => {
+  const payload = {
+    user_id: actorId ?? null,
+    action,
+    table_name: 'RBAC',
+    record_id: recordId ? Number(recordId) : null,
+    old_values: oldValues,
+    new_values: details,
+  };
+  if (transaction) {
+    return AuditLog.create(payload, { transaction });
+  }
   try {
-    await AuditLog.create({
-      user_id: actorId,
-      action,
-      table_name: 'RBAC',
-      record_id: recordId ? Number(recordId) : null,
-      new_values: details || {},
-    });
+    return await AuditLog.create(payload);
   } catch (err) {
     console.error('Error registrando auditoría RBAC:', err);
+    return null;
   }
 };
 
@@ -54,26 +83,12 @@ const sanitizePermissionsInput = (input) => {
   return [];
 };
 
-const SUBROLE_ONLY_INIFAP_MESSAGE =
-  'Los sub-roles RBAC solo pueden asignarse a personal técnico INIFAP.';
-
-const CUSTOM_PERMISSIONS_ONLY_INIFAP_MESSAGE =
-  'Los permisos personalizados solo pueden asignarse a personal técnico INIFAP.';
-
 const isJsonRequest = (req) =>
   Boolean(
     req.xhr ||
     req.headers?.['x-requested-with'] === 'fetch' ||
     req.headers?.accept?.includes('application/json'),
   );
-
-const hasNonEmptyRbacRoleInput = (value) =>
-  value !== undefined && value !== null && String(value).trim() !== '';
-
-const parsePositiveRoleId = (value) => {
-  const parsed = Number(String(value).trim());
-  return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
-};
 
 const respondRbacError = (
   req,
@@ -86,29 +101,14 @@ const respondRbacError = (
   return res.redirect(`/private/users?tab=${tab}&error=${code}`);
 };
 
-const resolveAssignedRbacRoleId = (targetRole, rawRbacRoleId) => {
-  if (!hasNonEmptyRbacRoleInput(rawRbacRoleId)) {
-    return { ok: true, rbacRoleId: null };
-  }
-  if (targetRole !== 'inifap') {
-    return {
-      ok: false,
-      status: 400,
-      code: 'subrol_solo_inifap',
-      message: SUBROLE_ONLY_INIFAP_MESSAGE,
-    };
-  }
-  const parsed = parsePositiveRoleId(rawRbacRoleId);
-  if (!parsed) {
-    return {
-      ok: false,
-      status: 400,
-      code: 'rol_no_encontrado',
-      message: 'El sub-rol solicitado no es válido.',
-    };
-  }
-  return { ok: true, rbacRoleId: parsed };
-};
+const buildRbacRoleSnapshot = (role) => ({
+  slug: role.slug,
+  name: role.name,
+  description: role.description ?? null,
+  base_role: role.base_role,
+  badge_color: role.badge_color,
+  permissions: [...(role.permissions || [])],
+});
 
 const respondRbacSuccess = (req, res, { status = 200, role, successCode }) => {
   if (isJsonRequest(req)) {
@@ -163,21 +163,30 @@ export const createRbacRole = async (req, res) => {
       ? `${baseSlug}-${Date.now().toString().slice(-4)}`
       : baseSlug;
 
-    const created = await RbacRole.create({
-      slug: finalSlug,
-      name: name.trim(),
-      description: description ? description.trim() : null,
-      base_role: 'inifap',
-      badge_color: badge_color || 'emerald',
-      permissions: sanitizePermissionsInput(permissions),
-      is_system: false,
-    });
+    const created = await runAtomicTransaction(async (transaction) => {
+      const roleRecord = await RbacRole.create(
+        {
+          slug: finalSlug,
+          name: name.trim(),
+          description: description ? description.trim() : null,
+          base_role: 'inifap',
+          badge_color: badge_color || 'emerald',
+          permissions: sanitizePermissionsInput(permissions),
+          is_system: false,
+        },
+        { transaction },
+      );
 
-    await recordRbacAudit({
-      actorId: req.user?.id,
-      action: 'create_role',
-      recordId: created.id,
-      details: { slug: created.slug, name: created.name },
+      await recordRbacAudit({
+        actorId: req.user?.id,
+        action: 'create_role',
+        recordId: roleRecord.id,
+        oldValues: null,
+        details: buildRbacRoleSnapshot(roleRecord),
+        transaction,
+      });
+
+      return roleRecord;
     });
 
     return respondRbacSuccess(req, res, {
@@ -203,7 +212,7 @@ export const updateRbacRole = async (req, res) => {
       return respondRbacError(req, res, {
         status: 404,
         code: 'rol_no_encontrado',
-        message: 'El sub-rol solicitado no existe.',
+        message: ROLE_NOT_FOUND_MESSAGE,
       });
     }
 
@@ -214,14 +223,27 @@ export const updateRbacRole = async (req, res) => {
       return respondRbacError(req, res, validationError);
     }
 
+    const oldValues = buildRbacRoleSnapshot(role);
     applyRbacRoleUpdates(role, req.body);
-    await role.save();
+    const diff = computePermissionsDiff(
+      oldValues.permissions,
+      role.permissions || [],
+    );
 
-    await recordRbacAudit({
-      actorId: req.user?.id,
-      action: 'update_role',
-      recordId: role.id,
-      details: { slug: role.slug, name: role.name },
+    await runAtomicTransaction(async (transaction) => {
+      await role.save({ transaction });
+      await recordRbacAudit({
+        actorId: req.user?.id,
+        action: 'update_role',
+        recordId: role.id,
+        oldValues,
+        details: {
+          ...buildRbacRoleSnapshot(role),
+          permissions_added: diff.added,
+          permissions_removed: diff.removed,
+        },
+        transaction,
+      });
     });
 
     return respondRbacSuccess(req, res, {
@@ -253,14 +275,35 @@ export const deleteRbacRole = async (req, res) => {
       );
     }
 
-    await User.update({ rbac_role_id: null }, { where: { rbac_role_id: id } });
-    await role.destroy();
+    const oldValues = buildRbacRoleSnapshot(role);
 
-    await recordRbacAudit({
-      actorId: req.user?.id,
-      action: 'delete_role',
-      recordId: id,
-      details: { slug: role.slug, name: role.name },
+    await runAtomicTransaction(async (transaction) => {
+      const affectedUsers = await User.findAll({
+        where: { rbac_role_id: id },
+        attributes: ['id'],
+        transaction,
+      });
+      const affectedUserIds = affectedUsers.map((u) => u.id);
+
+      await User.update(
+        { rbac_role_id: null },
+        { where: { rbac_role_id: id }, transaction },
+      );
+      await role.destroy({ transaction });
+
+      await recordRbacAudit({
+        actorId: req.user?.id,
+        action: 'delete_role',
+        recordId: id,
+        oldValues,
+        details: {
+          slug: role.slug,
+          name: role.name,
+          affected_user_ids: affectedUserIds,
+          affected_users_count: affectedUserIds.length,
+        },
+        transaction,
+      });
     });
 
     return res.redirect('/private/users?tab=rbac&success=rol_eliminado');
@@ -282,21 +325,6 @@ const parseCustomOverridesBody = (body = {}) => {
   return { allow, deny };
 };
 
-const resolveAssignedCustomPermissions = (targetRole, body = {}) => {
-  const customPermissions = parseCustomOverridesBody(body);
-  const hasCustomOverrides =
-    customPermissions.allow.length > 0 || customPermissions.deny.length > 0;
-  if (targetRole !== 'inifap' && hasCustomOverrides) {
-    return {
-      ok: false,
-      status: 400,
-      code: 'permisos_custom_solo_inifap',
-      message: CUSTOM_PERMISSIONS_ONLY_INIFAP_MESSAGE,
-    };
-  }
-  return { ok: true, customPermissions };
-};
-
 const respondUserPermissionsSuccess = (req, res, user) => {
   if (isJsonRequest(req)) {
     return res.status(200).json({
@@ -306,6 +334,7 @@ const respondUserPermissionsSuccess = (req, res, user) => {
         role: user.role,
         status: user.status,
         rbac_role_id: user.rbac_role_id,
+        custom_permissions: user.custom_permissions,
       },
     });
   }
@@ -320,14 +349,112 @@ const applyUserPermissionMutation = (
 ) => {
   if (body.role) user.role = body.role;
   if (body.status) user.status = body.status;
-  user.rbac_role_id = user.role === 'inifap' ? resolvedRbacRoleId : null;
+  user.rbac_role_id = resolvedRbacRoleId;
   user.custom_permissions = resolvedCustomPermissions;
+};
+
+const prepareUserPermissionsUpdate = async (user, body = {}) => {
+  const previousRole = user.role;
+  const previousRbacRoleId = user.rbac_role_id ?? null;
+  const targetRole = body.role || previousRole;
+
+  const subRoleResolution = resolveUserSubRoleMutation({
+    previousRole,
+    previousRbacRoleId,
+    targetRole,
+    rawRbacRoleId: body.rbac_role_id,
+    preserveWhenOmitted: false,
+  });
+  if (!subRoleResolution.ok) {
+    return { error: subRoleResolution };
+  }
+
+  const customPermissionsResolution = resolveUserCustomPermissionsMutation({
+    previousRole,
+    previousCustomPermissions: user.custom_permissions,
+    targetRole,
+    requestedCustomPermissions: parseCustomOverridesBody(body),
+  });
+  if (!customPermissionsResolution.ok) {
+    return { error: customPermissionsResolution };
+  }
+
+  const [previousSubRole, targetSubRole] = await Promise.all([
+    resolveSubRoleRecord(previousRbacRoleId, user.rbacRole),
+    subRoleResolution.rbacRoleId
+      ? resolveSubRoleRecord(subRoleResolution.rbacRoleId, user.rbacRole)
+      : Promise.resolve(null),
+  ]);
+  if (subRoleResolution.rbacRoleId && !targetSubRole) {
+    return {
+      error: {
+        status: 400,
+        code: 'rol_no_encontrado',
+        message: ROLE_NOT_FOUND_MESSAGE,
+      },
+    };
+  }
+
+  return {
+    error: null,
+    previousRole,
+    previousRbacRoleId,
+    subRoleResolution,
+    customPermissionsResolution,
+    previousSubRole,
+    targetSubRole,
+  };
+};
+
+const persistUserPermissionsWithAudit = async ({
+  user,
+  body,
+  prep,
+  actorId,
+}) => {
+  const beforeState = buildUserRoleSnapshot(user, prep.previousSubRole);
+  applyUserPermissionMutation(
+    user,
+    body,
+    prep.subRoleResolution.rbacRoleId,
+    prep.customPermissionsResolution.customPermissions,
+  );
+  const afterState = buildUserRoleSnapshot(user, prep.targetSubRole);
+  const orphanSubroleCleared =
+    prep.previousRole !== 'inifap' &&
+    Boolean(prep.previousRbacRoleId) &&
+    user.rbac_role_id === null;
+  const { oldValues, newValues } = buildUserRoleAuditPayloads({
+    beforeState,
+    afterState,
+    changeSource: ROLE_AUDIT_CHANGE_SOURCES.ADMIN_RBAC_PANEL,
+    subroleAutoRevoked: prep.subRoleResolution.autoRevokedSubRole,
+    customPermissionsCleared:
+      prep.customPermissionsResolution.customPermissionsCleared,
+    upgradedWithoutCode:
+      prep.previousRole === 'agricultor' && user.role === 'inifap',
+    orphanSubroleCleared,
+  });
+
+  await runAtomicTransaction(async (transaction) => {
+    await user.save({ transaction });
+    await recordRbacAudit({
+      actorId,
+      action: ROLE_AUDIT_ACTIONS.USER_PERMISSIONS_UPDATE,
+      recordId: user.id,
+      oldValues,
+      details: newValues,
+      transaction,
+    });
+  });
 };
 
 export const updateUserPermissions = async (req, res) => {
   try {
     const { id } = req.params;
-    const user = await User.findByPk(id);
+    const user = await User.findByPk(id, {
+      include: [{ model: RbacRole, as: 'rbacRole' }],
+    });
     if (!user) {
       return respondRbacError(req, res, {
         status: 404,
@@ -336,15 +463,13 @@ export const updateUserPermissions = async (req, res) => {
       });
     }
 
-    const { role, status, rbac_role_id } = req.body;
     const check = canModifyUserRoleOrStatus({
       actor: req.user,
       targetUserId: id,
       _targetCurrentRole: user.role,
-      newRole: role,
-      newStatus: status,
+      newRole: req.body?.role,
+      newStatus: req.body?.status,
     });
-
     if (!check.allowed) {
       return respondRbacError(req, res, {
         status: 403,
@@ -353,42 +478,17 @@ export const updateUserPermissions = async (req, res) => {
       });
     }
 
-    const targetRole = role || user.role;
-    const subRoleResolution = resolveAssignedRbacRoleId(
-      targetRole,
-      rbac_role_id,
-    );
-    if (!subRoleResolution.ok) {
-      return respondRbacError(req, res, subRoleResolution);
+    const prep = await prepareUserPermissionsUpdate(user, req.body);
+    if (prep.error) {
+      return respondRbacError(req, res, prep.error);
     }
-
-    const customPermissionsResolution = resolveAssignedCustomPermissions(
-      targetRole,
-      req.body,
-    );
-    if (!customPermissionsResolution.ok) {
-      return respondRbacError(req, res, customPermissionsResolution);
-    }
-
-    applyUserPermissionMutation(
-      user,
-      req.body,
-      subRoleResolution.rbacRoleId,
-      customPermissionsResolution.customPermissions,
-    );
-    await user.save();
 
     const actorId = req.user?.id || null;
-    await recordRbacAudit({
+    await persistUserPermissionsWithAudit({
+      user,
+      body: req.body,
+      prep,
       actorId,
-      action: 'update_user_permissions',
-      recordId: user.id,
-      details: {
-        role: user.role,
-        status: user.status,
-        rbac_role_id: user.rbac_role_id,
-        custom_permissions: user.custom_permissions,
-      },
     });
 
     await createNotification({
@@ -506,11 +606,12 @@ export const revokeCode = async (req, res) => {
       return res.redirect('/private/users?tab=codes&error=revocacion_fallida');
     }
 
+    const maskedCode = maskInifapCodeForAudit(result.code);
     await recordRbacAudit({
       actorId: req.user?.id,
       action: 'revoke_code',
       recordId: id,
-      details: { code: result.code.code },
+      details: { code: maskedCode, code_masked: maskedCode },
     });
 
     return res.redirect('/private/users?tab=codes&success=codigo_revocado');
