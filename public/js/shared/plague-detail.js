@@ -716,7 +716,7 @@ const countCheckedByName = (form, name) =>
   form.querySelectorAll(`input[name="${name}"]:checked`).length;
 
 const confirmEditorialFormSubmission = (form) => {
-  if (form.action.includes('/relations')) {
+  if ((form.getAttribute('action') || '').includes('/relations')) {
     const products = countCheckedByName(form, 'product_ids');
     const crops = countCheckedByName(form, 'crop_ids');
     const regions = countCheckedByName(form, 'region_ids');
@@ -743,7 +743,9 @@ const submitEditorialFormAsync = async (form, submitter) => {
   const confirmed = await confirmEditorialFormSubmission(form);
   if (!confirmed) return;
 
-  const isRelations = form.action.includes('/relations');
+  const isRelations = (form.getAttribute('action') || '').includes(
+    '/relations',
+  );
   const loadingLabel = isRelations
     ? 'Guardando relaciones...'
     : 'Actualizando estado...';

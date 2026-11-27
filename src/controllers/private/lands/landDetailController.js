@@ -16,6 +16,7 @@ import {
 import { summarizeLandCropStages } from '../../../services/landPhenologyService.js';
 import { parseLandId } from '../../../services/landValidationService.js';
 import { PLAGUE_WORKFLOW_STATUSES } from '../../../services/plagueWorkflowService.js';
+import { sendNotFoundResponse } from '../../../utils/errorRenderer.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -398,7 +399,7 @@ export const landDetail = async (req, res) => {
         ...operationalIncludes,
       ],
     });
-    if (!farm) return res.status(404).send('Predio no encontrado');
+    if (!farm) return sendNotFoundResponse(req, res, 'Predio no encontrado.');
 
     const land = farm.toJSON();
     const farmCrops = prepareCropCycles(land.farmCrops);

@@ -466,7 +466,9 @@ const submitCropWorkflowAsync = async (form, submitter) => {
 const initCropWorkflowForms = () => {
   document.addEventListener('submit', (event) => {
     const form = event.target.closest('#private-editorial-panel form');
-    if (!form || form.action.includes('/relations')) return;
+    if (!form || (form.getAttribute('action') || '').includes('/relations')) {
+      return;
+    }
     event.preventDefault();
     const submitter =
       event.submitter || form.querySelector('button[type="submit"]');
