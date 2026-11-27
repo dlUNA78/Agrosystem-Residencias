@@ -354,7 +354,8 @@ const buildConfirmDialogElements = ({
   wrapper.setAttribute('aria-modal', 'true');
   wrapper.setAttribute('aria-labelledby', 'confirm-dialog-title');
   wrapper.className =
-    "no-print fixed inset-0 z-[90] flex items-center justify-center p-4 font-['Geist']";
+    "no-print fixed inset-0 z-[250] flex items-center justify-center p-4 font-['Geist']";
+  wrapper.style.zIndex = '250';
 
   const backdrop = document.createElement('div');
   backdrop.className = 'absolute inset-0 bg-black/45 backdrop-blur-xs';

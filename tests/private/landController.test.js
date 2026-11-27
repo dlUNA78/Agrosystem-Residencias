@@ -94,12 +94,23 @@ describe('controladores privados de terrenos', () => {
     const res = buildResponse();
 
     await landDetail(
-      { params: { id: '1' }, user: { id: 12, role: 'inifap' } },
+      {
+        params: { id: '1' },
+        path: '/private/lands/1/expediente',
+        originalUrl: '/private/lands/1/expediente',
+        user: { id: 12, role: 'inifap' },
+      },
       res,
     );
 
     expect(res.status).toHaveBeenCalledWith(404);
-    expect(res.render).not.toHaveBeenCalled();
+    expect(res.render).toHaveBeenCalledWith(
+      'errors/404',
+      expect.objectContaining({
+        errorMessage: 'Predio no encontrado.',
+        requestedPath: '/private/lands/1/expediente',
+      }),
+    );
   });
 
   it('aplica propiedad al consultar el expediente INIFAP', async () => {

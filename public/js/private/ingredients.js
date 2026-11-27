@@ -65,36 +65,59 @@ const refreshIngredientsRegion = async (targetUrl, pushUrl = true) => {
   }
 };
 
-const handleDeleteIngredientSubmit = async (form) => {
-  const name = form.dataset.ingredientName || 'este ingrediente';
-  const confirmed = await confirmAsyncAction({
-    title: `Eliminar "${name}"`,
-    description:
-      'El ingrediente activo se eliminará del catálogo normativo y la operación quedará registrada en auditoría.',
-    confirmLabel: 'Eliminar molécula',
-    variant: 'danger',
-  });
-  if (!confirmed) return;
-
+const runGuardedFormSubmission = async (form, task) => {
+  if (form.dataset.submitting === 'true') return;
   const btn = form.querySelector('button[type="submit"]');
-  await withButtonLoading(btn, '...', async () => {
-    const response = await fetch(form.action, {
-      method: 'POST',
-      headers: { Accept: 'application/json', 'X-Requested-With': 'fetch' },
-    });
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok || data.success === false) {
-      showAsyncToast(data.error || 'No se pudo eliminar el registro.', 'error');
-      return;
+  const wasDisabled = btn ? btn.disabled : false;
+
+  form.dataset.submitting = 'true';
+  if (btn) btn.disabled = true;
+
+  try {
+    await task(btn);
+  } finally {
+    delete form.dataset.submitting;
+    if (btn && btn.isConnected !== false) {
+      btn.disabled = wasDisabled;
     }
-    showAsyncToast(
-      data.message || 'Ingrediente eliminado correctamente.',
-      'success',
-    );
-    await refreshIngredientsRegion(
-      window.location.pathname + window.location.search,
-      false,
-    );
+  }
+};
+
+const handleDeleteIngredientSubmit = async (form) => {
+  await runGuardedFormSubmission(form, async (btn) => {
+    const name = form.dataset.ingredientName || 'este ingrediente';
+    const confirmed = await confirmAsyncAction({
+      title: `Eliminar "${name}"`,
+      description:
+        'El ingrediente activo se eliminará del catálogo normativo y la operación quedará registrada en auditoría.',
+      confirmLabel: 'Eliminar molécula',
+      variant: 'danger',
+    });
+    if (!confirmed) return;
+
+    const actionUrl = form.getAttribute('action') || '';
+    await withButtonLoading(btn, '...', async () => {
+      const response = await fetch(actionUrl, {
+        method: 'POST',
+        headers: { Accept: 'application/json', 'X-Requested-With': 'fetch' },
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || data.success === false) {
+        showAsyncToast(
+          data.error || 'No se pudo eliminar el registro.',
+          'error',
+        );
+        return;
+      }
+      showAsyncToast(
+        data.message || 'Ingrediente eliminado correctamente.',
+        'success',
+      );
+      await refreshIngredientsRegion(
+        window.location.pathname + window.location.search,
+        false,
+      );
+    });
   });
 };
 
@@ -126,40 +149,42 @@ const resolveWorkflowPrompt = (action, name) => {
 };
 
 const handleWorkflowIngredientSubmit = async (form) => {
-  const name = form.dataset.ingredientName || 'este ingrediente';
-  const action = form.dataset.ingredientAction;
-  const prompt = resolveWorkflowPrompt(action, name);
+  await runGuardedFormSubmission(form, async (btn) => {
+    const name = form.dataset.ingredientName || 'este ingrediente';
+    const action = form.dataset.ingredientAction;
+    const prompt = resolveWorkflowPrompt(action, name);
 
-  const confirmed = await confirmAsyncAction(prompt);
-  if (!confirmed) return;
+    const confirmed = await confirmAsyncAction(prompt);
+    if (!confirmed) return;
 
-  const btn = form.querySelector('button[type="submit"]');
-  await withButtonLoading(btn, '...', async () => {
-    const response = await fetch(form.action, {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'X-Requested-With': 'fetch',
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: new URLSearchParams(new FormData(form)).toString(),
-    });
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok || data.success === false) {
+    const actionUrl = form.getAttribute('action') || '';
+    await withButtonLoading(btn, '...', async () => {
+      const response = await fetch(actionUrl, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'X-Requested-With': 'fetch',
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams(new FormData(form)).toString(),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || data.success === false) {
+        showAsyncToast(
+          data.error || 'No se pudo procesar la acción editorial.',
+          'error',
+        );
+        return;
+      }
       showAsyncToast(
-        data.error || 'No se pudo procesar la acción editorial.',
-        'error',
+        data.message || 'Estado del ingrediente actualizado.',
+        'success',
       );
-      return;
-    }
-    showAsyncToast(
-      data.message || 'Estado del ingrediente actualizado.',
-      'success',
-    );
-    await refreshIngredientsRegion(
-      window.location.pathname + window.location.search,
-      false,
-    );
+      await refreshIngredientsRegion(
+        window.location.pathname + window.location.search,
+        false,
+      );
+    });
   });
 };
 
@@ -168,7 +193,10 @@ const openIngredientArchiveModal = (btn) => {
   const form = document.getElementById('form-request-archive-ingredient');
   if (!modal || !form) return;
   const id = btn.dataset.id;
-  form.action = `/private/ingredients/${encodeURIComponent(id)}/workflow`;
+  form.setAttribute(
+    'action',
+    `/private/ingredients/${encodeURIComponent(id)}/workflow`,
+  );
   modal.classList.remove('hidden');
   modal.classList.add('flex');
   window.modalScrollLock?.lock?.();
@@ -183,38 +211,42 @@ const closeIngredientArchiveModal = () => {
 };
 
 const handleRequestArchiveFormSubmit = async (form) => {
+  if (form.dataset.submitting === 'true') return;
   if (!form.reportValidity()) return;
-  const confirmed = await confirmAsyncAction({
-    title: '¿Tramitar solicitud formal de baja?',
-    description:
-      'La solicitud quedará registrada en el sistema y requerirá el dictamen imparcial de otro especialista (principio de 4 ojos).',
-    confirmLabel: 'Tramitar solicitud',
-    variant: 'danger',
-  });
-  if (!confirmed) return;
 
-  const btn = form.querySelector('button[type="submit"]');
-  await withButtonLoading(btn, 'Enviando...', async () => {
-    const response = await fetch(form.action, {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'X-Requested-With': 'fetch',
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: new URLSearchParams(new FormData(form)).toString(),
+  await runGuardedFormSubmission(form, async (btn) => {
+    const confirmed = await confirmAsyncAction({
+      title: '¿Tramitar solicitud formal de baja?',
+      description:
+        'La solicitud quedará registrada en el sistema y requerirá el dictamen imparcial de otro especialista (principio de 4 ojos).',
+      confirmLabel: 'Tramitar solicitud',
+      variant: 'danger',
     });
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok || data.success === false) {
-      showAsyncToast(data.error || 'Error al tramitar la baja.', 'error');
-      return;
-    }
-    closeIngredientArchiveModal();
-    showAsyncToast(data.message || 'Solicitud de baja tramitada.', 'success');
-    await refreshIngredientsRegion(
-      window.location.pathname + window.location.search,
-      false,
-    );
+    if (!confirmed) return;
+
+    const actionUrl = form.getAttribute('action') || '';
+    await withButtonLoading(btn, 'Enviando...', async () => {
+      const response = await fetch(actionUrl, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'X-Requested-With': 'fetch',
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams(new FormData(form)).toString(),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || data.success === false) {
+        showAsyncToast(data.error || 'Error al tramitar la baja.', 'error');
+        return;
+      }
+      closeIngredientArchiveModal();
+      showAsyncToast(data.message || 'Solicitud de baja tramitada.', 'success');
+      await refreshIngredientsRegion(
+        window.location.pathname + window.location.search,
+        false,
+      );
+    });
   });
 };
 

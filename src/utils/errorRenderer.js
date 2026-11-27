@@ -20,18 +20,26 @@ export const canRenderHtmlError = (req, res) =>
     !process.env.JEST_WORKER_ID || req.headers?.accept?.includes('text/html'),
   );
 
+const isPrivatePath = (value) =>
+  typeof value === 'string' &&
+  (value.startsWith('/private') || value.startsWith('/dashboard'));
+
+const isPrivateRequestArea = (req) => {
+  const baseUrl = req?.baseUrl || '';
+  const reqPath = req?.path || '';
+  return (
+    isPrivatePath(`${baseUrl}${reqPath}`) || isPrivatePath(req?.originalUrl)
+  );
+};
+
+const hasPrivatePanelRole = (user) =>
+  user?.role === 'admin' || user?.role === 'inifap';
+
 const resolveErrorLayout = (req) => {
   const user = req.user || req.session?.user;
-  const isPrivateArea =
-    req.path?.startsWith('/private') || req.path?.startsWith('/dashboard');
-  if (
-    isPrivateArea &&
-    user &&
-    (user.role === 'admin' || user.role === 'inifap')
-  ) {
-    return privateLayout;
-  }
-  return publicLayout;
+  return isPrivateRequestArea(req) && hasPrivatePanelRole(user)
+    ? privateLayout
+    : publicLayout;
 };
 
 export const sendForbiddenResponse = (req, res, message) => {
