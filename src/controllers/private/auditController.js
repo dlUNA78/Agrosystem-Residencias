@@ -39,7 +39,7 @@ const buildAuditSearchFilters = (query) => [
       { value: 'cultivos', text: 'Cultivos' },
       { value: 'productos', text: 'Productos' },
       { value: 'terrenos', text: 'Terrenos' },
-      { value: 'usuarios', text: 'Usuarios' },
+      { value: 'usuarios', text: 'Usuarios y RBAC' },
       { value: 'proveedores', text: 'Proveedores' },
       { value: 'ingredientes', text: 'Ingredientes' },
     ].map((opt) => ({
@@ -52,6 +52,7 @@ const buildAuditSearchFilters = (query) => [
     param: 'action',
     label: 'Acción: Todas',
     options: [
+      { value: 'roles', text: 'Roles y Permisos (RBAC)' },
       { value: 'crear', text: 'Creación / Registro' },
       { value: 'editar', text: 'Edición / Avance' },
       { value: 'aprobar', text: 'Revisión / Publicación' },
@@ -142,7 +143,8 @@ export const auditPrivate = async (req, res) => {
       clearUrl: '/private/audit',
       searchId: 'audit-search',
       searchValue: query.search,
-      searchPlaceholder: 'Buscar por usuario, acción, módulo o correo...',
+      searchPlaceholder:
+        'Buscar por actor, usuario afectado, acción, módulo o correo...',
       searchFilters: buildAuditSearchFilters(query),
       ctaLabel: 'Exportar CSV',
       ctaIcon: 'download',

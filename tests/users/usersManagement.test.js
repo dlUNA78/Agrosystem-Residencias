@@ -1,10 +1,19 @@
-import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
+import {
+  describe,
+  it,
+  expect,
+  beforeAll,
+  afterAll,
+  afterEach,
+  jest,
+} from '@jest/globals';
 import request from 'supertest';
 import bcrypt from 'bcrypt';
 import app, { closeAppResources } from '../../app.js';
 import db from '../../src/models/index.js';
+import { PANEL_PERMISSIONS } from '../../src/services/rbacService.js';
 
-const { User, RbacRole } = db;
+const { User, RbacRole, AuditLog } = db;
 
 describe('👥 Módulo de Gestión de Usuarios (CRUD + RBAC Admin + Perfil)', () => {
   let testCreatedUserId = null;
@@ -259,7 +268,23 @@ describe('👥 Módulo de Gestión de Usuarios (CRUD + RBAC Admin + Perfil)', ()
       });
     });
 
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
     afterAll(async () => {
+      const testUsers = await User.findAll({
+        where: {
+          email: [CREATE_BLOCKED_EMAIL, CREATE_INIFAP_EMAIL, EDIT_TARGET_EMAIL],
+        },
+        attributes: ['id'],
+      });
+      const testUserIds = testUsers.map((u) => u.id);
+      if (testUserIds.length > 0) {
+        await AuditLog.destroy({
+          where: { table_name: 'Users', record_id: testUserIds },
+        });
+      }
       await User.destroy({
         where: {
           email: [CREATE_BLOCKED_EMAIL, CREATE_INIFAP_EMAIL, EDIT_TARGET_EMAIL],
@@ -301,7 +326,25 @@ describe('👥 Módulo de Gestión de Usuarios (CRUD + RBAC Admin + Perfil)', ()
         await User.findOne({ where: { email: CREATE_BLOCKED_EMAIL } }),
       ).toBeNull();
 
-      // INIFAP legítimo sí puede crearse con sub-rol
+      // Sub-rol inexistente en creación debe devolver 400 rol_no_encontrado (nunca 500 FK)
+      const invalidRoleCreate = await adminAgent
+        .post('/private/users/create')
+        .set('Accept', 'application/json')
+        .send({
+          full_name: 'INIFAP Subrol Inexistente',
+          email: CREATE_BLOCKED_EMAIL,
+          password: 'Password@1234',
+          role: 'inifap',
+          status: 'activo',
+          rbac_role_id: 999999,
+        });
+      expect(invalidRoleCreate.status).toBe(400);
+      expect(invalidRoleCreate.body.code).toBe('rol_no_encontrado');
+      expect(
+        await User.findOne({ where: { email: CREATE_BLOCKED_EMAIL } }),
+      ).toBeNull();
+
+      // INIFAP legítimo sí puede crearse con sub-rol y genera auditoría enriquecida sin password_hash
       const inifapRes = await adminAgent
         .post('/private/users/create')
         .set('Accept', 'application/json')
@@ -321,15 +364,33 @@ describe('👥 Módulo de Gestión de Usuarios (CRUD + RBAC Admin + Perfil)', ()
       expect(createdInifap).not.toBeNull();
       expect(createdInifap.role).toBe('inifap');
       expect(createdInifap.rbac_role_id).toBe(curatorRole.id);
+
+      const createAudit = await AuditLog.findOne({
+        where: {
+          table_name: 'Users',
+          record_id: createdInifap.id,
+          action: 'create',
+        },
+        order: [['id', 'DESC']],
+      });
+      expect(createAudit).not.toBeNull();
+      expect(createAudit.old_values).toBeNull();
+      expect(createAudit.new_values.rbac_role_name).toBe(curatorRole.name);
+      expect(createAudit.new_values.rbac_role_slug).toBe(curatorRole.slug);
+      expect(createAudit.new_values.password).toBeUndefined();
+      expect(createAudit.new_values.password_hash).toBeUndefined();
+      expect(Array.isArray(createAudit.new_values.effective_permissions)).toBe(
+        true,
+      );
     });
 
-    it('9.2. POST /private/users/edit/:id rechaza asignar sub-rol a agricultor o admin, limpia sub-rol al degradar y lo preserva para INIFAP', async () => {
+    it('9.2. POST /private/users/edit/:id revoca sub-rol y custom_permissions automáticamente al degradar (H-3), rechaza sub-rol en no-INIFAP y audita H-4', async () => {
       const adminAgent = await getAdminAgent();
       const adminRecord = await User.findOne({
         where: { email: 'admin@agrosystem.com' },
       });
 
-      // 1. Actualizar puesto de INIFAP sin enviar rbac_role_id conserva su sub-rol actual
+      // 1. Actualizar puesto de INIFAP sin enviar rbac_role_id conserva su sub-rol actual y audita acción 'update'
       const keepSubRoleRes = await adminAgent
         .post(`/private/users/edit/${editTargetUser.id}`)
         .send({
@@ -344,29 +405,102 @@ describe('👥 Módulo de Gestión de Usuarios (CRUD + RBAC Admin + Perfil)', ()
       expect(reloaded.role).toBe('inifap');
       expect(reloaded.rbac_role_id).toBe(curatorRole.id);
 
-      // 2. Intentar degradar a agricultor manteniendo rbac_role_id no nulo -> rechazado (JSON y redirect)
-      const rejectDemoteJson = await adminAgent
+      const nonRoleAudit = await AuditLog.findOne({
+        where: { table_name: 'Users', record_id: editTargetUser.id },
+        order: [['id', 'DESC']],
+      });
+      expect(nonRoleAudit.action).toBe('update');
+
+      // 2. H-3 (Opción 1): Degradar INIFAP -> agricultor enviando sub-rol previo (o distinto) retira sub-rol y custom_permissions automáticamente
+      await User.update(
+        {
+          role: 'inifap',
+          rbac_role_id: curatorRole.id,
+          custom_permissions: {
+            allow: [PANEL_PERMISSIONS.CROPS_PUBLISH],
+            deny: [PANEL_PERMISSIONS.PLAGUES_VIEW_PRIVATE],
+          },
+        },
+        { where: { id: editTargetUser.id } },
+      );
+      const autoDemoteJson = await adminAgent
         .post(`/private/users/edit/${editTargetUser.id}`)
         .set('Accept', 'application/json')
         .send({
           role: 'agricultor',
           rbac_role_id: curatorRole.id,
         });
-      expect(rejectDemoteJson.status).toBe(400);
-      expect(rejectDemoteJson.body.code).toBe('subrol_solo_inifap');
-      reloaded = await User.findByPk(editTargetUser.id);
-      expect(reloaded.role).toBe('inifap');
-      expect(reloaded.rbac_role_id).toBe(curatorRole.id);
+      expect(autoDemoteJson.status).toBe(200);
+      expect(autoDemoteJson.body.success).toBe(true);
+      expect(autoDemoteJson.body.user.role).toBe('agricultor');
+      expect(autoDemoteJson.body.user.rbac_role_id).toBeNull();
 
-      // 3. Degradar a agricultor sin rbac_role_id -> fuerza rbac_role_id = null
-      const demoteRes = await adminAgent
+      reloaded = await User.findByPk(editTargetUser.id);
+      expect(reloaded.role).toBe('agricultor');
+      expect(reloaded.rbac_role_id).toBeNull();
+      expect(reloaded.custom_permissions).toEqual({ allow: [], deny: [] });
+
+      const demoteAudit = await AuditLog.findOne({
+        where: {
+          table_name: 'Users',
+          record_id: editTargetUser.id,
+          action: 'update_user_role',
+        },
+        order: [['id', 'DESC']],
+      });
+      expect(demoteAudit).not.toBeNull();
+      expect(demoteAudit.user_id).toBe(adminRecord.id);
+      expect(demoteAudit.old_values).toEqual(
+        expect.objectContaining({
+          target_user_id: editTargetUser.id,
+          email: EDIT_TARGET_EMAIL,
+          role: 'inifap',
+          rbac_role_id: curatorRole.id,
+          rbac_role_name: curatorRole.name,
+          rbac_role_slug: curatorRole.slug,
+          custom_permissions: {
+            allow: [PANEL_PERMISSIONS.CROPS_PUBLISH],
+            deny: [PANEL_PERMISSIONS.PLAGUES_VIEW_PRIVATE],
+          },
+        }),
+      );
+      expect(demoteAudit.new_values).toEqual(
+        expect.objectContaining({
+          target_user_id: editTargetUser.id,
+          email: EDIT_TARGET_EMAIL,
+          role: 'agricultor',
+          rbac_role_id: null,
+          rbac_role_name: null,
+          custom_permissions: { allow: [], deny: [] },
+          subrole_auto_revoked: true,
+          custom_permissions_cleared: true,
+          upgraded_without_code: false,
+          change_source: 'admin_users_panel',
+        }),
+      );
+      expect(demoteAudit.new_values.permissions_removed).toContain(
+        PANEL_PERMISSIONS.CROPS_PUBLISH,
+      );
+      expect(demoteAudit.old_values.password_hash).toBeUndefined();
+      expect(demoteAudit.new_values.password_hash).toBeUndefined();
+
+      // 3. H-3: Degradar enviando incluso un sub-rol DISTINTO también retira automáticamente (revocar nunca bloquea)
+      await User.update(
+        {
+          role: 'inifap',
+          rbac_role_id: curatorRole.id,
+        },
+        { where: { id: editTargetUser.id } },
+      );
+      const demoteDiffSubRoleRes = await adminAgent
         .post(`/private/users/edit/${editTargetUser.id}`)
         .send({
           role: 'agricultor',
           status: 'activo',
+          rbac_role_id: auditorRole.id,
         });
-      expect(demoteRes.status).toBe(302);
-      expect(demoteRes.headers.location).toContain(
+      expect(demoteDiffSubRoleRes.status).toBe(302);
+      expect(demoteDiffSubRoleRes.headers.location).toContain(
         'success=usuario_actualizado',
       );
       reloaded = await User.findByPk(editTargetUser.id);
@@ -456,6 +590,150 @@ describe('👥 Módulo de Gestión de Usuarios (CRUD + RBAC Admin + Perfil)', ()
       expect(listRes.text).toContain('data-subrole-name="Sin sub-rol"');
 
       await editTargetUser.update({ rbac_role_id: null });
+    });
+
+    it('9.4. H-6(c) + H-4: audita ascenso directo agricultor -> inifap sin código y cambios de sub-rol A -> B -> null', async () => {
+      const adminAgent = await getAdminAgent();
+      const adminRecord = await User.findOne({
+        where: { email: 'admin@agrosystem.com' },
+      });
+
+      await User.update(
+        {
+          role: 'agricultor',
+          rbac_role_id: null,
+          custom_permissions: { allow: [], deny: [] },
+        },
+        { where: { id: editTargetUser.id } },
+      );
+
+      // Ascenso directo sin código por admin con sub-rol A
+      const promoteRes = await adminAgent
+        .post(`/private/users/edit/${editTargetUser.id}`)
+        .set('Accept', 'application/json')
+        .send({
+          role: 'inifap',
+          rbac_role_id: curatorRole.id,
+        });
+      expect(promoteRes.status).toBe(200);
+
+      const promoteAudit = await AuditLog.findOne({
+        where: {
+          table_name: 'Users',
+          record_id: editTargetUser.id,
+          action: 'update_user_role',
+        },
+        order: [['id', 'DESC']],
+      });
+      expect(promoteAudit).not.toBeNull();
+      expect(promoteAudit.user_id).toBe(adminRecord.id);
+      expect(promoteAudit.old_values.role).toBe('agricultor');
+      expect(promoteAudit.new_values.role).toBe('inifap');
+      expect(promoteAudit.new_values.rbac_role_name).toBe(curatorRole.name);
+      expect(promoteAudit.new_values.upgraded_without_code).toBe(true);
+      expect(promoteAudit.new_values.permissions_added.length).toBeGreaterThan(
+        0,
+      );
+
+      // Cambio de sub-rol A -> sub-rol B
+      const swapRes = await adminAgent
+        .post(`/private/users/edit/${editTargetUser.id}`)
+        .set('Accept', 'application/json')
+        .send({
+          role: 'inifap',
+          rbac_role_id: auditorRole.id,
+        });
+      expect(swapRes.status).toBe(200);
+
+      const swapAudit = await AuditLog.findOne({
+        where: {
+          table_name: 'Users',
+          record_id: editTargetUser.id,
+          action: 'update_user_role',
+        },
+        order: [['id', 'DESC']],
+      });
+      expect(swapAudit.old_values.rbac_role_name).toBe(curatorRole.name);
+      expect(swapAudit.new_values.rbac_role_name).toBe(auditorRole.name);
+      expect(swapAudit.new_values.upgraded_without_code).toBe(false);
+      expect(swapAudit.new_values.permissions_added).toContain(
+        PANEL_PERMISSIONS.AUDIT_VIEW,
+      );
+      expect(swapAudit.new_values.permissions_removed).toContain(
+        PANEL_PERMISSIONS.INGREDIENTS_MANAGE,
+      );
+
+      // Retiro explícito de sub-rol B -> null permaneciendo INIFAP
+      const clearRes = await adminAgent
+        .post(`/private/users/edit/${editTargetUser.id}`)
+        .set('Accept', 'application/json')
+        .send({
+          role: 'inifap',
+          rbac_role_id: '',
+        });
+      expect(clearRes.status).toBe(200);
+
+      const clearAudit = await AuditLog.findOne({
+        where: {
+          table_name: 'Users',
+          record_id: editTargetUser.id,
+          action: 'update_user_role',
+        },
+        order: [['id', 'DESC']],
+      });
+      expect(clearAudit.old_values.rbac_role_name).toBe(auditorRole.name);
+      expect(clearAudit.new_values.rbac_role_id).toBeNull();
+      expect(clearAudit.new_values.rbac_role_name).toBeNull();
+      expect(clearAudit.new_values.permissions_removed).toContain(
+        PANEL_PERMISSIONS.AUDIT_VIEW,
+      );
+    });
+
+    it('9.5. Atomicidad: si AuditLog.create falla en POST /private/users/edit/:id, la transacción hace rollback limpio', async () => {
+      const adminAgent = await getAdminAgent();
+      await User.update(
+        {
+          role: 'inifap',
+          rbac_role_id: curatorRole.id,
+          custom_permissions: {
+            allow: [PANEL_PERMISSIONS.CROPS_PUBLISH],
+            deny: [],
+          },
+        },
+        { where: { id: editTargetUser.id } },
+      );
+
+      jest
+        .spyOn(AuditLog, 'create')
+        .mockRejectedValueOnce(new Error('Falla simulada de auditoría'));
+
+      const failedRes = await adminAgent
+        .post(`/private/users/edit/${editTargetUser.id}`)
+        .set('Accept', 'application/json')
+        .send({
+          role: 'agricultor',
+        });
+
+      expect(failedRes.status).toBe(500);
+      expect(failedRes.body.code).toBe('actualizacion_fallida');
+
+      const rolledBack = await User.findByPk(editTargetUser.id);
+      expect(rolledBack.role).toBe('inifap');
+      expect(rolledBack.rbac_role_id).toBe(curatorRole.id);
+      expect(rolledBack.custom_permissions).toEqual({
+        allow: [PANEL_PERMISSIONS.CROPS_PUBLISH],
+        deny: [],
+      });
+    });
+
+    it('9.6. GET /private/audit encuentra eventos de cambio de rol filtrando por módulo usuarios, acción roles y correo del usuario afectado', async () => {
+      const adminAgent = await getAdminAgent();
+      const auditRes = await adminAgent.get(
+        `/private/audit?module=usuarios&action=roles&search=${encodeURIComponent(EDIT_TARGET_EMAIL)}`,
+      );
+      expect(auditRes.status).toBe(200);
+      expect(auditRes.text).toContain(EDIT_TARGET_EMAIL);
+      expect(auditRes.text).toContain('Cambio de Rol');
     });
   });
 });

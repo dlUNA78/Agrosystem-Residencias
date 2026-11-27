@@ -1,3 +1,25 @@
+import { PERMISSION_DEFINITIONS } from './rbacService.js';
+
+const PERMISSION_LABEL_MAP = Object.freeze(
+  Object.fromEntries(
+    PERMISSION_DEFINITIONS.flatMap((group) =>
+      group.items.map((item) => [item.id, item.label]),
+    ),
+  ),
+);
+
+const USER_ROLE_LABELS = Object.freeze({
+  admin: 'Administrador',
+  inifap: 'Personal INIFAP',
+  agricultor: 'Productor Agrícola',
+});
+
+const ROLE_TRANSITION_ACTIONS = new Set([
+  'update_user_role',
+  'update_user_permissions',
+  'upgrade_role',
+]);
+
 const MODULE_TABLES = {
   plagas: ['Plagues', 'Plague', 'PlagueImages', 'PlagueRegions'],
   cultivos: ['Crops', 'Crop', 'CropImages'],
@@ -11,7 +33,7 @@ const MODULE_TABLES = {
     'FarmApplications',
     'FarmBlocks',
   ],
-  usuarios: ['Users', 'User', 'InifapCodes'],
+  usuarios: ['Users', 'User', 'InifapCodes', 'RBAC', 'RbacRoles'],
   proveedores: ['Suppliers', 'Supplier'],
   ingredientes: ['ActiveIngredients', 'ActiveIngredient'],
 };
@@ -26,11 +48,24 @@ const ACTION_GROUPS = {
   ],
   editar: [
     'update',
+    'update_user_role',
+    'update_user_permissions',
+    'upgrade_role',
     'advance_crop_stage',
     'revert_crop_stage',
     'finish_crop_cycle',
     'update_workflow',
     'manage_relations',
+  ],
+  roles: [
+    'update_user_role',
+    'update_user_permissions',
+    'upgrade_role',
+    'create_role',
+    'update_role',
+    'delete_role',
+    'generate_codes',
+    'revoke_code',
   ],
   eliminar: ['delete', 'destroy', 'deactivate_block'],
   archivar: ['archive'],
@@ -89,7 +124,9 @@ const EXTRA_AUDIT_ACTIONS = [
   'create_role',
   'update_role',
   'delete_role',
+  'update_user_role',
   'update_user_permissions',
+  'upgrade_role',
   'generate_codes',
   'revoke_code',
   'PASSWORD_CHANGE',
@@ -181,6 +218,37 @@ const buildCreatedAtRange = (Op, dateFrom, dateTo) => {
   return Object.getOwnPropertySymbols(range).length > 0 ? range : null;
 };
 
+const buildUserMatchCondition = (
+  Op,
+  userFilterSql,
+  userIdsSubquery,
+  literalFn,
+) => {
+  const targetUserCondition = {
+    table_name: { [Op.in]: ['Users', 'RBAC'] },
+    record_id: { [Op.in]: userIdsSubquery },
+  };
+  const actorOrTargetCondition = Op.or
+    ? {
+        [Op.or]: [
+          { user_id: { [Op.in]: userIdsSubquery } },
+          targetUserCondition,
+        ],
+      }
+    : { user_id: { [Op.in]: userIdsSubquery } };
+
+  if (!Op.and) {
+    return actorOrTargetCondition;
+  }
+
+  return {
+    [Op.and]: [
+      literalFn(`EXISTS (SELECT 1 FROM "Users" WHERE ${userFilterSql})`),
+      actorOrTargetCondition,
+    ],
+  };
+};
+
 const buildSearchOrConditions = (Sequelize, search) => {
   const { Op } = Sequelize;
   const rawLower = String(search ?? '')
@@ -209,16 +277,9 @@ const buildSearchOrConditions = (Sequelize, search) => {
     `(SELECT "id" FROM "Users" WHERE ${userFilterSql})`,
   );
 
-  if (Op.and) {
-    conditions.push({
-      [Op.and]: [
-        literalFn(`EXISTS (SELECT 1 FROM "Users" WHERE ${userFilterSql})`),
-        { user_id: { [Op.in]: userIdsSubquery } },
-      ],
-    });
-  } else {
-    conditions.push({ user_id: { [Op.in]: userIdsSubquery } });
-  }
+  conditions.push(
+    buildUserMatchCondition(Op, userFilterSql, userIdsSubquery, literalFn),
+  );
 
   return conditions;
 };
@@ -260,6 +321,7 @@ const MODULE_LABEL_MATCHERS = [
   [/Plague/i, 'Plagas'],
   [/Crop/i, 'Cultivos'],
   [/Product/i, 'Productos'],
+  [/RBAC|RbacRole/i, 'Usuarios y RBAC'],
   [/User|InifapCode/i, 'Usuarios'],
   [/Supplier/i, 'Proveedores'],
   [/ActiveIngredient/i, 'Ingredientes'],
@@ -379,6 +441,60 @@ const ACTION_DETAILS_MAP = {
     icon: 'send',
     badgeClass: 'text-sky-700 bg-sky-50 border border-sky-200',
   },
+  update_user_role: {
+    label: 'Cambio de Rol',
+    actionText: 'Modificó rol o sub-rol de usuario',
+    icon: 'shield',
+    badgeClass: 'text-indigo-700 bg-indigo-50 border border-indigo-200',
+  },
+  update_user_permissions: {
+    label: 'Permisos RBAC',
+    actionText: 'Actualizó permisos y sub-rol RBAC',
+    icon: 'key-round',
+    badgeClass: 'text-indigo-700 bg-indigo-50 border border-indigo-200',
+  },
+  upgrade_role: {
+    label: 'Ascenso INIFAP',
+    actionText: 'Ascendió a personal INIFAP con código',
+    icon: 'award',
+    badgeClass: 'text-emerald-700 bg-emerald-50 border border-emerald-200',
+  },
+  suspend: {
+    label: 'Suspensión',
+    actionText: 'Suspendió cuenta de usuario',
+    icon: 'user-x',
+    badgeClass: 'text-amber-700 bg-amber-50 border border-amber-200',
+  },
+  create_role: {
+    label: 'Nuevo Sub-rol',
+    actionText: 'Creó sub-rol RBAC',
+    icon: 'shield-plus',
+    badgeClass: 'text-emerald-700 bg-emerald-50 border border-emerald-200',
+  },
+  update_role: {
+    label: 'Edición Sub-rol',
+    actionText: 'Actualizó sub-rol RBAC',
+    icon: 'shield-check',
+    badgeClass: 'text-amber-700 bg-amber-50 border border-amber-200',
+  },
+  delete_role: {
+    label: 'Baja Sub-rol',
+    actionText: 'Eliminó sub-rol RBAC',
+    icon: 'shield-off',
+    badgeClass: 'text-rose-700 bg-rose-50 border border-rose-200',
+  },
+  generate_codes: {
+    label: 'Códigos INIFAP',
+    actionText: 'Generó lote de códigos INIFAP',
+    icon: 'key',
+    badgeClass: 'text-emerald-700 bg-emerald-50 border border-emerald-200',
+  },
+  revoke_code: {
+    label: 'Revocación',
+    actionText: 'Revocó código de acceso INIFAP',
+    icon: 'ban',
+    badgeClass: 'text-rose-700 bg-rose-50 border border-rose-200',
+  },
 };
 
 const getActionDetails = (action) =>
@@ -389,20 +505,150 @@ const getActionDetails = (action) =>
     badgeClass: 'text-slate-700 bg-slate-100 border border-slate-200',
   };
 
+const isRecordObject = (val) =>
+  Boolean(val && typeof val === 'object' && !Array.isArray(val));
+
+const formatUserRoleLabel = (role) => {
+  if (!role) return 'Sin registro';
+  return USER_ROLE_LABELS[role] || String(role);
+};
+
+const formatSubRoleLabel = (values) => {
+  if (!isRecordObject(values)) return 'Ninguno';
+  if (values.rbac_role_name) return String(values.rbac_role_name);
+  if (values.rbac_role_id) return `Sub-rol #${values.rbac_role_id}`;
+  return 'Ninguno';
+};
+
+const mapPermissionLabels = (list) =>
+  Array.isArray(list)
+    ? list.map((perm) => PERMISSION_LABEL_MAP[perm] || String(perm))
+    : [];
+
+const hasLegacyRoleTransition = (plain, oldValues, newValues) => {
+  if (!['Users', 'User', 'RBAC'].includes(plain.table_name)) return false;
+  if (plain.action !== 'update') return false;
+  const roleChanged =
+    oldValues.role !== undefined &&
+    newValues.role !== undefined &&
+    oldValues.role !== newValues.role;
+  const subRoleChanged =
+    (oldValues.rbac_role_id ?? null) !== (newValues.rbac_role_id ?? null);
+  return roleChanged || subRoleChanged;
+};
+
+const resolveTargetIdentity = (plain, oldValues, newValues) => {
+  const targetUserId =
+    newValues.target_user_id ??
+    oldValues.target_user_id ??
+    plain.record_id ??
+    null;
+  const fallbackName = targetUserId ? `Usuario #${targetUserId}` : 'Usuario';
+  const targetName = newValues.full_name || oldValues.full_name || fallbackName;
+  const targetEmail = newValues.email || oldValues.email || null;
+  return { targetUserId, targetName, targetEmail };
+};
+
+const asPermissionArray = (value) => (Array.isArray(value) ? value : []);
+
+const asNonEmptyOrNull = (value) => (value ? value : null);
+
+export const extractRoleAuditSummary = (plain) => {
+  if (!isRecordObject(plain)) return null;
+  const oldValues = isRecordObject(plain.old_values) ? plain.old_values : {};
+  const newValues = isRecordObject(plain.new_values) ? plain.new_values : {};
+  const isRoleAction =
+    ROLE_TRANSITION_ACTIONS.has(plain.action) ||
+    hasLegacyRoleTransition(plain, oldValues, newValues);
+
+  if (!isRoleAction) return null;
+
+  const { targetUserId, targetName, targetEmail } = resolveTargetIdentity(
+    plain,
+    oldValues,
+    newValues,
+  );
+  const permissionsAdded = asPermissionArray(newValues.permissions_added);
+  const permissionsRemoved = asPermissionArray(newValues.permissions_removed);
+
+  return {
+    targetUserId,
+    targetName,
+    targetEmail,
+    oldRole: asNonEmptyOrNull(oldValues.role),
+    newRole: asNonEmptyOrNull(newValues.role),
+    oldRoleLabel: formatUserRoleLabel(oldValues.role),
+    newRoleLabel: formatUserRoleLabel(newValues.role),
+    oldSubRole: formatSubRoleLabel(oldValues),
+    newSubRole: formatSubRoleLabel(newValues),
+    permissionsAdded,
+    permissionsRemoved,
+    permissionsAddedLabels: mapPermissionLabels(permissionsAdded),
+    permissionsRemovedLabels: mapPermissionLabels(permissionsRemoved),
+    subroleAutoRevoked: Boolean(newValues.subrole_auto_revoked),
+    customPermissionsCleared: Boolean(newValues.custom_permissions_cleared),
+    upgradedWithoutCode: Boolean(newValues.upgraded_without_code),
+    orphanSubroleCleared: Boolean(newValues.orphan_subrole_cleared),
+    changeSource: asNonEmptyOrNull(newValues.change_source),
+    codeMasked: asNonEmptyOrNull(newValues.inifap_code_masked),
+  };
+};
+
+const formatRoleSummaryAnnotations = (roleChange) => {
+  const tags = [];
+  const addedCount = roleChange.permissionsAdded.length;
+  const removedCount = roleChange.permissionsRemoved.length;
+  if (addedCount > 0 || removedCount > 0) {
+    tags.push(`(+${addedCount} / -${removedCount} permisos)`);
+  }
+  if (roleChange.subroleAutoRevoked) {
+    tags.push('(retiro automático de sub-rol)');
+  }
+  if (roleChange.customPermissionsCleared) {
+    tags.push('(permisos personalizados limpiados)');
+  }
+  if (roleChange.upgradedWithoutCode) {
+    tags.push('(ascenso directo sin código)');
+  }
+  if (roleChange.codeMasked) {
+    tags.push(`(código ${roleChange.codeMasked})`);
+  }
+  return tags;
+};
+
+const formatRoleChangeDetailsText = (roleChange) => {
+  const targetLabel = roleChange.targetEmail
+    ? `Objetivo: ${roleChange.targetName} (${roleChange.targetEmail})`
+    : `Objetivo: ${roleChange.targetName}`;
+  const roleText = roleChange.oldRole
+    ? `Rol: ${roleChange.oldRoleLabel} → ${roleChange.newRoleLabel}`
+    : `Rol: ${roleChange.newRoleLabel}`;
+  const subRoleText = `Sub-rol: ${roleChange.oldSubRole} → ${roleChange.newSubRole}`;
+  const annotations = formatRoleSummaryAnnotations(roleChange);
+  return [targetLabel, roleText, subRoleText, ...annotations].join(' · ');
+};
+
 const extractEntityName = (values) => {
   const candidateKeys = ['name', 'full_name', 'plague_name', 'product_name'];
   const foundKey = candidateKeys.find((key) => Boolean(values[key]));
   return foundKey ? values[foundKey] : '';
 };
 
-const extractDetails = (log) => {
+const extractDetails = (log, roleChange = null) => {
+  if (roleChange) {
+    return formatRoleChangeDetailsText(roleChange);
+  }
   const values = log.new_values ?? log.old_values ?? {};
   const idText = log.record_id ? `ID: ${log.record_id}` : '';
   const nameText = extractEntityName(values);
   const statusText =
     values.status !== undefined ? `Estatus: ${values.status}` : '';
+  const affectedText =
+    values.affected_users_count !== undefined
+      ? `Usuarios afectados: ${values.affected_users_count}`
+      : '';
 
-  const parts = [idText, nameText, statusText].filter(Boolean);
+  const parts = [idText, nameText, statusText, affectedText].filter(Boolean);
   return parts.length > 0
     ? parts.join(' · ')
     : `Registro #${log.record_id ?? 'N/A'}`;
@@ -468,6 +714,7 @@ export const serializeAuditLog = (logInstance) => {
   const actionInfo = getActionDetails(plain.action);
   const newValuesJson = stringifyPayload(plain.new_values);
   const oldValuesJson = stringifyPayload(plain.old_values);
+  const roleChange = extractRoleAuditSummary(plain);
 
   return {
     id: plain.id,
@@ -481,7 +728,9 @@ export const serializeAuditLog = (logInstance) => {
     moduleLabel: getModuleLabel(plain.table_name),
     user: buildSerializedUser(plain.user),
     dates: formatLogDate(plain.createdAt),
-    detailsText: extractDetails(plain),
+    detailsText: extractDetails(plain, roleChange),
+    roleChange,
+    roleChangeJson: roleChange ? JSON.stringify(roleChange) : null,
     hasJsonPayload: Boolean(newValuesJson || oldValuesJson),
     newValuesJson,
     oldValuesJson,

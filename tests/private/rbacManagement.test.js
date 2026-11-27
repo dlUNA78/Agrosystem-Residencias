@@ -1,4 +1,12 @@
-import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
+import {
+  describe,
+  it,
+  expect,
+  beforeAll,
+  afterAll,
+  afterEach,
+  jest,
+} from '@jest/globals';
 import request from 'supertest';
 import bcrypt from 'bcrypt';
 import app, { closeAppResources } from '../../app.js';
@@ -9,6 +17,8 @@ import {
   hasEffectivePermission,
   canModifyUserRoleOrStatus,
   getUserRoleSummary,
+  resolveUserSubRoleMutation,
+  resolveUserCustomPermissionsMutation,
 } from '../../src/services/rbacService.js';
 import {
   createInifapCodesBatch,
@@ -16,7 +26,7 @@ import {
   listInifapCodes,
 } from '../../src/services/inifapCodeService.js';
 
-const { User, RbacRole, InifapCode } = db;
+const { User, RbacRole, InifapCode, AuditLog } = db;
 
 describe('🛡️ Módulo de Gobernanza RBAC y Códigos INIFAP', () => {
   let adminUser = null;
@@ -433,6 +443,138 @@ describe('🛡️ Módulo de Gobernanza RBAC y Códigos INIFAP', () => {
         ),
       ).toBe(false);
     });
+
+    it('H-3: resolveUserSubRoleMutation cubre degradación automática, rechazo no-INIFAP, limpieza de huérfanos y conservación INIFAP', () => {
+      // Degradación con sub-rol previo o distinto -> siempre auto-revoca
+      expect(
+        resolveUserSubRoleMutation({
+          previousRole: 'inifap',
+          previousRbacRoleId: 2,
+          targetRole: 'agricultor',
+          rawRbacRoleId: '2',
+        }),
+      ).toEqual({ ok: true, rbacRoleId: null, autoRevokedSubRole: true });
+
+      expect(
+        resolveUserSubRoleMutation({
+          previousRole: 'inifap',
+          previousRbacRoleId: 2,
+          targetRole: 'agricultor',
+          rawRbacRoleId: '3',
+        }),
+      ).toEqual({ ok: true, rbacRoleId: null, autoRevokedSubRole: true });
+
+      expect(
+        resolveUserSubRoleMutation({
+          previousRole: 'inifap',
+          previousRbacRoleId: null,
+          targetRole: 'agricultor',
+          rawRbacRoleId: '',
+        }),
+      ).toEqual({ ok: true, rbacRoleId: null, autoRevokedSubRole: false });
+
+      // Creación / no-INIFAP con sub-rol explícito -> rechazo 400
+      const createReject = resolveUserSubRoleMutation({
+        previousRole: null,
+        previousRbacRoleId: null,
+        targetRole: 'agricultor',
+        rawRbacRoleId: '2',
+      });
+      expect(createReject.ok).toBe(false);
+      expect(createReject.status).toBe(400);
+      expect(createReject.code).toBe('subrol_solo_inifap');
+
+      const existingFarmerReject = resolveUserSubRoleMutation({
+        previousRole: 'agricultor',
+        previousRbacRoleId: null,
+        targetRole: 'agricultor',
+        rawRbacRoleId: '3',
+      });
+      expect(existingFarmerReject.ok).toBe(false);
+      expect(existingFarmerReject.code).toBe('subrol_solo_inifap');
+
+      // No-INIFAP con campo vacío/omitido limpia huérfano a null
+      expect(
+        resolveUserSubRoleMutation({
+          previousRole: 'agricultor',
+          previousRbacRoleId: 9,
+          targetRole: 'agricultor',
+          rawRbacRoleId: undefined,
+        }),
+      ).toEqual({ ok: true, rbacRoleId: null, autoRevokedSubRole: false });
+
+      // Permanencia / ascenso a INIFAP: preservar, asignar, limpiar e inválido
+      expect(
+        resolveUserSubRoleMutation({
+          previousRole: 'inifap',
+          previousRbacRoleId: 4,
+          targetRole: 'inifap',
+          rawRbacRoleId: undefined,
+          preserveWhenOmitted: true,
+        }),
+      ).toEqual({ ok: true, rbacRoleId: 4, autoRevokedSubRole: false });
+
+      expect(
+        resolveUserSubRoleMutation({
+          previousRole: 'inifap',
+          previousRbacRoleId: 4,
+          targetRole: 'inifap',
+          rawRbacRoleId: '',
+          preserveWhenOmitted: true,
+        }),
+      ).toEqual({ ok: true, rbacRoleId: null, autoRevokedSubRole: false });
+
+      expect(
+        resolveUserSubRoleMutation({
+          previousRole: 'agricultor',
+          previousRbacRoleId: null,
+          targetRole: 'inifap',
+          rawRbacRoleId: '5',
+        }),
+      ).toEqual({ ok: true, rbacRoleId: 5, autoRevokedSubRole: false });
+
+      const invalidId = resolveUserSubRoleMutation({
+        previousRole: 'inifap',
+        previousRbacRoleId: null,
+        targetRole: 'inifap',
+        rawRbacRoleId: 'abc',
+      });
+      expect(invalidId.ok).toBe(false);
+      expect(invalidId.code).toBe('rol_no_encontrado');
+    });
+
+    it('H-3: resolveUserCustomPermissionsMutation limpia overrides al degradar y rechaza en usuarios no-INIFAP existentes', () => {
+      expect(
+        resolveUserCustomPermissionsMutation({
+          previousRole: 'inifap',
+          previousCustomPermissions: {
+            allow: [PANEL_PERMISSIONS.CROPS_PUBLISH],
+            deny: [],
+          },
+          targetRole: 'agricultor',
+          requestedCustomPermissions: {
+            allow: [PANEL_PERMISSIONS.CROPS_PUBLISH],
+            deny: [],
+          },
+        }),
+      ).toEqual({
+        ok: true,
+        customPermissions: { allow: [], deny: [] },
+        customPermissionsCleared: true,
+      });
+
+      const farmerReject = resolveUserCustomPermissionsMutation({
+        previousRole: 'agricultor',
+        previousCustomPermissions: { allow: [], deny: [] },
+        targetRole: 'agricultor',
+        requestedCustomPermissions: {
+          allow: [PANEL_PERMISSIONS.CROPS_PUBLISH],
+          deny: [],
+        },
+      });
+      expect(farmerReject.ok).toBe(false);
+      expect(farmerReject.code).toBe('permisos_custom_solo_inifap');
+    });
   });
 
   describe('2. Servicio de Gestión y Emisión de Códigos INIFAP', () => {
@@ -792,11 +934,18 @@ describe('🛡️ Módulo de Gobernanza RBAC y Códigos INIFAP', () => {
       expect(adminJsonRes.body.code).toBe('subrol_solo_inifap');
       expect((await User.findByPk(adminUser.id)).rbac_role_id).toBeNull();
 
-      // 4. Degradar INIFAP con sub-rol a agricultor enviando sub-rol no nulo -> rechaza y no altera registro
-      await legitInifapUser.update({
-        role: 'inifap',
-        rbac_role_id: curatorRole.id,
-      });
+      // 4. H-3 (Opción 1): Degradar INIFAP con sub-rol a agricultor enviando sub-rol previo -> revoca automáticamente y audita old_values + new_values
+      await User.update(
+        {
+          role: 'inifap',
+          rbac_role_id: curatorRole.id,
+          custom_permissions: {
+            allow: [PANEL_PERMISSIONS.AUDIT_VIEW],
+            deny: [],
+          },
+        },
+        { where: { id: legitInifapUser.id } },
+      );
       const demoteWithSubRoleRes = await adminAgent
         .post(`/private/rbac/users/${legitInifapUser.id}/permissions`)
         .set('Accept', 'application/json')
@@ -804,14 +953,70 @@ describe('🛡️ Módulo de Gobernanza RBAC y Códigos INIFAP', () => {
           role: 'agricultor',
           status: 'activo',
           rbac_role_id: curatorRole.id,
+          allow: [PANEL_PERMISSIONS.AUDIT_VIEW],
         });
-      expect(demoteWithSubRoleRes.status).toBe(400);
-      expect(demoteWithSubRoleRes.body.code).toBe('subrol_solo_inifap');
-      const unchangedInifap = await User.findByPk(legitInifapUser.id);
-      expect(unchangedInifap.role).toBe('inifap');
-      expect(unchangedInifap.rbac_role_id).toBe(curatorRole.id);
+      expect(demoteWithSubRoleRes.status).toBe(200);
+      expect(demoteWithSubRoleRes.body.success).toBe(true);
+      expect(demoteWithSubRoleRes.body.user.role).toBe('agricultor');
+      expect(demoteWithSubRoleRes.body.user.rbac_role_id).toBeNull();
 
-      // 5. Degradar INIFAP con sub-rol a agricultor sin sub-rol -> fuerza rbac_role_id = null
+      const demotedAutoUser = await User.findByPk(legitInifapUser.id);
+      expect(demotedAutoUser.role).toBe('agricultor');
+      expect(demotedAutoUser.rbac_role_id).toBeNull();
+      expect(demotedAutoUser.custom_permissions).toEqual({
+        allow: [],
+        deny: [],
+      });
+
+      const demoteRbacAudit = await AuditLog.findOne({
+        where: {
+          table_name: 'RBAC',
+          action: 'update_user_permissions',
+          record_id: legitInifapUser.id,
+        },
+        order: [['id', 'DESC']],
+      });
+      expect(demoteRbacAudit).not.toBeNull();
+      expect(demoteRbacAudit.old_values).toEqual(
+        expect.objectContaining({
+          target_user_id: legitInifapUser.id,
+          full_name: legitInifapUser.full_name,
+          email: H2_INIFAP_EMAIL,
+          role: 'inifap',
+          rbac_role_id: curatorRole.id,
+          rbac_role_name: curatorRole.name,
+          custom_permissions: {
+            allow: [PANEL_PERMISSIONS.AUDIT_VIEW],
+            deny: [],
+          },
+        }),
+      );
+      expect(demoteRbacAudit.new_values).toEqual(
+        expect.objectContaining({
+          target_user_id: legitInifapUser.id,
+          email: H2_INIFAP_EMAIL,
+          role: 'agricultor',
+          rbac_role_id: null,
+          custom_permissions: { allow: [], deny: [] },
+          subrole_auto_revoked: true,
+          custom_permissions_cleared: true,
+          change_source: 'admin_rbac_panel',
+        }),
+      );
+      expect(demoteRbacAudit.new_values.permissions_removed).toContain(
+        PANEL_PERMISSIONS.AUDIT_VIEW,
+      );
+      expect(demoteRbacAudit.old_values.password_hash).toBeUndefined();
+      expect(demoteRbacAudit.new_values.password_hash).toBeUndefined();
+
+      // 5. Degradar INIFAP con sub-rol a agricultor sin sub-rol (form/redirect) -> fuerza rbac_role_id = null
+      await User.update(
+        {
+          role: 'inifap',
+          rbac_role_id: curatorRole.id,
+        },
+        { where: { id: legitInifapUser.id } },
+      );
       const demoteCleanRes = await adminAgent
         .post(`/private/rbac/users/${legitInifapUser.id}/permissions`)
         .send({
@@ -925,7 +1130,17 @@ describe('🛡️ Módulo de Gobernanza RBAC y Códigos INIFAP', () => {
       });
     });
 
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
     afterAll(async () => {
+      const ids = [cpFarmerUser?.id, cpInifapUser?.id].filter(Boolean);
+      if (ids.length > 0) {
+        await AuditLog.destroy({
+          where: { table_name: 'RBAC', record_id: ids },
+        });
+      }
       await User.destroy({
         where: { email: [CP_FARMER_EMAIL, CP_INIFAP_EMAIL] },
       });
@@ -1017,7 +1232,7 @@ describe('🛡️ Módulo de Gobernanza RBAC y Códigos INIFAP', () => {
       );
     });
 
-    it('rechaza guardar custom_permissions.allow en admin y al degradar INIFAP a agricultor (JSON y form) sin modificar BD', async () => {
+    it('rechaza guardar custom_permissions.allow en admin (JSON y form) y limpia overrides automáticamente al degradar INIFAP a agricultor (H-3)', async () => {
       const adminAgent = await getAdminAgent();
       const adminBefore = (await User.findByPk(adminUser.id))
         .custom_permissions;
@@ -1053,15 +1268,18 @@ describe('🛡️ Módulo de Gobernanza RBAC y Códigos INIFAP', () => {
         adminBefore,
       );
 
-      // 3. Degradar INIFAP a agricultor enviando allow no vacío -> rechaza y preserva estado previo
+      // 3. H-3: Degradar INIFAP a agricultor enviando allow previo (JSON) -> limpia overrides sin bloquear y audita
       const inifapInitialPerms = {
         allow: [PANEL_PERMISSIONS.CROPS_PUBLISH],
         deny: [],
       };
-      await cpInifapUser.update({
-        role: 'inifap',
-        custom_permissions: inifapInitialPerms,
-      });
+      await User.update(
+        {
+          role: 'inifap',
+          custom_permissions: inifapInitialPerms,
+        },
+        { where: { id: cpInifapUser.id } },
+      );
 
       const demoteJsonRes = await adminAgent
         .post(`/private/rbac/users/${cpInifapUser.id}/permissions`)
@@ -1071,8 +1289,41 @@ describe('🛡️ Módulo de Gobernanza RBAC y Códigos INIFAP', () => {
           status: 'activo',
           allow: [PANEL_PERMISSIONS.CROPS_PUBLISH],
         });
-      expect(demoteJsonRes.status).toBe(400);
-      expect(demoteJsonRes.body.code).toBe('permisos_custom_solo_inifap');
+      expect(demoteJsonRes.status).toBe(200);
+      expect(demoteJsonRes.body.success).toBe(true);
+
+      const demotedAfterJson = await User.findByPk(cpInifapUser.id);
+      expect(demotedAfterJson.role).toBe('agricultor');
+      expect(demotedAfterJson.custom_permissions).toEqual({
+        allow: [],
+        deny: [],
+      });
+
+      const demoteAudit = await AuditLog.findOne({
+        where: {
+          table_name: 'RBAC',
+          action: 'update_user_permissions',
+          record_id: cpInifapUser.id,
+        },
+        order: [['id', 'DESC']],
+      });
+      expect(demoteAudit.old_values.custom_permissions).toEqual(
+        inifapInitialPerms,
+      );
+      expect(demoteAudit.new_values.custom_permissions).toEqual({
+        allow: [],
+        deny: [],
+      });
+      expect(demoteAudit.new_values.custom_permissions_cleared).toBe(true);
+
+      // 4. H-3: Degradar INIFAP a agricultor enviando allow previo (form/redirect) -> también limpia sin bloquear
+      await User.update(
+        {
+          role: 'inifap',
+          custom_permissions: inifapInitialPerms,
+        },
+        { where: { id: cpInifapUser.id } },
+      );
 
       const demoteFormRes = await adminAgent
         .post(`/private/rbac/users/${cpInifapUser.id}/permissions`)
@@ -1083,12 +1334,118 @@ describe('🛡️ Módulo de Gobernanza RBAC y Códigos INIFAP', () => {
         });
       expect(demoteFormRes.status).toBe(302);
       expect(demoteFormRes.headers.location).toContain(
-        'error=permisos_custom_solo_inifap',
+        'success=permisos_actualizados',
       );
 
-      const unchangedInifap = await User.findByPk(cpInifapUser.id);
-      expect(unchangedInifap.role).toBe('inifap');
-      expect(unchangedInifap.custom_permissions).toEqual(inifapInitialPerms);
+      const demotedAfterForm = await User.findByPk(cpInifapUser.id);
+      expect(demotedAfterForm.role).toBe('agricultor');
+      expect(demotedAfterForm.custom_permissions).toEqual({
+        allow: [],
+        deny: [],
+      });
+    });
+
+    it('H-4 + atomicidad: registra old_values completos en updateRbacRole/deleteRbacRole y hace rollback si AuditLog.create falla', async () => {
+      const adminAgent = await getAdminAgent();
+
+      // 1. Crear sub-rol temporal y asignarlo a cpInifapUser
+      const tempRole = await RbacRole.create({
+        slug: `temp-audit-role-${Date.now()}`,
+        name: 'Rol Temporal Auditoría',
+        base_role: 'inifap',
+        permissions: [PANEL_PERMISSIONS.CROPS_PUBLISH],
+        is_system: false,
+      });
+      await User.update(
+        {
+          role: 'inifap',
+          rbac_role_id: tempRole.id,
+          custom_permissions: { allow: [], deny: [] },
+        },
+        { where: { id: cpInifapUser.id } },
+      );
+
+      // 2. Actualizar sub-rol y verificar old_values + permissions_added/removed
+      const updateRoleRes = await adminAgent
+        .post(`/private/rbac/roles/edit/${tempRole.id}`)
+        .set('Accept', 'application/json')
+        .send({
+          name: 'Rol Temporal Editado',
+          permissions: [PANEL_PERMISSIONS.AUDIT_VIEW],
+        });
+      expect(updateRoleRes.status).toBe(200);
+
+      const updateRoleAudit = await AuditLog.findOne({
+        where: {
+          table_name: 'RBAC',
+          action: 'update_role',
+          record_id: tempRole.id,
+        },
+        order: [['id', 'DESC']],
+      });
+      expect(updateRoleAudit).not.toBeNull();
+      expect(updateRoleAudit.old_values).toEqual(
+        expect.objectContaining({
+          name: 'Rol Temporal Auditoría',
+          permissions: [PANEL_PERMISSIONS.CROPS_PUBLISH],
+        }),
+      );
+      expect(updateRoleAudit.new_values).toEqual(
+        expect.objectContaining({
+          name: 'Rol Temporal Editado',
+          permissions: [PANEL_PERMISSIONS.AUDIT_VIEW],
+          permissions_added: [PANEL_PERMISSIONS.AUDIT_VIEW],
+          permissions_removed: [PANEL_PERMISSIONS.CROPS_PUBLISH],
+        }),
+      );
+
+      // 3. Atomicidad en updateUserPermissions: si AuditLog.create falla, hace rollback limpio
+      jest
+        .spyOn(AuditLog, 'create')
+        .mockRejectedValueOnce(new Error('Falla simulada RBAC audit'));
+
+      const failedPermRes = await adminAgent
+        .post(`/private/rbac/users/${cpInifapUser.id}/permissions`)
+        .set('Accept', 'application/json')
+        .send({
+          role: 'agricultor',
+          status: 'activo',
+        });
+      expect(failedPermRes.status).toBe(500);
+      const rolledBackUser = await User.findByPk(cpInifapUser.id);
+      expect(rolledBackUser.role).toBe('inifap');
+      expect(rolledBackUser.rbac_role_id).toBe(tempRole.id);
+
+      // 4. Eliminar sub-rol verifica old_values + affected_user_ids + affected_users_count
+      const deleteRoleRes = await adminAgent.post(
+        `/private/rbac/roles/delete/${tempRole.id}`,
+      );
+      expect(deleteRoleRes.status).toBe(302);
+      expect(deleteRoleRes.headers.location).toContain('success=rol_eliminado');
+
+      const deleteRoleAudit = await AuditLog.findOne({
+        where: {
+          table_name: 'RBAC',
+          action: 'delete_role',
+          record_id: tempRole.id,
+        },
+        order: [['id', 'DESC']],
+      });
+      expect(deleteRoleAudit).not.toBeNull();
+      expect(deleteRoleAudit.old_values).toEqual(
+        expect.objectContaining({
+          name: 'Rol Temporal Editado',
+          permissions: [PANEL_PERMISSIONS.AUDIT_VIEW],
+        }),
+      );
+      expect(deleteRoleAudit.new_values.affected_user_ids).toContain(
+        cpInifapUser.id,
+      );
+      expect(deleteRoleAudit.new_values.affected_users_count).toBe(1);
+
+      await AuditLog.destroy({
+        where: { table_name: 'RBAC', record_id: tempRole.id },
+      });
     });
 
     it('control positivo: permite guardar custom_permissions.allow y deny en usuario inifap (JSON y form)', async () => {

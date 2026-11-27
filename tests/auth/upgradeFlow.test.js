@@ -10,7 +10,17 @@ import {
   maskCodeString,
 } from '../../src/services/inifapCodeService.js';
 
-const { InifapCode, Notification, RbacRole, Sequelize, User, sequelize } = db;
+import { PANEL_PERMISSIONS } from '../../src/services/rbacService.js';
+
+const {
+  AuditLog,
+  InifapCode,
+  Notification,
+  RbacRole,
+  Sequelize,
+  User,
+  sequelize,
+} = db;
 const { Op } = Sequelize;
 
 afterAll(closeAppResources);
@@ -56,6 +66,14 @@ const cleanupUpgradeFixtures = async ({
   roleIds = [],
 }) => {
   if (userIds.length > 0) {
+    await AuditLog.destroy({
+      where: {
+        [Op.or]: [
+          { user_id: { [Op.in]: userIds } },
+          { table_name: 'Users', record_id: { [Op.in]: userIds } },
+        ],
+      },
+    });
     await Notification.destroy({
       where: {
         [Op.or]: [
@@ -91,6 +109,7 @@ describe('processUpgrade (unit)', () => {
     jest
       .spyOn(sequelize, 'transaction')
       .mockImplementation(async (callback) => callback({ id: 'tx' }));
+    jest.spyOn(AuditLog, 'create').mockResolvedValue({});
     jest.spyOn(Notification, 'create').mockResolvedValue({});
     jest.spyOn(User, 'findAll').mockResolvedValue([]);
 
@@ -270,9 +289,106 @@ describe('processUpgrade (unit)', () => {
     expect(findAvailableSpy).not.toHaveBeenCalled();
     expect(next).not.toHaveBeenCalled();
   });
+
+  it('H-6(a) + H-4 (unit): limpia rbac_role_id huérfano cuando el código tiene rbac_role_id=null, sincroniza req.user.rbacRole y audita código enmascarado', async () => {
+    const rawCode = 'AGS-UNIT-ORPH-9999-ABCD';
+    const inifapCode = {
+      id: 77,
+      code: rawCode,
+      code_masked: maskCodeString(rawCode),
+      rbac_role_id: null,
+      burn: jest.fn().mockResolvedValue(undefined),
+    };
+    const orphanRole = {
+      id: 99,
+      name: 'Subrol Huérfano',
+      slug: 'subrol-huerfano',
+      permissions: [PANEL_PERMISSIONS.CROPS_PUBLISH],
+    };
+    jest.spyOn(InifapCode, 'findAvailable').mockResolvedValue(inifapCode);
+    jest.spyOn(RbacRole, 'findByPk').mockResolvedValue(orphanRole);
+    const tx = { id: 'tx-h6a' };
+    jest
+      .spyOn(sequelize, 'transaction')
+      .mockImplementation(async (callback) => callback(tx));
+    const auditSpy = jest.spyOn(AuditLog, 'create').mockResolvedValue({});
+    jest.spyOn(Notification, 'create').mockResolvedValue({});
+    jest.spyOn(User, 'findAll').mockResolvedValue([]);
+
+    let rbacRoleSeenAtLogin = 'UNSET';
+    const userObj = {
+      id: 41,
+      full_name: 'Agricultor Huérfano Unit',
+      email: 'huerfano@agrosystem.test',
+      role: 'agricultor',
+      status: 'activo',
+      rbac_role_id: 99,
+      rbacRole: orphanRole,
+      password_hash: '$2b$10$secretHashNeverAudited',
+      save: jest.fn().mockResolvedValue(undefined),
+    };
+
+    const req = {
+      body: { secret_code: rawCode, job_title: 'Técnico INIFAP' },
+      logIn: jest.fn((loggedUser, callback) => {
+        rbacRoleSeenAtLogin = loggedUser.rbacRole;
+        callback();
+      }),
+      session: {
+        regenerate: jest.fn((callback) => callback()),
+      },
+      user: userObj,
+    };
+    const res = {
+      redirect: jest.fn(),
+      render: jest.fn(),
+      status: jest.fn().mockReturnThis(),
+    };
+    const next = jest.fn();
+
+    await authController.processUpgrade(req, res, next);
+
+    expect(userObj.role).toBe('inifap');
+    expect(userObj.rbac_role_id).toBeNull();
+    expect(rbacRoleSeenAtLogin).toBeNull();
+    expect(res.redirect).toHaveBeenCalledWith('/dashboard');
+
+    expect(auditSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        user_id: 41,
+        action: 'upgrade_role',
+        table_name: 'Users',
+        record_id: 41,
+        old_values: expect.objectContaining({
+          role: 'agricultor',
+          rbac_role_id: 99,
+          rbac_role_name: 'Subrol Huérfano',
+        }),
+        new_values: expect.objectContaining({
+          role: 'inifap',
+          rbac_role_id: null,
+          orphan_subrole_cleared: true,
+          inifap_code_id: 77,
+          inifap_code_masked: maskCodeString(rawCode),
+          change_source: 'inifap_code_upgrade',
+        }),
+      }),
+      { transaction: tx },
+    );
+
+    const auditedPayload = auditSpy.mock.calls[0][0];
+    const serialized = JSON.stringify(auditedPayload);
+    expect(serialized).not.toContain(rawCode);
+    expect(serialized).not.toContain('password_hash');
+    expect(serialized).not.toContain('$2b$10$secretHashNeverAudited');
+  });
 });
 
 describe('POST /auth/inifap-upgrade (HTTP integration)', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('rechaza con HTTP 403 a un admin con código válido sin degradar su rol ni quemar el código', async () => {
     const suffix = `${Date.now()}_admin`;
     const { user: adminUser, password } = await createTestUser({
@@ -428,11 +544,137 @@ describe('POST /auth/inifap-upgrade (HTTP integration)', () => {
       expect(codeRecord.is_used).toBe(true);
       expect(codeRecord.used_by_user_id).toBe(farmerUser.id);
       expect(codeRecord.used_at).not.toBeNull();
+
+      const auditLog = await AuditLog.findOne({
+        where: {
+          table_name: 'Users',
+          record_id: farmerUser.id,
+          action: 'upgrade_role',
+        },
+        order: [['id', 'DESC']],
+      });
+      expect(auditLog).not.toBeNull();
+      expect(auditLog.user_id).toBe(farmerUser.id);
+      expect(auditLog.old_values.role).toBe('agricultor');
+      expect(auditLog.new_values).toEqual(
+        expect.objectContaining({
+          role: 'inifap',
+          rbac_role_id: targetRole.id,
+          rbac_role_name: targetRole.name,
+          rbac_role_slug: targetRole.slug,
+          inifap_code_id: codeRecord.id,
+          inifap_code_masked: codeRecord.code_masked,
+          orphan_subrole_cleared: false,
+          change_source: 'inifap_code_upgrade',
+        }),
+      );
+      expect(auditLog.new_values.permissions_added.length).toBeGreaterThan(0);
+      expect(JSON.stringify(auditLog.toJSON())).not.toContain(rawCode);
+      expect(auditLog.old_values.password_hash).toBeUndefined();
+      expect(auditLog.new_values.password_hash).toBeUndefined();
     } finally {
       await cleanupUpgradeFixtures({
         userIds: [farmerUser.id],
         codeIds: [codeRecord.id],
         roleIds: [targetRole.id],
+      });
+    }
+  });
+
+  it('H-6(a) integración: agricultor con rbac_role_id huérfano que canjea código sin sub-rol limpia rbac_role_id a null y registra auditoría', async () => {
+    const suffix = `${Date.now()}_h6a_orphan`;
+    const orphanRole = await RbacRole.create({
+      slug: `upgrade-h6a-orphan-${suffix}`,
+      name: 'Subrol Huérfano H6a',
+      base_role: 'inifap',
+      permissions: [PANEL_PERMISSIONS.CROPS_PUBLISH],
+    });
+    const { user: farmerUser, password } = await createTestUser({
+      role: 'agricultor',
+      rbacRoleId: orphanRole.id,
+      suffix,
+    });
+    const { record: codeRecord, rawCode } = await createUnusedCode({
+      rbacRoleId: null,
+      note: 'Prueba H6a sin sub-rol',
+    });
+
+    try {
+      const agent = await loginAs(farmerUser.email, password);
+      const response = await agent.post('/auth/inifap-upgrade').send({
+        secret_code: rawCode,
+        job_title: 'Técnico SIN Subrol',
+      });
+
+      expect(response.status).toBe(302);
+      expect(response.headers.location).toBe('/dashboard');
+
+      await farmerUser.reload();
+      await codeRecord.reload();
+      expect(farmerUser.role).toBe('inifap');
+      expect(farmerUser.rbac_role_id).toBeNull();
+      expect(codeRecord.is_used).toBe(true);
+
+      const auditLog = await AuditLog.findOne({
+        where: {
+          table_name: 'Users',
+          record_id: farmerUser.id,
+          action: 'upgrade_role',
+        },
+        order: [['id', 'DESC']],
+      });
+      expect(auditLog).not.toBeNull();
+      expect(auditLog.old_values.rbac_role_id).toBe(orphanRole.id);
+      expect(auditLog.old_values.rbac_role_name).toBe(orphanRole.name);
+      expect(auditLog.new_values.rbac_role_id).toBeNull();
+      expect(auditLog.new_values.orphan_subrole_cleared).toBe(true);
+      expect(auditLog.new_values.inifap_code_masked).toBe(
+        codeRecord.code_masked,
+      );
+      expect(JSON.stringify(auditLog.toJSON())).not.toContain(rawCode);
+    } finally {
+      await cleanupUpgradeFixtures({
+        userIds: [farmerUser.id],
+        codeIds: [codeRecord.id],
+        roleIds: [orphanRole.id],
+      });
+    }
+  });
+
+  it('Atomicidad: si AuditLog.create falla durante el canje, la transacción hace rollback del rol y del código INIFAP', async () => {
+    const suffix = `${Date.now()}_rollback`;
+    const { user: farmerUser, password } = await createTestUser({
+      role: 'agricultor',
+      suffix,
+    });
+    const { record: codeRecord, rawCode } = await createUnusedCode({
+      rbacRoleId: null,
+      note: 'Prueba rollback audit upgrade',
+    });
+
+    try {
+      const agent = await loginAs(farmerUser.email, password);
+      jest
+        .spyOn(AuditLog, 'create')
+        .mockRejectedValueOnce(new Error('Falla simulada en AuditLog'));
+
+      const response = await agent.post('/auth/inifap-upgrade').send({
+        secret_code: rawCode,
+        job_title: 'Debe Revertirse',
+      });
+
+      expect(response.status).toBe(500);
+
+      await farmerUser.reload();
+      await codeRecord.reload();
+      expect(farmerUser.role).toBe('agricultor');
+      expect(farmerUser.rbac_role_id).toBeNull();
+      expect(codeRecord.is_used).toBe(false);
+      expect(codeRecord.used_by_user_id).toBeNull();
+    } finally {
+      await cleanupUpgradeFixtures({
+        userIds: [farmerUser.id],
+        codeIds: [codeRecord.id],
       });
     }
   });

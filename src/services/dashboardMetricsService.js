@@ -24,6 +24,15 @@ const PALETTE = ['#1b4332', '#2d6a4f', '#40916c', '#74c69d', '#b7e4c7'];
 const ACTION_LABELS = {
   create: 'registró',
   update: 'actualizó',
+  update_user_role: 'cambió rol en',
+  update_user_permissions: 'actualizó permisos en',
+  upgrade_role: 'ascendió a INIFAP en',
+  suspend: 'suspendió cuenta en',
+  create_role: 'creó sub-rol en',
+  update_role: 'actualizó sub-rol en',
+  delete_role: 'eliminó sub-rol en',
+  generate_codes: 'generó códigos en',
+  revoke_code: 'revocó código en',
   delete: 'eliminó',
   export: 'exportó',
   status_change: 'cambió estado en',
@@ -47,6 +56,10 @@ const MODULE_LABELS = {
   reports: 'Reportes',
   Users: 'Usuarios',
   users: 'Usuarios',
+  RBAC: 'Usuarios y RBAC',
+  rbac: 'Usuarios y RBAC',
+  RbacRoles: 'Usuarios y RBAC',
+  InifapCodes: 'Usuarios y RBAC',
 };
 
 const ADMIN_QUICK_ACTIONS = [

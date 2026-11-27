@@ -4,6 +4,15 @@ import {
   createNotification,
   notifyAdmins,
 } from '../services/notificationService.js';
+import {
+  ROLE_AUDIT_ACTIONS,
+  ROLE_AUDIT_CHANGE_SOURCES,
+  buildUserRoleAuditPayloads,
+  buildUserRoleSnapshot,
+  maskInifapCodeForAudit,
+  recordUserRoleAudit,
+  resolveSubRoleRecord,
+} from '../services/userRoleAuditService.js';
 import { sendForbiddenResponse } from '../utils/errorRenderer.js';
 import {
   sanitizeText,
@@ -28,19 +37,90 @@ const renderUpgradeError = (res, message, status = 401) =>
     error: message,
   });
 
+const syncUserRbacRoleInMemory = (user, nextSubRole) => {
+  user.rbacRole = nextSubRole;
+  if (typeof user.setDataValue === 'function') {
+    user.setDataValue('rbacRole', nextSubRole);
+  }
+  if ('RbacRole' in user) {
+    user.RbacRole = nextSubRole;
+  }
+};
+
+const captureUpgradeMemoryState = (user) => ({
+  role: user.role,
+  rbac_role_id: user.rbac_role_id,
+  job_title: user.job_title,
+  shift: user.shift,
+  rbacRole: user.rbacRole ?? user.RbacRole ?? null,
+});
+
+const restoreUpgradeMemoryState = (user, savedState) => {
+  user.role = savedState.role;
+  user.rbac_role_id = savedState.rbac_role_id;
+  user.job_title = savedState.job_title;
+  user.shift = savedState.shift;
+  syncUserRbacRoleInMemory(user, savedState.rbacRole);
+};
+
+const resolveUpgradeSubRoles = async (user, inifapCode) => {
+  const previousRbacRoleId = user.rbac_role_id ?? null;
+  const nextRbacRoleId = inifapCode.rbac_role_id ?? null;
+  const cachedPrevRole = user.rbacRole || user.RbacRole || null;
+  const [previousSubRole, nextSubRole] = await Promise.all([
+    resolveSubRoleRecord(previousRbacRoleId, cachedPrevRole),
+    resolveSubRoleRecord(nextRbacRoleId, inifapCode.targetRole || null),
+  ]);
+  return {
+    previousRbacRoleId,
+    nextRbacRoleId,
+    previousSubRole,
+    nextSubRole,
+  };
+};
+
 const applyUpgradeTransaction = async (user, inifapCode, jobTitle, shift) => {
-  await sequelize.transaction(async (t) => {
-    await inifapCode.burn(user.id, { transaction: t });
-    user.role = 'inifap';
-    if (inifapCode.rbac_role_id) {
-      user.rbac_role_id = inifapCode.rbac_role_id;
-    }
-    user.job_title = jobTitle || 'Investigador';
-    if (shift) {
-      user.shift = shift;
-    }
-    await user.save({ transaction: t });
-  });
+  const { previousRbacRoleId, nextRbacRoleId, previousSubRole, nextSubRole } =
+    await resolveUpgradeSubRoles(user, inifapCode);
+  const beforeState = buildUserRoleSnapshot(user, previousSubRole);
+  const savedMemory = captureUpgradeMemoryState(user);
+
+  try {
+    await sequelize.transaction(async (t) => {
+      await inifapCode.burn(user.id, { transaction: t });
+      user.role = 'inifap';
+      user.rbac_role_id = nextRbacRoleId;
+      user.job_title = jobTitle || 'Investigador';
+      if (shift) {
+        user.shift = shift;
+      }
+      await user.save({ transaction: t });
+
+      const afterState = buildUserRoleSnapshot(user, nextSubRole);
+      const { oldValues, newValues } = buildUserRoleAuditPayloads({
+        beforeState,
+        afterState,
+        changeSource: ROLE_AUDIT_CHANGE_SOURCES.INIFAP_CODE_UPGRADE,
+        inifapCode,
+        orphanSubroleCleared: Boolean(previousRbacRoleId && !nextRbacRoleId),
+      });
+
+      await recordUserRoleAudit({
+        actorId: user.id,
+        action: ROLE_AUDIT_ACTIONS.USER_ROLE_UPGRADE,
+        tableName: 'Users',
+        recordId: user.id,
+        oldValues,
+        newValues,
+        transaction: t,
+      });
+    });
+
+    syncUserRbacRoleInMemory(user, nextSubRole);
+  } catch (error) {
+    restoreUpgradeMemoryState(user, savedMemory);
+    throw error;
+  }
 };
 
 const notifyUpgradeCompleted = async (user, codeStr) => {
@@ -233,7 +313,10 @@ export const authController = {
       }
 
       await applyUpgradeTransaction(req.user, inifapCode, jobTitle, shift);
-      await notifyUpgradeCompleted(req.user, inifapCode.code);
+      await notifyUpgradeCompleted(
+        req.user,
+        maskInifapCodeForAudit(inifapCode),
+      );
       return completeUpgradeSessionAndRedirect(req, res, next);
     } catch (error) {
       console.error('Error en processUpgrade:', error);
