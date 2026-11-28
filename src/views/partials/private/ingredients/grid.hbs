@@ -40,43 +40,84 @@
                 </div>
             </div>
 
-            <div class="mt-4 flex items-center justify-between gap-2 border-t border-slate-100 pt-3.5">
-                <span class="inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 font-['Geist_Mono'] text-[10px] font-bold {{this.toxicityBadgeClass}}">
-                    {{this.toxicityShortLabel}}
-                </span>
+            <div class="mt-4 space-y-2.5 border-t border-slate-100 pt-3.5">
+                <div class="flex items-center justify-between gap-2">
+                    <span class="inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 font-['Geist_Mono'] text-[10px] font-bold {{this.toxicityBadgeClass}}">
+                        {{this.toxicityShortLabel}}
+                    </span>
 
-                <div class="flex items-center gap-1">
-                    <button
-                        type="button"
-                        data-view-ingredient
-                        data-code="{{this.code}}"
-                        data-name="{{this.name}}"
-                        data-group="{{this.chemical_group}}"
-                        data-action="{{this.actionLabel}}"
-                        data-toxicity="{{this.toxicityLabel}}"
-                        data-regulatory="{{this.regulatoryLabel}}"
-                        class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition-colors"
-                        title="Inspeccionar ficha química"
-                        aria-label="Inspeccionar {{this.name}}"
-                    >
-                        <i data-lucide="eye" class="h-4 w-4"></i>
-                    </button>
+                    <div class="flex items-center gap-1">
+                        <button
+                            type="button"
+                            data-view-ingredient
+                            data-code="{{this.code}}"
+                            data-name="{{this.name}}"
+                            data-group="{{this.chemical_group}}"
+                            data-action="{{this.actionLabel}}"
+                            data-toxicity="{{this.toxicityLabel}}"
+                            data-regulatory="{{this.regulatoryLabel}}"
+                            class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition-colors"
+                            title="Inspeccionar ficha química"
+                            aria-label="Inspeccionar {{this.name}}"
+                        >
+                            <i data-lucide="eye" class="h-4 w-4"></i>
+                        </button>
 
-                    {{#if this.canRequestArchive}}
+                        {{#if @root.canManage}}
+                        <button
+                            type="button"
+                            data-edit-ingredient
+                            data-id="{{this.id}}"
+                            data-name="{{this.name}}"
+                            data-group="{{this.rawChemicalGroup}}"
+                            data-action="{{this.rawActionType}}"
+                            data-toxicity="{{this.rawToxicity}}"
+                            class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-emerald-50 hover:text-[#1b4332] transition-colors"
+                            title="Editar ingrediente"
+                            aria-label="Editar {{this.name}}"
+                        >
+                            <i data-lucide="pencil" class="h-4 w-4"></i>
+                        </button>
+
+                        <form
+                            action="/private/ingredients/delete/{{this.id}}"
+                            method="POST"
+                            data-delete-ingredient-form
+                            data-ingredient-name="{{this.name}}"
+                            class="inline"
+                        >
+                            <button
+                                type="submit"
+                                class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-rose-50 hover:text-rose-700 transition-colors"
+                                title="Eliminar ingrediente"
+                                aria-label="Eliminar {{this.name}}"
+                            >
+                                <i data-lucide="trash-2" class="h-4 w-4"></i>
+                            </button>
+                        </form>
+                        {{/if}}
+                    </div>
+                </div>
+
+                {{#if this.canRequestArchive}}
+                <div class="flex flex-wrap items-center gap-1.5 border-t border-slate-100 pt-2.5">
                     <button
                         type="button"
                         data-request-archive-ingredient
                         data-id="{{this.id}}"
                         data-name="{{this.name}}"
-                        class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-amber-600 hover:bg-amber-50 transition-colors cursor-pointer"
+                        class="inline-flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1.5 text-[11px] font-bold text-amber-800 hover:bg-amber-100 transition-colors cursor-pointer"
                         title="Solicitar baja justificada"
                         aria-label="Solicitar baja de {{this.name}}"
                     >
-                        <i data-lucide="shield-alert" class="h-4 w-4"></i>
+                        <i data-lucide="shield-alert" class="h-3.5 w-3.5 shrink-0"></i>
+                        <span>Solicitar baja</span>
                     </button>
-                    {{/if}}
+                </div>
+                {{/if}}
 
-                    {{#if this.canApproveArchive}}
+                {{#if this.canApproveArchive}}
+                <div class="flex flex-wrap items-center gap-1.5 border-t border-slate-100 pt-2.5">
                     <form
                         action="/private/ingredients/{{this.id}}/workflow"
                         method="POST"
@@ -88,11 +129,12 @@
                         <input type="hidden" name="action" value="approve_archive" />
                         <button
                             type="submit"
-                            class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-rose-700 hover:bg-rose-50 transition-colors cursor-pointer"
+                            class="inline-flex items-center gap-1.5 rounded-lg border border-rose-200 bg-rose-50 px-2.5 py-1.5 text-[11px] font-bold text-rose-700 hover:bg-rose-100 transition-colors cursor-pointer"
                             title="Aprobar dictamen de baja (Dual Approval)"
                             aria-label="Aprobar baja de {{this.name}}"
                         >
-                            <i data-lucide="check-circle-2" class="h-4 w-4"></i>
+                            <i data-lucide="check-circle-2" class="h-3.5 w-3.5 shrink-0"></i>
+                            <span>Aprobar baja</span>
                         </button>
                     </form>
                     <form
@@ -106,16 +148,19 @@
                         <input type="hidden" name="action" value="reject_archive" />
                         <button
                             type="submit"
-                            class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 transition-colors cursor-pointer"
+                            class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-100 px-2.5 py-1.5 text-[11px] font-bold text-slate-700 hover:bg-slate-200 transition-colors cursor-pointer"
                             title="Rechazar solicitud de baja"
                             aria-label="Rechazar baja de {{this.name}}"
                         >
-                            <i data-lucide="x-circle" class="h-4 w-4"></i>
+                            <i data-lucide="x-circle" class="h-3.5 w-3.5 shrink-0"></i>
+                            <span>Rechazar baja</span>
                         </button>
                     </form>
-                    {{/if}}
+                </div>
+                {{/if}}
 
-                    {{#if this.canRestore}}
+                {{#if this.canRestore}}
+                <div class="flex flex-wrap items-center gap-1.5 border-t border-slate-100 pt-2.5">
                     <form
                         action="/private/ingredients/{{this.id}}/workflow"
                         method="POST"
@@ -127,49 +172,16 @@
                         <input type="hidden" name="action" value="restore" />
                         <button
                             type="submit"
-                            class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-emerald-700 hover:bg-emerald-50 transition-colors cursor-pointer"
+                            class="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-[11px] font-bold text-emerald-800 hover:bg-emerald-100 transition-colors cursor-pointer"
                             title="Restaurar a activo"
                             aria-label="Restaurar {{this.name}}"
                         >
-                            <i data-lucide="rotate-ccw" class="h-4 w-4"></i>
+                            <i data-lucide="rotate-ccw" class="h-3.5 w-3.5 shrink-0"></i>
+                            <span>Restaurar</span>
                         </button>
                     </form>
-                    {{/if}}
-
-                    {{#if @root.canManage}}
-                    <button
-                        type="button"
-                        data-edit-ingredient
-                        data-id="{{this.id}}"
-                        data-name="{{this.name}}"
-                        data-group="{{this.rawChemicalGroup}}"
-                        data-action="{{this.rawActionType}}"
-                        data-toxicity="{{this.rawToxicity}}"
-                        class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-emerald-50 hover:text-[#1b4332] transition-colors"
-                        title="Editar ingrediente"
-                        aria-label="Editar {{this.name}}"
-                    >
-                        <i data-lucide="pencil" class="h-4 w-4"></i>
-                    </button>
-
-                    <form
-                        action="/private/ingredients/delete/{{this.id}}"
-                        method="POST"
-                        data-delete-ingredient-form
-                        data-ingredient-name="{{this.name}}"
-                        class="inline"
-                    >
-                        <button
-                            type="submit"
-                            class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-rose-50 hover:text-rose-700 transition-colors"
-                            title="Eliminar ingrediente"
-                            aria-label="Eliminar {{this.name}}"
-                        >
-                            <i data-lucide="trash-2" class="h-4 w-4"></i>
-                        </button>
-                    </form>
-                    {{/if}}
                 </div>
+                {{/if}}
             </div>
         </article>
         {{/each}}

@@ -39,13 +39,25 @@ const syncQuickTypePills = (selectedType) => {
   });
 };
 
+const handleRefreshFailure = (result) => {
+  if (result?.aborted) return;
+  showAsyncToast(
+    result?.errorMessage || 'No se pudo actualizar el catálogo.',
+    'error',
+  );
+};
+
 const refreshIngredientsRegion = async (targetUrl, pushUrl = true) => {
   const region = document.getElementById('ingredients-results-region');
   setRegionLoading(region, true, 'Actualizando catálogo químico...');
 
   try {
-    const doc = await fetchHtmlDocument(targetUrl);
-    swapFragments(doc, [
+    const result = await fetchHtmlDocument(targetUrl);
+    if (!result?.ok) {
+      handleRefreshFailure(result);
+      return;
+    }
+    swapFragments(result.doc, [
       '#ingredients-results-region',
       '#ingredients-kpi-region',
       '#ingredients-results-counter',
@@ -240,6 +252,7 @@ const handleRequestArchiveFormSubmit = async (form) => {
         showAsyncToast(data.error || 'Error al tramitar la baja.', 'error');
         return;
       }
+      form.reset?.();
       closeIngredientArchiveModal();
       showAsyncToast(data.message || 'Solicitud de baja tramitada.', 'success');
       await refreshIngredientsRegion(
