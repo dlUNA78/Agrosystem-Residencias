@@ -59,7 +59,7 @@
                         {{/if}}
                     </td>
                     <td class="px-5 py-3.5 text-right whitespace-nowrap">
-                        <div class="inline-flex items-center justify-end gap-1">
+                        <div class="inline-flex items-center justify-end gap-1.5 whitespace-nowrap">
                             <button
                                 type="button"
                                 data-view-ingredient
@@ -82,11 +82,12 @@
                                 data-request-archive-ingredient
                                 data-id="{{this.id}}"
                                 data-name="{{this.name}}"
-                                class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-amber-600 hover:bg-amber-50 transition-colors cursor-pointer"
+                                class="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1.5 text-[11px] font-bold text-amber-800 hover:bg-amber-100 transition-colors cursor-pointer"
                                 title="Solicitar baja justificada"
                                 aria-label="Solicitar baja de {{this.name}}"
                             >
-                                <i data-lucide="shield-alert" class="h-4 w-4"></i>
+                                <i data-lucide="shield-alert" class="h-3.5 w-3.5 shrink-0"></i>
+                                <span>Solicitar baja</span>
                             </button>
                             {{/if}}
 
@@ -102,11 +103,12 @@
                                 <input type="hidden" name="action" value="approve_archive" />
                                 <button
                                     type="submit"
-                                    class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-rose-700 hover:bg-rose-50 transition-colors cursor-pointer"
+                                    class="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-rose-200 bg-rose-50 px-2.5 py-1.5 text-[11px] font-bold text-rose-700 hover:bg-rose-100 transition-colors cursor-pointer"
                                     title="Aprobar dictamen de baja (Dual Approval)"
                                     aria-label="Aprobar baja de {{this.name}}"
                                 >
-                                    <i data-lucide="check-circle-2" class="h-4 w-4"></i>
+                                    <i data-lucide="check-circle-2" class="h-3.5 w-3.5 shrink-0"></i>
+                                    <span>Aprobar baja</span>
                                 </button>
                             </form>
                             <form
@@ -120,11 +122,12 @@
                                 <input type="hidden" name="action" value="reject_archive" />
                                 <button
                                     type="submit"
-                                    class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 transition-colors cursor-pointer"
+                                    class="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-slate-200 bg-slate-100 px-2.5 py-1.5 text-[11px] font-bold text-slate-700 hover:bg-slate-200 transition-colors cursor-pointer"
                                     title="Rechazar solicitud de baja"
                                     aria-label="Rechazar baja de {{this.name}}"
                                 >
-                                    <i data-lucide="x-circle" class="h-4 w-4"></i>
+                                    <i data-lucide="x-circle" class="h-3.5 w-3.5 shrink-0"></i>
+                                    <span>Rechazar baja</span>
                                 </button>
                             </form>
                             {{/if}}
@@ -141,11 +144,12 @@
                                 <input type="hidden" name="action" value="restore" />
                                 <button
                                     type="submit"
-                                    class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-emerald-700 hover:bg-emerald-50 transition-colors cursor-pointer"
+                                    class="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-[11px] font-bold text-emerald-800 hover:bg-emerald-100 transition-colors cursor-pointer"
                                     title="Restaurar a activo"
                                     aria-label="Restaurar {{this.name}}"
                                 >
-                                    <i data-lucide="rotate-ccw" class="h-4 w-4"></i>
+                                    <i data-lucide="rotate-ccw" class="h-3.5 w-3.5 shrink-0"></i>
+                                    <span>Restaurar</span>
                                 </button>
                             </form>
                             {{/if}}
